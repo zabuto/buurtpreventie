@@ -1,0 +1,74 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Overzicht verwijderde gebruikers{% endblock %}
+
+{% block content %}
+    {% trans_default_domain 'FOSUserBundle' %}
+
+    <div class="row">
+        <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+            <h1>Verwijderde<span> gebruikers</span></h1>
+        </div>
+        <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 hidden-print">
+            <br>
+            <button id="btnUserList" type="button" class="btn btn-default btn-sm pull-right">
+                <span class="glyphicon glyphicon-list"></span> Naar lijst
+            </button>
+        </div>
+    </div>
+
+    {% if users|length == 0 %}
+        <div class="alert alert-info">
+            Geen gegevens gevonden
+        </div>
+    {% else %}
+        <table id="userListTable" class="table">
+            <thead>
+            <tr>
+                <th>{{ 'user.list.realname'|trans }}</th>
+                <th>{{ 'user.list.email'|trans }}</th>
+                <th>{{ 'user.list.address'|trans }}</th>
+                <th>{{ 'user.list.phone'|trans }}</th>
+                <th>{{ 'user.list.groups'|trans }}</th>
+                <th>{{ 'user.list.lastLogin'|trans }}</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for user in users %}
+                <tr class="clickable">
+                    <td><a href="{{ path("zabuto_user_edit", { 'id': user.id }) }}">{{ user.realname }}</a></td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.address }}</td>
+                    <td>{{ user.phone }}</td>
+                    <td>
+                        {% if user.groups|length > 0 %}
+                            {% for group in user.groups %}
+                                {{ group.name }}{% if not loop.last %}, {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </td>
+                    <td>{{ user.lastLogin is empty ? "-" : user.lastLogin|date("d-m-Y H:i") }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        $(document).ready(function () {
+            $("#btnUserList").click(function () {
+                window.location = '{{ path("zabuto_user_locked_list") }}';
+            });
+
+            $("#userListTable tr").click(function () {
+                var href = $(this).find("a").attr("href");
+                if (href) {
+                    window.location = href;
+                }
+            });
+        });
+    </script>
+{% endblock %}

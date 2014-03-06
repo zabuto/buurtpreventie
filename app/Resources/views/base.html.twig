@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{ app_title }} - {% block title %}Welkom{% endblock %}</title>
+    <meta name="description" content="{{ app_description }}">
+    <meta name="keywords" content="{{ app_title }},{{ app_description }}{% block keywords %}{% endblock %}">
+    <meta name="author" content="{{ app_author }}">
+    <meta name="robots" content="index, follow">
+
+    <!-- Bootstrap CDN css -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+
+    <!-- styles -->
+    {% stylesheets '../app/Resources/public/css/*' %}
+    <link href="{{ asset_url }}" type="text/css" rel="stylesheet">
+    {% endstylesheets %}
+    {% if app_theme is not null %}
+        <link href="{{ asset( 'bundles/zabutotheme/css/' ~ app_theme ~ '.css' ) }}" type="text/css"
+              rel="stylesheet">
+    {% endif %}
+    {% block stylesheets %}{% endblock %}
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+    <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+
+<div id="wrap">
+
+    <div id="header">
+        {% block header %}
+            {% include '_navbar.html.twig' %}
+            <div class="container">
+                <div id="top"></div>
+            </div>
+        {% endblock %}
+    </div>
+
+    <div id="content">
+        <div class="container">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+</div>
+
+<div id="footer" class="hidden-xs hidden-print">
+    {% block footer %}
+        <div class="container">
+            <p class="pull-left text-muted">{{ app_author }}</p>
+
+            <p class="pull-right text-muted">{{ app_version }}{% if app_stability != 'stable' %}-{{ app_stability }}{% endif %}</p>
+        </div>
+    {% endblock %}
+</div>
+
+<!-- jQuery and Bootstrap CDN javascript -->
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+{% block javascripts %}{% endblock %}
+
+</body>
+</html>

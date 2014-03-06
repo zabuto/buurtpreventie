@@ -1,0 +1,42 @@
+{% if editable is sameas(false) %}
+    <div class="pull-right">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Sluiten</button>
+    </div>
+{% else %}
+    {% set redirUrl = path('buurtpreventie_loper_schema_jaarmaand', { jaar: jaar, maand: maand} ) %}
+
+    <div class="pull-left">
+        <button type="button" class="btn btn-link" data-dismiss="modal">Sluit scherm</button>
+    </div>
+
+    {% if editable is sameas('aanmelding') or editable is sameas('alles') %}
+        {% if eigen_datum > 0 %}
+            {% set formUrl = path('buurtpreventie_loper_afmelden_datum_schema', { id: eigen_datum, date: date} ) %}
+            <div class="pull-right">
+                <button type="button" class="btn btn-warning"
+                        onclick="dateId = $(this).closest('.modal').attr('dateId'); buurtpreventieLoopschemaAfmelden(dateId, {{ eigen_datum }}, '{{ formUrl }}', '{{ redirUrl }}', true);">
+                    Afmelden
+                </button>
+            </div>
+        {% else %}
+            {% set formUrl = path('buurtpreventie_loper_nieuwe_datum_schema', { 'date': date} ) %}
+            <div class="pull-right">
+                <button type="button" class="btn btn-success pull-right"
+                        onclick="dateId = $(this).closest('.modal').attr('dateId'); buurtpreventieLoopschemaAanmelden(dateId, '{{ formUrl }}', '{{ redirUrl }}', true);">
+                    Aanmelden
+                </button>
+            </div>
+        {% endif %}
+    {% endif %}
+
+    {% if editable is sameas('resultaat') or editable is sameas('alles') %}
+        {% set formUrl = path('buurtpreventie_loper_resultaat_datum_schema', { id: eigen_datum, date: date} ) %}
+        <div class="pull-right" {% if toon_resultaat and toon_toelichting %}style="padding-right: 10px;" {% endif %}>
+            <button type="button" class="btn btn-primary"
+                    onclick="dateId = $(this).closest('.modal').attr('dateId'); buurtpreventieLoopschemaResultaat(dateId, {{ eigen_datum }}, '{{ formUrl }}', '{{ redirUrl }}', true);">
+                Resultaat
+            </button>
+        </div>
+    {% endif %}
+
+{% endif %}

@@ -1,0 +1,65 @@
+buurtpreventie_home:
+    pattern:  /buurtpreventie
+    defaults: { _controller: ZabutoBuurtpreventieBundle:Index:index }
+
+buurtpreventie_loper_lijst:
+    pattern:  /buurtpreventie/loper/lijst
+    defaults: { _controller: ZabutoBuurtpreventieBundle:Loperlijst:list }
+
+buurtpreventie_loper_lijst_datum_toelichting:
+    pattern:  /buurtpreventie/loper/datum/{date}/{id}/toelichting
+    defaults: { _controller: ZabutoBuurtpreventieBundle:Loperlijst:toelichtingDate }
+
+buurtpreventie_loper_lijst_datum_afmelden:
+    pattern:  /buurtpreventie/loper/datum/{date}/{id}/afmelden
+    defaults: { _controller: ZabutoBuurtpreventieBundle:Loperlijst:cancelDate }
+
+buurtpreventie_loper_schema:
+    pattern:  /buurtpreventie/loper/schema
+    defaults: { _controller: ZabutoBuurtpreventieBundle:Loperschema:calendar }
+
+buurtpreventie_loper_schema_jaarmaand:
+    pattern:  /buurtpreventie/loper/schema/{jaar}/{maand}
+    defaults: { _controller: ZabutoBuurtpreventieBundle:Loperschema:calendar }
+
+buurtpreventie_loper_schema_data:
+    pattern:  /buurtpreventie/loper/schema/data
+    defaults: { _controller: ZabutoBuurtpreventieBundle:Loperschema:calendarData }
+
+buurtpreventie_loper_nieuwe_datum_schema:
+    pattern:  /buurtpreventie/loper/schema/datum/{date}/nieuw
+    defaults: { _controller: ZabutoBuurtpreventieBundle:Loperschema:addDateForm }
+    methods:  [GET]
+
+buurtpreventie_loper_nieuwe_datum_schema_post:
+    pattern:  /buurtpreventie/loper/schema/datum/{date}/nieuw
+    defaults: { _controller: ZabutoBuurtpreventieBundle:Loperschema:addDatePost }
+    methods:  [POST]
+
+buurtpreventie_loper_afmelden_datum_schema:
+    pattern:  /buurtpreventie/loper/schema/{date}/{id}/afmelden
+    defaults: { _controller: ZabutoBuurtpreventieBundle:Loperschema:cancelDateForm }
+    methods:  [GET]
+
+buurtpreventie_loper_afmelden_datum_schema_post:
+    pattern:  /buurtpreventie/loper/schema/{date}/{id}/afmelden
+    defaults: { _controller: ZabutoBuurtpreventieBundle:Loperschema:cancelDatePost }
+    methods:  [POST]
+
+buurtpreventie_loper_resultaat_datum_schema:
+    pattern:  /buurtpreventie/loper/schema/{date}/{id}/resultaat
+    defaults: { _controller: ZabutoBuurtpreventieBundle:Loperschema:resultDateForm }
+    methods:  [GET]
+
+buurtpreventie_loper_resultaat_datum_schema_post:
+    pattern:  /buurtpreventie/loper/schema/{date}/{id}/resultaat
+    defaults: { _controller: ZabutoBuurtpreventieBundle:Loperschema:resultDatePost }
+    methods:  [POST]
+
+buurtpreventie_loper_resultaat_lijst:
+    pattern:  /buurtpreventie/loper/resultaat/lijst
+    defaults: { _controller: ZabutoBuurtpreventieBundle:Loopresultaat:list }
+
+buurtpreventie_loper_resultaat_datum:
+    pattern:  /buurtpreventie/loper/datum/{date}/{id}/resultaat
+    defaults: { _controller: ZabutoBuurtpreventieBundle:Loopresultaat:date }

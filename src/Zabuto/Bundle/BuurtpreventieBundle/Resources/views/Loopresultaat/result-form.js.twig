@@ -1,0 +1,26 @@
+<script>
+    $("#zabuto_buurtpreventie_form_type_loopschema_resultaat_bijzonderheden").parent().children().hide();
+    toggleBuurtpreventieResultaatBijzonderheid($("#zabuto_buurtpreventie_form_type_loopschema_resultaat_resultaat").val());
+
+    $("#zabuto_buurtpreventie_form_type_loopschema_resultaat_resultaat").change(function () {
+        toggleBuurtpreventieResultaatBijzonderheid($(this).val());
+    });
+
+    function toggleBuurtpreventieResultaatBijzonderheid(id) {
+        var list = {
+            {% for resultaat in resultaten %}{{ resultaat.id }}:
+            {% if resultaat.bijzonderheid == true %}1{% else %}0{% endif %}{% if not loop.last %},
+            {% endif %}{% endfor %}
+        }
+
+        if (id in list) {
+            if (list[id] == 1) {
+                $("#zabuto_buurtpreventie_form_type_loopschema_resultaat_bijzonderheden").parent().children().show();
+            } else {
+                $("#zabuto_buurtpreventie_form_type_loopschema_resultaat_bijzonderheden").parent().children().hide();
+            }
+        } else {
+            $("#zabuto_buurtpreventie_form_type_loopschema_resultaat_bijzonderheden").parent().children().hide();
+        }
+    }
+</script>

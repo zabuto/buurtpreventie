@@ -1,0 +1,27 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Gebruiker toevoegen{% endblock %}
+
+{% block content %}
+    {% trans_default_domain 'FOSUserBundle' %}
+
+    <h1>Gebruiker <span>toevoegen</span></h1>
+
+    {% form_theme form 'ZabutoUserBundle:Form:horizontal.html.twig' %}
+    <form role="form" action="{{ path('zabuto_user_new') }}" {{ form_enctype(form) }} method="post"
+          autocomplete="off" class="form-horizontal">
+        {{ form_widget(form) }}
+    </form>
+
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        $(document).ready(function () {
+            $("#fos_user_registration_form_cancel").click(function () {
+                window.location = '{{ path("zabuto_user_list") }}';
+            });
+        });
+    </script>
+{% endblock %}
+

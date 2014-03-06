@@ -1,0 +1,46 @@
+<p class="lead" style="margin-bottom: 0;">
+    {{ lopers|length }} {% if lopers|length==1 %}loper{% else %}lopers{% endif %}
+</p>
+<p>
+    {% for loper in lopers %}
+        {{ loper.naam }}{% if not loop.last %}, {% endif %}
+    {% endfor %}
+</p>
+<hr>
+
+{% if toon_resultaat %}
+    {% if resultaten|length == 0 %}
+        <p class="text-muted">Geen resultaten beschikbaar</p>
+    {% else %}
+        <table style="width: 100%;">
+            {% for loopschema in resultaten %}
+                <tr>
+                    <td style="width: 24px; vertical-align: top; padding-top: 2px;">
+                        <img class="image-responsive loper-avatar"
+                             src="http://www.gravatar.com/avatar/{{ loopschema.loper.gravatar }}?s=14&d=identicon">
+                    </td>
+                    <td style="vertical-align: top; padding-top: 2px;">{{ loopschema.loper.naam }}</td>
+                    <td style="vertical-align: top; padding-top: 4px; width: 20px;">
+                        {% if loopschema.resultaat.bijzonderheid %}
+                            <span class="glyphicon glyphicon-thumbs-down red" title="Bijzonderheden"></span>
+                        {% else %}
+                            <span class="glyphicon glyphicon-thumbs-up green"
+                                  title="Geen bijzonderheden"></span>
+                        {% endif %}
+                    </td>
+                    <td {% if loopschema.resultaat.bijzonderheid is sameas(false) %}class="text-success"{% endif %}>
+                        {{ loopschema.bijzonderheden|default(loopschema.resultaat.omschrijving) }}
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+{% endif %}
+
+{% if toon_resultaat and toon_toelichting %}
+    <hr>
+{% endif %}
+
+{% if toon_toelichting %}
+    {% include '@ZabutoBuurtpreventie/Loperlijst/toelichtingen.html.twig' with {toelichtingen: toelichtingen} %}
+{% endif %}

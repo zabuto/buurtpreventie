@@ -1,0 +1,66 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Gebruikersgroep overzicht{% endblock %}
+
+{% block content %}
+    {% trans_default_domain 'FOSUserBundle' %}
+
+    <div class="row">
+        <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+            <h1>Gebruikersgroep <span>overzicht</span></h1>
+        </div>
+        <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 hidden-print">
+            <br>
+            <button id="btnNewGroup" type="button" class="btn btn-default btn-sm pull-right">
+                <span class="glyphicon glyphicon-plus"></span> Groep {{ 'form.button.new'|trans|lower }}
+            </button>
+        </div>
+    </div>
+
+    {% if groups|length == 0 %}
+        <div class="alert alert-info">
+            Geen gegevens gevonden
+        </div>
+    {% else %}
+        <table id="groupListTable" class="table">
+            <thead>
+            <tr>
+                <th>{{ 'group.list.name'|trans }}</th>
+                <th>{{ 'group.list.roles'|trans }}</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for group in groups %}
+                <tr class="clickable">
+                    <td><a href="{{ path("zabuto_usergroup_edit", { 'id': group.id }) }}">{{ group.name }}</a></td>
+                    <td>
+                        {% if group.rolelist > 0 %}
+                            {% for role in group.rolelist %}
+                                {{ role }}{% if not loop.last %}, {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        $(document).ready(function () {
+            $("#btnNewGroup").click(function () {
+                window.location = '{{ path("zabuto_usergroup_new") }}';
+            });
+
+            $("#groupListTable tr").click(function () {
+                var href = $(this).find("a").attr("href");
+                if (href) {
+                    window.location = href;
+                }
+            });
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,12 @@
+.navbar-default .navbar-brand {
+    padding-top: 10px;
+}
+
+.navbar .glyphicon {
+    margin-right: 5px;
+}
+
+.navbar img.user-avatar {
+    margin-top: -6px;
+    margin-right: 5px;
+}

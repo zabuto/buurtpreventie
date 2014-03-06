@@ -1,0 +1,10 @@
+# Time ago in words - Twig Extension
+less than %seconds seconds ago: %seconds seconden geleden
+half a minute ago:              een halve minuut geleden
+less than a minute ago:         nog geen minuut geleden
+1 minute ago:                   1 minuut geleden
+%minutes minutes ago:           %minutes minuten geleden
+about 1 hour ago:               1 uur geleden
+about %hours hours ago:         %hours uur geleden
+1 day ago:                      1 dag geleden
+%days days ago:                 %days dagen geleden

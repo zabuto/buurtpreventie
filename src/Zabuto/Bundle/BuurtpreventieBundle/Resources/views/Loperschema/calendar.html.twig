@@ -1,0 +1,62 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Loper - Schema{% endblock %}
+
+{% block stylesheets %}
+    {% stylesheets '@zabuto_calendar_css' %}
+    <link href="{{ asset_url }}" type="text/css" rel="stylesheet">
+    {% endstylesheets %}
+    <link href="{{ asset( 'bundles/zabutobuurtpreventie/css/loper.css' ) }}" type="text/css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+    <h1>Loop<span>schema</span></h1>
+
+    <div id="calendar"></div>
+
+    <div class="modal" id="dateEditModal" tabindex="-1" role="dialog" aria-labelledby="dateEditModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="dateEditModalLabel">Bewerken</h4>
+                </div>
+                <div class="modal-body" id="dateEditModalBody">
+                    (niet beschikbaar)
+                </div>
+                <div class="modal-footer">
+                    <div class="pull-left">
+                        <button type="button" class="btn btn-link" data-dismiss="modal">Sluit scherm</button>
+                    </div>
+                    <div class="pull-right">
+                        <button type="button" class="btn btn-primary" id="dateEditModalSubmit">Doorvoeren</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {% javascripts '@zabuto_calendar_js' %}
+    <script src="{{ asset_url }}"></script>
+    {% endjavascripts %}
+    <script src="{{ asset( 'bundles/zabutobuurtpreventie/js/loopschema.js' ) }}"></script>
+
+    <script>
+        $(document).ready(function () {
+            buurtpreventieLoopschemaInit(
+                    'calendar',
+                    {{ jaar }},
+                    {{ maand }},
+                    {{ prev }},
+                    {{ next }},
+                    '{{ path("buurtpreventie_loper_schema_data") }}',
+                    '{{ path("buurtpreventie_loper_nieuwe_datum_schema", {date: 'placeholder'}) }}',
+                    '{{ path("buurtpreventie_loper_schema_jaarmaand", {jaar: 'placeholderjaar', maand: 'placeholdermaand'}) }}',
+                    {% if allowResults %}true{% else %}false{% endif %}
+            );
+        });
+    </script>
+{% endblock %}

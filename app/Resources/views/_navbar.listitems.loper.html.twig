@@ -1,0 +1,20 @@
+<li {% if app.request.attributes.get('_route') == 'buurtpreventie_loper_schema' %} class='active'{% endif %}>
+    <a href="{{ path('buurtpreventie_loper_schema') }}">
+        <span class="visible-xs pull-left glyphicon glyphicon-calendar"></span>
+        Loopschema
+    </a>
+</li>
+
+<li {% if app.request.attributes.get('_route') == 'buurtpreventie_loper_lijst' %} class='active'{% endif %}>
+    <a href="{{ path('buurtpreventie_loper_lijst') }}">
+        <span class="visible-xs pull-left glyphicon glyphicon-align-justify"></span>
+        Looplijst
+    </a>
+</li>
+
+<li {% if app.request.attributes.get('_route') == 'buurtpreventie_loper_resultaat_lijst' %} class='active'{% endif %}>
+    <a href="{{ path('buurtpreventie_loper_resultaat_lijst') }}">
+        <span class="visible-xs pull-left glyphicon glyphicon-saved"></span>
+        Loopresultaten
+    </a>
+</li>

@@ -1,0 +1,53 @@
+{% extends "base.html.twig" %}
+
+{% block content %}
+    {% trans_default_domain 'FOSUserBundle' %}
+
+    <div class="row">
+        <div class="col-sm-12 col-md-6 col-lg-6">
+            <h1>Mijn <span>gegevens</span></h1>
+            <br>
+
+            <div class="table-responsive">
+                <table class="table table-details">
+                    <tr>
+                        <th>{{ 'profile.show.realname'|trans }}</th>
+                        <td>{{ user.realname }}</td>
+                    </tr>
+                    <tr>
+                        <th>{{ 'profile.show.email'|trans }}</th>
+                        <td>{{ user.email }}</td>
+                    </tr>
+                    <tr>
+                        <th>{{ 'profile.show.address'|trans }}</th>
+                        <td>{{ user.address }}</td>
+                    </tr>
+                    <tr>
+                        <th>{{ 'profile.show.phone'|trans }}</th>
+                        <td>{{ user.phone }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="col-sm-12 col-md-5 col-md-offset-1 col-lg-4 col-lg-offset-2">
+            <br>
+            <br>
+
+            <div class="well">
+                <p class="lead"><strong>{{ 'change_password.submit'|trans }}</strong></p>
+                {% for flashMessage in app.session.flashbag.get('zabuto-user-profile') %}
+                    <p class="text-success">
+                        <span class="glyphicon glyphicon-ok green"></span> {{ flashMessage }}
+                    </p>
+                {% endfor %}
+                <form role="form" action="{{ path('zabuto_currentuser_profile') }}" {{ form_enctype(form) }}
+                      method="post" autocomplete="off">
+                    {{ form_widget(form) }}
+                    <button class="btn btn-well btn-block btn-lg" type="submit">{{ 'form.button.edit'|trans }}</button>
+                </form>
+                <br>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

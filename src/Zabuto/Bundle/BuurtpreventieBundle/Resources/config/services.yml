@@ -1,0 +1,4 @@
+services:
+    zabuto_buurtpreventie.mailmanager:
+        class: Zabuto\Bundle\BuurtpreventieBundle\Service\MailManager
+        arguments: [@mailer, @templating, %mailer_address%]

@@ -1,0 +1,49 @@
+security:
+    encoders:
+        FOS\UserBundle\Model\UserInterface: sha512
+
+    role_hierarchy:
+        ROLE_USER:        ROLE_USER
+        ROLE_ADMIN:       ROLE_ADMIN
+        ROLE_SUPERUSER:   ROLE_SUPERUSER
+
+    providers:
+        fos_userbundle:
+            id: fos_user.user_provider.username_email
+
+    firewalls:
+        main:
+            pattern: ^/
+            form_login:
+                provider: fos_userbundle
+                csrf_provider: form.csrf_provider
+            logout:       true
+            anonymous:    true
+
+    access_control:
+        - { path: ^/(_(profiler|wdt)|css|images|js)/, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/login$, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/gebruiker/profiel, role: ROLE_USER }
+        - { path: ^/beheer/*, role: ROLE_SUPERUSER }
+        - { path: ^/buurtpreventie/loper/*, role: ROLE_USER }
+        - { path: ^/buurtpreventie/loopresultaat/*, role: ROLE_ADMIN }
+
+
+# FOSUserBundle Configuration
+fos_user:
+    db_driver:        orm
+    firewall_name:    main
+    user_class:       Zabuto\Bundle\UserBundle\Entity\User
+    group:
+        group_class:  Zabuto\Bundle\UserBundle\Entity\Group
+        form:
+            type:     zabuto_user_group
+    registration:
+        form:
+            type:     zabuto_user_new
+    profile:
+        form:
+            type:     zabuto_user_edit
+    change_password:
+        form:
+            type:     zabuto_user_change_password

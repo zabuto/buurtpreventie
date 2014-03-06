@@ -1,0 +1,17 @@
+{% for loopschema in resultaten %}
+    {% if alleen_bijzonderheden == false or loopschema.resultaat.bijzonderheid %}
+        <p style="overflow-x: auto; word-wrap: break-word;">
+            <img class="image-responsive" style="margin-right: 2px;"
+                 src="http://www.gravatar.com/avatar/{{ loopschema.loper.gravatar }}?s=14&d=identicon">
+            <small class="text-muted">
+                {{ loopschema.loper.naam }}
+            </small>
+            <br>
+            {% if loopschema.resultaat.bijzonderheid %}
+                {{ loopschema.bijzonderheden }}
+            {% else %}
+                {{ loopschema.resultaat.omschrijving }}
+            {% endif %}
+        </p>
+    {% endif %}
+{% endfor %}

@@ -1,0 +1,18 @@
+assetic:
+    debug: %kernel.debug%
+    use_controller: false
+    java: /usr/bin/java
+    filters:
+        cssrewrite: ~
+        yui_js:
+            jar: %kernel.root_dir%/Resources/java/yuicompressor-2.4.7.jar
+        yui_css:
+            jar: %kernel.root_dir%/Resources/java/yuicompressor-2.4.7.jar
+
+    assets:
+        zabuto_calendar_js:
+            inputs:
+                - '%kernel.root_dir%/../vendor/zabuto/calendar/zabuto_calendar.min.js'
+        zabuto_calendar_css:
+            inputs:
+                - '%kernel.root_dir%/../vendor/zabuto/calendar/zabuto_calendar.min.css'

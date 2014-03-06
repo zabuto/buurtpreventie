@@ -1,0 +1,44 @@
+security:
+    login:
+        username: "Emailadres:"
+        username_placeholder: "Vul uw emailadres in"
+        password_placeholder: "Uw wachtwoord"
+
+profile:
+    show:
+        realname: Naam
+        email: Emailadres
+        address: Adres
+        phone: Telefoonnummer
+
+form:
+    realname: "Naam:"
+    address: "Adres:"
+    phone: "Telefoonnummer:"
+    enabled: "Actief:"
+    usergroup: "Gebruikersgroep:"
+    group_name: "Naam:"
+    group_roles: "Rollen:"
+    button:
+        new: Toevoegen
+        edit: Wijzigen
+        delete: Verwijderen
+        cancel: Annuleren
+
+layout:
+    logged_in_as: Ingelogd als %username%
+
+user:
+    list:
+        realname: Naam
+        email: E-mail
+        address: Adres
+        phone: Telefoonnr.
+        groups: Gebruikersgroep
+        lastLogin: Laaste login
+        enabled: Actief
+
+group:
+    list:
+        name: Groep
+        roles: Rol(len)

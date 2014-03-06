@@ -1,0 +1,121 @@
+/* gijzenrooi theme */
+
+/* header */
+#top {
+    height: 130px;
+    margin: 0;
+    padding: 0;
+    background: url('../images/gijzenrooi-header.png') 0 0 repeat-x #7e7b00;
+    margin-top: 45px;
+}
+
+.navbar-default {
+    background-color: #7e7b00;
+    background-image: none;
+    box-shadow: none;
+}
+
+.navbar-brand,
+.navbar-nav > li > a {
+    text-shadow: none;
+}
+
+.navbar-brand img {
+    display: none;
+}
+
+.navbar-default .navbar-nav > li > a {
+    color: #ffffff;
+}
+
+.navbar-default .navbar-nav > .active > a {
+    background-image: none;
+    box-shadow: none;
+}
+
+.navbar-default .navbar-nav > .active > a,
+.navbar-default .navbar-nav > .active > a:hover,
+.navbar-default .navbar-nav > .active > a:focus {
+    color: #5c5a00;
+    background-color: #ffffff;
+}
+
+.navbar-default .navbar-nav > .open > a,
+.navbar-default .navbar-nav > .open > a:hover,
+.navbar-default .navbar-nav > .open > a:focus {
+    color: #5c5a00;
+    background-color: #ffffff;
+}
+
+.navbar-default .navbar-nav .open .dropdown-menu > li > a {
+    color: #5c5a00;
+    background-color: #ffffff;
+}
+
+.navbar-default .navbar-nav .open .dropdown-menu > li > a:focus,
+.navbar-default .navbar-nav .open .dropdown-menu > li > a:hover {
+    color: #ffffff;
+    background-color: #5c5a00;
+}
+
+.dropdown-menu > li > a:hover,
+.dropdown-menu > li > a:focus,
+.dropdown-submenu:hover > a,
+.dropdown-submenu:focus > a {
+    background-color: #5c5a00;
+    background-image: none;
+}
+
+/* content */
+#wrap > #content {
+    padding-top: 25px;
+}
+
+#content h1 {
+    color: #5c5a00;
+}
+
+#content h2 {
+    color: #7e7b00;
+}
+
+#content h1 > span {
+    color: #999500;
+}
+
+/* footer */
+#footer {
+    color: #ffffff;
+    background-color: #7e7b00;
+}
+
+#footer .text-muted {
+    color: #ffffff;
+}
+
+/* responsive */
+@media (max-width: 767px) {
+    /* small devices */
+    .navbar-default .navbar-brand {
+        color: #ffffff;
+    }
+
+    .navbar-default .navbar-nav .open .dropdown-menu > li > a {
+        color: #ffffff;
+        background-color: #7e7b00;
+    }
+
+    .navbar-default .navbar-nav .open .dropdown-menu > li > a:focus,
+    .navbar-default .navbar-nav .open .dropdown-menu > li > a:hover {
+        color: #333333;
+        background-color: #7e7b00;
+    }
+
+    #top {
+        display: none;
+    }
+
+    #wrap > #content {
+        padding-top: 50px;
+    }
+}

@@ -1,0 +1,31 @@
+.lopers-ok {
+    background-color: #8cc665;
+}
+
+.lopers-nok {
+    background-color: #f2dede;
+}
+
+.loopresultaat-na,
+.loopresultaat-ok,
+.loopresultaat-nok {
+    background-color: inherit;
+}
+
+div.zabuto_calendar .loopresultaat-na .badge-event,
+div.zabuto_calendar div.legend span.badge-loopresultaat-na {
+    color: #ffffff;
+    background-color: #777777;
+}
+
+div.zabuto_calendar .loopresultaat-ok .badge-event,
+div.zabuto_calendar div.legend span.badge-loopresultaat-ok {
+    color: #ffffff;
+    background-color: #468847;
+}
+
+div.zabuto_calendar .loopresultaat-nok .badge-event,
+div.zabuto_calendar div.legend span.badge-loopresultaat-nok {
+    color: #ffffff;
+    background-color: #B94A48;
+}

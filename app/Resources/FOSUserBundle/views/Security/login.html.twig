@@ -1,0 +1,65 @@
+{% extends "FOSUserBundle::layout.html.twig" %}
+
+{% trans_default_domain 'FOSUserBundle' %}
+
+{% block fos_user_content %}
+
+    <h1>{{ 'layout.login'|trans({}, 'FOSUserBundle') }}</h1>
+
+    {% if error %}
+        <div class="alert alert-danger">
+            {{ error|trans }}
+        </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-6">
+            <p class="text-muted">Inloggen is alleen mogelijk voor de leden van {{ app_title }}.</p>
+
+            <br>
+
+            <form role="form" action="{{ path("fos_user_security_check") }}" method="post">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+
+                <div class="form-group">
+                    <label for="username">{{ 'security.login.username'|trans }}</label>
+                    <input type="email" class="form-control" id="username" name="_username" value="{{ last_username }}"
+                           required="required" placeholder="{{ 'security.login.username_placeholder'|trans }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">{{ 'security.login.password'|trans }}</label>
+                    <input type="password" class="form-control" id="password" name="_password" required="required"
+                           placeholder="{{ 'security.login.password_placeholder'|trans }}">
+                </div>
+
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" id="remember_me" name="_remember_me"
+                               value="on"> {{ 'security.login.remember_me'|trans }}
+                    </label>
+                </div>
+
+                <br>
+
+                <button type="submit" id="_submit" name="_submit"
+                        class="btn btn-lg btn-default">{{ 'security.login.submit'|trans }}</button>
+            </form>
+        </div>
+        <div class="hidden-xs hidden-sm col-md-5 col-md-offset-1">
+            <br>
+            <img class="img-responsive img-rounded"
+                 src="{{ asset('bundles/zabutobuurtpreventie/images/attentie-buurtpreventie.png') }}">
+            <br>
+        </div>
+    </div>
+
+{% endblock fos_user_content %}
+
+{% block javascripts %}
+    <script>
+        $(document).ready(function () {
+            $("#username").focus();
+        });
+    </script>
+{% endblock %}

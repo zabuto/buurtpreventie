@@ -1,0 +1,62 @@
+imports:
+    - { resource: parameters.yml }
+    - { resource: security.yml }
+    - { resource: assetic.yml }
+    - { resource: services.yml }
+    - { resource: "@ZabutoUserBundle/Resources/config/services.yml" }
+    - { resource: "@ZabutoBuurtpreventieBundle/Resources/config/services.yml" }
+
+framework:
+    translator:      { fallback: %locale% }
+    secret:          %secret%
+    router:
+        resource:            "%kernel.root_dir%/config/routing.yml"
+        strict_requirements: ~
+    form:            ~
+    csrf_protection: ~
+    validation:      { enabled: true, enable_annotations: true }
+    templating:
+        engines:     ['twig']
+    default_locale:  "%locale%"
+    trusted_proxies: ~
+    session:         ~
+    fragments:       ~
+    http_method_override: true
+
+# Twig Configuration
+twig:
+    debug:            %kernel.debug%
+    strict_variables: %kernel.debug%
+    globals:
+        app_author:         %app_author%
+        app_version:        1.0.0
+        app_stability:      stable
+        app_title:          %app_title%
+        app_description:    %app_description%
+        app_theme:          %app_theme%
+    form:
+        resources:
+            - 'ZabutoUserBundle:Form:basic.html.twig'
+
+# Doctrine Configuration
+doctrine:
+    dbal:
+        driver:   %database_driver%
+        host:     %database_host%
+        port:     %database_port%
+        dbname:   %database_name%
+        user:     %database_user%
+        password: %database_password%
+        charset:  UTF8
+        mapping_types:
+            enum:    string
+    orm:
+        auto_generate_proxy_classes: %kernel.debug%
+        auto_mapping: true
+
+# Swiftmailer Configuration
+swiftmailer:
+    transport: %mailer_transport%
+    host:      %mailer_host%
+    username:  %mailer_user%
+    password:  %mailer_password%

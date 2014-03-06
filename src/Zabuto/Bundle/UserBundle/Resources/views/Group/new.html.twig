@@ -1,0 +1,29 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Gebruikersgroep toevoegen{% endblock %}
+
+{% block content %}
+    {% trans_default_domain 'FOSUserBundle' %}
+
+    <h1>Gebruikersgroep <span>toevoegen</span></h1>
+
+    <form role="form" action="{{ path('zabuto_usergroup_new') }}" {{ form_enctype(form) }} method="post"
+          autocomplete="off">
+        {{ form_widget(form) }}
+        <div class="form-group">
+            <button class="btn btn-primary" type="submit">{{ 'form.button.new'|trans }}</button>
+            <button id="btnGroupCancel" class="btn btn-default" type="button">{{ 'form.button.cancel'|trans }}</button>
+        </div>
+    </form>
+
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        $(document).ready(function () {
+            $("#btnGroupCancel").click(function () {
+                window.location = '{{ path("zabuto_usergroup_list") }}';
+            });
+        });
+    </script>
+{% endblock %}

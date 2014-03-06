@@ -1,0 +1,9 @@
+_home:
+    pattern:  /
+    defaults: { _controller: ZabutoBuurtpreventieBundle:Index:index }
+
+zabuto_user_bundle:
+    resource: "@ZabutoUserBundle/Resources/config/routing.yml"
+
+zabuto_buurtpreventie_bundle:
+    resource: "@ZabutoBuurtpreventieBundle/Resources/config/routing.yml"

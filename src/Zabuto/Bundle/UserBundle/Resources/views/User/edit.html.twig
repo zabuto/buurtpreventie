@@ -1,0 +1,70 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Gebruiker wijzigen - {{ username|title }}{% endblock %}
+
+{% block content %}
+    {% trans_default_domain 'FOSUserBundle' %}
+
+    <div class="container pageheader">
+        <h1 class="pull-left">Gebruiker <span>wijzigen</span></h1>
+
+        <ul class="nav nav-pills pull-right">
+            <li>
+                <a href="{{ path("zabuto_user_list") }}">
+                    <span class="glyphicon glyphicon-list"></span> naar lijst
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <br>
+
+    {% form_theme form 'ZabutoUserBundle:Form:horizontal.html.twig' %}
+    <form role="form" class="form-horizontal"
+          action="{{ path('zabuto_user_edit', { 'id': id }) }}" {{ form_enctype(form) }}
+          method="post">
+        {{ form_widget(form) }}
+
+        <div class="row">
+            <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3 col-xs-offset-3 col-sm-offset-3 col-md-offset-2 col-lg-offset-2">
+                <div class="form-group">
+                    <button class="btn btn-primary" type="submit">{{ 'form.button.edit'|trans }}</button>
+                    <button id="btnCancel" class="btn btn-default"
+                            type="button">{{ 'form.button.cancel'|trans }}</button>
+                </div>
+            </div>
+            <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
+                {% if locked is sameas(false) %}
+                    <div class="form-group">
+                        <a href="{{ path('zabuto_user_edit_password', { 'id': id }) }}"
+                           class="btn  btn-warning">{{ 'change_password.submit'|trans }}</a>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
+                {% if locked is sameas(false) %}
+                    <div class="form-group">
+                        <a id="userDeleteButton" href="{{ path('zabuto_user_delete', { 'id': id }) }}"
+                           class="btn btn-danger">{{ 'form.button.delete'|trans }}</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        $("#btnCancel").click(function () {
+            {% if locked is sameas(false) %}
+            window.location = '{{ path("zabuto_user_list") }}';
+            {% else %}
+            window.location = '{{ path("zabuto_user_locked_list") }}';
+            {% endif %}
+        });
+
+        $("#userDeleteButton").click(function () {
+            return confirm('Doorgaan met verwijderen?');
+        });
+    </script>
+{% endblock %}

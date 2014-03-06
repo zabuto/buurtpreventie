@@ -1,0 +1,108 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Loper - Looplijst{% endblock %}
+
+{% block stylesheets %}
+    <link href="{{ asset( 'bundles/zabutobuurtpreventie/css/loper.css' ) }}" type="text/css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+    <h1>Loop<span>lijst</span></h1>
+
+    {% for flashMessage in app.session.flashbag.get('buurtpreventie-loper') %}
+        <div class="alert alert-success alert-dismissable">
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+            <span class="glyphicon glyphicon-ok green"></span> {{ flashMessage }}
+        </div>
+    {% endfor %}
+
+    {% if openList|length == 0 %}
+        <div class="alert alert-info">
+            <strong>Geen gegevens gevonden</strong>
+            <br>
+            <br>
+            Ga naar het <a href="{{ path('buurtpreventie_loper_schema') }}">loopschema</a> om u aan te melden.
+        </div>
+    {% else %}
+        <p>In uw looplijst vindt u een overzicht van alle loopronden waaraan u deelneemt. U bent aangemeld voor <strong>{{ openList|length }}</strong> datums.</p>
+        <br>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th style="width: 125px;">Datum</th>
+                    <th style="width: 20px;"></th>
+                    <th>Lopen met</th>
+                    <th class="visible-xs" title="Bekijk toelichtingen" style="width: 20px;"></th>
+                    <th class="hidden-xs">Toelichting</th>
+                    <th style="width: 100px; padding-left: 10px;"></th>
+                </tr>
+                </thead>
+                <tbody>
+
+                {% for item in openList %}
+                    <tr>
+                        <td {% if item.gevuld == false %}class="text-danger"{% endif %}>{{ item.eigen_schema.datum|date("D d-m-Y") }}</td>
+                        <td {% if item.gevuld == false %}class="text-danger"{% endif %}>
+                            {% if item.gevuld == true %}
+                                <span class="glyphicon glyphicon-ok green" title="Voldoende deelnemers"></span>
+                            {% else %}
+                                <span class="glyphicon glyphicon-warning-sign red"
+                                      title="Onvoldoende deelnemers"></span>
+                            {% endif %}
+                        </td>
+                        <td {% if item.gevuld == false %}class="text-danger"{% endif %}>
+                            {% if item.gevuld == true %}
+                                {% for schema in item.schemas_anderen %}
+                                    {{ schema.loper.naam }}{% if not loop.last %}, {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                Onvoldoende deelnemers
+                            {% endif %}
+                        </td>
+
+                        <td class="visible-xs">
+                            <span class="clickable glyphicon glyphicon-comment text-info" data-toggle="modal"
+                                  data-target="#modalComments{{ item.eigen_schema.datum|date("Ymd") }}"></span>
+
+                            <div class="modal fade" id="modalComments{{ item.eigen_schema.datum|date("Ymd") }}"
+                                 tabindex="-1" role="dialog"
+                                 aria-labelledby="modalComments{{ item.eigen_schema.datum|date("Ymd") }}Label"
+                                 aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal"
+                                                    aria-hidden="true">&times;</button>
+                                            <h4 class="modal-title"
+                                                id="modalComments{{ item.eigen_schema.datum|date("Ymd") }}Label">
+                                                Toelichting bij {{ item.eigen_schema.datum|date("d-m-Y") }}</h4>
+                                        </div>
+                                        <div class="modal-body">
+                                            {% include '@ZabutoBuurtpreventie/Loperlijst/toelichtingen.html.twig' with {toelichtingen: item.toelichtingen} %}
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">
+                                                Sluiten
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="hidden-xs">
+                            {% include '@ZabutoBuurtpreventie/Loperlijst/toelichtingen.html.twig' with {toelichtingen: item.toelichtingen} %}
+                        </td>
+                        <td>
+                            <a href="{{ path('buurtpreventie_loper_lijst_datum_toelichting', { 'id': item.eigen_schema.id, 'date': item.eigen_schema.datum|date('Y-m-d') }) }}">Toelichting</a>
+                            <br>
+                            <a href="{{ path('buurtpreventie_loper_lijst_datum_afmelden', { 'id': item.eigen_schema.id, 'date': item.eigen_schema.datum|date('Y-m-d') }) }}">Afmelden</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
+{% endblock %}

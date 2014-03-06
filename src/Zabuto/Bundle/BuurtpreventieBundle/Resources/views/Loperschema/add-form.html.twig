@@ -1,0 +1,16 @@
+<div id="buurtpreventieLoperAddDateFormErrors"></div>
+<form id="buurtpreventieLoperAddDateForm" action="{{ action }}" {{ form_enctype(form) }} method="post">
+    {{ form_widget(form._token) }}
+
+    {{ form_label(form.toelichtingen) }}
+    {{ form_errors(form.toelichtingen) }}
+
+    <ul class="list-unstyled" data-prototype="{{ form_widget(form.toelichtingen.vars.prototype)|e }}">
+        {% for toelichting in form.toelichtingen %}
+            <li>
+                {{ form_errors(toelichting) }}
+                {{ form_widget(toelichting) }}
+            </li>
+        {% endfor %}
+    </ul>
+</form>

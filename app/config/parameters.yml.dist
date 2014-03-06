@@ -1,0 +1,25 @@
+parameters:
+    database_driver:   pdo_mysql
+    database_host:     localhost
+    database_port:     ~
+    database_name:     ~
+    database_user:     ~
+    database_password: ~
+
+    mailer_address:    ~
+    mailer_transport:  gmail
+    mailer_host:       ~
+    mailer_user:       ~
+    mailer_password:   ~
+
+    locale:            nl
+    secret:            SecretTokenForApplication
+
+    app_author:       'Buurtpreventie'
+    app_title:        'Buurtpreventie'
+    app_description:  'Buurtpreventie in Eindhoven'
+    app_theme:         ~
+
+    loopschema_minimum_aantal_lopers:       2
+    loopschema_maanden_vooruit:             3
+    loopschema_resultaat_voor_lopers:       true

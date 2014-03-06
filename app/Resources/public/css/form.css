@@ -1,0 +1,21 @@
+.form-container > ul > li,
+.form-group > ul > li {
+    color: #B94A48;
+}
+
+.form-horizontal .control-label {
+    text-align: left;
+}
+
+.form-group > .btn {
+    margin-top: 15px;
+    margin-left: 15px;
+}
+
+.form-group > .btn:first-child {
+    margin-left: 0;
+}
+
+.form-horizontal .form-group > .btn:first-child {
+    margin-left: 5px;
+}

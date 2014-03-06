@@ -1,0 +1,45 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Gebruikersgroep wijzigen{% endblock %}
+
+{% block content %}
+    {% trans_default_domain 'FOSUserBundle' %}
+
+    <h1>Gebruikersgroep <span>wijzigen</span></h1>
+
+    <form role="form" action="{{ path('zabuto_usergroup_edit', { 'id': id }) }}" {{ form_enctype(form) }}
+          method="post">
+        {{ form_widget(form) }}
+
+        <div class="row">
+            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                <div class="form-group">
+                    <button class="btn btn-primary" type="submit">{{ 'form.button.edit'|trans }}</button>
+                    <button id="btnGroupCancel" class="btn btn-default"
+                            type="button">{{ 'form.button.cancel'|trans }}</button>
+                </div>
+            </div>
+            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                <div class="form-group">
+                    <a id="groupDeleteButton" href="{{ path('zabuto_usergroup_delete', { 'id': id }) }}"
+                       class="btn btn-link pull-right"><span class="text-danger">{{ 'form.button.delete'|trans }}</span></a>
+                </div>
+            </div>
+        </div>
+    </form>
+
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        $(document).ready(function () {
+            $("#btnGroupCancel").click(function () {
+                window.location = '{{ path("zabuto_usergroup_list") }}';
+            });
+        });
+
+        $("#groupDeleteButton").click(function () {
+            return confirm('Doorgaan met verwijderen?\nVerwijderen kan niet ongedaan worden gemaakt!');
+        });
+    </script>
+{% endblock %}

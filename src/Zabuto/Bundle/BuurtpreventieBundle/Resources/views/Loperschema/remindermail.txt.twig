@@ -1,0 +1,25 @@
+U hebt zich aangemeld als buurtpreventie loper op de volgende datum:
+{{ loopschema.datum|date("d-m-Y") }}
+
+{% if lopers|length < minAantal %}
+Op dit moment bent u als {% if lopers|length == 1 %}enige loper{% else %}een van de {{ lopers|length }} lopers{% endif %} aangemeld.
+Dit is onvoldoende om de loopronde te kunnen maken. Voor een loopronde zijn minimaal {{ minAantal }} lopers nodig.
+{% else %}
+Op dit moment zijn er {{ lopers|length }} lopers aangemeld. Dit is voldoende om de loopronde te kunnen maken.
+
+De aangemelde lopers voor {{ loopschema.datum|date("d-m-Y") }} zijn:
+{% for loper in lopers %}
+-  {{ loper.naam }}
+{% endfor %}
+
+Hieronder ziet u de tot nu toe toegevoegde toelichtingen:
+
+{% for toelichting in toelichtingen %}{% if toelichting.memo is not null %}
+{{ toelichting.loopschema.loper.naam }} ({{ toelichting.aangemaaktop|time_ago_in_words }}): {{ toelichting.memo }}
+
+{% endif %}{% endfor %}
+{% endif %}
+
+
+{{ app_title }}
+* Deze email is automatisch verzonden *

@@ -1,0 +1,31 @@
+services:
+    zabuto_user.new.form.type:
+        class: Zabuto\Bundle\UserBundle\Form\Type\UserNewFormType
+        arguments: [%fos_user.model.user.class%]
+        tags:
+            - { name: form.type, alias: zabuto_user_new }
+
+    zabuto_user.edit.form.type:
+        class: Zabuto\Bundle\UserBundle\Form\Type\UserEditFormType
+        arguments: [%fos_user.model.user.class%]
+        tags:
+            - { name: form.type, alias: zabuto_user_edit }
+
+    zabuto_user.change_password.form.type:
+        class: Zabuto\Bundle\UserBundle\Form\Type\UserChangePasswordFormType
+        arguments: [%fos_user.model.user.class%]
+        tags:
+            - { name: form.type, alias: zabuto_user_change_password }
+
+    zabuto_user.group.form.type:
+        class: Zabuto\Bundle\UserBundle\Form\Type\GroupFormType
+        arguments: [%fos_user.model.group.class%]
+        tags:
+            - { name: form.type, alias: zabuto_user_group }
+
+    zabuto_user.form.type.group.roles:
+        class: Zabuto\Bundle\UserBundle\Form\Type\GroupRoleType
+        arguments:
+            - "@service_container"
+        tags:
+            - { name: form.type, alias: zabuto_user_group_role }

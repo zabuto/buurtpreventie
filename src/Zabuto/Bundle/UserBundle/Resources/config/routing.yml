@@ -1,0 +1,55 @@
+fos_user_security:
+    resource: "@FOSUserBundle/Resources/config/routing/security.xml"
+
+
+zabuto_currentuser_profile:
+    pattern:  /mijn-gegevens
+    defaults: { _controller: ZabutoUserBundle:Profile:index }
+
+
+zabuto_user_list:
+    pattern:  /beheer/gebruiker/lijst
+    defaults: { _controller: ZabutoUserBundle:User:list }
+
+zabuto_user_locked_list:
+    pattern:  /beheer/gebruiker/lijst/verwijderd
+    defaults: { _controller: ZabutoUserBundle:User:lockedList }
+
+zabuto_user_new:
+    pattern:  /beheer/gebruiker/nieuw
+    defaults: { _controller: ZabutoUserBundle:User:new }
+
+zabuto_user_edit:
+    pattern:  /beheer/gebruiker/{id}/wijzig
+    defaults: { _controller: ZabutoUserBundle:User:edit }
+
+zabuto_user_edit_password:
+    pattern:  /beheer/gebruiker/{id}/wijzig/wachtwoord
+    defaults: { _controller: ZabutoUserBundle:User:editPassword }
+
+zabuto_user_delete:
+    pattern:  /beheer/gebruiker/{id}/verwijder
+    defaults: { _controller: ZabutoUserBundle:User:delete }
+
+
+zabuto_usergroup_list:
+    pattern:  /beheer/gebruikersgroep/lijst
+    defaults: { _controller: ZabutoUserBundle:Group:list }
+
+zabuto_usergroup_new:
+    pattern:  /beheer/gebruikersgroep/nieuw
+    defaults: { _controller: ZabutoUserBundle:Group:new }
+
+zabuto_usergroup_edit:
+    pattern:  /beheer/gebruikersgroep/{id}/wijzig
+    defaults: { _controller: ZabutoUserBundle:Group:edit }
+
+zabuto_usergroup_delete:
+    pattern:  /beheer/gebruikersgroep/{id}/verwijder
+    defaults: { _controller: ZabutoUserBundle:Group:delete }
+
+
+
+
+
+

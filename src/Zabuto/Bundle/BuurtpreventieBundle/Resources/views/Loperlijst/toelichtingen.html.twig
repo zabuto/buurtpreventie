@@ -1,0 +1,16 @@
+{% for toelichting in toelichtingen %}
+    {% if toelichting.memo is not null %}
+        <p style="overflow-x: auto; word-wrap: break-word;">
+        <span class="pull-right">
+            <small class="text-muted">{{ toelichting.aangemaaktop|time_ago_in_words }}</small>
+        </span>
+            <img class="image-responsive" style="margin-right: 2px;"
+                 src="http://www.gravatar.com/avatar/{{ toelichting.loopschema.loper.gravatar }}?s=14&d=identicon">
+            <small class="text-muted">
+                {{ toelichting.loopschema.loper.naam }}
+            </small>
+            <br>
+            {{ toelichting.memo }}
+        </p>
+    {% endif %}
+{% endfor %}

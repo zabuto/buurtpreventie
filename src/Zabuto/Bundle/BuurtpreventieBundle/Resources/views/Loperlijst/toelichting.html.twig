@@ -1,0 +1,31 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Loper - Toelichting{% endblock %}
+
+{% block content %}
+    <h1>Loper toelichting <span>{{ entity.datum|date('d-m-Y') }}</span></h1>
+
+    {% include '@ZabutoBuurtpreventie/Loperlijst/toelichtingen.html.twig' with {toelichtingen: toelichtingen} %}
+
+    <p style="overflow-x: auto; word-wrap: break-word;">
+        <span class="pull-right">
+            <small class="text-muted">nieuwe toelichting</small>
+        </span>
+        <img class="image-responsive" style="margin-right: 2px;"
+             src="http://www.gravatar.com/avatar/{{ app.user.gravatar }}?s=14&d=identicon">
+        <small class="text-muted">
+            {{ app.user.naam }}
+        </small>
+    </p>
+
+    <form action="{{ action }}" {{ form_enctype(form) }}
+          method="post">
+
+        {{ form_widget(form) }}
+        <div>
+            <input class="btn btn-warning" type="submit" value="Toevoegen">
+            <a href="{{ redir }}"
+               class="btn btn-link">Toevoegen stoppen</a>
+        </div>
+    </form>
+{% endblock %}

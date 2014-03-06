@@ -1,0 +1,21 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Loper - Resultaat{% endblock %}
+
+{% block content %}
+    <h1>Loper resultaat <span>{{ entity.datum|date('d-m-Y') }}</span></h1>
+
+    <form action="{{ path('buurtpreventie_loper_resultaat_datum', { 'id': entity.id, 'date': entity.datum|date('Y-m-d') }) }}" {{ form_enctype(form) }}
+          method="post">
+        {{ form_widget(form) }}
+        <div>
+            <input class="btn btn-success" type="submit" value="Verwerken">
+            <a href="{{ path('buurtpreventie_loper_resultaat_lijst') }}"
+               class="btn btn-link">Verwerken stoppen</a>
+        </div>
+    </form>
+{% endblock %}
+
+{% block javascripts %}
+    {% include '@ZabutoBuurtpreventie/Loopresultaat/result-form.js.twig' with {resultaten: resultaten} %}
+{% endblock %}

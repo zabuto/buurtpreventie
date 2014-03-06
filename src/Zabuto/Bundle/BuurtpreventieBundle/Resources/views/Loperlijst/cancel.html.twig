@@ -1,0 +1,21 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Loper - Afmelden{% endblock %}
+
+{% block content %}
+    <h1>Loper afmelden <span>{{ entity.datum|date('d-m-Y') }}</span></h1>
+
+    <form action="{{ path('buurtpreventie_loper_lijst_datum_afmelden', { 'id': entity.id, 'date': entity.datum|date('Y-m-d') }) }}" {{ form_enctype(form) }}
+          method="post">
+        <p class="lead">Jammer dat u op <strong>{{ entity.datum|date("d-m-Y", false) }}</strong> niet beschikbaar
+            bent.
+        </p>
+
+        {{ form_widget(form) }}
+        <div>
+            <input class="btn btn-warning" type="submit" value="Afmelden">
+            <a href="{{ path('buurtpreventie_loper_lijst') }}"
+               class="btn btn-link">Afmelden stoppen</a>
+        </div>
+    </form>
+{% endblock %}

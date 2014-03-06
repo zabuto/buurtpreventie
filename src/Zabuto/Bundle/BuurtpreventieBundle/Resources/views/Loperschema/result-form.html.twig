@@ -1,0 +1,6 @@
+<div id="buurtpreventieLoperResultDateFormErrors"></div>
+<form id="buurtpreventieLoperResultDateForm" action="{{ action }}" {{ form_enctype(form) }} method="post">
+    {{ form_widget(form) }}
+</form>
+
+{% include '@ZabutoBuurtpreventie/Loopresultaat/result-form.js.twig' with {resultaten: resultaten} %}

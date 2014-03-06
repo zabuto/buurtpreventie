@@ -1,0 +1,51 @@
+{% extends "ZabutoUserBundle:Form:basic.html.twig" %}
+
+
+{# Labels #}
+
+{% block form_label %}
+    {% spaceless %}
+        {% if label is not sameas(false) %}
+            {% if not compound %}
+                {% set label_attr = label_attr|merge({'for': id}) %}
+            {% endif %}
+            {% if required %}
+                {% set label_attr = label_attr|merge({'class': (label_attr.class|default('') ~ ' required')|trim}) %}
+            {% endif %}
+            {% if label is empty %}
+                {% set label = name|humanize %}
+            {% endif %}
+            <label class="col-xs-3 col-sm-3 col-md-2 col-lg-2 control-label" {% for attrname, attrvalue in label_attr %} {{ attrname }}="{{ attrvalue }}"{% endfor %}>{{ label|trans({}, translation_domain) }}</label>
+        {% endif %}
+    {% endspaceless %}
+{% endblock form_label %}
+
+
+{# Rows #}
+
+{% block form_row %}
+    {% spaceless %}
+        <div class="form-group">
+            {{ form_label(form) }}
+            <div class="col-xs-9 col-sm-9 col-md-8 col-lg-7">
+                {{ form_errors(form) }}
+                {{ form_widget(form) }}
+            </div>
+        </div>
+    {% endspaceless %}
+{% endblock form_row %}
+
+
+{% block button_row %}
+    {% spaceless %}
+        {% if 'data-first-button' in attr %}
+            <div class="col-xs-9 col-sm-9 col-md-8 col-lg-7 col-xs-offset-3 col-sm-offset-3 col-md-offset-2 col-lg-offset-2">
+            <div class="form-group">
+        {% endif %}
+        {{ form_widget(form) }}
+        {% if 'data-last-button' in attr %}
+            </div>
+            </div>
+        {% endif %}
+    {% endspaceless %}
+{% endblock button_row %}

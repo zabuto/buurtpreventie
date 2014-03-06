@@ -1,0 +1,20 @@
+tr.clickable:hover {
+    color: #0088CC;
+}
+
+tr.clickable > td > a {
+    color: inherit;
+}
+
+tr.clickable > td > a:hover {
+    text-decoration: inherit;
+}
+
+table.table-details th {
+    font-weight: normal;
+    color: #999999;
+}
+
+table.table-details tr:last-child {
+    border-bottom: 1px solid #DDDDDD;
+}
