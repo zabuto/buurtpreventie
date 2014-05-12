@@ -141,3 +141,13 @@ Om de eerste keer in te loggen gelden de onderstaande inloggegevens:
 
     emailadres: anke@zabuto.com
     wachtwoord: buurtpreventie
+
+## Email notificatie via cronjob
+Het is mogelijk om lopers vooraf een herinneringsemail te sturen. Hiervoor is het nodig om een cronjob in te richten.
+Het bestand `/app/cron.php` moet uitvoerbaar zijn om de cronjob te kunnen draaien.
+
+Het uit te voeren commando heeft één argument: het aantal dagen dat vooruit gekeken moet worden (0 is vandaag, 1 morgen, etc.):
+
+    /absoluut-pad-naar-bestand/cron.php zabutobuurtpreventie:reminder 1
+
+Lees [hier](https://www.antagonist.nl/help/nl/webhosting/advanced/cronjob) meer over het inrichten van cronjobs.
