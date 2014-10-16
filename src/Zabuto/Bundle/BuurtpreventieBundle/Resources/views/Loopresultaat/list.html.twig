@@ -38,15 +38,17 @@
                 <tbody>
                 {% for item in resultList %}
                     <tr {% if item.resultaten|length == 0 %}class="text-warning"{% endif %}>
-                        <td{% if item.resultaten|length > 0 %} class="text-{% if item.bijzonderheden > 0 %}danger{% else %}success{% endif %}"{% endif %}>
+                        <td{% if item.resultaten|length > 0 %} class="text-{% if item.incidenten > 0 %}danger{% else %}success{% endif %}"{% endif %}>
                             {{ item.eigen_schema.datum|date("D d-m-Y") }}
                         </td>
                         <td>
                             {% if item.resultaten|length == 0 %}
                                 <span class="glyphicon glyphicon-hand-right orange" title="Resultaat verwerken"></span>
                             {% else %}
-                                {% if item.bijzonderheden > 0 %}
-                                    <span class="glyphicon glyphicon-thumbs-down red" title="Bijzonderheden"></span>
+                                {% if item.incidenten > 0 %}
+                                    <span class="glyphicon glyphicon-thumbs-down red" title="Incident"></span>
+                                {% elseif item.bijzonderheden > 0 %}
+                                    <span class="glyphicon glyphicon-thumbs-up green" title="Bijzonderheden"></span>
                                 {% else %}
                                     <span class="glyphicon glyphicon-thumbs-up green"
                                           title="Geen bijzonderheden"></span>

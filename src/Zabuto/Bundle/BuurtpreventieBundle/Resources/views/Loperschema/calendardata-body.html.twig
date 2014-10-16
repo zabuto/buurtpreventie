@@ -21,14 +21,14 @@
                     </td>
                     <td style="vertical-align: top; padding-top: 2px;">{{ loopschema.loper.naam }}</td>
                     <td style="vertical-align: top; padding-top: 4px; width: 20px;">
-                        {% if loopschema.resultaat.bijzonderheid %}
-                            <span class="glyphicon glyphicon-thumbs-down red" title="Bijzonderheden"></span>
+                        {% if loopschema.resultaat.incident %}
+                            <span class="glyphicon glyphicon-thumbs-down red" title="Incident"></span>
                         {% else %}
                             <span class="glyphicon glyphicon-thumbs-up green"
-                                  title="Geen bijzonderheden"></span>
+                                  title="Geen incident"></span>
                         {% endif %}
                     </td>
-                    <td {% if loopschema.resultaat.bijzonderheid is sameas(false) %}class="text-success"{% endif %}>
+                    <td {% if loopschema.bijzonderheden is empty %}class="text-muted"{% endif %}>
                         {{ loopschema.bijzonderheden|default(loopschema.resultaat.omschrijving) }}
                     </td>
                 </tr>

@@ -25,7 +25,7 @@ class LoopschemaResultaatFormType extends AbstractType
             )
         );
         $builder->add('bijzonderheden', 'textarea', array(
-                'label' => 'Geef een toelichting bij bijzonderheden',
+                'label' => 'Toelichting / opmerkingen',
                 'required' => false,
                 'attr' => array('rows' => '3'),
             )

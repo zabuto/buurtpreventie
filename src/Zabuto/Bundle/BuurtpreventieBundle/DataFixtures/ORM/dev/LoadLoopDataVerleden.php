@@ -42,7 +42,7 @@ class LoadLoopData extends AbstractFixture implements OrderedFixtureInterface, C
         $schema1 = new Loopschema();
         $schema1->setLoper($user2);
         $schema1->setActueel(true);
-        $schema1->setResultaat($manager->merge($this->getReference('loopresultaat-ok')));
+        $schema1->setResultaat($manager->merge($this->getReference('loopresultaat-nvt')));
         $schema1->setAangemaaktOp(new DateTime());
         $schema1->setGewijzigdOp(new DateTime());
         $schema1->setDatum($date);
@@ -54,6 +54,7 @@ class LoadLoopData extends AbstractFixture implements OrderedFixtureInterface, C
         $schema2->setLoper($user3);
         $schema2->setActueel(true);
         $schema2->setResultaat($manager->merge($this->getReference('loopresultaat-ok')));
+        $schema2->setBijzonderheden('Aangesproken door diverse buurtgenoten: fijn dat we lopen!');
         $schema2->setAangemaaktOp(new DateTime());
         $schema2->setGewijzigdOp(new DateTime());
         $schema2->setDatum($date);

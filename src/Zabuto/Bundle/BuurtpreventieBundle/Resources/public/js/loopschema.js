@@ -14,8 +14,8 @@
 function buurtpreventieLoopschemaInit(domId, year, month, prev, next, ajaxUrl, actionUrl, redirUrl, viewPast) {
     if (viewPast) {
         var legend = [
-            {type: "text", label: "= geen bijzonderheden", badge: "00", classname: "badge-loopresultaat-ok"},
-            {type: "text", label: "= wel bijzonderheden", badge: "00", classname: "badge-loopresultaat-nok"},
+            {type: "text", label: "= geen incidenten", badge: "00", classname: "badge-loopresultaat-ok"},
+            {type: "text", label: "= incident(en)", badge: "00", classname: "badge-loopresultaat-nok"},
             {type: "text", label: "= geen resultaten", badge: "00", classname: "badge-loopresultaat-na"},
             {type: "spacer"},
             {type: "spacer"},

@@ -41,6 +41,14 @@ class Loopresultaat
     private $bijzonderheid;
 
     /**
+     * @var boolean
+     *
+     * @ORM\Column(name="incident", type="boolean")
+     * @Assert\NotBlank()
+     */
+    private $incident;
+
+    /**
      * Magic method toString
      *
      * @return string
@@ -102,5 +110,27 @@ class Loopresultaat
     public function getBijzonderheid()
     {
         return $this->bijzonderheid;
+    }
+
+    /**
+     * Set incident
+     *
+     * @param boolean $incident
+     * @return Loopresultaat
+     */
+    public function setIncident($incident)
+    {
+        $this->incident = $incident;
+        return $this;
+    }
+
+    /**
+     * Get incident
+     *
+     * @return boolean
+     */
+    public function getIncident()
+    {
+        return $this->incident;
     }
 }

@@ -14,16 +14,26 @@ class LoadLoopresultaatData extends AbstractFixture implements OrderedFixtureInt
      */
     public function load(ObjectManager $manager)
     {
+        $resultaatNvt = new Loopresultaat();
+        $resultaatNvt->setOmschrijving('Geen opmerkingen');
+        $resultaatNvt->setBijzonderheid(false);
+        $resultaatNvt->setIncident(false);
+        $manager->persist($resultaatNvt);
+        $manager->flush();
+        $this->addReference('loopresultaat-nvt', $resultaatNvt);
+
         $resultaatOk = new Loopresultaat();
-        $resultaatOk->setOmschrijving('Geen bijzonderheden');
-        $resultaatOk->setBijzonderheid(false);
+        $resultaatOk->setOmschrijving('Bijzonderheden');
+        $resultaatOk->setBijzonderheid(true);
+        $resultaatOk->setIncident(false);
         $manager->persist($resultaatOk);
         $manager->flush();
         $this->addReference('loopresultaat-ok', $resultaatOk);
 
         $resultaatNok = new Loopresultaat();
-        $resultaatNok->setOmschrijving('Bijzonderheden');
+        $resultaatNok->setOmschrijving('Incident melding');
         $resultaatNok->setBijzonderheid(true);
+        $resultaatNok->setIncident(true);
         $manager->persist($resultaatNok);
         $manager->flush();
         $this->addReference('loopresultaat-nok', $resultaatNok);

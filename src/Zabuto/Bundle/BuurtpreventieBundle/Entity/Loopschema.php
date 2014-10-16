@@ -141,6 +141,22 @@ class Loopschema
     }
 
     /**
+     * @Assert\True(message = "Toelichting moet bij incidenten zijn ingevuld", groups={"Strict"})
+     * @return boolean
+     */
+    public function isResultaatIncident()
+    {
+        $resultaat = $this->getResultaat();
+        if ($resultaat instanceof Loopresultaat && $resultaat->getIncident() === true) {
+            $bijzonderheden = $this->getBijzonderheden();
+            if (empty($bijzonderheden)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * @Assert\True(message = "Reden van afzegging moet zijn ingevuld", groups={"Strict"})
      * @return boolean
      */

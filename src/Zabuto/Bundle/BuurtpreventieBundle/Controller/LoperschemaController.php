@@ -289,8 +289,10 @@ class LoperschemaController extends Controller
 
                 if (!empty($resultaat)) {
                     $bijzonderheid = $resultaat->getBijzonderheid();
+                    $incident = $resultaat->getIncident();
                     $list[$date]['resultaten'][] = $loopschema;
                     $list[$date]['bijzonderheden'] = $list[$date]['bijzonderheden'] + (int)$bijzonderheid;
+                    $list[$date]['incidenten'] = $list[$date]['incidenten'] + (int)$incident;
                     if ($ownDateId > 0) {
                         $list[$date]['eigen_resultaat'] = true;
                     }
@@ -309,12 +311,15 @@ class LoperschemaController extends Controller
 
                 if (!empty($resultaat)) {
                     $bijzonderheid = $resultaat->getBijzonderheid();
+                    $incident = $resultaat->getIncident();
                     $list[$date]['eigen_resultaat'] = ($ownDateId > 0) ? true : false;
                     $list[$date]['resultaten'] = array($loopschema);
                     $list[$date]['bijzonderheden'] = (int)$bijzonderheid;
+                    $list[$date]['incidenten'] = (int)$incident;
                 } else {
                     $list[$date]['resultaten'] = array();
                     $list[$date]['bijzonderheden'] = 0;
+                    $list[$date]['incidenten'] = 0;
                 }
             }
         }
@@ -354,7 +359,7 @@ class LoperschemaController extends Controller
                     if (count($info['resultaten']) == 0) {
                         $list[$date]['classname'] = 'loopresultaat-na';
                     } else {
-                        if ($list[$date]['bijzonderheden'] > 0) {
+                        if ($list[$date]['incidenten'] > 0) {
                             $list[$date]['classname'] = 'loopresultaat-nok';
                         } else {
                             $list[$date]['classname'] = 'loopresultaat-ok';
@@ -394,6 +399,7 @@ class LoperschemaController extends Controller
             unset($list[$date]['eigen_resultaat']);
             unset($list[$date]['resultaten']);
             unset($list[$date]['bijzonderheden']);
+            unset($list[$date]['incidenten']);
             unset($list[$date]['editable']);
             unset($list[$date]['toon_toelichting']);
             unset($list[$date]['toon_resultaat']);

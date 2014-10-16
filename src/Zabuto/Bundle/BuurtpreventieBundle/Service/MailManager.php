@@ -44,7 +44,8 @@ class MailManager
      */
     public function mailLoopschemaResultaat(Loopschema $loopschema)
     {
-        if (false === $loopschema->getResultaat()->getBijzonderheid()) {
+        $bijzonderheden = $loopschema->getBijzonderheden();
+        if (trim($bijzonderheden) === '') {
             return true;
         } else {
             $body = $this->templating->render('ZabutoBuurtpreventieBundle:Loopresultaat:resultmail.txt.twig', array('loopschema' => $loopschema));

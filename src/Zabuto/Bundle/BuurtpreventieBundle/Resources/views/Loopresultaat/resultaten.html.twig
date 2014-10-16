@@ -7,11 +7,7 @@
                 {{ loopschema.loper.naam }}
             </small>
             <br>
-            {% if loopschema.resultaat.bijzonderheid %}
-                {{ loopschema.bijzonderheden }}
-            {% else %}
-                {{ loopschema.resultaat.omschrijving }}
-            {% endif %}
+            {{ loopschema.bijzonderheden|default(loopschema.resultaat.omschrijving) }}
         </p>
     {% endif %}
 {% endfor %}

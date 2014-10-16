@@ -32,12 +32,16 @@ class LoopresultaatController extends Controller
                 $resultList[$key]['eigen_resultaat'] = false;
                 $resultList[$key]['resultaten'] = array();
                 $resultList[$key]['bijzonderheden'] = 0;
+                $resultList[$key]['incidenten'] = 0;
 
                 if (null !== $loopschema->getResultaat()) {
                     $resultList[$key]['eigen_resultaat'] = true;
                     $resultList[$key]['resultaten'][] = $loopschema;
                     if (true === $loopschema->getResultaat()->getBijzonderheid()) {
                         $resultList[$key]['bijzonderheden'] = $resultList[$key]['bijzonderheden'] + 1;
+                    }
+                    if (true === $loopschema->getResultaat()->getIncident()) {
+                        $resultList[$key]['incidenten'] = $resultList[$key]['incidenten'] + 1;
                     }
                 }
 
@@ -46,6 +50,9 @@ class LoopresultaatController extends Controller
                         $resultList[$key]['resultaten'][] = $otherSchema;
                         if (true === $otherSchema->getResultaat()->getBijzonderheid()) {
                             $resultList[$key]['bijzonderheden'] = $resultList[$key]['bijzonderheden'] + 1;
+                        }
+                        if (true === $otherSchema->getResultaat()->getIncident()) {
+                            $resultList[$key]['incidenten'] = $resultList[$key]['incidenten'] + 1;
                         }
                     }
                 }
