@@ -34,6 +34,12 @@ class UserEditFormType extends BaseType
             'translation_domain' => 'FOSUserBundle',
         ));
 
+        $builder->add('credit', 'choice', array(
+            'label' => 'form.credit',
+            'translation_domain' => 'FOSUserBundle',
+            'choices' => array('1' => 'Ja', '0' => 'Nee')
+        ));
+
         $builder->add('groups', 'entity', array(
             'class' => 'ZabutoUserBundle:Group',
             'property' => 'name',

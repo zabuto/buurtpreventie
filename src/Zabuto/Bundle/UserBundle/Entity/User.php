@@ -56,6 +56,13 @@ class User extends BaseUser
     private $phone;
 
     /**
+     * @var boolean
+     *
+     * @ORM\Column(type="boolean")
+     */
+    private $credit = false;
+
+    /**
      * Constructor
      */
     public function __construct()
@@ -207,4 +214,25 @@ class User extends BaseUser
         return $this->phone;
     }
 
+    /**
+     * Set credit
+     *
+     * @param boolean $credit
+     * @return User
+     */
+    public function setCredit($credit)
+    {
+        $this->credit = $credit;
+        return $this;
+    }
+
+    /**
+     * Get credit
+     *
+     * @return boolean
+     */
+    public function getCredit()
+    {
+        return $this->credit;
+    }
 }

@@ -50,6 +50,7 @@ class LoadGebruikerData extends AbstractFixture implements OrderedFixtureInterfa
         $userLoper1->setRealName('Leopold Loper');
         $userLoper1->setAddress('Laan 11');
         $userLoper1->setPhone('040-2222222');
+        $userLoper1->setCredit(true);
         $userLoper1->setEnabled(true);
         $groups = new ArrayCollection;
         $groups->add($manager->merge($this->getReference('group-loper')));
@@ -76,6 +77,7 @@ class LoadGebruikerData extends AbstractFixture implements OrderedFixtureInterfa
         $userLoper3->setPlainPassword('test');
         $userLoper3->setRealName('Willie Wandel');
         $userLoper3->setPhone('040-3333333');
+        $userLoper3->setCredit(true);
         $userLoper3->setEnabled(true);
         $groups = new ArrayCollection;
         $groups->add($manager->merge($this->getReference('group-loper')));

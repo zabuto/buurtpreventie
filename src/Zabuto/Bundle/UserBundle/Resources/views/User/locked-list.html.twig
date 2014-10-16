@@ -30,6 +30,7 @@
                 <th>{{ 'user.list.address'|trans }}</th>
                 <th>{{ 'user.list.phone'|trans }}</th>
                 <th>{{ 'user.list.groups'|trans }}</th>
+                <th>{{ 'user.list.credit'|trans }}</th>
                 <th>{{ 'user.list.lastLogin'|trans }}</th>
             </tr>
             </thead>
@@ -45,6 +46,11 @@
                             {% for group in user.groups %}
                                 {{ group.name }}{% if not loop.last %}, {% endif %}
                             {% endfor %}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.credit %}
+                            <span class="glyphicon glyphicon-ok"></span>
                         {% endif %}
                     </td>
                     <td>{{ user.lastLogin is empty ? "-" : user.lastLogin|date("d-m-Y H:i") }}</td>

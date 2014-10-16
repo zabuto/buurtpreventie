@@ -10,11 +10,13 @@ profile:
         email: Emailadres
         address: Adres
         phone: Telefoonnummer
+        credit: Certificaat
 
 form:
     realname: "Naam:"
     address: "Adres:"
     phone: "Telefoonnummer:"
+    credit: "Certificaat:"
     enabled: "Actief:"
     usergroup: "Gebruikersgroep:"
     group_name: "Naam:"
@@ -34,6 +36,7 @@ user:
         email: E-mail
         address: Adres
         phone: Telefoonnr.
+        credit: Cert.
         groups: Gebruikersgroep
         lastLogin: Laaste login
         enabled: Actief
