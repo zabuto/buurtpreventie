@@ -20,7 +20,7 @@ use DateTime;
  * @UniqueEntity(
  *     fields={"loper", "datum", "actueel"},
  *     errorPath="datum",
- *     message="Loper is al aan- of afgemeld voor deze datum"
+ *     message="U bent al aangemeld voor deze datum"
  * )
  * @Assert\GroupSequence({"Loopschema", "Strict"})
  */
