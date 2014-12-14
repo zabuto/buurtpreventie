@@ -29,7 +29,7 @@ twig:
     strict_variables: %kernel.debug%
     globals:
         app_author:         %app_author%
-        app_version:        1.0.1
+        app_version:        1.0.2
         app_stability:      stable
         app_title:          %app_title%
         app_description:    %app_description%

@@ -211,7 +211,7 @@ class LoperschemaController extends Controller
     }
 
     /**
-     * Afmeldeing voor datum verwerken
+     * Afmelding voor datum verwerken
      *
      * @param $id
      * @param $date
@@ -228,12 +228,19 @@ class LoperschemaController extends Controller
             return new JsonResponse(array('success' => false, 'errors' => array('ID kan niet worden opgevraagd')));
         }
 
+        $afgemeld = $em->getRepository('ZabutoBuurtpreventieBundle:Loopschema')->findAllInactiveForDate(new DateTime($date), $user);
+
         $form = $this->createForm(new LoopschemaAfmeldenFormType(), $loopschema);
 
         $form->submit($this->getRequest());
         if ($form->isValid()) {
+            foreach ($afgemeld as $afmelding) {
+                $em->remove($afmelding);
+            }
+
             $loopschema->setActueel(false);
             $em->persist($loopschema);
+
             $em->flush();
             return new JsonResponse(array('success' => true));
         }

@@ -17,6 +17,11 @@ use DateTime;
  * @ORM\Table(name="buurtprev_loopschema")
  * @ORM\HasLifecycleCallbacks
  * @ORM\Entity(repositoryClass="Zabuto\Bundle\BuurtpreventieBundle\Entity\LoopschemaRepository")
+ * @UniqueEntity(
+ *     fields={"loper", "datum", "actueel"},
+ *     errorPath="datum",
+ *     message="Loper is al aan- of afgemeld voor deze datum"
+ * )
  * @Assert\GroupSequence({"Loopschema", "Strict"})
  */
 class Loopschema
@@ -101,7 +106,7 @@ class Loopschema
     /**
      * @var Looptoelichting[]
      *
-     * @ORM\OneToMany(targetEntity="Looptoelichting", mappedBy="loopschema", cascade={"persist"})
+     * @ORM\OneToMany(targetEntity="Looptoelichting", mappedBy="loopschema", cascade={"persist", "remove"})
      */
     protected $toelichtingen;
 
