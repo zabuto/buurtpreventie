@@ -26,6 +26,11 @@ buurtpreventie_loper_schema_data:
     pattern:  /buurtpreventie/loper/schema/data
     defaults: { _controller: ZabutoBuurtpreventieBundle:Loperschema:calendarData }
 
+buurtpreventie_loper_schema_datum:
+    pattern:  /buurtpreventie/loper/schema/datum/{date}/details
+    defaults: { _controller: ZabutoBuurtpreventieBundle:Loperschema:dateShow }
+    methods:  [GET]
+
 buurtpreventie_loper_nieuwe_datum_schema:
     pattern:  /buurtpreventie/loper/schema/datum/{date}/nieuw
     defaults: { _controller: ZabutoBuurtpreventieBundle:Loperschema:addDateForm }

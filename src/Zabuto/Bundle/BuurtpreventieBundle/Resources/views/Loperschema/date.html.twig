@@ -1,0 +1,87 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Loper - Datum{% endblock %}
+
+{% block stylesheets %}
+    <link href="{{ asset( 'bundles/zabutobuurtpreventie/css/loper.css' ) }}" type="text/css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+    <h1>Loopdatum <span>{{ date|date('d-m-Y') }}</span></h1>
+
+    <div class="row">
+        <div class="col-md-6">
+            {% if active|length == 0 %}
+                <p class="lead" style="margin-bottom: 0;">0 lopers</p>
+                <p class="text-muted">Geen lopers aangemeld</p>
+            {% else %}
+                <p class="lead" style="margin-bottom: 0;">
+                    {{ active.lopers|length }} {% if active.lopers|length==1 %}loper{% else %}lopers{% endif %}
+                </p>
+
+                {% if active.lopers|length == 0 %}
+                    <p class="text-muted">Geen lopers aangemeld</p>
+                {% else %}
+                    <p>
+                        {% for loper in active.lopers %}
+                            {{ loper.naam }}{% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                    </p>
+                {% endif %}
+            {% endif %}
+
+            {% if toon_resultaat %}
+                <hr>
+                {% if active|length == 0 or active.resultaten|length == 0 %}
+                    <p class="text-muted">Geen resultaten beschikbaar</p>
+                {% else %}
+                    <table style="width: 100%;">
+                        {% for loopschema in active.resultaten %}
+                            <tr>
+                                <td style="width: 24px; vertical-align: top; padding-top: 2px;">
+                                    <img class="image-responsive loper-avatar"
+                                         src="http://www.gravatar.com/avatar/{{ loopschema.loper.gravatar }}?s=14&d=identicon">
+                                </td>
+                                <td style="vertical-align: top; padding-top: 2px;">{{ loopschema.loper.naam }}</td>
+                                <td style="vertical-align: top; padding-top: 4px; width: 20px;">
+                                    {% if loopschema.resultaat.incident %}
+                                        <span class="glyphicon glyphicon-thumbs-down red" title="Incident"></span>
+                                    {% else %}
+                                        <span class="glyphicon glyphicon-thumbs-up green"
+                                              title="Geen incident"></span>
+                                    {% endif %}
+                                </td>
+                                <td {% if loopschema.bijzonderheden is empty %}class="text-muted"{% endif %}>
+                                    {{ loopschema.bijzonderheden|default(loopschema.resultaat.omschrijving) }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                {% endif %}
+            {% endif %}
+
+            {% if toon_afmelding %}
+                <hr>
+                {% if inactive|length == 0 or inactive.lopers|length == 0 %}
+                    <p class="text-muted">Geen afmeldingen</p>
+                {% else %}
+                    <p class="lead" style="margin-bottom: 0;">
+                        {{ inactive.lopers|length }} {% if inactive.lopers|length==1 %}afmelding{% else %}afmeldingen{% endif %}
+                    </p>
+                    <p>
+                        {% for loper in inactive.lopers %}
+                            {{ loper.naam }}{% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                    </p>
+                {% endif %}
+            {% endif %}
+        </div>
+        <div class="col-md-1"></div>
+        <div class="col-md-5">
+            {% include '@ZabutoBuurtpreventie/Loperlijst/toelichtingen.html.twig' with {toelichtingen: toelichtingen} %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+{% endblock %}

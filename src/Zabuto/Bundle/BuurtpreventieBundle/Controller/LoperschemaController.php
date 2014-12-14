@@ -82,6 +82,41 @@ class LoperschemaController extends Controller
     }
 
     /**
+     * Datum tonen
+     *
+     * @param string $date
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function dateShowAction($date)
+    {
+        $date = new DateTime($date);
+
+        $isAdmin = false;
+        $securityContext = $this->container->get('security.context');
+        if ($securityContext->isGranted('ROLE_ADMIN')) {
+            $isAdmin = true;
+        }
+
+        $allowResults = $this->container->getParameter('loopschema_resultaat_voor_lopers');
+        if (false === $allowResults) {
+            $allowResults = $isAdmin;
+        }
+
+        $allowAfmelding = $isAdmin;
+
+        $em = $this->get('doctrine')->getManager();
+
+        $activeList = $this->_loopschemaToList($em->getRepository('ZabutoBuurtpreventieBundle:Loopschema')->findAllActiveForDate($date));
+        $inactiveList = $this->_loopschemaToList($em->getRepository('ZabutoBuurtpreventieBundle:Loopschema')->findAllInactiveForDate($date));
+
+        $active = (array_key_exists($date->format('Y-m-d'), $activeList)) ? $activeList[$date->format('Y-m-d')] : array();
+        $inactive = (array_key_exists($date->format('Y-m-d'), $inactiveList)) ? $inactiveList[$date->format('Y-m-d')] : array();
+        $toelichtingen = $em->getRepository('ZabutoBuurtpreventieBundle:Looptoelichting')->findForDate($date);
+
+        return $this->render('ZabutoBuurtpreventieBundle:Loperschema:date.html.twig', array('date' => $date, 'active' => $active, 'inactive' => $inactive, 'toelichtingen' => $toelichtingen, 'toon_resultaat' => $allowResults, 'toon_afmelding' => $allowAfmelding));
+    }
+
+    /**
      * Aanmelding voor nieuwe datum
      *
      * @param string $date
