@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 
 /**
+ * @ORM\MappedSuperclass
  * @ORM\Entity(repositoryClass="Zabuto\Bundle\UserBundle\Entity\UserRepository")
  * @ORM\Table(name="zabuto_user")
  */
