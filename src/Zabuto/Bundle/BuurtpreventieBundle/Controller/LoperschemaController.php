@@ -89,8 +89,14 @@ class LoperschemaController extends Controller
      */
     public function addDateFormAction($date)
     {
+        $date = new DateTime($date);
+        $user = $this->container->get('security.context')->getToken()->getUser();
+
+        $em = $this->get('doctrine')->getManager();
+        $afgemeld = $em->getRepository('ZabutoBuurtpreventieBundle:Loopschema')->findAllInactiveForDate($date, $user);
+
         $loopschema = new Loopschema();
-        $loopschema->setDatum(new DateTime($date));
+        $loopschema->setDatum($date);
 
         $toelichting = new Looptoelichting();
         $loopschema->addToelichting($toelichting);
@@ -102,6 +108,7 @@ class LoperschemaController extends Controller
             'entity' => $loopschema,
             'form' => $form->createView(),
             'action' => $this->generateUrl('buurtpreventie_loper_nieuwe_datum_schema_post', array('date' => $loopschema->getDatum()->format('Y-m-d'))),
+            'afgemeld' => $afgemeld,
         );
 
         return $this->render('ZabutoBuurtpreventieBundle:Loperschema:add-form.html.twig', $data);

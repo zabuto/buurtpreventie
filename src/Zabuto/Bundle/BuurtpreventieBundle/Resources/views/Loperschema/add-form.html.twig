@@ -1,4 +1,11 @@
 <div id="buurtpreventieLoperAddDateFormErrors"></div>
+
+{% if afgemeld|length > 0 %}
+    <div class="alert alert-warning" role="alert">
+        <strong>Let op</strong> u heeft zich eerder afgemeld voor deze datum
+    </div>
+{% endif %}
+
 <form id="buurtpreventieLoperAddDateForm" action="{{ action }}" {{ form_enctype(form) }} method="post">
     {{ form_widget(form._token) }}
 

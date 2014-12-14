@@ -99,6 +99,34 @@ class LoopschemaRepository extends EntityRepository
     }
 
     /**
+     * Afgemelde loopschema's voor de gekozen datum
+     *
+     * @param DateTime $date
+     * @param User $loper
+     * @return array
+     */
+    public function findAllInactiveForDate(DateTime $date, $loper = null)
+    {
+        $qb = $this->_em->createQueryBuilder();
+        $qb->select('s');
+        $qb->from('Zabuto\Bundle\BuurtpreventieBundle\Entity\Loopschema', 's');
+        $qb->where($qb->expr()->eq('s.actueel', '0'));
+        $qb->andWhere($qb->expr()->like('s.datum', ':date'));
+        $qb->orderBy('s.id', 'ASC');
+
+        $qb->setParameter('date', $date->format('Y-m-d') . '%');
+
+        if (!is_null($loper)) {
+            $qb->andWhere('s.loper = :loper');
+            $qb->setParameter('loper', $loper);
+        }
+
+        $q = $qb->getQuery();
+
+        return $q->getResult();
+    }
+
+    /**
      * Loopschema's voor gelopen ronden
      *
      * @param User $loper
