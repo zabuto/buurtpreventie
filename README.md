@@ -10,22 +10,22 @@ De applicatie is gemaakt met Symfony2.
 Voor het draaien gelden de onderstaande randvoorwaarden:
 
 -   Webhosting pakket / webserver
--   PHP, minimaal versie 5.3.3
--   MySQL database met InnoDB storage engine (vanaf MySQL 5.5 is dit de standaard)
+-   PHP, minimaal versie 5.3.9
+-   MySQL database met InnoDB storage engine
 -   Minimaal 100 MB schijfruimte
 
 ## Installatie via Github en Composer
-Deze applicatie is publiekelijk beschikbaar via GitHub
+Deze applicatie is publiekelijk beschikbaar via GitHub. 
+Installeren van benodigde packages gebeurt via de dependency manager [Composer](https://getcomposer.org/).
 
     https://github.com/zabuto/buurtpreventie.git
 
-Daarna kunnen de benodigde aanvullende via de dependency manager [Composer](https://getcomposer.org/).
+## Initialisatie
 Via het onderstaande bash script kan het project worden geïnitialiseerd:
 
     ./install_prod.sh
 
 Voor het installeren van een ontwikkelomgeving kan het script `./install_dev.sh` worden gebruikt.
-
 
 ## Configuratie
 Alle configuratie instellingen voor de applicatie zitten in 1 [YAML](http://en.wikipedia.org/wiki/YAML) bestand:
@@ -35,10 +35,6 @@ Alle configuratie instellingen voor de applicatie zitten in 1 [YAML](http://en.w
 Dit bestand wordt tijdens de installatie aangemaakt via het distributiebestand `/app/copnfig/parameters.yml.dist`.
 De instellingen in dit bestand moeten worden aangepast aan uw eigen situatie.
 De benodigde aanpassingen worden hieronder verder toegelicht.
-
-### Database en tabellen
-De applicatie maakt gebruik van een [MySQL](http://nl.wikipedia.org/wiki/MySQL) database.
-Zonder de aanwezigheid van de database en de daarin benodigde tabellen is het niet mogelijk om het systeem te draaien.
 
 #### Connectie instellingen
 In het bestand `/app/config/parameters.yml` staan de settings voor de connectiegegevens.
@@ -50,18 +46,6 @@ Pas deze aan naar uw eigen situatie.
     database_name: naam van database
     database_user: gebruiker met schrijfrechten
     database_password: wachtwoord van de gebruiker
-
-#### Structuur
-De encoding van de tabellen is [UTF-8](http://nl.wikipedia.org/wiki/UTF-8).
-De onderstaande tabellen worden aangemaakt:
-
-    buurtprev_loopresultaat
-    buurtprev_loopschema
-    buurtprev_looptoelichting
-    zabuto_user
-    zabuto_usergroup
-    zabuto_user_usergroup
-
 
 ### Email instellingen
 De applicatie verstuurt mail naar gebruikers.
@@ -92,18 +76,26 @@ Ook zijn er instellingen voor het lopen zelf.
     loopschema_maanden_vooruit: 3                       aantal maanden vooruit plannen
 
 
+## Databasestructuur
+De encoding van de tabellen is [UTF-8](http://nl.wikipedia.org/wiki/UTF-8).
+De onderstaande tabellen worden aangemaakt:
+
+    buurtprev_loopresultaat
+    buurtprev_loopschema
+    buurtprev_looptoelichting
+    zabuto_user
+    zabuto_usergroup
+    zabuto_user_usergroup
+
 ## Cache en log mappen
 Er zijn een tweetal mappen waarin de applicatie bestanden wegschrijft:
 
     /app/cache
     /app/logs
 
-Op deze mappen zijn dan ook schrijfrechten nodig. Wijzig de CHMOD permissies voor beide mappen naar:
-
-    773
-
-Zorg ervoor dat de rechten recursief gelden voor alle submappen en bestanden.
-
+Op deze mappen zijn dan ook schrijfrechten nodig. De rechten om de mappen kunnen worden goedgezet aan de hand van de 
+[Setting up Permissions](http://symfony.com/doc/current/book/installation.html#book-installation-permissions) 
+handleiding op de Symfony website.
 
 ## Eerste aanroep en aammaken cache
 De eerste keer dat de applicatie wordt aangeroepen wordt de cache aangemaakt.
@@ -135,12 +127,18 @@ Zorg ervoor dat stylesheet in de map `css` staan.
 De naam van het bestand dient overeen te komen met de ingevulde waarde in de setting `app_theme` in `/app/config/parameters.yml`.
 Afbeeldingen kunnen geplaatst worden in de `images` map.
 
-## Inloggen in productieomgeving
-Na initialisatie voor de productieomegving is er één gebruiker beschikbaar. Wijzig hiervan direct het emailadres en wachtwoord.
+## Productieomgeving
+Na initialisatie voor de omgeving is er één gebruiker beschikbaar. Wijzig hiervan direct het emailadres en wachtwoord.
 Om de eerste keer in te loggen gelden de onderstaande inloggegevens:
 
     emailadres: anke@zabuto.com
     wachtwoord: buurtpreventie
+    
+## Ontwikkelomgeving
+Na initialisatie via het bash script is er testdata in de database beschikbaar. 
+Er zijn verschillende gebruikers en loopmomenten aangemaakt. 
+
+Voor alle testgebruikers is het wachtwoord `test`. De gebruiker met de meeste rechten is gebruiker `beheer@test.nl`.
 
 ## Email notificatie via cronjob
 Het is mogelijk om lopers vooraf een herinneringsemail te sturen. Hiervoor is het nodig om een cronjob in te richten.

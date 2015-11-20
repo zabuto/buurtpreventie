@@ -9,7 +9,7 @@ echo "-------------------------------------"
 echo ""
 echo "- Installeren van vendor pakketten"
 echo ""
-composer install --optimize-autoloader --quiet
+composer install
 
 echo ""
 echo "- Cache en logs initialiseren"
