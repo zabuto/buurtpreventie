@@ -48,10 +48,10 @@
         "incenteev/composer-parameter-handler": "~2.0",
         "guzzle/guzzle": "v3.9.*",
         "zabuto/calendar": "1.2.1",
-        "salavert/time-ago-in-words": "1.*"
+        "salavert/time-ago-in-words": "1.*",
+        "sensio/generator-bundle": "~2.3"
     },
     "require-dev": {
-        "sensio/generator-bundle": "~2.3",
         "phpunit/phpunit": "4.8.*"
     },
     "scripts": {
