@@ -9,6 +9,7 @@ echo "-------------------------------------"
 echo ""
 echo "- Installeren van vendor pakketten"
 echo ""
+composer update sensio/generator-bundle
 composer install --no-dev --optimize-autoloader --quiet
 
 echo ""
