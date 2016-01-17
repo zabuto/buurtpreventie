@@ -29,3 +29,19 @@ div.zabuto_calendar div.legend span.badge-loopresultaat-nok {
     color: #ffffff;
     background-color: #B94A48;
 }
+
+/* print looplijst - show user's name and hide print button */
+button.print {
+    float: right;
+}
+
+p.user-name {
+    font-size: larger;
+    font-weight: 200;
+    display: none;
+}
+
+@media print {
+    button.print { display: none; }
+    p.user-name { display: block; }
+}

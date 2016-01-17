@@ -6,9 +6,22 @@
     <link href="{{ asset( 'bundles/zabutobuurtpreventie/css/loper.css' ) }}" type="text/css" rel="stylesheet">
 {% endblock %}
 
+{% block javascripts %}
+    <script>
+        $("button.print").click(function () {
+            window.print();
+        });
+    </script>
+{% endblock %}
+
 {% block content %}
     <h1>Loop<span>lijst</span></h1>
-
+    
+    {% if openList|length > 0 %}
+        <p class="user-name">{{ app.user.username }}</p>
+        <button type="button" class="print">Print</button>
+    {% endif %}
+    
     {% for flashMessage in app.session.flashbag.get('buurtpreventie-loper') %}
         <div class="alert alert-success alert-dismissable">
             <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
