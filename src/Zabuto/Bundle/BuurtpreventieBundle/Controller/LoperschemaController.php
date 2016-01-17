@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Form\Form;
 use DateTime;
 use Exception;
+use Doctrine\ORM\Query\ResultSetMapping;
 
 class LoperschemaController extends Controller
 {
@@ -139,11 +140,45 @@ class LoperschemaController extends Controller
         $form = $this->createForm(new LoopschemaNieuwFormType(), $loopschema);
         $form->setData($loopschema);
 
+        $isAdmin = false;
+        $securityContext = $this->container->get('security.context');
+        if ($securityContext->isGranted('ROLE_ADMIN')) {
+            $isAdmin = true;
+        }
+        
+        $lopers = [];
+        
+        // Aanpassing voor de beheerder:
+        // De beheerder kan voortaan zelf lopers inplannen voor
+        // een bepaalde datum.
+        if ($isAdmin) {
+            $conn = $this->get('database_connection');
+            $sql = 'SELECT id FROM zabuto_usergroup WHERE name = "Loper"';
+            $lopers = [];
+            $group_id = $conn->fetchColumn($sql);
+            
+            // Genereer een lijst met lopers
+            if ($group_id !== false) {
+            
+                $sql = 'SELECT g.user_id AS id, u.real_name AS naam
+                        FROM zabuto_user_usergroup g, zabuto_user u 
+                        WHERE g.group_id = :group_id AND u.id = g.user_id';
+                
+                $stmt = $conn->prepare($sql);
+                $stmt->bindValue('group_id', $group_id);
+                $stmt->execute();
+                
+                $lopers = $stmt->fetchAll();
+            }
+        }
+        
         $data = array(
             'entity' => $loopschema,
             'form' => $form->createView(),
             'action' => $this->generateUrl('buurtpreventie_loper_nieuwe_datum_schema_post', array('date' => $loopschema->getDatum()->format('Y-m-d'))),
             'afgemeld' => $afgemeld,
+            'lopers' => $lopers,
+            'is_admin' => $isAdmin
         );
 
         return $this->render('ZabutoBuurtpreventieBundle:Loperschema:add-form.html.twig', $data);
@@ -157,26 +192,38 @@ class LoperschemaController extends Controller
      */
     public function addDatePostAction($date)
     {
-        $user = $this->container->get('security.context')->getToken()->getUser();
-
-        $loopschema = new Loopschema();
-        $loopschema->setLoper($user);
-        $loopschema->setDatum(new DateTime($date));
-
-        $toelichting = new Looptoelichting();
-        $loopschema->addToelichting($toelichting);
-
-        $form = $this->createForm(new LoopschemaNieuwFormType(), $loopschema);
-
-        $form->submit($this->getRequest());
-        if ($form->isValid()) {
-            $em = $this->get('doctrine')->getManager();
-            $em->persist($loopschema);
-            $em->flush();
+        $isAdmin = false;
+        $securityContext = $this->container->get('security.context');
+        if ($securityContext->isGranted('ROLE_ADMIN')) {
+            $isAdmin = true;
+        }
+        
+        $errors = array();
+        
+        // Admin functie - elke loper wordt aan een loopschema toegevoegd
+        if ($isAdmin) {
+            $lopers = $this->get('request')->request->get('lopers');
+            $hasLopers = (is_array($lopers) && count($lopers) > 0);
+            if ($hasLopers) {
+                $repo = $this->get('doctrine')->getManager()->getRepository('ZabutoUserBundle:User');
+                foreach ($lopers as $user_id) {
+                    $user = $repo->find($user_id);
+                    $errors = array_merge($errors, $this->_addLoopschema($date, $user));
+                }
+            } else {
+                $errors[] = 'Selecteer &eacute;&eacute;n of meerdere lopers';
+            }
+        // Standaard functionaliteit - ingelogde user wordt aan een loopschema toegevoegd
+        } else {
+            $user = $securityContext->getToken()->getUser();
+            $errors = $this->_addLoopschema($date, $user);
+        }
+        
+        if (count($errors) == 0) {
             return new JsonResponse(array('success' => true));
         }
-
-        return new JsonResponse(array('success' => false, 'errors' => $this->_getFormErrors($form)));
+        
+        return new JsonResponse(array('success' => false, 'errors' => $errors));
     }
 
     /**
@@ -314,6 +361,34 @@ class LoperschemaController extends Controller
         }
 
         return new JsonResponse(array('success' => false, 'errors' => $this->_getFormErrors($form)));
+    }
+    
+    /**
+     * Toevoegen van een loopschema
+     *
+     * @param string $date
+     * @param User $user
+     * @return array
+     */
+    private function _addLoopschema($date, $user)
+    {    
+        $loopschema = new Loopschema();
+        $loopschema->setLoper($user);
+        $loopschema->setDatum(new DateTime($date));
+
+        $toelichting = new Looptoelichting();
+        $loopschema->addToelichting($toelichting);
+
+        $form = $this->createForm(new LoopschemaNieuwFormType(), $loopschema);
+
+        $form->submit($this->getRequest());
+        if ($form->isValid()) {
+            $em = $this->get('doctrine')->getManager();
+            $em->persist($loopschema);
+            $em->flush();
+            return array();
+        }
+        return $this->_getFormErrors($form);
     }
 
     /**

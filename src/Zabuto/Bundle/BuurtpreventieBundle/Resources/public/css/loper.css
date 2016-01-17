@@ -30,6 +30,11 @@ div.zabuto_calendar div.legend span.badge-loopresultaat-nok {
     background-color: #B94A48;
 }
 
+/* loopschema, aanmelden - modal window */
+input.list-checkbox {
+    margin-right: 10px;
+}
+
 /* print looplijst - show user's name and hide print button */
 button.print {
     float: right;

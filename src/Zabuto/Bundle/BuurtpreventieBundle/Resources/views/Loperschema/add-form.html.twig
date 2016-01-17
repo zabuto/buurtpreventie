@@ -20,4 +20,22 @@
             </li>
         {% endfor %}
     </ul>
+    
+    <!-- Show list when active user is an administrator -->
+    {% if is_admin %}
+    <div class="panel panel-default">
+        <!-- Default panel contents -->
+        <div class="panel-heading">Lopers</div>        
+        <!-- List group -->
+        <ul class="list-group" style="max-height:200px; overflow:auto;">
+        {% for loper in lopers %}
+            <li class="list-group-item">
+                <input class="list-checkbox" type="checkbox" name="lopers[]" value="{{ loper.id }}">{{ loper.naam }}
+            </li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    <!-- End of list -->
+    
 </form>

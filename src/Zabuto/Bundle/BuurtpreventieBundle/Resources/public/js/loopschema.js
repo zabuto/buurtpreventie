@@ -106,7 +106,8 @@ function buurtpreventieLoopschemaAanmelden(dateDomId, modalUrl, redirUrl, fromMo
             if (response.success) {
                 window.location = redirUrl;
             } else {
-                var $errorUl = $('<ul class="list-unstyled"</ul>');
+                $('#buurtpreventieLoperAddDateFormErrors').empty();
+                var $errorUl = $('<ul class="list-unstyled"></ul>');
                 $.each(response.errors, function (index, value) {
                     $errorUl.append('<li>' + value + '</li>');
                 });
