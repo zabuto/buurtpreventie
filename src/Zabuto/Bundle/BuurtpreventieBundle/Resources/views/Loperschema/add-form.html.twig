@@ -1,14 +1,74 @@
 <div id="buurtpreventieLoperAddDateFormErrors"></div>
 
+{% block javascripts %}
+    <script>
+        $('input.form-control.time').keyup(function() {
+            var input = $(this).val();
+            $(this).val(input.replace(/\D/g,'')); // digits only
+        });
+        
+        $('input.form-control.time').change(function() {
+            var input = $(this).val();
+            $(this).val(('00' + input).slice(-2)); // left zero pad
+            
+            var hrs = $('input[name=time-hrs]');
+            var min = $('input[name=time-min]');
+            $('input[name=time]').val(hrs.val() + ':' + min.val());
+        });
+        
+        $('ul.nav.nav-tabs li').click(function(e) {
+            var label = $(this).find('a').text();
+            var list = $(this).siblings();
+            var zerohour = ['00','00']; // 00:00
+            var disabled = (label != 'Nieuwe loopronde');
+            var time = disabled ? label.split(':') : zerohour;
+            
+            list.each(function() { $(this).removeClass(); });
+            $(this).addClass('active');
+            
+            $('input[name=time-hrs]').val(time[0]);
+            $('input[name=time-min]').val(time[1]);
+            $('input.form-control.time').prop('disabled', disabled);
+            
+            $('input[name=time]').val(time.join(':'));
+            
+            return false;
+        });
+    </script>
+{% endblock %}
+
 {% if afgemeld|length > 0 %}
     <div class="alert alert-warning" role="alert">
         <strong>Let op</strong> u heeft zich eerder afgemeld voor deze datum
     </div>
 {% endif %}
 
+<!-- Show tabs when there are multiple items -->
+{% if tijden|length > 0 %}
+<ul class="nav nav-tabs">
+    <li class="active"><a href="#">Nieuwe loopronde</a></li>
+    {% for tijd in tijden %}
+    <li><a href="#">{{ tijd }}</a></li>
+    {% endfor %}
+</ul>
+{% endif %}
+<!-- End of tabs -->
+
+<label class="control-label">Tijd</span></label>
+<div class="form-inline time">
+    <div class="form-group">
+        <input type="text" name="time-hrs" class="form-control time" placeholder="00" maxlength="2"> : 
+    </div>
+    <div class="form-group">
+        <input type="text" name="time-min" class="form-control time" placeholder="00" maxlength="2">
+    </div>
+</div>
+
 <form id="buurtpreventieLoperAddDateForm" action="{{ action }}" {{ form_enctype(form) }} method="post">
     {{ form_widget(form._token) }}
-
+    
+    <input type="hidden" name="time" value="00:00">
+    
     {{ form_label(form.toelichtingen) }}
     {{ form_errors(form.toelichtingen) }}
 

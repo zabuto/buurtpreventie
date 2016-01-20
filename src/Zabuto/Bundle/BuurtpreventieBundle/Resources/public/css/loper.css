@@ -35,6 +35,10 @@ input.list-checkbox {
     margin-right: 10px;
 }
 
+ul.nav.nav-tabs, div.form-inline.time {
+    margin-bottom: 10px;
+}
+
 /* print looplijst - show user's name and hide print button */
 button.print {
     float: right;

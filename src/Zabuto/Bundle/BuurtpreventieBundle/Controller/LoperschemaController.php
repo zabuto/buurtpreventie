@@ -146,6 +146,20 @@ class LoperschemaController extends Controller
             $isAdmin = true;
         }
         
+        // Aanpassing m.b.t. tijden voor loopschemas
+        // Men kan zelf een tijd aangeven voor een loopschema
+        // of een bestaande tijd selecteren.
+        $schemas = $em->getRepository('ZabutoBuurtpreventieBundle:Loopschema')->findAllActiveForDate($date);
+        $tijden = array();
+        foreach ($schemas as $schema) {
+            $tijd = $schema->getDatum()->format('H:i');
+            $actueel = $schema->getActueel();
+            if ($actueel == 1 && $tijd != '00:00') {
+                $tijden[] = $tijd;
+            }
+        }
+        
+        $tijden = array_unique($tijden);
         $lopers = [];
         
         // Aanpassing voor de beheerder:
@@ -177,6 +191,7 @@ class LoperschemaController extends Controller
             'form' => $form->createView(),
             'action' => $this->generateUrl('buurtpreventie_loper_nieuwe_datum_schema_post', array('date' => $loopschema->getDatum()->format('Y-m-d'))),
             'afgemeld' => $afgemeld,
+            'tijden' => $tijden,
             'lopers' => $lopers,
             'is_admin' => $isAdmin
         );
@@ -200,7 +215,14 @@ class LoperschemaController extends Controller
         
         $errors = array();
         
-        // Admin functie - elke loper wordt aan een loopschema toegevoegd
+        // Aanpassing i.v.m. meerdere looprondes per dag.
+        // Een loopronde kan worden gekoppeld aan een tijd.
+        // De standaard tijd is 00:00:00 (oude situatie).
+        $time = $this->get('request')->request->get('time') . ':00';
+        $date = "$date $time";
+        
+        // Aanpassing voor de Admin rol. De geselecteerde
+        // lopers worden aan een loopronde toegevoegd.
         if ($isAdmin) {
             $lopers = $this->get('request')->request->get('lopers');
             $hasLopers = (is_array($lopers) && count($lopers) > 0);
@@ -213,7 +235,8 @@ class LoperschemaController extends Controller
             } else {
                 $errors[] = 'Selecteer &eacute;&eacute;n of meerdere lopers';
             }
-        // Standaard functionaliteit - ingelogde user wordt aan een loopschema toegevoegd
+        // Standaard functionaliteit: de ingelogde user wordt
+        // aan een loopronde toegevoegd.
         } else {
             $user = $securityContext->getToken()->getUser();
             $errors = $this->_addLoopschema($date, $user);
@@ -459,6 +482,15 @@ class LoperschemaController extends Controller
      */
     private function _formatList($list)
     {
+        $isAdmin = false;
+        $securityContext = $this->container->get('security.context');
+        if ($securityContext->isGranted('ROLE_ADMIN')) {
+            $isAdmin = true;
+        }
+        
+        $user = $securityContext->getToken()->getUser();
+        $userId = $user->getId();
+        
         $em = $this->get('doctrine')->getManager();
 
         $minAantalLopers = $this->container->getParameter('loopschema_minimum_aantal_lopers');
@@ -469,14 +501,41 @@ class LoperschemaController extends Controller
             $info['toon_toelichting'] = false;
             $info['toon_resultaat'] = false;
             $info['toelichtingen'] = array();
+            
+            // Aanpassing i.v.m. meerdere looprondes / tijden
+            // per dag. Eenzelfde loper kan zich aanmelden voor
+            // meerdere rondes maar is voor het systeem 1 loper.
+            $info['lopers'] = array_unique($info['lopers']);
 
             if ($date < $today) {
                 if (count($info['lopers']) < $minAantalLopers) {
                     unset($list[$date]);
                 } else {
-                    if ($info['eigen_datum'] > 0 && false === $info['eigen_resultaat']) {
+                    // Aanpassing m.b.t. het invullen van een resultaat.
+                    // Voorheen kon men enkel op de dag van de loopronde
+                    // een resultaat toevoegen. Men kan nu ook achteraf
+                    // een resultaat toevoegen.
+                    // Oude situatie:
+                    //   if $info['eigen_datum'] > 0 && false === $info['eigen_resultaat']
+                    //   then ...
+                    if (false === $info['eigen_resultaat']) {
                         $info['editable'] = 'resultaat';
                     }
+                    
+                    // Aanpassing voor de Admin rol. Een admin kan looprondes
+                    // toevoegen voor anderen. De lopers kunnen vervolgens een 
+                    // resultaat toevoegen. Die functie kunnen we in zo'n geval
+                    // uitschakelen voor de admin.
+                    if ($isAdmin) {
+                        $k = 0;
+                        $n = count($info['lopers']);
+                        $found = false;
+                        while (!$found && $k < $n) {
+                            $found = ($userId == $info['lopers'][$k]->getId());
+                            $k++;
+                        }
+                        if (!$found) $info['editable'] = false;
+                    } 
 
                     $info['toon_resultaat'] = true;
                     $list[$date]['badge'] = true;
@@ -510,7 +569,7 @@ class LoperschemaController extends Controller
                     $list[$date]['classname'] = 'lopers-ok';
                 }
             }
-
+            
             $list[$date]['title'] = $info['datum'];
             $list[$date]['body'] = preg_replace("/\s+/", " ", $this->container->get('templating')->render('ZabutoBuurtpreventieBundle:Loperschema:calendardata-body.html.twig', $info));
             $list[$date]['footer'] = preg_replace("/\s+/", " ", $this->container->get('templating')->render('ZabutoBuurtpreventieBundle:Loperschema:calendardata-footer.html.twig', $info));
