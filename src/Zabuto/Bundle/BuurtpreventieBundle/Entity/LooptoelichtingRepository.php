@@ -9,7 +9,14 @@ use Zabuto\Bundle\BuurtpreventieBundle\Entity\Loopschema;
 
 class LooptoelichtingRepository extends EntityRepository
 {
-    public function findForDate(DateTime $date)
+    /**
+     * Toelichtingen voor de gekozen datum
+     *
+     * @param DateTime $date
+     * @param boolean $datetime
+     * @return array
+     */
+    public function findForDate(DateTime $date, $datetime = false)
     {
         $qb = $this->_em->createQueryBuilder();
         $qb->select('t');
@@ -20,7 +27,14 @@ class LooptoelichtingRepository extends EntityRepository
         $qb->orderBy('t.aangemaaktOp', 'ASC');
         $qb->addOrderBy('t.id', 'ASC');
 
-        $qb->setParameter('date', $date->format('Y-m-d') . '%');
+        // Aanpassing m.b.t. looprondes. In de nieuwe situatie zijn er 
+        // mogelijk meerdere looprondes per dag. We onderscheiden de
+        // rondes m.b.v. datum en tijd.
+        $format = 'Y-m-d';
+        if ($datetime) {
+            $format .= ' H:i:s';
+        }
+        $qb->setParameter('date', $date->format($format) . '%');
 
         $q = $qb->getQuery();
 

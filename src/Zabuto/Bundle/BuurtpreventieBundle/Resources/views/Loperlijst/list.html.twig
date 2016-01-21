@@ -17,11 +17,6 @@
 {% block content %}
     <h1>Loop<span>lijst</span></h1>
     
-    {% if openList|length > 0 %}
-        <p class="user-name">{{ app.user.username }}</p>
-        <button type="button" class="print">Print</button>
-    {% endif %}
-    
     {% for flashMessage in app.session.flashbag.get('buurtpreventie-loper') %}
         <div class="alert alert-success alert-dismissable">
             <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
@@ -29,6 +24,11 @@
         </div>
     {% endfor %}
 
+    {% if openList|length > 0 %}
+        <p class="user-name">{{ app.user.username }}</p>
+        <button type="button" class="print">Print</button>
+    {% endif %}
+    
     {% if openList|length == 0 %}
         <div class="alert alert-info">
             <strong>Geen gegevens gevonden</strong>
@@ -37,13 +37,14 @@
             Ga naar het <a href="{{ path('buurtpreventie_loper_schema') }}">loopschema</a> om u aan te melden.
         </div>
     {% else %}
-        <p>In uw looplijst vindt u een overzicht van alle loopronden waaraan u deelneemt. U bent aangemeld voor <strong>{{ openList|length }}</strong> datums.</p>
+        <p>In uw looplijst vindt u een overzicht van alle loopronden waaraan u deelneemt. U bent aangemeld voor <strong>{{ openList|length }}</strong> loopronden.</p>
         <br>
         <div class="table-responsive">
             <table class="table table-striped">
                 <thead>
                 <tr>
                     <th style="width: 125px;">Datum</th>
+                    <th>Tijd</th>
                     <th style="width: 20px;"></th>
                     <th>Lopen met</th>
                     <th class="visible-xs" title="Bekijk toelichtingen" style="width: 20px;"></th>
@@ -56,6 +57,7 @@
                 {% for item in openList %}
                     <tr>
                         <td {% if item.gevuld == false %}class="text-danger"{% endif %}>{{ item.eigen_schema.datum|date("D d-m-Y") }}</td>
+                        <td {% if item.gevuld == false %}class="text-danger"{% endif %}>{{ item.eigen_schema.datum|date("H:i") }}</td>
                         <td {% if item.gevuld == false %}class="text-danger"{% endif %}>
                             {% if item.gevuld == true %}
                                 <span class="glyphicon glyphicon-ok green" title="Voldoende deelnemers"></span>
@@ -67,7 +69,7 @@
                         <td {% if item.gevuld == false %}class="text-danger"{% endif %}>
                             {% if item.gevuld == true %}
                                 {% for schema in item.schemas_anderen %}
-                                    {{ schema.loper.naam }}{% if not loop.last %}, {% endif %}
+                                    {% if not loop.first %}, {% endif %}{{ schema.loper.naam }}
                                 {% endfor %}
                             {% else %}
                                 Onvoldoende deelnemers
@@ -104,7 +106,7 @@
                             </div>
                         </td>
                         <td class="hidden-xs">
-                            {% include '@ZabutoBuurtpreventie/Loperlijst/toelichtingen.html.twig' with {toelichtingen: item.toelichtingen} %}
+                            {% include '@ZabutoBuurtpreventie/Loperlijst/toelichtingen.html.twig' with {schema_ids: item.schema_ids, toelichtingen: item.toelichtingen} %}
                         </td>
                         <td>
                             <a href="{{ path('buurtpreventie_loper_lijst_datum_toelichting', { 'id': item.eigen_schema.id, 'date': item.eigen_schema.datum|date('Y-m-d') }) }}">Toelichting</a>

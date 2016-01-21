@@ -75,9 +75,10 @@ class LoopschemaRepository extends EntityRepository
      *
      * @param DateTime $date
      * @param User $loper
+     * @param boolean $datetime
      * @return array
      */
-    public function findAllActiveForDate(DateTime $date, $loper = null)
+    public function findAllActiveForDate(DateTime $date, $loper = null, $datetime = false)
     {
         $qb = $this->_em->createQueryBuilder();
         $qb->select('s');
@@ -85,8 +86,15 @@ class LoopschemaRepository extends EntityRepository
         $qb->where($qb->expr()->eq('s.actueel', '1'));
         $qb->andWhere($qb->expr()->like('s.datum', ':date'));
         $qb->orderBy('s.id', 'ASC');
-
-        $qb->setParameter('date', $date->format('Y-m-d') . '%');
+        
+        // Aanpassing m.b.t. looprondes. In de nieuwe situatie zijn er 
+        // mogelijk meerdere looprondes per dag. We onderscheiden de
+        // rondes m.b.v. datum en tijd.
+        $format = 'Y-m-d';
+        if ($datetime) {
+            $format .= ' H:i:s';
+        }
+        $qb->setParameter('date', $date->format($format) . '%');
 
         if (!is_null($loper)) {
             $qb->andWhere($qb->expr()->neq('s.loper', ':loper'));

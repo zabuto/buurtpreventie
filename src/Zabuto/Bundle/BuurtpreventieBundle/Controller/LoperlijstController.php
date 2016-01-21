@@ -28,12 +28,18 @@ class LoperlijstController extends Controller
         $minAantalLopers = $this->container->getParameter('loopschema_minimum_aantal_lopers');
 
         $em = $this->get('doctrine')->getManager();
-
+        
         $openList = array();
         foreach ($em->getRepository('ZabutoBuurtpreventieBundle:Loopschema')->findAllActive($user) as $key => $loopschema) {
+            // Aanpassing m.b.t. looprondes. In de nieuwe situatie zijn er 
+            // mogelijk meerdere looprondes per dag. We onderscheiden de
+            // rondes m.b.v. de "datum" (datum en tijd). Een loopronde is
+            // "gevuld" wanneer er een minimaal aantal lopers is per ronde.
+            $datum = $loopschema->getDatum();
+            $useDatetime = true;
             $openList[$key]['eigen_schema'] = $loopschema;
-            $openList[$key]['schemas_anderen'] = $em->getRepository('ZabutoBuurtpreventieBundle:Loopschema')->findAllActiveForDate($loopschema->getDatum(), $user);
-            $openList[$key]['toelichtingen'] = $em->getRepository('ZabutoBuurtpreventieBundle:Looptoelichting')->findForDate($loopschema->getDatum());
+            $openList[$key]['toelichtingen'] = $em->getRepository('ZabutoBuurtpreventieBundle:Looptoelichting')->findForDate($datum, $useDatetime);
+            $openList[$key]['schemas_anderen'] = $em->getRepository('ZabutoBuurtpreventieBundle:Loopschema')->findAllActiveForDate($datum, $user, $useDatetime);
             $openList[$key]['gevuld'] = (count($openList[$key]['schemas_anderen']) >= ($minAantalLopers - 1)) ? true : false;
         }
 
