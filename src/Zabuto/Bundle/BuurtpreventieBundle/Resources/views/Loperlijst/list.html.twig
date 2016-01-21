@@ -106,7 +106,7 @@
                             </div>
                         </td>
                         <td class="hidden-xs">
-                            {% include '@ZabutoBuurtpreventie/Loperlijst/toelichtingen.html.twig' with {schema_ids: item.schema_ids, toelichtingen: item.toelichtingen} %}
+                            {% include '@ZabutoBuurtpreventie/Loperlijst/toelichtingen.html.twig' with {toelichtingen: item.toelichtingen} %}
                         </td>
                         <td>
                             <a href="{{ path('buurtpreventie_loper_lijst_datum_toelichting', { 'id': item.eigen_schema.id, 'date': item.eigen_schema.datum|date('Y-m-d') }) }}">Toelichting</a>

@@ -9,7 +9,7 @@
         <button type="button" class="btn btn-link" data-dismiss="modal">Sluit scherm</button>
     </div>
 
-    {% if editable is sameas('aanmelding') %}{# or editable is sameas('alles') #}
+    {% if editable is sameas('aanmelding') %}
         {% if eigen_datum > 0 %}
             {% set formUrl = path('buurtpreventie_loper_afmelden_datum_schema', { id: eigen_datum, date: date} ) %}
             <div class="pull-right">

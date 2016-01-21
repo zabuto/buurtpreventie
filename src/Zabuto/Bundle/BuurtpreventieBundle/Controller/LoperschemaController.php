@@ -12,7 +12,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Form\Form;
 use DateTime;
 use Exception;
-use Doctrine\ORM\Query\ResultSetMapping;
 
 class LoperschemaController extends Controller
 {
