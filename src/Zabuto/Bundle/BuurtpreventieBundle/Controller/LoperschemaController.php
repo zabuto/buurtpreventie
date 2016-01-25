@@ -7,6 +7,7 @@ use Zabuto\Bundle\BuurtpreventieBundle\Entity\Looptoelichting;
 use Zabuto\Bundle\BuurtpreventieBundle\Form\Type\LoopschemaAfmeldenFormType;
 use Zabuto\Bundle\BuurtpreventieBundle\Form\Type\LoopschemaNieuwFormType;
 use Zabuto\Bundle\BuurtpreventieBundle\Form\Type\LoopschemaResultaatFormType;
+use Zabuto\Bundle\BuurtpreventieBundle\Model\UserGroup;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Form\Form;
@@ -124,12 +125,16 @@ class LoperschemaController extends Controller
      */
     public function addDateFormAction($date)
     {
+        $securityContext = $this->container->get('security.context');
+        
         $date = new DateTime($date);
-        $user = $this->container->get('security.context')->getToken()->getUser();
-
+        $user = $securityContext->getToken()->getUser();
+        
         $em = $this->get('doctrine')->getManager();
-        $afgemeld = $em->getRepository('ZabutoBuurtpreventieBundle:Loopschema')->findAllInactiveForDate($date, $user);
-
+        $repo = $em->getRepository('ZabutoBuurtpreventieBundle:Loopschema');
+        $afgemeld = $repo->findAllInactiveForDate($date, $user);
+        $usergroup = new UserGroup($this->get('database_connection')); 
+        
         $loopschema = new Loopschema();
         $loopschema->setDatum($date);
 
@@ -140,7 +145,6 @@ class LoperschemaController extends Controller
         $form->setData($loopschema);
 
         $isAdmin = false;
-        $securityContext = $this->container->get('security.context');
         if ($securityContext->isGranted('ROLE_ADMIN')) {
             $isAdmin = true;
         }
@@ -148,7 +152,7 @@ class LoperschemaController extends Controller
         // Aanpassing m.b.t. tijden voor loopschemas
         // Men kan zelf een tijd aangeven voor een loopschema
         // of een bestaande tijd selecteren.
-        $schemas = $em->getRepository('ZabutoBuurtpreventieBundle:Loopschema')->findAllActiveForDate($date);
+        $schemas = $repo->findAllActiveForDate($date);
         $tijden = array();
         foreach ($schemas as $schema) {
             $tijd = $schema->getDatum()->format('H:i');
@@ -161,27 +165,13 @@ class LoperschemaController extends Controller
         $tijden = array_unique($tijden);
         $lopers = [];
         
-        // Aanpassing voor de beheerder:
-        // De beheerder kan voortaan zelf lopers inplannen voor
-        // een bepaalde datum.
+        // Aanpassing voor de beheerder: de beheerder kan voortaan 
+        // zelf lopers inplannen voor een bepaalde datum.
         if ($isAdmin) {
-            $conn = $this->get('database_connection');
-            $sql = 'SELECT id FROM zabuto_usergroup WHERE name = "Loper"';
-            $lopers = [];
-            $group_id = $conn->fetchColumn($sql);
-            
+            $groupId = $usergroup->findGroupId("Loper");
             // Genereer een lijst met lopers
-            if ($group_id !== false) {
-            
-                $sql = 'SELECT g.user_id AS id, u.real_name AS naam
-                        FROM zabuto_user_usergroup g, zabuto_user u 
-                        WHERE g.group_id = :group_id AND u.id = g.user_id';
-                
-                $stmt = $conn->prepare($sql);
-                $stmt->bindValue('group_id', $group_id);
-                $stmt->execute();
-                
-                $lopers = $stmt->fetchAll();
+            if ($groupId !== false) {
+                $lopers = $usergroup->findGroupMembers($groupId);
             }
         }
         
