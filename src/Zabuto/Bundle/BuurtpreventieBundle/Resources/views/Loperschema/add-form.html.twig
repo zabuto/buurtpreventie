@@ -11,12 +11,16 @@
             var input = $(this).val();
             $(this).val(('00' + input).slice(-2)); // left zero pad
             
-            var hrs = $('input[name=time-hrs]');
-            var min = $('input[name=time-min]');
-            $('input[name=time]').val(hrs.val() + ':' + min.val());
+            var hrs = $('input[name=time-hrs]').val();
+            var min = $('input[name=time-min]').val();
+            
+            hrs = hrs ? hrs : '00';
+            min = min ? min : '00';
+            
+            $('input[name=time]').val(hrs + ':' + min);
         });
         
-        $('ul.nav.nav-tabs li').click(function(e) {
+        $('ul.nav.nav-tabs li').click(function() {
             var label = $(this).find('a').text();
             var list = $(this).siblings();
             var zerohour = ['00','00']; // 00:00
