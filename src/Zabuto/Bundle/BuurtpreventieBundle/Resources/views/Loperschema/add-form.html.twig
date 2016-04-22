@@ -24,8 +24,9 @@
             var label = $(this).find('a').text();
             var list = $(this).siblings();
             var zerohour = ['00','00']; // 00:00
-            var disabled = (label != 'Nieuwe loopronde');
-            var time = disabled ? label.split(':') : zerohour;
+            var isNewSchedule = (label == 'Nieuwe loopronde');
+            var time = isNewSchedule ? zerohour : label.split(':');
+            var disabled = !isNewSchedule;
             
             list.each(function() { $(this).removeClass(); });
             $(this).addClass('active');
@@ -35,6 +36,38 @@
             $('input.form-control.time').prop('disabled', disabled);
             
             $('input[name=time]').val(time.join(':'));
+            
+            var loperIdDict = {
+            {% for key, value in aangemeld %}
+                '{{ key }}' : {{ value|json_encode|raw }},
+            {% endfor %}
+            };
+            
+            var toelichtingDict = {
+            {% for toelichting in toelichtingen %}
+                '{{ toelichting.loopschema.datum|date('H:i') }}' : '{{ toelichting.memo }}',
+            {% endfor %}
+            }
+            
+            var checkboxes = $('input[type=checkbox]');
+            var textarea = $('textarea.form-control');
+            var active = loperIdDict[label];
+            var explanation = toelichtingDict[label];
+            var index = -1;
+            if (isNewSchedule) {
+                textarea.val('');
+                textarea.prop('disabled', false);
+                checkboxes.each(function() {
+                    $(this).prop('checked', false);
+                });
+            } else {
+                textarea.val(explanation);
+                textarea.prop('disabled', true);
+                checkboxes.each(function() {
+                    index = $.inArray(parseInt($(this).val()), active);
+                    $(this).prop('checked', (index >= 0));
+                });
+            }
             
             return false;
         });

@@ -1,5 +1,11 @@
+{% set prev_time = '' %}
 {% for toelichting in toelichtingen %}
     {% if toelichting.memo is not null %}
+        {% set time = toelichting.loopschema.datum|date('H:i') %}
+        {% if time != prev_time %}
+        <p class="lead" style="margin-bottom: 0;">{{ time }}</p>
+        {% set prev_time = time %}
+        {% endif %}
         <p style="overflow-x: auto; word-wrap: break-word;">
         <span class="pull-right">
             <small class="text-muted">{{ toelichting.aangemaaktop|time_ago_in_words }}</small>

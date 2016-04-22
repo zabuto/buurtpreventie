@@ -153,15 +153,23 @@ class LoperschemaController extends Controller
         // Men kan zelf een tijd aangeven voor een loopschema
         // of een bestaande tijd selecteren.
         $schemas = $repo->findAllActiveForDate($date);
-        $tijden = array();
+        $tijden = [];
+        $aangemeld = [];
         foreach ($schemas as $schema) {
             $tijd = $schema->getDatum()->format('H:i');
             $actueel = $schema->getActueel();
             if ($actueel == 1 && $tijd != '00:00') {
+                $loperId = $schema->getLoper()->getId();
                 $tijden[] = $tijd;
+                if (array_key_exists($tijd, $aangemeld)) {
+                    $aangemeld[$tijd][] = $loperId;
+                } else {
+                    $aangemeld[$tijd] = [$loperId];
+                }
             }
         }
         
+        $toelichtingen = $em->getRepository('ZabutoBuurtpreventieBundle:Looptoelichting')->findForDate($date);
         $tijden = array_unique($tijden);
         $lopers = [];
         
@@ -182,7 +190,9 @@ class LoperschemaController extends Controller
             'afgemeld' => $afgemeld,
             'tijden' => $tijden,
             'lopers' => $lopers,
-            'is_admin' => $isAdmin
+            'is_admin' => $isAdmin,
+            'aangemeld' => $aangemeld,
+            'toelichtingen' => $toelichtingen
         );
 
         return $this->render('ZabutoBuurtpreventieBundle:Loperschema:add-form.html.twig', $data);
@@ -494,7 +504,7 @@ class LoperschemaController extends Controller
             // Aanpassing i.v.m. meerdere looprondes / tijden
             // per dag. Eenzelfde loper kan zich aanmelden voor
             // meerdere rondes maar is voor het systeem 1 loper.
-            $info['lopers'] = array_unique($info['lopers']);
+            $info['lopers'] = $this->_uniekeLopers($info['lopers']);
 
             if ($date < $today) {
                 if (count($info['lopers']) < $minAantalLopers) {
@@ -515,16 +525,9 @@ class LoperschemaController extends Controller
                     // toevoegen voor anderen. De lopers kunnen vervolgens een 
                     // resultaat toevoegen. Die functie kunnen we in zo'n geval
                     // uitschakelen voor de admin.
-                    if ($isAdmin) {
-                        $k = 0;
-                        $n = count($info['lopers']);
-                        $found = false;
-                        while (!$found && $k < $n) {
-                            $found = ($userId == $info['lopers'][$k]->getId());
-                            $k++;
-                        }
-                        if (!$found) $info['editable'] = false;
-                    } 
+                    if ($isAdmin && !$this->_isAangemeldeLoper($user, $info['lopers'])) {
+                        $info['editable'] = false;
+                    }
 
                     $info['toon_resultaat'] = true;
                     $list[$date]['badge'] = true;
@@ -545,6 +548,10 @@ class LoperschemaController extends Controller
                 if ($date == $today && count($info['lopers']) >= $minAantalLopers) {
                     $info['toon_resultaat'] = true;
                     $info['editable'] = 'alles';
+                    
+                    if ($isAdmin && !$this->_isAangemeldeLoper($user, $info['lopers'])) {
+                        $info['editable'] = 'aanmelding';
+                    }
                 }
 
                 $info['toelichtingen'] = $em->getRepository('ZabutoBuurtpreventieBundle:Looptoelichting')->findForDate(new DateTime($date));
@@ -600,5 +607,45 @@ class LoperschemaController extends Controller
         }
 
         return $errors;
+    }
+    
+    /**
+     * Retourneert een lijst met unieke lopers
+     *
+     * @param array $lopers
+     * @return array
+     */
+    private function _uniekeLopers($lopers)
+    {
+        $uniqueIds = [];
+        for ($i = 0, $n = count($lopers); $i < $n; $i++) {
+            if (in_array($lopers[$i]->getId(), $uniqueIds)) {
+                unset($lopers[$i]);
+            } else {
+                $uniqueIds[] = $lopers[$i]->getId();
+            }
+        }
+        return $lopers;
+    }
+    
+    /**
+     * Bepaal of user een aangemelde loper is
+     *
+     * @param User $user
+     * @param array $lopers
+     * @return boolean
+     */
+    private function _isAangemeldeLoper($user, $lopers)
+    {
+        $userId = $user->getId();
+        $k = 0;
+        $n = count($lopers);
+        $found = false;
+        while (!$found && $k < $n) {
+            // Is de huidige user ook een loper?
+            $found = ($userId == $lopers[$k]->getId());
+            $k++;
+        }
+        return $found;
     }
 }
