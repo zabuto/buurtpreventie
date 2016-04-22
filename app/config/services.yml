@@ -1,4 +1,6 @@
 services:
+    fos_user.doctrine_registry: 
+        alias: doctrine
     salavert.twig.time_ago:
         class: Salavert\Twig\Extension\TimeAgoExtension
         arguments: [@translator]
