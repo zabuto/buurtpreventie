@@ -85,7 +85,7 @@ class LoopschemaRepository extends EntityRepository
         $qb->from('Zabuto\Bundle\BuurtpreventieBundle\Entity\Loopschema', 's');
         $qb->where($qb->expr()->eq('s.actueel', '1'));
         $qb->andWhere($qb->expr()->like('s.datum', ':date'));
-        $qb->orderBy('s.id', 'ASC');
+        $qb->orderBy('s.datum', 'ASC');
         
         // Aanpassing m.b.t. looprondes. In de nieuwe situatie zijn er 
         // mogelijk meerdere looprondes per dag. We onderscheiden de

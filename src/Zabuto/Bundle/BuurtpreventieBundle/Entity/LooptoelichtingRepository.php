@@ -14,9 +14,10 @@ class LooptoelichtingRepository extends EntityRepository
      *
      * @param DateTime $date
      * @param boolean $datetime
+     * @param boolean $orderByDate
      * @return array
      */
-    public function findForDate(DateTime $date, $datetime = false)
+    public function findForDate(DateTime $date, $datetime = false, $orderByDate = false)
     {
         $qb = $this->_em->createQueryBuilder();
         $qb->select('t');
@@ -24,7 +25,11 @@ class LooptoelichtingRepository extends EntityRepository
         $qb->innerJoin('Zabuto\Bundle\BuurtpreventieBundle\Entity\Loopschema', 's', 'WITH', 't.loopschema=s');
         $qb->where($qb->expr()->like('s.datum', ':date'));
         $qb->andWhere($qb->expr()->eq('s.actueel', '1'));
-        $qb->orderBy('t.aangemaaktOp', 'ASC');
+        if ($orderByDate) {
+            $qb->orderBy('s.datum', 'ASC');
+        } else {
+            $qb->orderBy('t.aangemaaktOp', 'ASC');
+        }
         $qb->addOrderBy('t.id', 'ASC');
 
         // Aanpassing m.b.t. looprondes. In de nieuwe situatie zijn er 

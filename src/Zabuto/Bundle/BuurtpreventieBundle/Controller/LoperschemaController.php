@@ -553,8 +553,12 @@ class LoperschemaController extends Controller
                         $info['editable'] = 'aanmelding';
                     }
                 }
-
-                $info['toelichtingen'] = $em->getRepository('ZabutoBuurtpreventieBundle:Looptoelichting')->findForDate(new DateTime($date));
+                
+                $info['toelichtingen'] = $em->getRepository('ZabutoBuurtpreventieBundle:Looptoelichting')->findForDate(
+                    new DateTime($date),
+                    $dateTimeFormat = false,
+                    $orderByDate = true
+                );
 
                 if ($info['eigen_datum'] > 0) {
                     $list[$date]['badge'] = true;
