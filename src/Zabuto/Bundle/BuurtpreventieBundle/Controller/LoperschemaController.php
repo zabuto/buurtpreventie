@@ -617,12 +617,13 @@ class LoperschemaController extends Controller
      */
     private function _uniekeLopers($lopers)
     {
-        $uniqueIds = [];
+        $map = [];
         for ($i = 0, $n = count($lopers); $i < $n; $i++) {
-            if (in_array($lopers[$i]->getId(), $uniqueIds)) {
+            $loperId = $lopers[$i]->getId();
+            if (isset($map[$loperId])) {
                 unset($lopers[$i]);
             } else {
-                $uniqueIds[] = $lopers[$i]->getId();
+                $map[$loperId] = true;
             }
         }
         return $lopers;
