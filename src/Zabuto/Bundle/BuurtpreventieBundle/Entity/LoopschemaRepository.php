@@ -74,8 +74,8 @@ class LoopschemaRepository extends EntityRepository
      * Loopschema's voor de gekozen datum
      *
      * @param DateTime $date
-     * @param User $loper
-     * @param boolean $datetime
+     * @param User|null $loper (optioneel) loper uitsluiten van het resultaat
+     * @param boolean $datetime (optioneel)
      * @return array
      */
     public function findAllActiveForDate(DateTime $date, $loper = null, $datetime = false)
@@ -87,7 +87,7 @@ class LoopschemaRepository extends EntityRepository
         $qb->andWhere($qb->expr()->like('s.datum', ':date'));
         $qb->orderBy('s.datum', 'ASC');
         
-        // Aanpassing m.b.t. looprondes. In de nieuwe situatie zijn er 
+        // Aanpassing m.b.t. looprondes. In de nieuwe situatie zijn er
         // mogelijk meerdere looprondes per dag. We onderscheiden de
         // rondes m.b.v. datum en tijd.
         $format = 'Y-m-d';
@@ -110,10 +110,11 @@ class LoopschemaRepository extends EntityRepository
      * Afgemelde loopschema's voor de gekozen datum
      *
      * @param DateTime $date
-     * @param User $loper
+     * @param User|null $loper (optioneel) enkel loopschema's voor een bepaalde loper
+     * @param boolean $datetime (optioneel)
      * @return array
      */
-    public function findAllInactiveForDate(DateTime $date, $loper = null)
+    public function findAllInactiveForDate(DateTime $date, $loper = null, $datetime = false)
     {
         $qb = $this->_em->createQueryBuilder();
         $qb->select('s');
@@ -122,7 +123,14 @@ class LoopschemaRepository extends EntityRepository
         $qb->andWhere($qb->expr()->like('s.datum', ':date'));
         $qb->orderBy('s.id', 'ASC');
 
-        $qb->setParameter('date', $date->format('Y-m-d') . '%');
+        // Aanpassing m.b.t. looprondes. In de nieuwe situatie zijn er
+        // mogelijk meerdere looprondes per dag. We onderscheiden de
+        // rondes m.b.v. datum en tijd.
+        $format = 'Y-m-d';
+        if ($datetime) {
+            $format .= ' H:i:s';
+        }
+        $qb->setParameter('date', $date->format($format) . '%');
 
         if (!is_null($loper)) {
             $qb->andWhere('s.loper = :loper');
@@ -132,6 +140,27 @@ class LoopschemaRepository extends EntityRepository
         $q = $qb->getQuery();
 
         return $q->getResult();
+    }
+    
+    /**
+     * Loopschema voor de gekozen datum+tijd en loper
+     *
+     * @param DateTime $date
+     * @param User $loper
+     * @return Loopschema|null
+     */
+    public function findOneForDate(DateTime $date, $loper)
+    {
+        $qb = $this->_em->createQueryBuilder();
+        $qb->select('s');
+        $qb->from('Zabuto\Bundle\BuurtpreventieBundle\Entity\Loopschema', 's');
+        $qb->where('s.loper = :loper');
+        $qb->andWhere($qb->expr()->like('s.datum', ':date'));
+        $qb->setParameter('loper', $loper);
+        $qb->setParameter('date', $date->format('Y-m-d H:i:s') . '%');
+        $qb->setMaxResults(1);
+        
+        return $qb->getQuery()->getOneOrNullResult();
     }
 
     /**

@@ -13,7 +13,22 @@
         <p class="text-muted">Geen resultaten beschikbaar</p>
     {% else %}
         <table style="width: 100%;">
+            {% set redirUrl = path('buurtpreventie_loper_schema_jaarmaand', { jaar: jaar, maand: maand} ) %}
             {% for loopschema in resultaten %}
+                {% set time = loopschema.datum|date('H:i') %}
+                {% if time != prev_time %}
+                <tr>
+                    <td colspan="4"><p class="lead" style="margin-bottom: 0;">{{ time }}</p></td>
+                    <td align="right">
+                        {% set formUrl = path('buurtpreventie_loper_resultaat_datum_schema', { id: loopschema.id, date: date} ) %}
+                        <button type="button" class="btn btn-primary" style="margin-bottom:-30px;"
+                                onclick="dateId = $(this).closest('.modal').attr('dateId'); buurtpreventieLoopschemaResultaat(dateId, {{ eigen_datum }}, '{{ formUrl }}', '{{ redirUrl }}', true);">
+                            Resultaat
+                        </button>
+                    </td>
+                </tr>
+                {% set prev_time = time %}
+                {% endif %}
                 <tr>
                     <td style="width: 24px; vertical-align: top; padding-top: 2px;">
                         <img class="image-responsive loper-avatar"
@@ -31,7 +46,11 @@
                     <td {% if loopschema.bijzonderheden is empty %}class="text-muted"{% endif %}>
                         {{ loopschema.bijzonderheden|default(loopschema.resultaat.omschrijving) }}
                     </td>
+                    <td>&nbsp;</td>
                 </tr>
+                {% if not loop.last %}
+                    <tr><td colspan="5">&nbsp;</td></tr>
+                {% endif %}
             {% endfor %}
         </table>
     {% endif %}

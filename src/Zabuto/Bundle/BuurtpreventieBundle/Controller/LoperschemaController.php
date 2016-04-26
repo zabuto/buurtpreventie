@@ -282,7 +282,7 @@ class LoperschemaController extends Controller
     /**
      * Afmelding voor datum verwerken
      *
-     * @param $id
+     * @param $id loopschema.id
      * @param $date
      * @return JsonResponse
      */
@@ -376,9 +376,13 @@ class LoperschemaController extends Controller
             $em->persist($loopschema);
             $em->flush();
 
-            $mailManager = $this->get('zabuto_buurtpreventie.mailmanager');
-            $mailManager->mailLoopschemaResultaat($loopschema);
-
+            try {
+                $mailManager = $this->get('zabuto_buurtpreventie.mailmanager');
+                $mailManager->mailLoopschemaResultaat($loopschema);
+            } catch (Exception $e) {
+                // ignore
+            }
+            
             return new JsonResponse(array('success' => true));
         }
 
@@ -393,7 +397,23 @@ class LoperschemaController extends Controller
      * @return array
      */
     private function _addLoopschema($date, $user)
-    {    
+    {
+        // Heeft de user al een loopschema met datum+tijd?
+        $repo = $this->get('doctrine')->getManager()->getRepository('ZabutoBuurtpreventieBundle:Loopschema');
+        $loopschema = $repo->findOneForDate(new DateTime($date), $user);
+        if ($loopschema) {
+            if ($loopschema->getActueel()) {
+                // Loopschema bestaat en is actueel
+            } else {
+                // Loopschema bestaat maar loper is afgemeld
+                $loopschema->setActueel(true);
+                $em = $this->get('doctrine')->getManager();
+                $em->persist($loopschema);
+                $em->flush();
+            }
+            return [];
+        }
+        
         $loopschema = new Loopschema();
         $loopschema->setLoper($user);
         $loopschema->setDatum(new DateTime($date));
@@ -497,6 +517,7 @@ class LoperschemaController extends Controller
 
         foreach ($list as $date => $info) {
             $info['editable'] = false;
+            $info['eigen_id'] = $userId;
             $info['toon_toelichting'] = false;
             $info['toon_resultaat'] = false;
             $info['toelichtingen'] = array();
@@ -527,7 +548,15 @@ class LoperschemaController extends Controller
                     // uitschakelen voor de admin.
                     if ($isAdmin && !$this->_isAangemeldeLoper($user, $info['lopers'])) {
                         $info['editable'] = false;
+                    } else {
+                        $info['editable'] = true;
                     }
+                    
+                    $info['toelichtingen'] = $em->getRepository('ZabutoBuurtpreventieBundle:Looptoelichting')->findForDate(
+                        new DateTime($date),
+                        $dateTimeFormat = false,
+                        $orderByDate = true
+                    );
 
                     $info['toon_resultaat'] = true;
                     $list[$date]['badge'] = true;

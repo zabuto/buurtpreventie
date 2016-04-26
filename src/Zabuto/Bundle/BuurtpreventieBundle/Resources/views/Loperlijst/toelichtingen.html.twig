@@ -8,7 +8,18 @@
         {% endif %}
         <p style="overflow-x: auto; word-wrap: break-word;">
         <span class="pull-right">
-            <small class="text-muted">{{ toelichting.aangemaaktop|time_ago_in_words }}</small>
+            {% if editable is sameas('aanmelding') and toelichting.loopschema.loper.id == eigen_id %}
+                {% if eigen_datum > 0 %}
+                {% set formUrl = path('buurtpreventie_loper_afmelden_datum_schema', { id: toelichting.loopschema.id, date: date} ) %}
+                {% set redirUrl = path('buurtpreventie_loper_schema_jaarmaand', { jaar: jaar, maand: maand} ) %}
+                <button type="button" class="btn btn-warning"
+                        onclick="dateId = $(this).closest('.modal').attr('dateId'); buurtpreventieLoopschemaAfmelden(dateId, {{ eigen_datum }}, '{{ formUrl }}', '{{ redirUrl }}', true);">
+                    Afmelden
+                </button>
+                {% endif %}
+            {% else %}
+                <small class="text-muted">{{ toelichting.aangemaaktop|time_ago_in_words }}</small>
+            {% endif %}
         </span>
             <img class="image-responsive" style="margin-right: 2px;"
                  src="http://www.gravatar.com/avatar/{{ toelichting.loopschema.loper.gravatar }}?s=14&d=identicon">

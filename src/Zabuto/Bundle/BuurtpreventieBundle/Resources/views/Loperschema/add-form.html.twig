@@ -56,13 +56,13 @@
             var index = -1;
             if (isNewSchedule) {
                 textarea.val('');
-                textarea.prop('disabled', false);
+                textarea.prop('readonly', false);
                 checkboxes.each(function() {
                     $(this).prop('checked', false);
                 });
             } else {
                 textarea.val(explanation);
-                textarea.prop('disabled', true);
+                textarea.prop('readonly', true);
                 checkboxes.each(function() {
                     index = $.inArray(parseInt($(this).val()), active);
                     $(this).prop('checked', (index >= 0));
