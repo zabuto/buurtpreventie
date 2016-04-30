@@ -31,6 +31,15 @@ zabuto_user_delete:
     pattern:  /beheer/gebruiker/{id}/verwijder
     defaults: { _controller: ZabutoUserBundle:User:delete }
 
+zabuto_user_forgot_password:
+    pattern:  /reset
+    defaults: { _controller: ZabutoUserBundle:Reset:forgotPassword }
+    methods:  [GET]
+
+zabuto_user_reset_password:
+    pattern:  /reset/password
+    defaults: { _controller: ZabutoUserBundle:Reset:resetPassword }
+    methods:  [POST]
 
 zabuto_usergroup_list:
     pattern:  /beheer/gebruikersgroep/lijst

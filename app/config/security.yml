@@ -23,6 +23,7 @@ security:
     access_control:
         - { path: ^/(_(profiler|wdt)|css|images|js)/, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/login$, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/reset/*, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/gebruiker/profiel, role: ROLE_USER }
         - { path: ^/beheer/*, role: ROLE_SUPERUSER }
         - { path: ^/buurtpreventie/loper/*, role: ROLE_USER }

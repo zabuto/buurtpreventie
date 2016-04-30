@@ -26,6 +26,7 @@ form:
         edit: Wijzigen
         delete: Verwijderen
         cancel: Annuleren
+        send: Versturen
 
 layout:
     logged_in_as: Ingelogd als %username%
