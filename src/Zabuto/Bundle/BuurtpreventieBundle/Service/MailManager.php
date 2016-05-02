@@ -98,4 +98,27 @@ class MailManager
 
         return ($recipients > 0) ? true : false;
     }
+    
+    /**
+     * Mail nieuw wachtwoord aan gebruiker
+     *
+     * @param User $user
+     * @param String $password
+     * @return boolean
+     */
+    public function mailNieuwWachtwoord($user, $password)
+    {
+        $title = 'Nieuw wachtwoord';
+        $body = $this->templating->render('ZabutoUserBundle:Reset:email.txt.twig', array('wachtwoord' => $password));
+        
+        $message = \Swift_Message::newInstance();
+        $message->setSubject($title);
+        $message->setFrom($this->address);
+        $message->setTo($user->getEmail());
+        $message->setBody($body);
+
+        $recipients = $this->mailer->send($message);
+
+        return ($recipients > 0) ? true : false;
+    }
 }

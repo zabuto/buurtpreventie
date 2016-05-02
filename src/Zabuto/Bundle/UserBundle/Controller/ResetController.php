@@ -28,8 +28,8 @@ class ResetController extends Controller
                 $user->setPlainPassword($password);
                 $userManager->updateUser($user);
                 try {
-                    //$mailManager = $this->get('zabuto_buurtpreventie.mailmanager');
-                    //$mailManager->mailNieuwWachtwoord($user, $password);                    
+                    $mailManager = $this->get('zabuto_buurtpreventie.mailmanager');
+                    $mailManager->mailNieuwWachtwoord($user, $password);
                     $template = 'ZabutoUserBundle:Reset:password-sent.html.twig';
                 } catch (Exception $e) {
                     $error = 'Er is een fout opgetreden, probeer het aub nogmaals';
