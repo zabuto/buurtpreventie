@@ -23,6 +23,14 @@ class UserController extends Controller
 
         return $this->render('ZabutoUserBundle:User:locked-list.html.twig', array('users' => $users));
     }
+    
+    public function memberListAction()
+    {
+        $em = $this->get('doctrine')->getManager();
+        $users = $em->getRepository('ZabutoUserBundle:User')->getList();
+
+        return $this->render('ZabutoUserBundle:User:member-list.html.twig', array('users' => $users));
+    }
 
     public function newAction()
     {

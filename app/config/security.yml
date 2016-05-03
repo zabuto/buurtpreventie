@@ -27,6 +27,7 @@ security:
         - { path: ^/gebruiker/profiel, role: ROLE_USER }
         - { path: ^/beheer/*, role: ROLE_SUPERUSER }
         - { path: ^/buurtpreventie/loper/*, role: ROLE_USER }
+        - { path: ^/buurtpreventie/leden/lijst, role: ROLE_USER }
         - { path: ^/buurtpreventie/loopresultaat/*, role: ROLE_ADMIN }
 
 

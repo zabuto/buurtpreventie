@@ -68,3 +68,7 @@ buurtpreventie_loper_resultaat_lijst:
 buurtpreventie_loper_resultaat_datum:
     pattern:  /buurtpreventie/loper/datum/{date}/{id}/resultaat
     defaults: { _controller: ZabutoBuurtpreventieBundle:Loopresultaat:date }
+
+buurtpreventie_leden_lijst:
+    pattern:  /buurtpreventie/leden/lijst
+    defaults: { _controller: ZabutoUserBundle:User:memberList }

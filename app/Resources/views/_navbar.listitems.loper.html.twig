@@ -18,3 +18,10 @@
         Loopresultaten
     </a>
 </li>
+
+<li {% if app.request.attributes.get('_route') == 'buurtpreventie_leden_lijst' %} class='active'{% endif %}>
+    <a href="{{ path('buurtpreventie_leden_lijst') }}">
+        <span class="visible-xs pull-left glyphicon glyphicon-align-justify"></span>
+        Ledenlijst
+    </a>
+</li>
