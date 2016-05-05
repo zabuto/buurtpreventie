@@ -4,6 +4,7 @@ namespace Zabuto\Bundle\UserBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use DateTime;
 
 class UserController extends Controller
 {
@@ -28,8 +29,36 @@ class UserController extends Controller
     {
         $em = $this->get('doctrine')->getManager();
         $users = $em->getRepository('ZabutoUserBundle:User')->getList();
-
-        return $this->render('ZabutoUserBundle:User:member-list.html.twig', array('users' => $users));
+        $total = 0;
+        $stats = [];
+        $securityContext = $this->container->get('security.context');
+        if ($securityContext->isGranted('ROLE_ADMIN')) {
+            $schemas = $em->getRepository('ZabutoBuurtpreventieBundle:Loopschema')->findAllHistory();
+            $interval = 'm';
+            $compInterval = intval(date_format(new DateTime(), $interval)) - 1;
+            $total = count($schemas);
+            foreach ($schemas as $schema) {
+                $userId = $schema->getLoper()->getId();
+                $current = (int) $schema->getDatum()->format($interval);
+                if (array_key_exists($userId, $stats)) {
+                    $isPartOfActivity = (($current - $compInterval) == 0);
+                    $previous = $stats[$userId]['current'];
+                    $stats[$userId]['current'] = $current;
+                    $stats[$userId]['activity'] += ($isPartOfActivity ? 1 : 0);
+                    $stats[$userId]['intervals'] += ($current > $previous ? 1 : 0);
+                } else {
+                    $stats[$userId]['current'] = $current;
+                    $stats[$userId]['activity'] = 1;
+                    $stats[$userId]['intervals'] = 1;
+                }
+            }
+        }
+        
+        return $this->render('ZabutoUserBundle:User:member-list.html.twig', array(
+            'users' => $users,
+            'stats' => $stats,
+            'total' => $total
+        ));
     }
 
     public function newAction()

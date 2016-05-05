@@ -23,6 +23,7 @@
                 <th>{{ 'user.list.email'|trans }}</th>
                 <th>{{ 'user.list.address'|trans }}</th>
                 <th>{{ 'user.list.phone'|trans }}</th>
+                {% if is_granted("ROLE_SUPERUSER") %}<th>Activiteit</th>{% endif %}
                 <th>{{ 'user.list.enabled'|trans }}</th>
             </tr>
             </thead>
@@ -33,6 +34,25 @@
                     <td>{{ user.email }}</td>
                     <td>{{ user.address }}</td>
                     <td>{{ user.phone }}</td>
+                    {% if is_granted("ROLE_SUPERUSER") %}
+                        {% if user.enabled %}
+                            {% set activity = attribute(stats, user.id).activity %}
+                            {% set average = activity / attribute(stats, user.id).intervals %}
+                            {% set delta = activity - average|round %}
+                            <td>
+                            {% if delta == 0 %}
+                                <span style="color:#FFFFFF;">&#9650;</span>
+                            {% elseif delta > 0 %}
+                                <span style="color:#468847;">&#9650;</span>
+                            {% else %}
+                                <span style="color:#B94A48;">&#9660;</span>
+                            {% endif %}&nbsp;
+                                <span class="chart">{{ activity }}/{{ total }}</span>
+                            </td>
+                        {% else %}
+                            <td>&nbsp;</td>
+                        {% endif %}
+                    {% endif %}
                     <td>
                         <span class="glyphicon glyphicon-{% if user.enabled == true %}ok glyphicon green{% else %}off glyphicon red{% endif %}"></span>
                     </td>
@@ -42,4 +62,13 @@
         </table>
     {% endif %}
 
+{% endblock %}
+
+{% block javascripts %}
+<script src="{{ asset( 'bundles/zabutobuurtpreventie/js/jquery.peity.min.js' ) }}"></script>
+<script>
+    $('span.chart').peity('donut', {
+        fill: ['#ff9b08', '#777777']
+    });
+</script>
 {% endblock %}
