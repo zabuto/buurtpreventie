@@ -34,23 +34,20 @@ class UserController extends Controller
         $securityContext = $this->container->get('security.context');
         if ($securityContext->isGranted('ROLE_ADMIN')) {
             $schemas = $em->getRepository('ZabutoBuurtpreventieBundle:Loopschema')->findAllHistory();
-            $interval = 'm';
-            $compInterval = intval(date_format(new DateTime(), $interval)) - 1;
             $total = count($schemas);
+            $month = 'm';
+            $interval = intval(date_format(new DateTime(), $month)) - 1;
             foreach ($schemas as $schema) {
                 $userId = $schema->getLoper()->getId();
-                $current = (int) $schema->getDatum()->format($interval);
+                $current = (int) $schema->getDatum()->format($month);
                 if (array_key_exists($userId, $stats)) {
-                    $isPartOfActivity = (($current - $compInterval) == 0);
                     $previous = $stats[$userId]['current'];
-                    $stats[$userId]['current'] = $current;
-                    $stats[$userId]['activity'] += ($isPartOfActivity ? 1 : 0);
                     $stats[$userId]['intervals'] += ($current > $previous ? 1 : 0);
                 } else {
-                    $stats[$userId]['current'] = $current;
-                    $stats[$userId]['activity'] = 1;
                     $stats[$userId]['intervals'] = 1;
                 }
+                $stats[$userId]['current'] = $current;
+                $stats[$userId]['activity'] += ($current == $interval ? 1 : 0);
             }
         }
         
