@@ -25,6 +25,8 @@ class LoopresultaatController extends Controller
         $resultList = array();
         foreach ($em->getRepository('ZabutoBuurtpreventieBundle:Loopschema')->findAllHistory($user) as $key => $loopschema) {
             $others = $em->getRepository('ZabutoBuurtpreventieBundle:Loopschema')->findAllActiveForDate($loopschema->getDatum(), $user);
+            // Negeer looprondes met minder dan het minimum aantal benodigde lopers ($minAantalLopers)
+            // Het aantal anderen is exclusief de huidige gebruiker, daarom wordt $minAantalLopers verlaagd met 1
             if (count($others) >= ($minAantalLopers - 1)) {
                 $resultList[$key]['eigen_schema'] = $loopschema;
                 $resultList[$key]['schemas_anderen'] = $others;

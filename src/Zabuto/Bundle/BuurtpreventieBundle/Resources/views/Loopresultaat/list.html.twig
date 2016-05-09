@@ -27,7 +27,7 @@
             <table class="table table-striped">
                 <thead>
                 <tr>
-                    <th style="width: 125px;">Datum</th>
+                    <th style="width: 200px;">Datum</th>
                     <th style="width: 20px;"></th>
                     <th>Gelopen met</th>
                     <th class="visible-xs" title="Bekijk bijzonderheden" style="width: 20px;"></th>
@@ -39,7 +39,7 @@
                 {% for item in resultList %}
                     <tr {% if item.resultaten|length == 0 %}class="text-warning"{% endif %}>
                         <td{% if item.resultaten|length > 0 %} class="text-{% if item.incidenten > 0 %}danger{% else %}success{% endif %}"{% endif %}>
-                            {{ item.eigen_schema.datum|date("D d-m-Y") }}
+                            {{ item.eigen_schema.datum|date("D d-m-Y H:i") }}
                         </td>
                         <td>
                             {% if item.resultaten|length == 0 %}
@@ -56,8 +56,12 @@
                             {% endif %}
                         </td>
                         <td>
+                            {% set lijst = [] %}
                             {% for schema in item.schemas_anderen %}
-                                {{ schema.loper.naam }}{% if not loop.last %}, {% endif %}
+                                {% if schema.loper.naam not in lijst %}
+                                {% if not loop.first %}, {% endif %}{{ schema.loper.naam }}
+                                {% set lijst = lijst|merge([schema.loper.naam]) %}
+                                {% endif %}
                             {% endfor %}
                         </td>
                         <td class="visible-xs">
