@@ -3,6 +3,7 @@ security:
         FOS\UserBundle\Model\UserInterface: sha512
 
     role_hierarchy:
+        ROLE_ANALYST:     ROLE_ANALYST
         ROLE_USER:        ROLE_USER
         ROLE_ADMIN:       ROLE_ADMIN
         ROLE_SUPERUSER:   ROLE_SUPERUSER
@@ -29,6 +30,7 @@ security:
         - { path: ^/buurtpreventie/loper/*, role: ROLE_USER }
         - { path: ^/buurtpreventie/leden/lijst, role: ROLE_USER }
         - { path: ^/buurtpreventie/loopresultaat/*, role: ROLE_ADMIN }
+        - { path: ^/buurtpreventie/resultaten/lijst, role: ROLE_ANALYST }
 
 
 # FOSUserBundle Configuration

@@ -63,6 +63,86 @@ class LoopresultaatController extends Controller
 
         return $this->render('ZabutoBuurtpreventieBundle:Loopresultaat:list.html.twig', array('loper' => $user, 'resultList' => $resultList));
     }
+    
+    /**
+     * Lijst met alle resultaten (voor analist)
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function listAllAction()
+    {
+        $minAantalLopers = $this->container->getParameter('loopschema_minimum_aantal_lopers');
+        $em = $this->get('doctrine')->getManager();
+        $repo = $em->getRepository('ZabutoBuurtpreventieBundle:Loopschema');
+        $result = $repo->findAllHistory();
+        $resultList = array();
+        $lookup = [];
+        foreach ($result as $key => $loopschema) {
+            // Het resultaat bevat alle loopschemas in het verleden
+            // Negeer looprondes die al in de lookup tabel voorkomen
+            $datum = $loopschema->getDatum();
+            if (isset($lookup[$datum->getTimestamp()])) {
+                continue;
+            }
+            $lookup[$datum->getTimestamp()] = true;
+            
+            $others = $repo->findAllActiveForDate($loopschema->getDatum(), $loopschema->getLoper(), $datetime = true);
+            // Negeer looprondes met minder dan het minimum aantal benodigde lopers ($minAantalLopers)
+            // Het aantal anderen is exclusief de huidige gebruiker, daarom wordt $minAantalLopers verlaagd met 1
+            if (count($others) >= ($minAantalLopers - 1)) {
+                $resultList[$key]['eigen_schema'] = $loopschema;
+                $resultList[$key]['schemas_anderen'] = $others;
+                $resultList[$key]['eigen_resultaat'] = false;
+                $resultList[$key]['resultaten'] = array();
+                $resultList[$key]['incidenten'] = 0;
+                $resultList[$key]['bijzonderheden'] = 0;
+                
+                if (!is_null($loopschema->getResultaat())) {
+                    $resultList[$key]['eigen_resultaat'] = true;
+                    $resultList[$key]['resultaten'][] = $loopschema;
+                    if ($loopschema->getResultaat()->getIncident() === true) {
+                        $resultList[$key]['incidenten'] += 1;
+                    }
+                    if ($loopschema->getResultaat()->getBijzonderheid() === true) {
+                        $resultList[$key]['bijzonderheden'] += 1;
+                    }
+                }
+
+                foreach ($others as $otherSchema) {
+                    if (!is_null($otherSchema->getResultaat())) {
+                        $resultList[$key]['resultaten'][] = $otherSchema;
+                        if ($otherSchema->getResultaat()->getIncident() === true) {
+                            $resultList[$key]['incidenten'] += 1;
+                        }
+                        if ($otherSchema->getResultaat()->getBijzonderheid() === true) {
+                            $resultList[$key]['bijzonderheden'] += 1;
+                        }
+                    }
+                }
+                
+                // Verwijder entries zonder resultaten of bijzonderheden
+                if (empty($resultList[$key]['resultaten']) || $resultList[$key]['bijzonderheden'] == 0) {
+                    unset($resultList[$key]);
+                } else {
+                    // Verwijder 'dubbele' resultaten
+                    $resultaten = $resultList[$key]['resultaten'];
+                    $map = [];
+                    for ($i = 0, $n = count($resultaten); $i < $n; $i++) {
+                        if (isset($map[$resultaten[$i]->getId()])) {
+                            unset($resultaten[$i]);
+                        } else {
+                            $map[$resultaten[$i]->getId()] = true;
+                        }
+                    }
+                    $resultList[$key]['resultaten'] = $resultaten;
+                }
+            }
+        }
+        
+        return $this->render('ZabutoBuurtpreventieBundle:Loopresultaat:list-all.html.twig', array(
+            'resultList' => $resultList
+        ));
+    }
 
     /**
      * Resultaat voor datum verwerken

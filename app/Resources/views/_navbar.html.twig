@@ -22,8 +22,12 @@
                     </a>
                 </li>
 
-                {% if is_granted("ROLE_USER") %}
+                {% if is_granted("ROLE_USER") and not is_granted("ROLE_ANALYST") %}
                     {% include '_navbar.listitems.loper.html.twig' %}
+                {% endif %}
+                
+                {% if is_granted("ROLE_ANALYST") %}
+                    {% include '_navbar.listitems.analist.html.twig' %}
                 {% endif %}
 
                 {% if is_granted("ROLE_ADMIN") %}

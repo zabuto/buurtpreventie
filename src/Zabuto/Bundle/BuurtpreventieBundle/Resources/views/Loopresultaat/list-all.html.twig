@@ -1,0 +1,121 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Alle loopresultaten{% endblock %}
+
+{% block stylesheets %}
+    <link href="{{ asset( 'bundles/zabutobuurtpreventie/css/loper.css' ) }}" type="text/css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+    <h1>Loop<span>resultaten</span></h1>
+
+    {% for flashMessage in app.session.flashbag.get('buurtpreventie-loper') %}
+        <div class="alert alert-success alert-dismissable">
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+            <span class="glyphicon glyphicon-ok green"></span> {{ flashMessage }}
+        </div>
+    {% endfor %}
+
+    {% if resultList|length == 0 %}
+        <div class="alert alert-info">
+            <strong>Geen gegevens gevonden</strong>
+        </div>
+    {% else %}
+        <p>Na het lopen van een ronde wordt het resultaat hiervan vastgelegd. Deze lijst toont de bijzonderheden.</p>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th style="width: 200px;">Datum</th>
+                    <th style="width: 20px;"></th>
+                    <th>Lopers</th>
+                    <th class="visible-xs" title="Bekijk bijzonderheden" style="width: 20px;"></th>
+                    <th class="hidden-xs">Bijzonderheden</th>
+                    <th style="width: 100px; padding-left: 10px;"></th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for item in resultList %}
+                <tr {% if item.resultaten|length == 0 %}class="text-warning"{% endif %}>
+                    <td{% if item.resultaten|length > 0 %} class="text-{% if item.incidenten > 0 %}danger{% else %}success{% endif %}"{% endif %}>
+                        {{ item.eigen_schema.datum|date("D d-m-Y H:i") }}
+                    </td>
+                    <td>
+                        {% if item.resultaten|length == 0 %}
+                            <span class="glyphicon glyphicon-hand-right orange" title="Resultaat verwerken"></span>
+                        {% else %}
+                            {% if item.incidenten > 0 %}
+                                <span class="glyphicon glyphicon-thumbs-down red" title="Incident"></span>
+                            {% elseif item.bijzonderheden > 0 %}
+                                <span class="glyphicon glyphicon-thumbs-up green" title="Bijzonderheden"></span>
+                            {% else %}
+                                <span class="glyphicon glyphicon-thumbs-up green"
+                                      title="Geen bijzonderheden"></span>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% set lijst = [] %}
+                        {% for schema in item.schemas_anderen %}
+                            {% if schema.loper.naam not in lijst %}
+                            {% if not loop.first %}, {% endif %}{{ schema.loper.naam }}
+                            {% set lijst = lijst|merge([schema.loper.naam]) %}
+                            {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td class="visible-xs">
+                        <span class="clickable glyphicon glyphicon-comment text-info {% if item.bijzonderheden|length == 0 %}grey{% endif %}"
+                              data-toggle="modal"
+                              data-target="#modalComments{{ item.eigen_schema.datum|date("Ymd") }}"></span>
+
+                        <div class="modal fade" id="modalComments{{ item.eigen_schema.datum|date("Ymd") }}"
+                             tabindex="-1" role="dialog"
+                             aria-labelledby="modalComments{{ item.eigen_schema.datum|date("Ymd") }}Label"
+                             aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal"
+                                                aria-hidden="true">&times;</button>
+                                        <h4 class="modal-title"
+                                            id="modalComments{{ item.eigen_schema.datum|date("Ymd") }}Label">
+                                            Bijzonderheden bij {{ item.eigen_schema.datum|date("d-m-Y") }}</h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        {% if item.bijzonderheden|length == 0 %}
+                                            Geen bijzonderheden.
+                                        {% else %}
+                                            {% include '@ZabutoBuurtpreventie/Loopresultaat/resultaten.html.twig' with {resultaten: item.resultaten, alleen_bijzonderheden: true} %}
+                                        {% endif %}
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">
+                                            Sluiten
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="hidden-xs">
+                        {% if item.resultaten|length == 0 %}
+                            Geen resultaat bekend
+                        {% else %}
+                            {% include '@ZabutoBuurtpreventie/Loopresultaat/resultaten.html.twig' with {resultaten: item.resultaten, alleen_bijzonderheden: true} %}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if item.eigen_resultaat == false %}
+                            <a href="{{ path('buurtpreventie_loper_resultaat_datum', { 'id': item.eigen_schema.id, 'date': item.eigen_schema.datum|date('Y-m-d') }) }}">
+                                Verwerk resultaat
+                            </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
+{% endblock %}

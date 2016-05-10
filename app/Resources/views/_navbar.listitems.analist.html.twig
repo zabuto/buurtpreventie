@@ -1,0 +1,6 @@
+<li {% if app.request.attributes.get('_route') == 'buurtpreventie_loper_resultaat_lijst' %} class='active'{% endif %}>
+    <a href="{{ path('buurtpreventie_resultaten_lijst') }}">
+        <span class="visible-xs pull-left glyphicon glyphicon-saved"></span>
+        Loopresultaten
+    </a>
+</li>
