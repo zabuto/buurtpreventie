@@ -30,6 +30,7 @@ echo ""
 app/console doctrine:schema:drop --force
 app/console doctrine:schema:create
 app/console widop:fixtures:load --env=dev
+app/console doctrine:migrations:migrate
 
 echo ""
 echo "-------------------------------------"

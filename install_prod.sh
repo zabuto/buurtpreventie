@@ -30,6 +30,7 @@ echo "- Bijwerken en vullen van databasetabellen"
 echo ""
 app/console doctrine:schema:update --force
 app/console widop:fixtures:load --env=prod
+app/console doctrine:migrations:migrate
 
 echo ""
 echo "-------------------------------------"
