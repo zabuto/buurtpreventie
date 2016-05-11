@@ -21,7 +21,7 @@ class Version20160510162723 extends AbstractMigration
         );
         
         $this->addSql('
-            INSERT INTO `buurtpreventie`.`zabuto_usergroup` (
+            INSERT INTO `zabuto_usergroup` (
                 `id` , `name` , `roles`
             ) VALUES (
                 NULL , \'Analist\', \'a:1:{i:0;s:12:"ROLE_ANALYST";}\'
@@ -40,8 +40,7 @@ class Version20160510162723 extends AbstractMigration
         );
         
         $this->addSql('
-            DELETE FROM `buurtpreventie`.`zabuto_usergroup`
-            WHERE `name` = \'Analist\';'
+            DELETE FROM `zabuto_usergroup` WHERE `name` = \'Analist\';'
         );
     }
 }
