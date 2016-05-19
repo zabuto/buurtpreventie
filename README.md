@@ -152,7 +152,7 @@ Lees [hier](https://www.antagonist.nl/help/nl/webhosting/advanced/cronjob) meer 
 
 ## Handige console opdrachten
 
-Cache verwijderen. Bijvoorbeeld nadat je een route hebt toevoegd of aangepast.
+Cache verwijderen. Bijvoorbeeld nadat je een route hebt toegevoegd of aangepast.
 
     php app/console cache:clear --env=prod
 
