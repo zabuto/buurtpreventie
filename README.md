@@ -149,3 +149,21 @@ Het uit te voeren commando heeft één argument: het aantal dagen dat vooruit ge
     /absoluut-pad-naar-bestand/cron.php zabutobuurtpreventie:reminder 1
 
 Lees [hier](https://www.antagonist.nl/help/nl/webhosting/advanced/cronjob) meer over het inrichten van cronjobs.
+
+## Handige console opdrachten
+
+Cache verwijderen. Bijvoorbeeld nadat je een route hebt toevoegd of aangepast.
+
+    php app/console cache:clear --env=prod
+
+Assets installeren in de web directory.
+
+    php app/console --env=prod assets:install web
+
+Database migratie status bekijken.
+
+    php app/console doctrine:migrations:status --show-versions
+
+Database migratie(s) uitvoeren.
+
+    php app/console doctrine:migrations:migrate
