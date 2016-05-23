@@ -2,6 +2,7 @@
 
 namespace Zabuto\Bundle\UserBundle\Controller;
 
+use Zabuto\Bundle\BuurtpreventieBundle\Model\UserGroup;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use DateTime;
@@ -28,7 +29,8 @@ class UserController extends Controller
     public function memberListAction()
     {
         $em = $this->get('doctrine')->getManager();
-        $users = $em->getRepository('ZabutoUserBundle:User')->getList();
+        $usergroup = new UserGroup($this->get('database_connection'));
+        $users = $usergroup->getList('Loper');
         $total = 0;
         $stats = [];
         $securityContext = $this->container->get('security.context');

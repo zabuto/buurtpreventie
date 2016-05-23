@@ -49,4 +49,29 @@ class UserGroup
         $stmt->execute();
         return $stmt->fetchAll();
     }
+    
+    /**
+     * Return a list of users from a given group
+     * 
+     * @param string $groupName
+     * @return array
+     */
+    public function getList($groupName)
+    {
+        $sql = 'SELECT u.*, u.real_name AS realname
+                FROM zabuto_user u
+                JOIN zabuto_user_usergroup g ON u.id = g.user_id 
+                WHERE u.locked = 0
+                AND g.group_id = (
+                    SELECT id
+                    FROM zabuto_usergroup
+                    WHERE name = :group_name
+                    )
+                ORDER BY u.real_name ASC';
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue('group_name', $groupName);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
 }
