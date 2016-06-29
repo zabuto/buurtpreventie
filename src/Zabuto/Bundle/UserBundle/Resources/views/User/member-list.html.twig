@@ -36,9 +36,10 @@
                     <td>{{ user.phone }}</td>
                     {% if is_granted("ROLE_SUPERUSER") %}
                         {% if user.enabled %}
+                            {% set user_total = attribute(stats, user.id).total %}
                             {% set activity = attribute(stats, user.id).activity %}
-                            {% set average = activity / attribute(stats, user.id).intervals %}
-                            {% set delta = activity - average|round %}
+                            {% set average = user_total / activity|length %}
+                            {% set delta = activity|last - average|round %}
                             <td>
                             {% if delta == 0 %}
                                 <span style="color:#FFFFFF;">&#9650;</span>
@@ -47,7 +48,7 @@
                             {% else %}
                                 <span style="color:#B94A48;">&#9660;</span>
                             {% endif %}&nbsp;
-                                <span class="chart">{{ activity }}/{{ total }}</span>
+                                <span class="chart">{{ user_total }}/{{ total }}</span>
                             </td>
                         {% else %}
                             <td>&nbsp;</td>

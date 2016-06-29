@@ -37,19 +37,28 @@ class UserController extends Controller
         if ($securityContext->isGranted('ROLE_ADMIN')) {
             $schemas = $em->getRepository('ZabutoBuurtpreventieBundle:Loopschema')->findAllHistory();
             $total = count($schemas);
-            $month = 'm';
-            $interval = intval(date_format(new DateTime(), $month)) - 1;
+            $current = (int) date_format(new DateTime(), 'm');
             foreach ($schemas as $schema) {
                 $userId = $schema->getLoper()->getId();
-                $current = (int) $schema->getDatum()->format($month);
-                if (array_key_exists($userId, $stats)) {
-                    $previous = $stats[$userId]['current'];
-                    $stats[$userId]['intervals'] += ($current > $previous ? 1 : 0);
+                $month = (int) $schema->getDatum()->format('m');
+
+                // Huidige maand overslaan. De activiteit wordt berekend
+                // over de voorgaande (afgeronde) maanden.
+                if ($month == $current) continue;
+
+                // Activiteit per maand en totale activiteit van deze loper
+                if (isset($stats[$userId])) {
+                    $stats[$userId]['total']++;
+                    $isSetMonth = isset($stats[$userId]['activity'][$month]);
+                    if ($isSetMonth) {
+                        $stats[$userId]['activity'][$month]++;
+                    } else {
+                        $stats[$userId]['activity'][$month] = 1;
+                    }
                 } else {
-                    $stats[$userId]['intervals'] = 1;
+                    $stats[$userId]['total'] = 1;
+                    $stats[$userId]['activity'] = array($month => 1);
                 }
-                $stats[$userId]['current'] = $current;
-                $stats[$userId]['activity'] += ($current == $interval ? 1 : 0);
             }
         }
         
