@@ -18,6 +18,7 @@ parameters:
     app_author:       'Buurtpreventie'
     app_title:        'Buurtpreventie'
     app_description:  'Buurtpreventie in Eindhoven'
+    app_email:         ~
     app_theme:         ~
 
     loopschema_minimum_aantal_lopers:       2

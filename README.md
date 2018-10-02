@@ -70,6 +70,7 @@ Ook zijn er instellingen voor het lopen zelf.
     app_author: 'Buurtvereniging Voorbeeld Eindhoven'   naam van uw organisatie
     app_title: 'Buurtpreventie Voorbeeld'               title van de applicatie
     app_description: 'Buurtpreventie in Eindhoven.'     aanvullende omschrijving
+    app_email: noreply@example.com                      email van de applicatie zelf
     app_theme:  voorbeeld                               gebruikt thema voor de layout, standaard is null
 
     loopschema_minimum_aantal_lopers: 2                 minimum aantal benodigde lopers

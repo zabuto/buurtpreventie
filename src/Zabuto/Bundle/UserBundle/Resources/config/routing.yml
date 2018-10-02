@@ -1,11 +1,16 @@
 fos_user_security:
     resource: "@FOSUserBundle/Resources/config/routing/security.xml"
 
+fos_user_resetting:
+    resource: "@FOSUserBundle/Resources/config/routing/resetting.xml"
+
+fos_user_profile_show:
+    pattern:  /mijn-gegevens
+    defaults: { _controller: ZabutoUserBundle:Profile:index }
 
 zabuto_currentuser_profile:
     pattern:  /mijn-gegevens
     defaults: { _controller: ZabutoUserBundle:Profile:index }
-
 
 zabuto_user_list:
     pattern:  /beheer/gebruiker/lijst

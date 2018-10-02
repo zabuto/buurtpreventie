@@ -130,7 +130,7 @@ class Loopschema
     }
 
     /**
-     * @Assert\True(message = "Toelichting moet bij bijzonderheden zijn ingevuld", groups={"Strict"})
+     * @Assert\IsTrue(message = "Toelichting moet bij bijzonderheden zijn ingevuld", groups={"Strict"})
      * @return boolean
      */
     public function isResultaatBijzonderheid()
@@ -146,7 +146,7 @@ class Loopschema
     }
 
     /**
-     * @Assert\True(message = "Toelichting moet bij incidenten zijn ingevuld", groups={"Strict"})
+     * @Assert\IsTrue(message = "Toelichting moet bij incidenten zijn ingevuld", groups={"Strict"})
      * @return boolean
      */
     public function isResultaatIncident()
@@ -162,7 +162,7 @@ class Loopschema
     }
 
     /**
-     * @Assert\True(message = "Reden van afzegging moet zijn ingevuld", groups={"Strict"})
+     * @Assert\IsTrue(message = "Reden van afzegging moet zijn ingevuld", groups={"Strict"})
      * @return boolean
      */
     public function isAfzeggingReden()

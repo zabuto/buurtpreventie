@@ -14,7 +14,6 @@ use Doctrine\Common\Collections\ArrayCollection;
  */
 class User extends BaseUser
 {
-
     /**
      * @var integer $id
      *
@@ -64,6 +63,13 @@ class User extends BaseUser
     private $credit = false;
 
     /**
+     * @var boolean
+     *
+     * @ORM\Column(type="boolean")
+     */
+    private $locked = false;
+
+    /**
      * Constructor
      */
     public function __construct()
@@ -110,6 +116,7 @@ class User extends BaseUser
 
         $this->setRoles($roles);
         $this->groups = $groups;
+
         return $this;
     }
 
@@ -133,6 +140,7 @@ class User extends BaseUser
     {
         parent::setEmail($email);
         parent::setUsername($email);
+
         return $this;
     }
 
@@ -146,6 +154,7 @@ class User extends BaseUser
     {
         parent::setEmailCanonical($emailCanonical);
         parent::setUsernameCanonical($emailCanonical);
+
         return $this;
     }
 
@@ -158,6 +167,7 @@ class User extends BaseUser
     public function setRealName($realName)
     {
         $this->realname = $realName;
+
         return $this;
     }
 
@@ -180,6 +190,7 @@ class User extends BaseUser
     public function setAddress($address)
     {
         $this->address = $address;
+
         return $this;
     }
 
@@ -202,6 +213,7 @@ class User extends BaseUser
     public function setPhone($phone)
     {
         $this->phone = $phone;
+
         return $this;
     }
 
@@ -224,6 +236,7 @@ class User extends BaseUser
     public function setCredit($credit)
     {
         $this->credit = $credit;
+
         return $this;
     }
 
@@ -235,5 +248,36 @@ class User extends BaseUser
     public function getCredit()
     {
         return $this->credit;
+    }
+
+    /**
+     * Set locked
+     *
+     * @param boolean $locked
+     * @return User
+     */
+    public function setLocked($locked)
+    {
+        $this->locked = $locked;
+
+        return $this;
+    }
+
+    /**
+     * Get locked
+     *
+     * @return boolean
+     */
+    public function isLocked()
+    {
+        return $this->locked;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function isAccountNonLocked()
+    {
+        return !($this->locked);
     }
 }

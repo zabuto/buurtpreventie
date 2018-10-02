@@ -34,7 +34,7 @@
                 </div>
             </div>
             <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
-                {% if locked is sameas(false) %}
+                {% if locked is same as(false) %}
                     <div class="form-group">
                         <a href="{{ path('zabuto_user_edit_password', { 'id': id }) }}"
                            class="btn  btn-warning">{{ 'change_password.submit'|trans }}</a>
@@ -42,7 +42,7 @@
                 {% endif %}
             </div>
             <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
-                {% if locked is sameas(false) %}
+                {% if locked is same as(false) %}
                     <div class="form-group">
                         <a id="userDeleteButton" href="{{ path('zabuto_user_delete', { 'id': id }) }}"
                            class="btn btn-danger">{{ 'form.button.delete'|trans }}</a>
@@ -56,7 +56,7 @@
 {% block javascripts %}
     <script>
         $("#btnCancel").click(function () {
-            {% if locked is sameas(false) %}
+            {% if locked is same as(false) %}
             window.location = '{{ path("zabuto_user_list") }}';
             {% else %}
             window.location = '{{ path("zabuto_user_locked_list") }}';

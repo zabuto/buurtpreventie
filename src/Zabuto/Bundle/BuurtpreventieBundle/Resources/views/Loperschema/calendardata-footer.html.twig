@@ -1,4 +1,4 @@
-{% if editable is sameas(false) %}
+{% if editable is same as(false) %}
     <div class="pull-right">
         <button type="button" class="btn btn-default" data-dismiss="modal">Sluiten</button>
     </div>
@@ -9,7 +9,7 @@
         <button type="button" class="btn btn-link" data-dismiss="modal">Sluit scherm</button>
     </div>
 
-    {% if editable is sameas('aanmelding') or editable is sameas('alles') %}
+    {% if editable is same as('aanmelding') or editable is same as('alles') %}
         {% if eigen_datum > 0 %}
             {% set formUrl = path('buurtpreventie_loper_afmelden_datum_schema', { id: eigen_datum, date: date} ) %}
             <div class="pull-right">
@@ -29,7 +29,7 @@
         {% endif %}
     {% endif %}
 
-    {% if editable is sameas('resultaat') or editable is sameas('alles') %}
+    {% if editable is same as('resultaat') or editable is same as('alles') %}
         {% set formUrl = path('buurtpreventie_loper_resultaat_datum_schema', { id: eigen_datum, date: date} ) %}
         <div class="pull-right" {% if toon_resultaat and toon_toelichting %}style="padding-right: 10px;" {% endif %}>
             <button type="button" class="btn btn-primary"

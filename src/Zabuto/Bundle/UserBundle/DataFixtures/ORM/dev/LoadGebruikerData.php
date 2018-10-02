@@ -6,16 +6,32 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\DataFixtures\AbstractFixture;
 use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
+use Symfony\Component\DependencyInjection\ContainerAwareInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Zabuto\Bundle\UserBundle\Entity\User;
 
-class LoadGebruikerData extends AbstractFixture implements OrderedFixtureInterface
+class LoadGebruikerData extends AbstractFixture implements OrderedFixtureInterface, ContainerAwareInterface
 {
+    /**
+     * @var ContainerInterface
+     */
+    private $container;
+
+    /**
+     * {@inheritDoc}
+     */
+    public function setContainer(ContainerInterface $container = null)
+    {
+        $this->container = $container;
+    }
 
     /**
      * {@inheritDoc}
      */
     public function load(ObjectManager $manager)
     {
+        $userManager = $this->container->get('fos_user.user_manager');
+
         $userBeheer = new User();
         $userBeheer->setEmail('beheer@test.nl');
         $userBeheer->setPlainPassword('test');
@@ -26,6 +42,8 @@ class LoadGebruikerData extends AbstractFixture implements OrderedFixtureInterfa
         $groups = new ArrayCollection;
         $groups->add($manager->merge($this->getReference('group-beheer')));
         $userBeheer->setGroups($groups);
+        $userManager->updateCanonicalFields($userBeheer);
+        $userManager->updatePassword($userBeheer);
         $manager->persist($userBeheer);
         $manager->flush();
         $this->addReference('user-beheer', $userBeheer);
@@ -40,6 +58,8 @@ class LoadGebruikerData extends AbstractFixture implements OrderedFixtureInterfa
         $groups = new ArrayCollection;
         $groups->add($manager->merge($this->getReference('group-coordinator')));
         $userCoordinator->setGroups($groups);
+        $userManager->updateCanonicalFields($userCoordinator);
+        $userManager->updatePassword($userCoordinator);
         $manager->persist($userCoordinator);
         $manager->flush();
         $this->addReference('user-coordinator', $userCoordinator);
@@ -55,6 +75,8 @@ class LoadGebruikerData extends AbstractFixture implements OrderedFixtureInterfa
         $groups = new ArrayCollection;
         $groups->add($manager->merge($this->getReference('group-loper')));
         $userLoper1->setGroups($groups);
+        $userManager->updateCanonicalFields($userLoper1);
+        $userManager->updatePassword($userLoper1);
         $manager->persist($userLoper1);
         $manager->flush();
         $this->addReference('user-loper-1', $userLoper1);
@@ -68,6 +90,8 @@ class LoadGebruikerData extends AbstractFixture implements OrderedFixtureInterfa
         $groups = new ArrayCollection;
         $groups->add($manager->merge($this->getReference('group-loper')));
         $userLoper2->setGroups($groups);
+        $userManager->updateCanonicalFields($userLoper2);
+        $userManager->updatePassword($userLoper2);
         $manager->persist($userLoper2);
         $manager->flush();
         $this->addReference('user-loper-2', $userLoper2);
@@ -82,6 +106,8 @@ class LoadGebruikerData extends AbstractFixture implements OrderedFixtureInterfa
         $groups = new ArrayCollection;
         $groups->add($manager->merge($this->getReference('group-loper')));
         $userLoper3->setGroups($groups);
+        $userManager->updateCanonicalFields($userLoper3);
+        $userManager->updatePassword($userLoper3);
         $manager->persist($userLoper3);
         $manager->flush();
         $this->addReference('user-loper-3', $userLoper3);
@@ -94,5 +120,4 @@ class LoadGebruikerData extends AbstractFixture implements OrderedFixtureInterfa
     {
         return 2;
     }
-
 }
