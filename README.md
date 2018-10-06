@@ -4,13 +4,13 @@ Ook is het mogelijk om achteraf het resultaat en de bijzonderheden te registrere
 Daarnaast beschikt het systeem over gebruikersbeheer voor het afschermen van gegevens op de website.
 
 ## Systeemeisen
-De applicatie is gemaakt met Symfony2.
+De applicatie is gemaakt met Symfony 2.8.
 [Symfony](http://symfony.com) is een open-source PHP-framework voor het bouwen van dynamische websites.
 
 Voor het draaien gelden de onderstaande randvoorwaarden:
 
 -   Webhosting pakket / webserver
--   PHP, minimaal versie 5.3.9
+-   PHP, minimaal versie 7.1.3
 -   MySQL database met InnoDB storage engine
 -   Minimaal 100 MB schijfruimte
 
