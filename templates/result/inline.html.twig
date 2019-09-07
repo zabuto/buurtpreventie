@@ -1,0 +1,24 @@
+{{ form_start(form) }}
+{{ form_widget(form) }}
+{{ form_end(form) }}
+
+<script>
+    $(function () {
+        toggleResultRemarks($('#round_result_result').val());
+
+        $('#round_result_result').on('change', function () {
+            toggleResultRemarks($(this).val());
+        });
+    });
+
+    function toggleResultRemarks(id) {
+        let results = {};
+        {% for result in results %}results['{{ result.id }}'] = {% if result.allowRemarks %}true{% else %}false{% endif %};{% endfor %}
+
+        if (results[id] === true) {
+            $('#round_result_memo').closest('.form-group').show();
+        } else {
+            $('#round_result_memo').closest('.form-group').hide();
+        }
+    }
+</script>

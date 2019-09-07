@@ -1,0 +1,9 @@
+<p>
+    <i class="fas fa-calendar fa-fw"></i> {{ round.datetime|date('d-m-Y') }}
+    <span style="display: inline-block; width: 30px"></span>
+    <i class="fas fa-clock fa-fw"></i> {{ round.datetime|date('H:i') }}
+</p>
+
+<hr>
+
+{% include 'result/inline.html.twig' %}

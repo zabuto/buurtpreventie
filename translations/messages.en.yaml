@@ -1,0 +1,126 @@
+# Form
+Add: Add
+Change: Change
+Save: Save
+Delete: Delete
+Restore: Restore
+Continue: Continue
+Cancel: Cancel
+Close: Close
+Back to list: Back to list
+View details: View details
+Tools: Tools
+
+# Exceptions
+exception.datafixture.invalid: Datafixture is invalid
+exception.user.invalid: User is invalid
+exception.round-walker.invalid: Walker is invalid
+exception.round-result.invalid: Round result is invalid
+exception.round-comment.invalid: Comment is invalid
+exception.result.not-found: Result not found
+exception.round.not-found: Round not found
+exception.user.not-found: User not found
+exception.member.not-found: Member not found
+exception.token.invalid: Token invalid
+exception.token.unavailable: Token unavailable
+exception.token.expired: Token expired
+
+# App
+app.title: Neighbourhood watch
+app.description: Neighbourhood watch
+app.security-title: Security
+app.security-text: Doel van actieve buurtpreventie is door middel van preventieve acties de veiligheid en het veiligheidsgevoel van de bewoners te verhogen.
+app.cooperation-title: Cooperation
+app.cooperation-text: De bewoners en politie zorgen er samen voor dat dieven, inbrekers en vernielers minder gemakkelijk de kans krijgen hun slag te slaan.
+app.alertness-title: Alertness
+app.alertness-text: Neighbourhood watch has everything to do with keeping your eyes and ears open is your own interest and that of your direct surroundings.
+
+# Security
+security.do-login: Log in
+security.login: Login
+security.logout: Logout
+security.username: Email
+security.password: Password
+security.password-repeat: Repeat password
+security.password-match: The password fiels must match
+security.password-change: Change password
+security.password-current: Current password
+security.password-current-invalid: Current password is invalid
+security.password-new: New password
+security.password-new-repeat: Repeat new password
+security.password-reset: Reset password
+security.password-request: Request
+security.confirmation-token: A message with a confirmation token will be sent if email address %email% is registered.
+security.activate: Activate account
+security.role.walker: Walker
+security.role.coordinator: Coordinator
+security.role.analyst: Analyst
+security.role.admin: System administrator
+
+# User
+user.users: Users
+user.user: User
+user.account: Account
+user.id: ID
+user.name: Name
+user.email: Email
+user.address: Address
+user.phone: Phone
+user.mobile: Mobile
+user.credited: Credited
+user.last-login: Last login
+user.roles: Role(s)
+user.token: Token
+user.active: Active
+user.add: Add user
+user.added: User added
+user.activation: The user can be activated using the <a href="%url%" target="_blank">token</a> until %datetime%.
+user.edit: Edit user
+user.members: Members
+user.member: Member
+user.member-count: There are %count% active members.
+user.email-readonly: The email address of a user can only be changed by the system administrator.
+
+# Admin
+admin.config: Configuration
+
+# Walking
+walk.results: Results
+walk.result: Result
+walk.result-explanation: After walking a round the result is registered.
+walk.result-description: Description
+walk.result-remarks: Allow remarks
+walk.result-incident: Is incident
+walk.result.no-remarks: No remarks
+walk.result.remarks: Remarks
+walk.result.incident: Incident
+walk.result.memo: Remarks
+walk.result-count: '{0} No results have been registered.|{1} One result has been registered.|[2,Inf[ %count% results have been registered.'
+walk.result-add: Add result
+
+walk.schema: Schema
+walk.schema.back-to: Back to schema
+walk.rounds: Rounds
+walk.round: Round
+walk.round-date: Date
+walk.round-time: Time
+walk.round-add: Add round
+
+walk.walkers: Walkers
+walk.walker: Walker
+
+walk.walked-rounds: Walked rounds
+walk.walked-with: Walked with
+walk.walked-count: '{0} You have not walked any rounds yet.|{1} You have walked one round.|[2,Inf[ You have walked <strong>%count%</strong> rounds.'
+
+walk.meeting-point: Meeting point
+walk.meeting-point-description: Description
+walk.meeting-point.busstop: Bus endstop Diepmeerven
+walk.meeting-point.corner: Corner Diepmeerven / Bunderkensven
+
+# Comments
+comments: Comments
+comments.no-comment: No comments
+comments.add-comment: Add comment
+comment: Comment
+comment.memo: Memo

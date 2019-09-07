@@ -1,0 +1,37 @@
+{% extends "base.html.twig" %}
+
+{% block title %}{% trans %}admin.config{% endtrans %}: {% trans %}walk.meeting-point{% endtrans %}{% endblock %}
+
+{% block body %}
+    <div class="row">
+        <div class="col-md-8 col-12">
+            <h1>{% trans %}admin.config{% endtrans %}: {% trans %}walk.meeting-point{% endtrans %}</h1>
+        </div>
+        <div class="offset-md-1 col-md-3 col-12">
+            <a href="{{ path('config_meetingpoint_add') }}" class="btn btn-outline-primary btn-block" role="button">
+                {% trans %}Add{% endtrans %}
+            </a>
+        </div>
+    </div>
+    <br>
+    <div class="table-responsive">
+        <table id="meetingpoint_list_table" class="table table-hover table-sm">
+            <thead>
+            <tr>
+                <th scope="col">{% trans %}walk.meeting-point-description{% endtrans %}</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for meetingpoint in list %}
+                <tr {% if meetingpoint.isDeleted %}class="table-danger"{% endif %}>
+                    <th scope="row">
+                        <a href="{{ path('config_meetingpoint_edit', {id: meetingpoint.id}) }}">
+                            {{ meetingpoint.description }}
+                        </a>
+                    </th>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html.twig" %}
+
+{% block body %}
+    <h1>{% trans %}security.activate{% endtrans %}</h1>
+
+    {% if error is not null %}
+        <div class="alert alert-error" role="alert">
+            {{ error|trans(error) }}
+        </div>
+    {% endif %}
+
+    {% if form is not null %}
+        {{ form_start(form) }}
+        {{ form_widget(form) }}
+        <div class="row">
+            <div class="col-md-3 col-12">
+                <button class="btn btn-success btn-block" type="submit">
+                    {% trans %}Save{% endtrans %}
+                </button>
+            </div>
+        </div>
+        {{ form_end(form) }}
+    {% endif %}
+{% endblock %}

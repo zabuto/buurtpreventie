@@ -1,0 +1,125 @@
+{% extends "base.html.twig" %}
+
+{% block title %}{% trans %}walk.schema{% endtrans %}{% endblock %}
+
+{% block body %}
+    <h1>{% trans %}walk.schema{% endtrans %}</h1>
+    <div id="round-calendar">
+        <div class="text-center text-muted mt-7" style="background-color: #fff;">
+            <i class="fas fa-spinner fa-spin fa-2x"></i>
+        </div>
+    </div>
+    <br>
+    <div id="round-legend" class="invisible">
+        <div class="row">
+            <div class="col-sm">
+                <ul class="list-inline">
+                    <li class="list-inline-item">
+                        <span class="badge badge-tod-0">&nbsp;</span> = onvoldoende deelnemers
+                    </li>
+                    <li class="list-inline-item">
+                        <span class="badge badge-tod-1">&nbsp;</span> = voldoende deelnemers (minimaal {{ minimum }}
+                        lopers)
+                    </li>
+                </ul>
+            </div>
+            <div class="col-sm">
+                <ul class="list-inline">
+                    <li class="list-inline-item"><span class="badge badge-success">00</span> = geen incidenten</li>
+                    <li class="list-inline-item"><span class="badge badge-danger">00</span> = incident(en)</li>
+                    <li class="list-inline-item"><span class="badge badge-secondary">00</span> = geen resultaten</li>
+                    {% if is_granted('ROLE_WALK') %}
+                        <li class="list-inline-item"></li>
+                        <li class="list-inline-item"><span class="badge badge-warning">00</span> = zelf lopen</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="round-modal" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        {% trans %}walk.schema{% endtrans %}
+                        <br>
+                        <span id="round-modal-title-date"></span>
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal"
+                            aria-label="{% trans %}Close{% endtrans %}">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div id="round-modal-body" class="modal-body">
+                    <div class="text-center text-muted mt-5 mb-5">
+                        <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        let $calEl = $("#round-calendar");
+        $(document).ready(function () {
+            $calEl.zabuto_calendar({
+                language: 'nl',
+                classname: 'table table-bordered clickable',
+                ajax: dataUrl
+            });
+        });
+
+        $calEl.on('calendar:render', function () {
+            $('#round-legend').removeClass('invisible');
+        });
+
+        $calEl.on('calendar:day', function (e) {
+            let now = new Date();
+            let date = e.date;
+
+            if (false === e.today && e.date.getTime() < now.getTime() && false === e.hasEvent) {
+                $(e.element).addClass('no-event');
+                setTimeout(function () {
+                    $(e.element).removeClass('no-event');
+                }, 700);
+
+                return;
+            }
+
+            let month = date.toLocaleString(window.navigator.language, {month: 'long'});
+            let dow = date.toLocaleString(window.navigator.language, {weekday: 'long'});
+            let url = dayUrl.replace('placeholder', e.value);
+
+            $('#round-modal-title-date').text(dow + ' ' + date.getDate() + ' ' + month + ' ' + date.getFullYear());
+            $('#round-modal').modal();
+
+            $.ajax({
+                url: url,
+                cache: false
+            }).done(function (html) {
+                $('#round-modal-body').html(html);
+                $('#round-modal-body [data-toggle="tooltip"]').tooltip();
+            }).fail(function () {
+                $('#round-modal-body').html(
+                    '<div class="alert alert-danger" role="alert">' +
+                    '   Schema kan niet worden opgehaald.' +
+                    '</div>'
+                );
+            })
+        });
+
+        $('#round-modal').on('hidden.bs.modal', function () {
+            $('#round-modal').modal('dispose');
+            $('#round-modal-body').html(
+                '<div class="text-center text-muted mt-5 mb-5">' +
+                '    <i class="fas fa-spinner fa-spin fa-2x"></i>' +
+                '</div>'
+            );
+        });
+    </script>
+{% endblock %}

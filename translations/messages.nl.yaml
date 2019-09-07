@@ -1,0 +1,126 @@
+# Form
+Add: Voeg toe
+Change: Wijzig
+Save: Bewaar
+Delete: Verwijder
+Restore: Herstel
+Continue: Doorgaan
+Cancel: Annuleer
+Close: Sluit
+Back to list: Terug naar lijst
+View details: Bekijk details
+Tools: Opties
+
+# Exceptions
+exception.datafixture.invalid: Datafixture is ongeldig
+exception.user.invalid: Gebruiker is ongeldig
+exception.round-walker.invalid: Loper is ongeldig
+exception.round-result.invalid: Ronde resultaat is ongeldig
+exception.round-comment.invalid: Commentaar is ongeldig
+exception.result.not-found: Resultaat niet gevonden
+exception.round.not-found: Loopronde niet gevonden
+exception.user.not-found: Gebruiker niet gevonden
+exception.member.not-found: Lid niet gevonden
+exception.token.invalid: Token ongeldig
+exception.token.unavailable: Token niet beschikbaar
+exception.token.expired: Token is verlopen
+
+# App
+app.title: Buurtpreventie
+app.description: Actieve buurtpreventie
+app.security-title: Veiligheid
+app.security-text: Doel van actieve buurtpreventie is door middel van preventieve acties de veiligheid en het veiligheidsgevoel van de bewoners te verhogen.
+app.cooperation-title: Samenwerking
+app.cooperation-text: De bewoners en politie zorgen er samen voor dat dieven, inbrekers en vernielers minder gemakkelijk de kans krijgen hun slag te slaan.
+app.alertness-title: Alertheid
+app.alertness-text: Buurtpreventie heeft dus alles te maken met ogen en oren openhouden in uw eigen belang en dat van uw directe omgeving.
+
+# Security
+security.do-login: Inloggen
+security.login: Log in
+security.logout: Log uit
+security.username: E-mail
+security.password: Wachtwoord
+security.password-repeat: Herhaal wachtwoord
+security.password-match: De wachtwoord velden moeten overeenkomen
+security.password-change: Wachtwoord wijzigen
+security.password-current: Huidig wachtwoord
+security.password-current-invalid: Huidig wachtwoord is ongeldig
+security.password-new: Nieuw wachtwoord
+security.password-new-repeat: Herhaal nieuw wachtwoord
+security.password-reset: Wachtwoord vergeten
+security.password-request: Vraag aan
+security.confirmation-token: Als e-mailadres %email% bekend is dan wordt er een bericht verzonden met daarin een activatielink.
+security.activate: Activeer account
+security.role.walker: Loper
+security.role.coordinator: Coördinator
+security.role.analyst: Analist
+security.role.admin: Applicatiebeheerder
+
+# User
+user.users: Gebruikers
+user.user: Gebruiker
+user.account: Account
+user.id: ID
+user.name: Naam
+user.email: E-mail
+user.address: Adres
+user.phone: Telefoon
+user.mobile: Mobiel
+user.credited: Certificaat
+user.last-login: Laatste login
+user.roles: Rol(len)
+user.token: Token
+user.active: Actief
+user.add: Gebruiker toevoegen
+user.added: Gebruiker toegevoegd
+user.activation: De gebruiker kan worden geactiveerd via het <a href="%url%" target="_blank">token</a> tot %datetime%.
+user.edit: Gebruiker wijzigen
+user.members: Leden
+user.member: Lid
+user.member-count: Er zijn %count% actieve leden.
+user.email-readonly: Het e-mailadres van een gebruiker kan alleen worden aangepast door de applicatiebeheerder.
+
+# Admin
+admin.config: Configuratie
+
+# Walking
+walk.results: Resultaten
+walk.result: Resultaat
+walk.result-explanation: Na het lopen van een ronde wordt het resultaat hiervan vastgelegd.
+walk.result-description: Omschrijving
+walk.result-remarks: Opmerkingen toestaan
+walk.result-incident: Is een incident
+walk.result.no-remarks: Geen opmerkingen
+walk.result.remarks: Bijzonderheden
+walk.result.incident: Incident melding
+walk.result.memo: Toelichting
+walk.result-count: '{0} Er zijn geen resultaten verwerkt.|{1} Er is één resultaat verwerkt.|[2,Inf[ Er zijn %count% resultaten verwerkt.'
+walk.result-add: Verwerk resultaat
+
+walk.schema: Loopschema
+walk.schema.back-to: Terug naar loopschema
+walk.rounds: Loopronden
+walk.round: Loopronde
+walk.round-date: Datum
+walk.round-time: Tijd
+walk.round-add: Loopronde toevoegen
+
+walk.walkers: Lopers
+walk.walker: Loper
+
+walk.walked-rounds: Gelopen ronden
+walk.walked-with: Gelopen met
+walk.walked-count: '{0} Je hebt nog geen ronden gelopen.|{1} Je hebt één ronde gelopen.|[2,Inf[ Je hebt <strong>%count%</strong> ronden gelopen.'
+
+walk.meeting-point: Startpunt
+walk.meeting-point-description: Omschrijving
+walk.meeting-point.busstop: Bus eindhalte Diepmeerven
+walk.meeting-point.corner: Hoek Diepmeerven / Bunderkensven
+
+# Comments
+comments: Opmerkingen
+comments.no-comment: Geen opmerkingen
+comments.add-comment: Opmerking toevoegen
+comment: Opmerking
+comment.memo: Toelichting

@@ -1,0 +1,184 @@
+<div class="accordion calendar-accordion" id="calendar-day-{{ date|date('Ymd') }}">
+    {% for round in list %}
+        {% set _minimum = service.hasMinimumWalkers(round) %}
+        <div class="card">
+            <div id="round-{{ round.id }}-header" class="card-header">
+                <button class="btn btn-link btn-block {% if list is not empty %}collapsed{% endif %}" type="button"
+                        data-toggle="collapse" data-target="#round-{{ round.id }}-body"
+                        aria-expanded="false" aria-controls="round-{{ round.id }}-body">
+
+                    {% set _color = '#f2dede' %}
+                    {% if _minimum %}
+                        {% set _color = '#8cc665' %}
+                    {% endif %}
+                    <svg xmlns="http://www.w3.org/2000/svg" class="bd-placeholder-img mr-2 rounded" width="32"
+                         height="32" preserveAspectRatio="xMidYMid slice" focusable="false">
+                        <title>Placeholder</title>
+                        <rect fill="{{ _color }}" width="100%" height="100%"></rect>
+                        <text fill="{{ _color }}" dy=".3em" x="50%" y="50%">32x32</text>
+                    </svg>
+
+                    {% trans %}walk.round{% endtrans %}
+
+                    <span style="padding-left: 1.5em;">
+                        <i class="fas fa-clock"></i> {{ round.datetime|date('H:i') }}
+                    </span>
+
+                    {% if round.meetingPoint is not null %}
+                        <span style="padding-left: 1.5em;">
+                            <i class="fas fa-map-pin"></i> {{ round.meetingPoint }}
+                        </span>
+                    {% endif %}
+
+                    <span class="float-right">
+                        <span class="fa-stack" style="vertical-align: top; margin-top: -4px;">
+                          <i class="fas fa-square fa-stack-2x {% if service.userWalking(round) %}text-warning{% else %}not-walking{% endif %}"></i>
+                          <i class="fas fa-walking fa-stack-1x"></i>
+                        </span>
+                    </span>
+                </button>
+            </div>
+            <div id="round-{{ round.id }}-body" class="collapse {% if loop.first %}show{% endif %}"
+                 aria-labelledby="round-{{ round.id }}-header"
+                 data-parent="#calendar-day-{{ date|date('Ymd') }}">
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <ul class="list-inline list-inline-comma">
+                                <li class="list-inline-item no-comma"><i class="fas fa-walking fa-fw"></i></li>
+                                {% for walker in round.walkers %}
+                                    <li class="list-inline-item">{{ walker.walker }}</li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+
+                        {% if service.inPast(round) %}
+                            {% if service.wasWalked(round) %}
+                                <li class="list-group-item">
+                                    <div id="round-result-{{ round.id }}" data-round="{{ round.id }}"
+                                         style="display: none;">
+                                        {{ render(controller(
+                                            'App\\Controller\\ResultController::inline',
+                                            { 'round': round }
+                                        )) }}
+                                        <hr>
+                                    </div>
+
+                                    <button data-location="{{ path('walk_detail', {id: round.id}) }}" type="button"
+                                            class="btn btn-light round-button-detail">
+                                        {% trans %}View details{% endtrans %}
+                                    </button>
+
+                                    {% set _userResult = service.userResult(round) %}
+                                    {% if _userResult is not null %}
+                                        {% if _userResult.result.incident %}
+                                            {% set _result_icon_class = 'far fa-thumbs-down text-danger' %}
+                                        {% else %}
+                                            {% set _result_icon_class = 'far fa-thumbs-up text-success' %}
+                                        {% endif %}
+                                        <i class="{{ _result_icon_class }} float-right" style="margin-top: 0.5em;"
+                                           data-toggle="tooltip" data-placement="left"
+                                           title="{{ _userResult.result.description }}"></i>
+                                    {% else %}
+                                        <button data-target="#round-result-{{ round.id }}" type="button"
+                                                class="btn btn-outline-primary float-right round-button-result">
+                                            {% trans %}walk.result-add{% endtrans %}
+                                        </button>
+                                    {% endif %}
+                                </li>
+                            {% else %}
+                                <li class="list-group-item">
+                                    <i class="fas fa-ban fa-fw"></i>
+                                    <span class="text-muted">Onvoldoende deelnemers, ronde niet gelopen</span>
+                                </li>
+                            {% endif %}
+                        {% endif %}
+
+                        {% if is_granted('ROLE_WALK') and not service.inPast(round) %}
+                            <li class="list-group-item">
+                                <button data-location="{{ path('walk_detail', {id: round.id}) }}" type="button"
+                                        class="btn btn-light round-button-detail">
+                                    {% trans %}View details{% endtrans %}
+                                </button>
+
+                                {% if service.userWalking(round) %}
+                                    <button data-round="{{ round.id }}" type="button"
+                                            class="btn btn-warning float-right round-button-exit">
+                                        Afmelden
+                                    </button>
+                                {% else %}
+                                    <button data-round="{{ round.id }}"
+                                            data-location="{{ path('walk_detail', {id: round.id}) }}" type="button"
+                                            class="btn btn-success float-right round-button-walking">
+                                        Aanmelden
+                                    </button>
+                                {% endif %}
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+    {% if is_granted('ROLE_WALK') and allow_new %}
+        {% include 'walk/calender-new-round.html.twig' %}
+    {% endif %}
+</div>
+
+<script>
+    $(function () {
+        $('.round-button-detail').on('click', function () {
+            window.location = $(this).data('location');
+        });
+
+        $('.round-button-result').on('click', function () {
+            let el = $($(this).data('target'));
+            if ($(el).is(":visible")) {
+                let url = resultUrl.replace('placeholder', el.data('round'));
+                $.ajax({
+                    type: "POST",
+                    url: url,
+                    data: {
+                        result: $('#round_result_result').val(),
+                        memo: $('#round_result_memo').val()
+                    }
+                }).done(function () {
+                    window.location.reload(false);
+                }).fail(function () {
+                    el.html(
+                        '<div class="alert alert-danger" role="alert">' +
+                        '   Resultaat kan niet worden verwerkt.' +
+                        '</div>'
+                    );
+                });
+            } else {
+                $(this).removeClass('btn-outline-primary').addClass('btn-primary');
+                $(this).siblings('.round-button-detail').hide();
+                el.show();
+            }
+        });
+
+        $('.round-button-walking').on('click', function () {
+            let url = walkingUrl.replace('placeholder', $(this).data('round'));
+            $.ajax(url)
+                .done(function (response) {
+                    window.location.reload(false);
+                })
+                .fail(function (response) {
+                    window.location.reload(false);
+                });
+        });
+
+        $('.round-button-exit').on('click', function () {
+            let url = exitUrl.replace('placeholder', $(this).data('round'));
+            $.ajax(url)
+                .done(function (response) {
+                    window.location.reload(false);
+                })
+                .fail(function (response) {
+                    window.location.reload(false);
+                });
+        });
+    });
+</script>

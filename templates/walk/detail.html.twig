@@ -1,0 +1,348 @@
+{% extends "base.html.twig" %}
+
+{% block title %}{% trans %}walk.round{% endtrans %} - {{ round.datetime|date('d-m-Y H:i') }}{% endblock %}
+
+{% block body %}
+    <div class="row">
+        <div class="col-md-7 col-12">
+            <h1>{% trans %}walk.round{% endtrans %}</h1>
+        </div>
+
+        <div class="offset-md-1 col-md-4 col-12">
+            <div class="btn-group btn-block" role="group">
+                <button id="btnGroupWalk" type="button" class="btn btn-outline-secondary dropdown-toggle block"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    {% trans %}Tools{% endtrans %}
+                </button>
+                <div class="dropdown-menu block" aria-labelledby="btnGroupWalk">
+                    <a class="dropdown-item" style="width: 100%;" href="{{ path('calendar') }}">
+                        <i class="fas fa-angle-double-left"></i> {% trans %}walk.schema.back-to{% endtrans %}
+                    </a>
+                    {% if service.inPast(round) and service.wasWalked(round) %}
+                        {% if service.userResult(round) is null %}
+                            <a class="dropdown-item round-result" style="width: 100%;" href="#"
+                               data-round="{{ round.id }}"
+                               data-location="{{ path('result_round_modal', {id: round.id}) }}">
+                                <i class="fas fa-hand-rock"></i> {% trans %}walk.result-add{% endtrans %}
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <a class="dropdown-item round-change" style="width: 100%;" href="#"
+                           data-location="{{ path('round_modal_type', {id: round.id, type: 'time'}) }}"
+                           data-api="{{ path('api_round_change', {id: round.id}) }}">
+                            <i class="fas fa-clock fa-fw"></i>
+                            {% trans %}Change{% endtrans %}
+                            <span style="text-transform: lowercase;">{% trans %}walk.round-time{% endtrans %}</span>
+                        </a>
+                        <a class="dropdown-item round-change" style="width: 100%;" href="#"
+                           data-location="{{ path('round_modal_type', {id: round.id, type: 'meeting-point'}) }}"
+                           data-api="{{ path('api_round_change', {id: round.id}) }}">
+                            <i class="fas fa-map-pin fa-fw"></i>
+                            {% trans %}Change{% endtrans %}
+                            <span style="text-transform: lowercase;">{% trans %}walk.meeting-point{% endtrans %}</span>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <br>
+
+    <div class="row">
+        <div class="col-md-7 col-12">
+            <div class="row">
+                <div class="col-md-4 col-12">
+                    <p>
+                        <i class="fas fa-calendar fa-fw"></i> {% trans %}walk.round-date{% endtrans %}
+                        <br>
+                        {{ round.datetime|date('d-m-Y') }}
+                    </p>
+                </div>
+                <div class="col-md-8 col-12">
+                    <p>
+                        <i class="fas fa-clock fa-fw"></i> {% trans %}walk.round-time{% endtrans %}
+                        <br>
+                        {{ round.datetime|date('H:i') }}
+                    </p>
+                </div>
+            </div>
+
+            <p style="margin-bottom: 0;">
+                <i class="fas fa-walking fa-fw"></i> {% trans %}walk.walkers{% endtrans %}
+            </p>
+
+            <ul class="list-inline list-inline-comma">
+                {% for walker in round.walkers %}
+                    <li class="list-inline-item">{{ walker.walker }}</li>
+                {% endfor %}
+            </ul>
+
+            {% if service.inPast(round) %}
+                {% if round.results|length > 0 %}
+                    <p style="margin-top: 2em; margin-bottom: 0;">
+                        <i class="fas fa-hand-rock fa-fw"></i> {% trans %}walk.results{% endtrans %}
+                    </p>
+                    <dl class="row dl-bordered">
+                        {% for result in round.results %}
+                            {% if result.result.incident %}
+                                {% set _icon_class = 'far fa-thumbs-down text-danger' %}
+                            {% else %}
+                                {% set _icon_class = 'far fa-thumbs-up text-success' %}
+                            {% endif %}
+                            <dt class="col-4">
+                                {{ result.updatedBy|default(result.createdBy) }}
+                                <i class="{{ _icon_class }} float-right" style="margin-top: 0.2em;"
+                                   data-toggle="tooltip"
+                                   data-placement="right" title="{{ result.result.description }}"></i>
+                                <br>
+                                <small>{{ result.updatedAt|default(result.createdAt)|date('d-m-Y H:i') }}</small>
+                            </dt>
+                            <dd class="col-8">
+                                {% if result.memo is not empty %}{{ result.memo|nl2br }}{% endif %}
+                            </dd>
+                        {% endfor %}
+                    </dl>
+                {% elseif service.wasWalked(round) %}
+                    <div class="text-right">
+                        <a href="{{ path('walked_result', {id: round.id}) }}" class="btn btn-primary">
+                            {% trans %}walk.result-add{% endtrans %}
+                        </a>
+                    </div>
+                {% else %}
+                    <p class="text-muted">Onvoldoende deelnemers, ronde niet gelopen</p>
+                {% endif %}
+            {% endif %}
+
+            <p style="margin-top: 2em; margin-bottom: 0;">
+                <i class="fas fa-comments fa-fw"></i> {% trans %}comments{% endtrans %}
+            </p>
+
+            <dl id="comments" class="row dl-bordered">
+                {% for comment in round.comments %}
+                    <dt data-id="{{ comment.id }}" class="col-4">
+                        {{ comment.updatedBy|default(comment.createdBy) }}
+                        <br>
+                        <small>{{ comment.updatedAt|default(comment.createdAt)|date('d-m-Y H:i') }}</small>
+                    </dt>
+                    <dd data-id="{{ comment.id }}" class="col-8">
+                        {% if service.userComment(comment) %}
+                            <a href="#" class="delete_comment float-right action-icon" data-id="{{ comment.id }}">
+                                <i class="fas fa-times fa-fw float-right"></i>
+                            </a>
+                        {% endif %}
+                        {{ comment.memo|striptags }}
+                    </dd>
+                {% endfor %}
+            </dl>
+
+            <form>
+                <div class="form-group">
+                    <label for="add_comment">{% trans %}comments.add-comment{% endtrans %}</label>
+                    <div class="input-group">
+                            <textarea class="form-control" id="add_comment" rows="1"
+                                      style="min-height: 40px;"></textarea>
+                        <div class="input-group-append">
+                            <button id="add_comment_button" class="btn btn-outline-secondary" type="button">
+                                {% trans %}Add{% endtrans %}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="offset-md-1 col-md-4 col-12">
+            {% if round.meetingPoint is not null %}
+                <div class="card" style="background-color: rgba(0,0,0,.03);">
+                    <div class="card-body">
+                        <i class="fas fa-map-pin fa-fw"></i> {% trans %}walk.meeting-point{% endtrans %}
+                        <br>
+                        {{ round.meetingPoint }}
+                        {% if round.meetingPoint.location is not null %}
+                            <br><br>
+                            <div id="walk_meetingpoint_map" style="width: 100%; height: 250px;"></div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% include 'result/modal-dialog.html.twig' %}
+
+    <div id="change-modal" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        {% trans %}walk.round{% endtrans %}
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal"
+                            aria-label="{% trans %}Close{% endtrans %}">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div id="change-modal-body" class="modal-body" style="min-height: 140px;">
+                    <div class="text-center text-muted mt-5 mb-5">
+                        <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="change-modal-button" type="button" class="btn btn-primary">
+                        {% trans %}Save{% endtrans %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        $(function () {
+            $('a.round-result').on('click', function () {
+                let round = $(this).data('round');
+                $('#result-modal').modal();
+                $.ajax({
+                    url: $(this).data('location')
+                }).done(function (html) {
+                    $('#result-modal-body').html(html);
+                    $('#result-modal-body [data-toggle="tooltip"]').tooltip();
+
+                    $('#result-modal-button').show();
+                    $('#result-modal-button').off('click');
+                    $('#result-modal-button').on('click', function () {
+                        let url = resultUrl.replace('placeholder', round);
+                        $.ajax({
+                            type: "POST",
+                            url: url,
+                            data: {
+                                result: $('#result-modal-body #round_result_result').val(),
+                                memo: $('#result-modal-body #round_result_memo').val()
+                            }
+                        }).done(function () {
+                            window.location.reload(false);
+                        }).fail(function () {
+                            $('#result-modal-button').hide();
+                            $('#result-modal-body').html(
+                                '<div class="alert alert-danger" role="alert">' +
+                                '   Resultaat kan niet worden verwerkt.' +
+                                '</div>'
+                            );
+                        });
+                    });
+                }).fail(function () {
+                    $('#result-modal-button').hide();
+                    $('#result-modal-body').html(
+                        '<div class="alert alert-danger" role="alert">' +
+                        '   Resultaat kan niet worden toegevoegd.' +
+                        '</div>'
+                    );
+                })
+            });
+
+            $('a.round-change').on('click', function () {
+                let location = $(this).data('location');
+                let api = $(this).data('api');
+                $('#change-modal').modal();
+                $('#change-modal').on('hidden.bs.modal', function () {
+                    $('#change-modal-body').html('<div class="text-center text-muted mt-5 mb-5"><i class="fas fa-spinner fa-spin fa-2x"></i></div>');
+                });
+
+                $.ajax({
+                    url: location
+                }).done(function (html) {
+                    $('#change-modal-body').html(html);
+                    $('#change-modal-body [data-toggle="tooltip"]').tooltip();
+
+                    $('#change-modal-button').show();
+                    $('#change-modal-button').off('click');
+                    $('#change-modal-button').on('click', function () {
+                        $.ajax({
+                            type: "POST",
+                            url: api,
+                            data: {
+                                time: $('#change-modal-body #round_time_time').val(),
+                                meetingpoint: $('#change-modal-body #round_meeting_point_meetingPoint').val()
+                            }
+                        }).done(function () {
+                            window.location.reload(false);
+                        }).fail(function () {
+                            $('#change-modal-button').hide();
+                            $('#change-modal-body').html(
+                                '<div class="alert alert-danger" role="alert">' +
+                                '   Wijziging kan niet worden doorgevoerd.' +
+                                '</div>'
+                            );
+                        });
+                    });
+                }).fail(function () {
+                    $('#change-modal-button').hide();
+                    $('#change-modal-body').html(
+                        '<div class="alert alert-danger" role="alert">' +
+                        '   Wijziging kan niet worden doorgevoerd.' +
+                        '</div>'
+                    );
+                })
+            });
+
+            $('#add_comment_button').on('click', function () {
+                let url = commentUrl.replace('placeholder', '{{ round.id }}');
+                let memo = $('#add_comment').val().replace(/(<([^>]+)>)/ig, "");
+                $.ajax({
+                    type: "POST",
+                    url: url,
+                    data: {
+                        memo: memo
+                    }
+                }).done(function (response) {
+                    let dt = $('<dt></dt>').addClass('col-4').data('id', response.id).html(response.created_by + '<br><small>zojuist</small>');
+                    let dd = $('<dd></dd>').addClass('col-8').data('id', response.id).html(memo);
+                    let a = $('<a></a>').attr('href', '#').addClass('delete_comment float-right action-icon').html('<i class="fas fa-times fa-fw float-right"></i>').on('click', function () {
+                        let url = commentDelUrl.replace('placeholder', response.id);
+                        $.ajax({
+                            type: "DELETE",
+                            url: url
+                        }).done(function () {
+                            window.location.reload(false);
+                        }).fail(function () {
+                        });
+                    });
+                    dd.append(a);
+
+                    $('#comments').append(dt);
+                    $('#comments').append(dd);
+                    $('#add_comment').val('');
+                }).fail(function () {
+                });
+            });
+
+            $('.delete_comment').on('click', function () {
+                let url = commentDelUrl.replace('placeholder', $(this).data('id'));
+                $.ajax({
+                    type: "DELETE",
+                    url: url
+                }).done(function () {
+                    window.location.reload(false);
+                }).fail(function () {
+                });
+            });
+        });
+
+        {% if round.meetingPoint is not null and round.meetingPoint.location is not null %}
+        let wMpMap = nlmaps.createMap({
+            style: 'grijs',
+            target: 'walk_meetingpoint_map',
+            center: {
+                longitude: {{ round.meetingPoint.location.longitude }},
+                latitude: {{ round.meetingPoint.location.latitude }}
+            },
+            overlay: 'false',
+            marker: true,
+            search: false,
+            zoom: 16.5
+        });
+        {% endif %}
+    </script>
+{% endblock %}

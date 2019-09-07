@@ -1,0 +1,87 @@
+{% extends "base.html.twig" %}
+
+{% block title %}{% trans %}user.members{% endtrans %}{% endblock %}
+
+{% block body %}
+    <h1>{% trans %}user.members{% endtrans %}</h1>
+    <p>{% trans with {'%count%': list|length} %}user.member-count{% endtrans %}</p>
+    <div class="table-responsive">
+        <table id="member_list_table" class="table table-hover table-sm">
+            <thead>
+            <tr>
+                <th scope="col">{% trans %}user.name{% endtrans %}</th>
+                {% if is_granted('ROLE_MEMBER') %}
+                    <th scope="col">{% trans %}user.address{% endtrans %}</th>
+                    <th scope="col">{% trans %}user.phone{% endtrans %}</th>
+                    <th scope="col">{% trans %}user.mobile{% endtrans %}</th>
+                    <th scope="col">{% trans %}user.email{% endtrans %}</th>
+                {% endif %}
+                <th scope="col">{% trans %}user.roles{% endtrans %}</th>
+                {% if is_granted('ROLE_COORDINATE') %}
+                    <th scope="col" class="text-center">{% trans %}user.credited{% endtrans %}</th>
+                {% endif %}
+            </tr>
+            </thead>
+            <tbody>
+            {% for user in list %}
+                <tr {% if user.isDeleted %}class="table-danger"{% endif %}>
+                    <th scope="row">
+                        {% if is_granted('ROLE_COORDINATE') %}
+                            <a href="{{ path('member_edit', {id: user.id}) }}">
+                                {{ user.name }}
+                            </a>
+                        {% else %}
+                            {{ user.name }}
+                        {% endif %}
+                    </th>
+                    {% if is_granted('ROLE_MEMBER') %}
+                        <td>{{ user.address }}</td>
+                        <td>
+                            {% if user.phone is not null %}
+                                <a href="tel:{{ user.phone|phone_number_format('E164') }}" class="text-dark">
+                                    {{ user.phone|phone_number_format('NATIONAL') }}
+                                </a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.mobile is not null %}
+                                <a href="tel:{{ user.mobile|phone_number_format('E164') }}" class="text-dark">
+                                    {{ user.mobile|phone_number_format('NATIONAL') }}
+                                </a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="mailto:{{ user.email }}" class="text-dark">{{ user.email }}</a>
+                        </td>
+                    {% endif %}
+                    <td>
+                        <ul class="list-inline list-inline-comma">
+                            {% for role in user.roles %}
+                                {% if role is same as('ROLE_WALK') %}
+                                    <li class="list-inline-item">{% trans %}security.role.walker{% endtrans %}</li>
+                                {% elseif role is same as('ROLE_COORDINATE') %}
+                                    <li class="list-inline-item">{% trans %}security.role.coordinator{% endtrans %}</li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </td>
+                    {% if is_granted('ROLE_COORDINATE') %}
+                        <td class="text-center">
+                            <span class="d-none">{{ user.credited|default(0) }}</span>
+                            {% if user.credited %}
+                                <i class="far fa-check-square"></i>
+                            {% else %}
+                                <i class="far fa-square"></i>
+                            {% endif %}
+                        </td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

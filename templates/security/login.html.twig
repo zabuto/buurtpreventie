@@ -1,0 +1,13 @@
+{% extends "base.html.twig" %}
+
+{% block body %}
+    <h1>{% trans %}security.do-login{% endtrans %}</h1>
+
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+            {{ error.messageKey|trans(error.messageData, 'security') }}
+        </div>
+    {% endif %}
+
+    {% include 'security/login-form.html.twig' with {'last_username': last_username} %}
+{% endblock %}

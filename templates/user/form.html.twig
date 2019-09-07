@@ -1,0 +1,47 @@
+{% extends "base.html.twig" %}
+
+{% block title %}{% trans %}user.user{% endtrans %}{% endblock %}
+
+{% block body %}
+    <div class="row">
+        <div class="col-md-8 col-12">
+            <h1>{% trans %}user.user{% endtrans %}</h1>
+        </div>
+        <div class="offset-md-1 col-md-3 col-12">
+            <a href="{{ path('user_list') }}" class="btn btn-outline-secondary btn-block" role="button">
+                <i class="fas fa-angle-double-left"></i> {% trans %}Back to list{% endtrans %}
+            </a>
+        </div>
+    </div>
+    <br>
+    {{ form_start(form) }}
+    {{ form_widget(form) }}
+    <div class="form-row">
+        <div class="form-group col-md-4">
+            <button type="submit" class="btn btn-primary btn-block">
+                {% trans %}Save{% endtrans %}
+            </button>
+        </div>
+        {% if id is not null %}
+            <div class="form-group offset-md-4 col-md-4">
+                {% if deleted %}
+                    <a href="{{ path('user_restore', {id: id}) }}" type="button"
+                       class="btn btn-outline-success btn-block">
+                        {% trans %}Restore{% endtrans %}
+                    </a>
+                {% else %}
+                    <a href="{{ path('user_delete', {id: id}) }}" type="button"
+                       class="btn btn-outline-danger btn-block" data-toggle="confirmation"
+                       data-title="{% trans %}Delete{% endtrans %}"
+                       data-btn-ok-label="{% trans %}Continue{% endtrans %}"
+                       data-btn-ok-class="btn-outline-danger"
+                       data-btn-cancel-label="{% trans %}Cancel{% endtrans %}"
+                       data-btn-cancel-class="btn-outline-secondary">
+                        {% trans %}Delete{% endtrans %}
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+    {{ form_end(form) }}
+{% endblock %}

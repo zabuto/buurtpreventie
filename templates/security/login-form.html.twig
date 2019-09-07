@@ -1,0 +1,28 @@
+<form action="{{ path('login') }}" method="post">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+    <input type="hidden" name="_target_path" value="{{ path('calendar', {}, true) }}">
+
+    <div class="form-group">
+        <label for="login_username">{% trans %}security.username{% endtrans %}</label>
+        <input type="email" class="form-control" id="login_username" name="_username" value="{{ last_username }}">
+    </div>
+
+    <div class="form-group">
+        <label for="login_password">{% trans %}security.password{% endtrans %}</label>
+        <input type="password" class="form-control" id="login_password" name="_password">
+    </div>
+
+    <div class="form-row">
+        <div class="form-group col-md-4">
+            <button type="submit" class="btn btn-primary btn-lg btn-block">
+                {% trans %}security.login{% endtrans %}
+            </button>
+        </div>
+        <div class="form-group col-md-8">
+            <a href="{{ path('password_reset') }}" type="button" class="btn btn-link btn-lg text-muted password-reset">
+                {% trans %}security.password-reset{% endtrans %}
+            </a>
+        </div>
+    </div>
+
+</form>

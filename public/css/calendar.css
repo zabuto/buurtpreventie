@@ -1,0 +1,236 @@
+/* basics */
+.zabuto-calendar__day--today {
+    font-weight: bolder;
+}
+
+.zabuto-calendar.table > thead:first-child > tr:first-child > td {
+    border-top: 0;
+}
+
+.zabuto-calendar.table > tbody td {
+    background-color: #fff;
+}
+
+#round-calendar {
+    background-color: #fafafa;
+}
+
+#round-calendar .table {
+    border-spacing: 1px;
+    border-collapse: separate;
+}
+
+@media (min-width: 1200px) {
+    .zabuto-calendar.table > tbody td {
+        height: 70px;
+    }
+
+    #round-calendar .table {
+        border-spacing: 4px;
+    }
+}
+
+#round-modal-body {
+    padding-bottom: 2em;
+}
+
+.not-walking {
+    color: transparent;
+}
+
+.no-event {
+    color: #a5a5a5;
+}
+
+.calendar-accordion .card-header,
+.calendar-accordion .card-body {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.calendar-accordion .card-body {
+    padding-top: 0;
+    padding-bottom: 1em;
+}
+
+.calendar-accordion .card-body form {
+    padding: 1em;
+}
+
+.calendar-accordion .card-body .btn {
+    min-width: 225px;
+}
+
+.calendar-accordion .card-header .btn-link {
+    color: #000;
+    text-align: left;
+}
+
+.calendar-accordion .card-header .btn-link:hover {
+    text-decoration: none;
+}
+
+.badge-tod-0 {
+    background-color: #f2dede;
+}
+
+.badge-tod-1 {
+    background-color: #8cc665;
+}
+
+/* morning */
+.tod-m-0 {
+    background: linear-gradient(180deg, #f2dede 50%, #f2dede 50%);
+    background-position: top left;
+    background-repeat: no-repeat;
+    background-size: 33% 100%;
+}
+
+.tod-m-0-a-0 {
+    background: linear-gradient(180deg, #f2dede 50%, #f2dede 50%), linear-gradient(180deg, #f2dede 50%, #f2dede 50%);
+    background-position: top left, top center;
+    background-repeat: no-repeat, no-repeat;
+    background-size: 33% 100%;
+}
+
+.tod-m-0-a-1 {
+    background: linear-gradient(180deg, #f2dede 50%, #f2dede 50%), linear-gradient(180deg, #8cc665 50%, #8cc665 50%);
+    background-position: top left, top center;
+    background-repeat: no-repeat, no-repeat;
+    background-size: 33% 100%;
+}
+
+.tod-m-0-a-0-e-0 {
+    background: linear-gradient(180deg, #f2dede 50%, #f2dede 50%), linear-gradient(180deg, #f2dede 50%, #f2dede 50%), linear-gradient(180deg, #f2dede 50%, #f2dede 50%);
+    background-position: top left, top center, top right;
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    background-size: 33% 100%;
+}
+
+.tod-m-0-a-0-e-1 {
+    background: linear-gradient(180deg, #f2dede 50%, #f2dede 50%), linear-gradient(180deg, #f2dede 50%, #f2dede 50%), linear-gradient(180deg, #8cc665 50%, #8cc665 50%);
+    background-position: top left, top center, top right;
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    background-size: 33% 100%;
+}
+
+.tod-m-0-a-1-e-0 {
+    background: linear-gradient(180deg, #f2dede 50%, #f2dede 50%), linear-gradient(180deg, #8cc665 50%, #8cc665 50%), linear-gradient(180deg, #f2dede 50%, #f2dede 50%);
+    background-position: top left, top center, top right;
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    background-size: 33% 100%;
+}
+
+.tod-m-0-a-1-e-1 {
+    background: linear-gradient(180deg, #f2dede 50%, #f2dede 50%), linear-gradient(180deg, #8cc665 50%, #8cc665 50%), linear-gradient(180deg, #8cc665 50%, #8cc665 50%);
+    background-position: top left, top center, top right;
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    background-size: 33% 100%;
+}
+
+.tod-m-1 {
+    background: linear-gradient(180deg, #8cc665 50%, #8cc665 50%);
+    background-position: top left;
+    background-repeat: no-repeat;
+    background-size: 33% 100%;
+}
+
+.tod-m-1-a-0 {
+    background: linear-gradient(180deg, #8cc665 50%, #8cc665 50%), linear-gradient(180deg, #f2dede 50%, #f2dede 50%);
+    background-position: top left, top center;
+    background-repeat: no-repeat, no-repeat;
+    background-size: 33% 100%;
+}
+
+.tod-m-1-a-1 {
+    background: linear-gradient(180deg, #8cc665 50%, #8cc665 50%), linear-gradient(180deg, #8cc665 50%, #8cc665 50%);
+    background-position: top left, top center;
+    background-repeat: no-repeat, no-repeat;
+    background-size: 33% 100%;
+}
+
+.tod-m-1-a-0-e-0 {
+    background: linear-gradient(180deg, #8cc665 50%, #8cc665 50%), linear-gradient(180deg, #f2dede 50%, #f2dede 50%), linear-gradient(180deg, #f2dede 50%, #f2dede 50%);
+    background-position: top left, top center, top right;
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    background-size: 33% 100%;
+}
+
+.tod-m-1-a-0-e-1 {
+    background: linear-gradient(180deg, #8cc665 50%, #8cc665 50%), linear-gradient(180deg, #f2dede 50%, #f2dede 50%), linear-gradient(180deg, #8cc665 50%, #8cc665 50%);
+    background-position: top left, top center, top right;
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    background-size: 33% 100%;
+}
+
+.tod-m-1-a-1-e-0 {
+    background: linear-gradient(180deg, #8cc665 50%, #8cc665 50%), linear-gradient(180deg, #8cc665 50%, #8cc665 50%), linear-gradient(180deg, #f2dede 50%, #f2dede 50%);
+    background-position: top left, top center, top right;
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    background-size: 33% 100%;
+}
+
+.tod-m-1-a-1-e-1 {
+    background: linear-gradient(180deg, #8cc665 50%, #8cc665 50%), linear-gradient(180deg, #8cc665 50%, #8cc665 50%), linear-gradient(180deg, #8cc665 50%, #8cc665 50%);
+    background-position: top left, top center, top right;
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    background-size: 33% 100%;
+}
+
+/* afternoon */
+.tod-a-0 {
+    background: linear-gradient(180deg, #f2dede 50%, #f2dede 50%);
+    background-position: top center;
+    background-repeat: no-repeat;
+    background-size: 33% 100%;
+}
+
+.tod-a-0-e-0 {
+    background: linear-gradient(180deg, #f2dede 50%, #f2dede 50%), linear-gradient(180deg, #f2dede 50%, #f2dede 50%);
+    background-position: top center, top right;
+    background-repeat: no-repeat, no-repeat;
+    background-size: 33% 100%;
+}
+
+.tod-a-0-e-1 {
+    background: linear-gradient(180deg, #f2dede 50%, #f2dede 50%), linear-gradient(180deg, #8cc665 50%, #8cc665 50%);
+    background-position: top center, top right;
+    background-repeat: no-repeat, no-repeat;
+    background-size: 33% 100%;
+}
+
+.tod-a-1 {
+    background: linear-gradient(180deg, #8cc665 50%, #8cc665 50%);
+    background-position: top center;
+    background-repeat: no-repeat;
+    background-size: 33% 100%;
+}
+
+.tod-a-1-e-0 {
+    background: linear-gradient(180deg, #8cc665 50%, #8cc665 50%), linear-gradient(180deg, #f2dede 50%, #f2dede 50%);
+    background-position: top center, top right;
+    background-repeat: no-repeat, no-repeat;
+    background-size: 33% 100%;
+}
+
+.tod-a-1-e-1 {
+    background: linear-gradient(180deg, #8cc665 50%, #8cc665 50%), linear-gradient(180deg, #8cc665 50%, #8cc665 50%);
+    background-position: top center, top right;
+    background-repeat: no-repeat, no-repeat;
+    background-size: 33% 100%;
+}
+
+/* evening */
+.tod-e-0 {
+    background: linear-gradient(180deg, #f2dede 50%, #f2dede 50%);
+    background-position: top right;
+    background-repeat: no-repeat;
+    background-size: 33% 100%;
+}
+
+.tod-e-1 {
+    background: linear-gradient(180deg, #8cc665 50%, #8cc665 50%);
+    background-position: top right;
+    background-repeat: no-repeat;
+    background-size: 33% 100%;
+}

@@ -1,0 +1,47 @@
+{% extends "base.html.twig" %}
+
+{% block body %}
+    <div class="d-none d-lg-block">
+        <h1>{% trans %}app.description{% endtrans %}</h1>
+        <br>
+        <div class="card-deck mb-3 text-center">
+            <div class="card mb-4 shadow-sm card-security">
+                <img class="card-img-top grayscale d-none d-lg-block" src="{{ asset('images/security.png') }}" alt="">
+                <div class="card-header">
+                    <h4 class="my-0 font-weight-normal">{% trans %}app.security-title{% endtrans %}</h4>
+                </div>
+                <div class="card-body">{% trans %}app.security-text{% endtrans %}</div>
+            </div>
+            <div class="card mb-4 shadow-sm card-cooperation">
+                <img class="card-img-top grayscale d-none d-lg-block" src="{{ asset('images/cooperation.png') }}"
+                     alt="">
+                <div class="card-header">
+                    <h4 class="my-0 font-weight-normal">{% trans %}app.cooperation-title{% endtrans %}</h4>
+                </div>
+                <div class="card-body">{% trans %}app.cooperation-text{% endtrans %}</div>
+            </div>
+            <div class="card mb-4 shadow-sm card-alertness">
+                <img class="card-img-top grayscale d-none d-lg-block" src="{{ asset('images/alertness.png') }}" alt="">
+                <div class="card-header">
+                    <h4 class="my-0 font-weight-normal">{% trans %}app.alertness-title{% endtrans %}</h4>
+                </div>
+                <div class="card-body">{% trans %}app.alertness-text{% endtrans %}</div>
+            </div>
+        </div>
+    </div>
+    <div class="d-block d-lg-none">
+        {% if is_granted('ROLE_USER') %}
+            <h3>{% trans %}app.description{% endtrans %}</h3>
+            <br>
+            <h5>{% trans %}app.security-title{% endtrans %}</h5>
+            <p>{% trans %}app.security-text{% endtrans %}</p>
+            <h5>{% trans %}app.cooperation-title{% endtrans %}</h5>
+            <p>{% trans %}app.cooperation-text{% endtrans %}</p>
+            <h5>{% trans %}app.alertness-title{% endtrans %}</h5>
+            <p>{% trans %}app.alertness-text{% endtrans %}</p>
+        {% else %}
+            <h1>{% trans %}security.do-login{% endtrans %}</h1>
+            {% include 'security/login-form.html.twig' with {'last_username': null} %}
+        {% endif %}
+    </div>
+{% endblock %}

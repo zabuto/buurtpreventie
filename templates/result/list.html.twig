@@ -1,0 +1,99 @@
+{% extends "base.html.twig" %}
+
+{% block title %}{% trans %}walk.results{% endtrans %}{% endblock %}
+
+{% block body %}
+    <h1>{% trans %}walk.results{% endtrans %}</h1>
+    <p>
+        {% trans %}walk.result-explanation{% endtrans %}
+        {% transchoice list|length %}walk.result-count{% endtranschoice %}
+    </p>
+
+    {% if list|length > 0 %}
+        <div id="result_progress_bar" class="progress" style="height: 30px; margin-bottom: 10px;">
+            {% for metric in metrics %}
+                <div class="progress-bar bg-{{ metric.class }}" role="progressbar" data-id="{{ metric.id }}"
+                     aria-valuenow="{{ metric.percentage }}" aria-valuemin="0" aria-valuemax="100"
+                     style="width: {{ metric.percentage }}%; cursor: pointer;">
+                    {{ metric.description }} ({{ metric.count }})
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="table-responsive">
+            <table id="result_list_table" class="table table-hover table-sm">
+                <thead>
+                <tr>
+                    <th scope="col" style="width: 140px;">{% trans %}walk.round-date{% endtrans %}</th>
+                    <th scope="col" style="width: 70px;">{% trans %}walk.round-time{% endtrans %}</th>
+                    <th scope="col"><i class="far fa-hand-rock"></i></th>
+                    {% if is_granted('ROLE_COORDINATE') %}
+                        <th scope="col">{% trans %}walk.walker{% endtrans %}</th>
+                    {% endif %}
+                    <th scope="col">{% trans %}walk.result.memo{% endtrans %}</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for result in list %}
+                    <tr data-result="{{ result.result.id }}" {% if result.isDeleted %}class="table-danger"{% endif %}>
+                        <td>{{ result.round.datetime|localizeddate('none', 'none', null, null, 'eeeeee d MMM Y') }}</td>
+                        <td>{{ result.round.datetime|date('H:i') }}</td>
+                        <td>
+                            {% if result.result.incident %}
+                                {% set _icon_class = 'far fa-thumbs-down text-danger' %}
+                            {% else %}
+                                {% set _icon_class = 'far fa-thumbs-up text-success' %}
+                            {% endif %}
+                            <i class="{{ _icon_class }}" data-toggle="tooltip" data-placement="left"
+                               title="{{ result.result.description }}"></i>
+                        </td>
+                        {% if is_granted('ROLE_COORDINATE') %}
+                            <td>{{ result.updatedBy|default(result.createdBy) }}</td>
+                        {% endif %}
+                        <td>{{ result.memo|default('-') }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        $(function () {
+            $('#result_progress_bar').find('.progress-bar').each(function () {
+                $(this).on('click', function (e) {
+                    if ($(this).hasClass('progress-bar-striped')) {
+                        $(this).removeClass('progress-bar-striped');
+                    } else {
+                        $(this).addClass('progress-bar-striped');
+                    }
+
+                    filterResults();
+                });
+            });
+        });
+
+        function filterResults() {
+            let ids = [];
+            let count = 0;
+            $('#result_progress_bar').find('.progress-bar').each(function () {
+                count++;
+                if (!$(this).hasClass('progress-bar-striped')) {
+                    ids.push($(this).data('id'));
+                }
+            });
+
+            let rows = $('#result_list_table > tbody').find('tr');
+            if (ids.length === count) {
+                rows.show();
+            } else {
+                rows.hide();
+                $.each(ids, function (idx, id) {
+                    rows.filter("[data-result='" + id + "']").show();
+                });
+            }
+        }
+    </script>
+{% endblock %}

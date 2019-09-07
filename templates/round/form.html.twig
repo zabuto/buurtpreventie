@@ -1,0 +1,27 @@
+{% extends "base.html.twig" %}
+
+{% block title %}{% trans %}walk.round{% endtrans %}{% endblock %}
+
+{% block body %}
+    <div class="row">
+        <div class="col-md-8 col-12">
+            <h1>{% trans %}walk.round{% endtrans %}</h1>
+        </div>
+        <div class="offset-md-1 col-md-3 col-12">
+            <a href="{{ path('round_list') }}" class="btn btn-outline-secondary btn-block" role="button">
+                <i class="fas fa-angle-double-left"></i> {% trans %}Back to list{% endtrans %}
+            </a>
+        </div>
+    </div>
+    <br>
+    {{ form_start(form) }}
+    {{ form_widget(form) }}
+    <div class="form-row">
+        <div class="form-group col-md-4">
+            <button type="submit" class="btn btn-primary btn-block">
+                {% trans %}Save{% endtrans %}
+            </button>
+        </div>
+    </div>
+    {{ form_end(form) }}
+{% endblock %}

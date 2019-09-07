@@ -1,0 +1,149 @@
+{% extends "base.html.twig" %}
+
+{% block title %}{% trans %}walk.walked-rounds{% endtrans %}{% endblock %}
+
+{% block body %}
+    <h1>{% trans %}walk.walked-rounds{% endtrans %}</h1>
+    <p>
+        {% transchoice list|length %}walk.walked-count{% endtranschoice %}
+        {% trans %}walk.result-explanation{% endtrans %}
+    </p>
+    {% if list|length > 0 %}
+        <div class="table-responsive">
+            <table id="walked_list_table" class="table table-hover table-sm">
+                <thead>
+                <tr>
+                    <th scope="col" style="width: 140px;">{% trans %}walk.round-date{% endtrans %}</th>
+                    <th scope="col" style="width: 70px;">{% trans %}walk.round-time{% endtrans %}</th>
+                    <th scope="col" style="width: 50px;">
+                        <i class="far fa-hand-rock" data-toggle="tooltip" data-placement="bottom"
+                           title="{% trans %}walk.result{% endtrans %}"></i>
+                    </th>
+                    <th scope="col">{% trans %}walk.walked-with{% endtrans %}</th>
+                    <th scope="col">{% trans %}walk.result.memo{% endtrans %}</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for round in list %}
+                    {% set _round_result = 'is-open' %}
+                    {% if round.results|length > 0 %}
+                        {% if service.hasIncident(round) %}
+                            {% set _round_result = 'has-incident' %}
+                        {% else %}
+                            {% set _round_result = 'no-incident' %}
+                        {% endif %}
+                    {% endif %}
+
+                    <tr data-round="{{ round.id }}" class="round-result-{{ _round_result }}">
+                        <td>{{ round.datetime|localizeddate('none', 'none', null, null, 'eeeeee d MMM Y') }}</td>
+                        <td>{{ round.datetime|date('H:i') }}</td>
+                        <td>
+                            {% if _round_result is same as('is-open') %}
+                                <i class="fas fa-hand-rock text-muted"></i>
+                            {% elseif _round_result is same as('no-incident') %}
+                                <i class="far fa-thumbs-up text-success"></i>
+                            {% elseif _round_result is same as('has-incident') %}
+                                <i class="far fa-thumbs-down text-danger"></i>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <ul class="list-inline list-inline-comma">
+                                {% for name in service.walkedWith(round) %}
+                                    <li class="list-inline-item">{{ name }}</li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                        <td>
+                            {% if service.userResult(round) is null %}
+                                <button data-round="{{ round.id }}"
+                                        data-location="{{ path('result_round_modal', {id: round.id}) }}"
+                                        type="button" class="btn btn-outline-primary float-right round-button-result">
+                                    {% trans %}walk.result-add{% endtrans %}
+                                </button>
+                            {% endif %}
+
+                            {% if round.results|length > 0 %}
+                                <ul class="list-unstyled">
+                                    {% for result in round.results %}
+                                        <li data-result="{{ result.id }}">
+                                            {{ result.updatedBy|default(result.createdBy) }}
+                                            {% if result.result.incident %}
+                                                {% set _icon_class = 'far fa-thumbs-down text-danger fa-xs' %}
+                                            {% else %}
+                                                {% set _icon_class = 'far fa-thumbs-up text-success fa-xs' %}
+                                            {% endif %}
+                                            {% if result.memo is not empty %}
+                                                <small>{{ result.memo|nl2br }}</small>
+                                            {% endif %}
+                                            <i class="{{ _icon_class }}" data-toggle="tooltip" data-placement="left"
+                                               title="{{ result.result.description }}"></i>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
+    {% include 'result/modal-dialog.html.twig' %}
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        $(function () {
+            $('.round-button-result').on('click', function () {
+                let round = $(this).data('round');
+                $('#result-modal').modal();
+                $.ajax({
+                    url: $(this).data('location')
+                }).done(function (html) {
+                    $('#result-modal-body').html(html);
+                    $('#result-modal-body [data-toggle="tooltip"]').tooltip();
+
+                    $('#result-modal-button').show();
+                    $('#result-modal-button').off('click');
+                    $('#result-modal-button').on('click', function () {
+                        let url = resultUrl.replace('placeholder', round);
+                        $.ajax({
+                            type: "POST",
+                            url: url,
+                            data: {
+                                result: $('#result-modal-body #round_result_result').val(),
+                                memo: $('#result-modal-body #round_result_memo').val()
+                            }
+                        }).done(function () {
+                            window.location.reload(false);
+                        }).fail(function () {
+                            $('#result-modal-button').hide();
+                            $('#result-modal-body').html(
+                                '<div class="alert alert-danger" role="alert">' +
+                                '   Resultaat kan niet worden verwerkt.' +
+                                '</div>'
+                            );
+                        });
+                    });
+                }).fail(function () {
+                    $('#result-modal-button').hide();
+                    $('#result-modal-body').html(
+                        '<div class="alert alert-danger" role="alert">' +
+                        '   Resultaat kan niet worden toegevoegd.' +
+                        '</div>'
+                    );
+                })
+            });
+        });
+
+        $('#result-modal').on('hidden.bs.modal', function () {
+            $('#result-modal').modal('dispose');
+            $('#result-modal-body').html(
+                '<div class="text-center text-muted mt-5 mb-5">' +
+                '    <i class="fas fa-spinner fa-spin fa-2x"></i>' +
+                '</div>'
+            );
+        });
+    </script>
+{% endblock %}

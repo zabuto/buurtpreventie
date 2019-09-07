@@ -1,0 +1,32 @@
+{% extends "base.html.twig" %}
+
+{% block body %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-7">
+                <h1>{% trans %}user.account{% endtrans %}</h1>
+                <br>
+                <dl class="row dl-detail dl-bordered">
+                    <dt class="col-3">{% trans %}user.name{% endtrans %}</dt>
+                    <dd class="col-9">{{ user.name }}</dd>
+                    {% if user.address is not null %}
+                        <dt class="col-3">{% trans %}user.address{% endtrans %}</dt>
+                        <dd class="col-9">{{ user.address }}</dd>
+                    {% endif %}
+                    {% if user.phone is not null %}
+                        <dt class="col-3">{% trans %}user.phone{% endtrans %}</dt>
+                        <dd class="col-9">{{ user.phone|phone_number_format('NATIONAL') }}</dd>
+                    {% endif %}
+                    <dt class="col-3">{% trans %}user.email{% endtrans %}</dt>
+                    <dd class="col-9">{{ user.email }}</dd>
+                </dl>
+            </div>
+            <div class="col-md-4 offset-md-1">
+                <br>
+                <a href="{{ path('password_change') }}" class="btn btn-outline-primary btn-block" role="button">
+                    {% trans %}security.password-change{% endtrans %}
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

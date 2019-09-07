@@ -1,0 +1,80 @@
+{% extends "base.html.twig" %}
+
+{% block title %}{% trans %}walk.round{% endtrans %}{% endblock %}
+
+{% block body %}
+    <div class="row">
+        <div class="col-md-8 col-12">
+            <h1>{% trans %}walk.round{% endtrans %}</h1>
+        </div>
+        <div class="offset-md-1 col-md-3 col-12">
+            <a href="{{ path('round_list') }}" class="btn btn-outline-secondary btn-block" role="button">
+                <i class="fas fa-angle-double-left"></i> {% trans %}Back to list{% endtrans %}
+            </a>
+        </div>
+    </div>
+
+    <br>
+
+    <div class="row">
+        <div class="col-md-6 col-12">
+            <dl class="row dl-detail dl-bordered">
+                <dt class="col-3">ID</dt>
+                <dd class="col-9">{{ round.id }}</dd>
+                <dt class="col-3">{% trans %}walk.round-date{% endtrans %}</dt>
+                <dd class="col-9">{{ round.date|date('d-m-Y') }}</dd>
+                <dt class="col-3">{% trans %}walk.round-time{% endtrans %}</dt>
+                <dd class="col-9">{{ round.time|date('H:i') }}</dd>
+                <dt class="col-3">{% trans %}walk.meeting-point{% endtrans %}</dt>
+                <dd class="col-9">{{ round.meetingPoint|default('-') }}</dd>
+                <dt class="col-3">{% trans %}walk.walkers{% endtrans %}</dt>
+                <dd class="col-9">
+                    <ul class="list-inline list-inline-comma" style="margin-bottom: 0;">
+                        {% for walker in round.walkers %}
+                            <li class="list-inline-item">{{ walker.walker }}</li>
+                        {% endfor %}
+                    </ul>
+                </dd>
+            </dl>
+        </div>
+        <div class="offset-md-1 col-md-5 col-12">
+            <div id="round_meetingpoint_map" style="width: 100%; height: 250px;"></div>
+        </div>
+    </div>
+
+    <br>
+
+    {% for result in round.results %}
+        <dl class="row dl-detail dl-bordered">
+            <dt class="col-3">ID</dt>
+            <dd class="col-9">{{ result.id }}</dd>
+            <dt class="col-3">{% trans %}walk.walker{% endtrans %}</dt>
+            <dd class="col-9">{{ result.createdBy }}</dd>
+            <dt class="col-3">{% trans %}walk.result{% endtrans %}</dt>
+            <dd class="col-9">{{ result.result.description }}</dd>
+            <dt class="col-3">{% trans %}walk.result-incident{% endtrans %}</dt>
+            <dd class="col-9">{{ result.result.incident }}</dd>
+            <dt class="col-3">{% trans %}walk.result.memo{% endtrans %}</dt>
+            <dd class="col-9">{{ result.memo }}</dd>
+        </dl>
+    {% endfor %}
+{% endblock %}
+
+{% block javascripts %}
+    {% if round.meetingPoint is not null and round.meetingPoint.location is not null %}
+        <script>
+            let rMpMap = nlmaps.createMap({
+                style: 'grijs',
+                target: 'round_meetingpoint_map',
+                center: {
+                    longitude: {{ round.meetingPoint.location.longitude }},
+                    latitude: {{ round.meetingPoint.location.latitude }}
+                },
+                overlay: 'false',
+                marker: true,
+                search: false,
+                zoom: 16.5
+            });
+        </script>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,55 @@
+{% set _id = 'new-'~date|date('Ymd') %}
+<div id="{{ _id }}" class="card">
+    <div class="card-header" id="{{ _id }}-header">
+        <h5 class="mb-0">
+            <button class="btn btn-link btn-block {% if list is not empty %}collapsed{% endif %}" type="button"
+                    data-toggle="collapse"
+                    data-target="#{{ _id }}-body"
+                    aria-expanded="false" aria-controls="{{ _id }}-body">
+
+                <svg xmlns="http://www.w3.org/2000/svg" class="bd-placeholder-img mr-2 rounded" width="32"
+                     height="32" preserveAspectRatio="xMidYMid slice" focusable="false">
+                    <title>{% trans %}walk.round-add{% endtrans %}</title>
+                    <rect fill="#007bff" width="100%" height="100%"></rect>
+                    <text fill="#007bff" dy=".3em" x="50%" y="50%">+</text>
+                </svg>
+
+                {% trans %}walk.round-add{% endtrans %}
+            </button>
+        </h5>
+    </div>
+    <div id="{{ _id }}-body" class="collapse {% if list is empty %}show{% endif %}"
+         aria-labelledby="{{ _id }}-header"
+         data-parent="#calendar-day-{{ date|date('Ymd') }}">
+        <div class="card-body">
+            {% form_theme form 'bootstrap_4_horizontal_layout.html.twig' %}
+            {{ form_start(form, {'attr': {'id': _id~'-form'}}) }}
+            {{ form_widget(form) }}
+            <button id="{{ _id }}-button" type="button" class="btn btn-primary float-right">
+                {% trans %}Add{% endtrans %}
+            </button>
+            {{ form_end(form) }}
+            <br>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('#{{ _id }}-button').on('click', function () {
+            $('#{{ _id }}-form').submit();
+        });
+
+        $('#{{ _id }}-form').submit(function (e) {
+            let form = $(this);
+            e.preventDefault();
+            $.ajax({
+                url: form.attr('action'),
+                type: form.attr('method'),
+                data: form.serialize()
+            }).done(function (response) {
+                window.location.reload(false);
+            });
+        });
+    });
+</script>

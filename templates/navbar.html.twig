@@ -1,0 +1,66 @@
+<nav class="navbar sticky-top navbar-light bg-light navbar-expand-lg">
+    <a class="navbar-brand" href="{{ path('home') }}">
+        <img src="{{ asset('images/favicon-32x32.png') }}" class="d-inline-block align-top" alt="">
+        {% trans %}app.title{% endtrans %}
+    </a>
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarMenu"
+            aria-controls="navbarMenu" aria-expanded="false" aria-label="Menu">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarMenu">
+        <div class="navbar-nav mr-auto mt-2 mt-lg-0">
+            {% if is_granted('ROLE_USER') %}
+                <a class="nav-item nav-link active" href="{{ path('calendar') }}">
+                    {% trans %}walk.schema{% endtrans %}
+                </a>
+
+                {% if is_granted('ROLE_WALK') %}
+                    <a class="nav-item nav-link" href="{{ path('walked_list') }}">
+                        {% trans %}walk.walked-rounds{% endtrans %}
+                    </a>
+                {% endif %}
+
+                {% if is_granted('ROLE_COORDINATE') or is_granted('ROLE_ANALYST') %}
+                    <a class="nav-item nav-link" href="{{ path('result_list') }}">
+                        {% trans %}walk.results{% endtrans %}
+                    </a>
+                {% endif %}
+
+                {% if is_granted('ROLE_MEMBER') %}
+                    <a class="nav-item nav-link" href="{{ path('member_list') }}">
+                        {% trans %}user.members{% endtrans %}
+                    </a>
+                {% endif %}
+                {% if is_granted('ROLE_ADMIN') %}
+                    <a class="nav-item nav-link" href="{{ path('user_list') }}">
+                        {% trans %}user.users{% endtrans %}
+                    </a>
+                {% endif %}
+            {% endif %}
+        </div>
+        <div class="navbar-nav my-2 my-lg-0">
+            {% if is_granted('ROLE_USER') %}
+                <a class="nav-item nav-link nav-account mr-4 d-none d-lg-block text-dark" href="{{ path('account') }}">
+                    <i class="fas fa-user fa-lg"></i>
+                </a>
+                <a class="nav-item nav-link d-block d-lg-none" href="{{ path('account') }}">
+                    {% trans %}user.account{% endtrans %}
+                </a>
+                <a class="btn btn-outline-primary d-none d-lg-block" href="{{ path('logout') }}">
+                    {% trans %}security.logout{% endtrans %}
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+                <a class="nav-item nav-link d-block d-lg-none" href="{{ path('logout') }}">
+                    {% trans %}security.logout{% endtrans %}
+                </a>
+            {% else %}
+                <a class="btn btn-outline-primary d-none d-lg-block" href="{{ path('login') }}">
+                    {% trans %}security.login{% endtrans %}
+                    <i class="fas fa-sign-in-alt"></i>
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</nav>

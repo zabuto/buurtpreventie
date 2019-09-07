@@ -1,0 +1,27 @@
+{% extends "base.html.twig" %}
+
+{% block body %}
+    <h1>{% trans %}security.password-reset{% endtrans %}</h1>
+    {% if email is not null %}
+        <div class="alert alert-dark" role="alert">
+            {% trans with {'%email%': email} %}
+                security.confirmation-token
+            {% endtrans %}
+        </div>
+    {% else %}
+        <form action="{{ path('password_reset') }}" method="post">
+            <div class="form-group">
+                <label for="reset_email">{% trans %}user.email{% endtrans %}</label>
+                <input type="email" class="form-control" id="reset_email" name="reset_email">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <button type="submit" class="btn btn-primary btn-lg btn-block">
+                        {% trans %}security.password-request{% endtrans %}
+                    </button>
+                </div>
+            </div>
+        </form>
+    {% endif %}
+{% endblock %}
