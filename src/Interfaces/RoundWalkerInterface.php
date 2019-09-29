@@ -16,4 +16,9 @@ interface RoundWalkerInterface
      * @return WalkerInterface
      */
     public function getWalker();
+
+    /**
+     * @return bool
+     */
+    public function wasReminded();
 }

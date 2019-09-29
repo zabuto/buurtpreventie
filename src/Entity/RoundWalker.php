@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Interfaces\RoundWalkerInterface;
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -35,6 +36,12 @@ class RoundWalker extends AbstractBaseEntity implements RoundWalkerInterface
      * @var User|null
      */
     private $walker;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     * @var DateTime|null
+     */
+    private $reminded;
 
     /**
      * @return int|null
@@ -74,5 +81,33 @@ class RoundWalker extends AbstractBaseEntity implements RoundWalkerInterface
     public function setWalker($walker): void
     {
         $this->walker = $walker;
+    }
+
+    /**
+     * @return DateTime|null
+     */
+    public function getReminded(): ?DateTime
+    {
+        return $this->reminded;
+    }
+
+    /**
+     * @param  DateTime|null $reminded
+     */
+    public function setReminded(?DateTime $reminded): void
+    {
+        $this->reminded = $reminded;
+    }
+
+    /**
+     * @return bool
+     */
+    public function wasReminded()
+    {
+        if (null !== $this->reminded) {
+            return true;
+        }
+
+        return false;
     }
 }

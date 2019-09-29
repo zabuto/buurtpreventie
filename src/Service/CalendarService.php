@@ -3,6 +3,9 @@
 namespace App\Service;
 
 use App\Entity\Round;
+use App\Model\WalkerDayModel;
+use App\Model\WalkModel;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 
@@ -94,6 +97,50 @@ class CalendarService
         }
 
         return $data;
+    }
+
+    /**
+     * @param  DateTime $date
+     * @return WalkerDayModel[]
+     * @throws Exception
+     */
+    public function getWalksForDate(DateTime $date)
+    {
+        $this->entityManager->getFilters()->enable('soft_delete');
+        $repo = $this->entityManager->getRepository(Round::class);
+        $rounds = $repo->getRoundsForDate($date);
+
+        $walks = [];
+        foreach ($rounds as $round) {
+            foreach ($round->getWalkers() as $roundWalker) {
+                if ($roundWalker->wasReminded()) {
+                    continue;
+                }
+
+                $walker = $roundWalker->getWalker();
+                $walk = new WalkModel(
+                    $roundWalker->getId(),
+                    $round,
+                    $this->walkService->getTimeOfDay($round),
+                    $this->walkService->hasMinimumWalkers($round)
+                );
+
+                $key = sprintf('%s|%s', $walker->getId(), $walk->getDate());
+                if (array_key_exists($key, $walks)) {
+                    $model = $walks[$key];
+                } else {
+                    $model = new WalkerDayModel();
+                    $model->setWalker($walker);
+                    $model->setDate($round->getDate());
+                }
+
+                $model->addWalk($walk);
+
+                $walks[$key] = $model;
+            }
+        }
+
+        return array_values($walks);
     }
 
     /**
