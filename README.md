@@ -22,7 +22,7 @@ Controleer de onderstaande instellingen:
 Zie voor informatie over environment variables: 
 https://symfony.com/doc/current/best_practices/configuration.html#infrastructure-related-configuration
 
-Als het voor productie niet mogelijk is om environment variables op serverniveau vast te leggen, bijvoorbeeld bij shared hosting, dan kunnen de variabelen vastgelegd worden in `public/env.php`.
+Als het voor productie niet mogelijk is om environment variables op serverniveau vast te leggen, bijvoorbeeld bij shared hosting, dan kunnen de variabelen vastgelegd worden in `/env.php`.
 
 ```php
 $_SERVER['APP_ENV'] = $_ENV['APP_ENV'] = 'prod';
