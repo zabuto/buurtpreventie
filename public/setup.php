@@ -5,7 +5,7 @@ use App\Command\Output\StringOutput;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
 
-require __DIR__ . '/env.php';
+require __DIR__ . '/../env.php';
 require __DIR__ . '/../src/.bootstrap.php';
 
 echo '<h1>Setup</h1>';
