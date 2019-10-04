@@ -5,7 +5,11 @@
 
     RewriteEngine On
 
-    # Redirect All Requests To The Subfolder
-    RewriteRule ^ /public
+    # Block direct requests to the "public" subdirectory
+    RewriteCond %{ENV:REDIRECT_STATUS} ^$
+    RewriteRule ^public($|/) - [R=404]
+
+    # Rewrite all requests that are not already for the "public" subdirectory
+    RewriteRule !^public/ /public%{REQUEST_URI} [L]
 
 </IfModule>
