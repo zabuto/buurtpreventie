@@ -25,21 +25,22 @@
                     <dd class="col-9">{{ user.email }}</dd>
                 </dl>
 
-                <small class="text-muted">
-                    {% if user.permitted %}
-                        {% trans %}user.permitted.yes{% endtrans %}
-                    {% else %}
-                        {% trans %}user.permitted.no{% endtrans %}
-                    {% endif %}
-                    <a class="ml-1" href="{{ path('permitted_change') }}">({% trans %}Change{% endtrans %})</a>
-                </small>
+                {% if is_granted('ROLE_MEMBER') %}
+                    <small class="text-muted">
+                        {% if user.permitted %}
+                            {% trans %}user.permitted.yes{% endtrans %}
+                        {% else %}
+                            {% trans %}user.permitted.no{% endtrans %}
+                        {% endif %}
+                        <a class="ml-1" href="{{ path('permitted_change') }}">({% trans %}Change{% endtrans %})</a>
+                    </small>
+                {% endif %}
             </div>
             <div class="col-md-4 offset-md-1">
                 <br>
                 <a href="{{ path('password_change') }}" class="btn btn-outline-primary btn-block" role="button">
                     {% trans %}security.password-change{% endtrans %}
                 </a>
-
             </div>
         </div>
     </div>
