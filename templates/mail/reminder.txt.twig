@@ -2,29 +2,29 @@ Je hebt je aangemeld als buurtpreventie loper op de volgende datum:
 {{ model.date|localizeddate('none', 'none', null, null, 'eeeeee d MMM Y') }}
 
 {% if model.walks|length is same as(1) %}
-    {% set walk = model.walks|first %}
-    {% if walk.round.walkers|length is same as(1) %}
-        Op dit moment ben je als enige loper aangemeld.
-    {% else %}
-        Op dit moment ben je één van de {{ walk.round.walkers|length }} aangemelde lopers.
-    {% endif %}
-    {% if walk.minimum %}
-        Dit is voldoende om de loopronde te kunnen maken.
-
-        De aanvangstijd is {{ walk.time }}.{% if walk.round.meetingPoint is not null %} Startpunt {{ walk.round.meetingPoint }}.{% endif %}
-
-        De aangemelde lopers zijn:
-        {% for walkers in walk.round.walkers %}
-        -  {{ walkers.walker }}
-        {% endfor %}
-    {% else %}
-        Dit is niet voldoende om de loopronde te kunnen maken.
-    {% endif %}
+{% set walk = model.walks|first %}
+{% if walk.round.walkers|length is same as(1) %}
+Op dit moment ben je als enige loper aangemeld.
 {% else %}
-    Je loopt op de volgende tijdstippen:
-    {% for walk in model.walks %}
-    - {{ walk.time }}{% if walk.round.meetingPoint is not null %}, startpunt {{ walk.round.meetingPoint }}{% endif %}{% if not walk.minimum %} (onvoldoende lopers){% endif %}
-    {% endfor %}
+Op dit moment ben je één van de {{ walk.round.walkers|length }} aangemelde lopers.
+{% endif %}
+{% if walk.minimum %}
+Dit is voldoende om de loopronde te kunnen maken.
+
+De aanvangstijd is {{ walk.time }}.{% if walk.round.meetingPoint is not null %} Startpunt {{ walk.round.meetingPoint }}.{% endif %}
+
+De aangemelde lopers zijn:
+{% for walkers in walk.round.walkers %}
+-  {{ walkers.walker }}
+{% endfor %}
+{% else %}
+Dit is niet voldoende om de loopronde te kunnen maken.
+{% endif %}
+{% else %}
+Je loopt op de volgende tijdstippen:
+{% for walk in model.walks %}
+- {{ walk.time }}{% if walk.round.meetingPoint is not null %}, startpunt {{ walk.round.meetingPoint }}{% endif %}{% if not walk.minimum %} (onvoldoende lopers){% endif %}
+{% endfor %}
 {% endif %}
 
 Ga naar {{ url }} om in te loggen.
