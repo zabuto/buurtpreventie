@@ -22,12 +22,12 @@ Controleer de onderstaande instellingen:
 Zie voor informatie over environment variables: 
 https://symfony.com/doc/current/best_practices/configuration.html#infrastructure-related-configuration
 
-Als het voor productie niet mogelijk is om environment variables op serverniveau vast te leggen, bijvoorbeeld bij shared hosting, dan kunnen de variabelen vastgelegd worden in `/env.php`.
+Als het voor productie niet mogelijk is om environment variables op serverniveau vast te leggen, bijvoorbeeld bij shared hosting, dan kunnen de variabelen vastgelegd worden in een `/env.local` bestand in de root directory.
 
-```php
-$_SERVER['APP_ENV'] = $_ENV['APP_ENV'] = 'prod';
-$_SERVER['APP_DEBUG'] = $_ENV['APP_DEBUG'] = '0';
-$_SERVER['APP_SECRET'] = $_ENV['APP_SECRET'] = 's$cretf0rt3st';
-$_SERVER['DATABASE_URL'] = $_ENV['DATABASE_URL'] = 'mysql://username:password@localhost:3306/dbname';
-$_SERVER['MAILER_URL'] = $_ENV['MAILER_URL'] = 'sendmail://127.0.0.1';
+```
+APP_ENV=prod
+APP_DEBUG=0
+APP_SECRET=s$cretf0rt3st
+DATABASE_URL=mysql://username:password@localhost:3306/dbname
+MAILER_URL=sendmail://127.0.0.1
 ```
