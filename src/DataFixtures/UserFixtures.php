@@ -106,6 +106,8 @@ class UserFixtures extends Fixture
         $walker2 = $this->service->createUser('Sonja Struin', 'twee@test.nl', 'test');
         $walker2->setRoles(['ROLE_WALK']);
         $walker2->setAddress('Binnenplein 58 BS');
+        $walker2->setMobile($this->phoneUtil->parse('+31633333333', 'NL'));
+        $walker2->setPermitted(false);
         $this->addFixture($walker2, self::WALKER2_REFERENCE);
 
         $walker3 = $this->service->createUser('Willie Wandel', 'drie@test.nl', 'test');

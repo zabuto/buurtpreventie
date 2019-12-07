@@ -135,6 +135,12 @@ class UserController extends AbstractController
             $this->createNotFoundException('exception.user.not-found');
         }
 
+        $user->setPermitted(false);
+        $user->setAddress(null);
+        $user->setPhone(null);
+        $user->setMobile(null);
+        $user->setPassword('');
+
         $entityManager->remove($user);
         $entityManager->flush();
 

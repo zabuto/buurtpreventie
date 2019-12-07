@@ -5,6 +5,7 @@ namespace App\Form;
 use App\Entity\User;
 use Misd\PhoneNumberBundle\Form\Type\PhoneNumberType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -37,7 +38,21 @@ class MemberType extends AbstractType
                     'readonly' => true,
                 ],
             ])
-            ->add('credited', null, ['label' => 'user.credited']);
+            ->add('credited', ChoiceType::class, [
+                'label'   => 'user.credited',
+                'choices' => [
+                    'No'  => 0,
+                    'Yes' => 1,
+                ],
+            ])
+            ->add('permitted', ChoiceType::class, [
+                'label'   => 'user.permitted',
+                'help'    => 'user.permitted.help',
+                'choices' => [
+                    'No'  => 0,
+                    'Yes' => 1,
+                ],
+            ]);
     }
 
     /**

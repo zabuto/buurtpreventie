@@ -23,7 +23,7 @@
             </thead>
             <tbody>
             {% for meetingpoint in list %}
-                <tr {% if meetingpoint.isDeleted %}class="table-danger"{% endif %}>
+                <tr {% if meetingpoint.isDeleted %}class="table-muted"{% endif %}>
                     <th scope="row">
                         <a href="{{ path('config_meetingpoint_edit', {id: meetingpoint.id}) }}">
                             {{ meetingpoint.description }}

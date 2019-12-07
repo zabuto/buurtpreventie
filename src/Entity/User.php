@@ -108,6 +108,12 @@ class User implements LastLoginInterface, UserTokenInterface, UserInterface, Wal
      * @ORM\Column(type="boolean")
      * @var bool
      */
+    private $permitted = true;
+
+    /**
+     * @ORM\Column(type="boolean")
+     * @var bool
+     */
     private $active = true;
 
     /**
@@ -266,6 +272,22 @@ class User implements LastLoginInterface, UserTokenInterface, UserInterface, Wal
     public function setCredited(bool $credited): void
     {
         $this->credited = $credited;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isPermitted(): bool
+    {
+        return $this->permitted;
+    }
+
+    /**
+     * @param  bool $permitted
+     */
+    public function setPermitted(bool $permitted): void
+    {
+        $this->permitted = $permitted;
     }
 
     /**

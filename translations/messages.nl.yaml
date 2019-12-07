@@ -10,6 +10,8 @@ Close: Sluit
 Back to list: Terug naar lijst
 View details: Bekijk details
 Tools: Opties
+Yes: Ja
+No: Nee
 
 # Exceptions
 exception.datafixture.invalid: Datafixture is ongeldig
@@ -68,6 +70,8 @@ user.address: Adres
 user.phone: Telefoon
 user.mobile: Mobiel
 user.credited: Certificaat
+user.permitted: Toestemming
+user.permitted.help: Toestemming voor delen van persoonsgegevens met andere leden.
 user.last-login: Laatste login
 user.roles: Rol(len)
 user.token: Token

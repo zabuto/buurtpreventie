@@ -10,6 +10,8 @@ Close: Close
 Back to list: Back to list
 View details: View details
 Tools: Tools
+Yes: Yes
+No: No
 
 # Exceptions
 exception.datafixture.invalid: Datafixture is invalid
@@ -68,6 +70,8 @@ user.address: Address
 user.phone: Phone
 user.mobile: Mobile
 user.credited: Credited
+user.permitted: Share
+user.permitted.help: Sharing of personal data with other members is permitted.
 user.last-login: Last login
 user.roles: Role(s)
 user.token: Token

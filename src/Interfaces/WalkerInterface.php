@@ -43,4 +43,9 @@ interface WalkerInterface
      * @return boolean
      */
     public function isCredited();
+
+    /**
+     * @return boolean
+     */
+    public function isPermitted();
 }

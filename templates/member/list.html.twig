@@ -18,13 +18,19 @@
                 {% endif %}
                 <th scope="col">{% trans %}user.roles{% endtrans %}</th>
                 {% if is_granted('ROLE_COORDINATE') %}
+                    <th scope="col" class="text-center">
+                        <div data-toggle="tooltip" data-placement="bottom"
+                             title="{% trans %}user.permitted.help{% endtrans %}">
+                            {% trans %}user.permitted{% endtrans %}
+                        </div>
+                    </th>
                     <th scope="col" class="text-center">{% trans %}user.credited{% endtrans %}</th>
                 {% endif %}
             </tr>
             </thead>
             <tbody>
             {% for user in list %}
-                <tr {% if user.isDeleted %}class="table-danger"{% endif %}>
+                <tr {% if user.isDeleted %}class="table-muted"{% endif %}>
                     <th scope="row">
                         {% if is_granted('ROLE_COORDINATE') %}
                             <a href="{{ path('member_edit', {id: user.id}) }}">
@@ -35,28 +41,53 @@
                         {% endif %}
                     </th>
                     {% if is_granted('ROLE_MEMBER') %}
-                        <td>{{ user.address }}</td>
-                        <td>
-                            {% if user.phone is not null %}
-                                <a href="tel:{{ user.phone|phone_number_format('E164') }}" class="text-dark">
-                                    {{ user.phone|phone_number_format('NATIONAL') }}
-                                </a>
-                            {% else %}
-                                -
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if user.mobile is not null %}
-                                <a href="tel:{{ user.mobile|phone_number_format('E164') }}" class="text-dark">
-                                    {{ user.mobile|phone_number_format('NATIONAL') }}
-                                </a>
-                            {% else %}
-                                -
-                            {% endif %}
-                        </td>
-                        <td>
-                            <a href="mailto:{{ user.email }}" class="text-dark">{{ user.email }}</a>
-                        </td>
+                        {% set _showContact = false %}
+                        {% if is_granted('ROLE_COORDINATE') or user.isPermitted %}
+                            {% set _showContact = true %}
+                        {% endif %}
+
+                        {% set _permittedClass = 'text-dark' %}
+                        {% if not user.isPermitted %}
+                            {% set _permittedClass = 'text-danger' %}
+                        {% endif %}
+
+                        {% if _showContact %}
+                            <td>
+                                {% if user.address is not null %}
+                                    <span class="{{ _permittedClass }}">{{ user.address }}</span>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user.phone is not null %}
+                                    <a href="tel:{{ user.phone|phone_number_format('E164') }}"
+                                       class="{{ _permittedClass }}">
+                                        {{ user.phone|phone_number_format('NATIONAL') }}
+                                    </a>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user.mobile is not null %}
+                                    <a href="tel:{{ user.mobile|phone_number_format('E164') }}"
+                                       class="{{ _permittedClass }}">
+                                        {{ user.mobile|phone_number_format('NATIONAL') }}
+                                    </a>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="mailto:{{ user.email }}" class="{{ _permittedClass }}">{{ user.email }}</a>
+                            </td>
+                        {% else %}
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                        {% endif %}
                     {% endif %}
                     <td>
                         <ul class="list-inline list-inline-comma">
@@ -70,6 +101,14 @@
                         </ul>
                     </td>
                     {% if is_granted('ROLE_COORDINATE') %}
+                        <td class="text-center">
+                            <span class="d-none">{{ user.permitted|default(0) }}</span>
+                            {% if user.permitted %}
+                                <i class="fas fa-check text-success"></i>
+                            {% else %}
+                                <i class="fas fa-times text-danger"></i>
+                            {% endif %}
+                        </td>
                         <td class="text-center">
                             <span class="d-none">{{ user.credited|default(0) }}</span>
                             {% if user.credited %}

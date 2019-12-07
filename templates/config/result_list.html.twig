@@ -25,7 +25,7 @@
             </thead>
             <tbody>
             {% for result in list %}
-                <tr {% if result.isDeleted %}class="table-danger"{% endif %}>
+                <tr {% if result.isDeleted %}class="table-muted"{% endif %}>
                     <th scope="row">
                         <a href="{{ path('config_result_edit', {id: result.id}) }}">
                             {{ result.description }}

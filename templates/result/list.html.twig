@@ -35,7 +35,7 @@
                 </thead>
                 <tbody>
                 {% for result in list %}
-                    <tr data-result="{{ result.result.id }}" {% if result.isDeleted %}class="table-danger"{% endif %}>
+                    <tr data-result="{{ result.result.id }}" {% if result.isDeleted %}class="table-muted"{% endif %}>
                         <td>{{ result.round.datetime|localizeddate('none', 'none', null, null, 'eeeeee d MMM Y') }}</td>
                         <td>{{ result.round.datetime|date('H:i') }}</td>
                         <td>
