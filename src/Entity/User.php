@@ -11,12 +11,14 @@ use Doctrine\ORM\Mapping as ORM;
 use libphonenumber\PhoneNumber;
 use Misd\PhoneNumberBundle\Validator\Constraints\PhoneNumber as AssertPhoneNumber;
 use Serializable;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Table()
  * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
+ * @UniqueEntity(fields={"email"}, message="user.email-already-in-use")
  */
 class User implements LastLoginInterface, UserTokenInterface, UserInterface, WalkerInterface, Serializable
 {
@@ -388,12 +390,12 @@ class User implements LastLoginInterface, UserTokenInterface, UserInterface, Wal
      */
     public function unserialize($serialized)
     {
-        list (
+        [
             $this->id,
             $this->email,
             $this->password,
             $this->active,
-            ) = unserialize($serialized, ['allowed_classes' => false]);
+        ] = unserialize($serialized, ['allowed_classes' => false]);
     }
 
     /**
