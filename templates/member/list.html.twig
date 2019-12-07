@@ -12,8 +12,8 @@
                 <th scope="col">{% trans %}user.name{% endtrans %}</th>
                 {% if is_granted('ROLE_MEMBER') %}
                     <th scope="col">{% trans %}user.address{% endtrans %}</th>
-                    <th scope="col">{% trans %}user.phone{% endtrans %}</th>
-                    <th scope="col">{% trans %}user.mobile{% endtrans %}</th>
+                    <th scope="col" style="min-width: 115px;">{% trans %}user.phone{% endtrans %}</th>
+                    <th scope="col" style="min-width: 115px;">{% trans %}user.mobile{% endtrans %}</th>
                     <th scope="col">{% trans %}user.email{% endtrans %}</th>
                 {% endif %}
                 <th scope="col">{% trans %}user.roles{% endtrans %}</th>
