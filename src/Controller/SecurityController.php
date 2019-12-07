@@ -7,9 +7,11 @@ use App\Exception\TokenInvalidException;
 use App\Exception\UserInvalidException;
 use App\Form\PasswordChangeType;
 use App\Form\PasswordRepeatType;
+use App\Form\PermittedChangeType;
 use App\Interfaces\UserTokenInterface;
 use App\Service\MailService;
 use App\Service\UserService;
+use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\Form\FormError;
@@ -51,6 +53,31 @@ class SecurityController extends AbstractController
 
         return $this->render('security/account.html.twig', [
             'user' => $user,
+        ]);
+    }
+
+    /**
+     * @Route("/permitted-change", name="permitted_change")
+     * @IsGranted("ROLE_USER")
+     *
+     * @param  Request                $request
+     * @param  EntityManagerInterface $entityManager
+     * @return Response|RedirectResponse
+     */
+    public function permitted(Request $request, EntityManagerInterface $entityManager)
+    {
+        $user = $this->getUser();
+        $form = $this->createForm(PermittedChangeType::class, $user);
+
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+
+            return $this->redirectToRoute('account');
+        }
+
+        return $this->render('security/permitted-change.html.twig', [
+            'form' => $form->createView(),
         ]);
     }
 

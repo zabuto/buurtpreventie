@@ -73,6 +73,8 @@ user.mobile: Mobile
 user.credited: Credited
 user.permitted: Share
 user.permitted.help: Sharing of personal data with other members is permitted.
+user.permitted.yes: Yes, sharing of my contact data with other members is permitted.
+user.permitted.no: No, sharing of my contact data with other members is NOT permitted.
 user.last-login: Last login
 user.roles: Role(s)
 user.token: Token

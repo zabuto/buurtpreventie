@@ -73,6 +73,8 @@ user.mobile: Mobiel
 user.credited: Certificaat
 user.permitted: Toestemming
 user.permitted.help: Toestemming voor delen van persoonsgegevens met andere leden.
+user.permitted.yes: Ja, mijn contactgegevens mogen door andere leden worden ingezien.
+user.permitted.no: Nee, mijn contactgegevens mogen NIET door andere leden worden ingezien.
 user.last-login: Laatste login
 user.roles: Rol(len)
 user.token: Token
