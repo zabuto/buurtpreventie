@@ -124,12 +124,13 @@ class SecurityController extends AbstractController
     /**
      * @Route("/token/{token}", name="token")
      *
-     * @param  string      $token
-     * @param  UserService $userService
-     * @param  Request     $request
+     * @param  string              $token
+     * @param  Request             $request
+     * @param  UserService         $userService
+     * @param  TranslatorInterface $translator
      * @return Response|RedirectResponse
      */
-    public function token($token, UserService $userService, Request $request)
+    public function token($token, Request $request, UserService $userService, TranslatorInterface $translator)
     {
         try {
             $error = null;
@@ -146,7 +147,7 @@ class SecurityController extends AbstractController
                 return $this->redirectToRoute('login');
             }
         } catch (TokenInvalidException $e) {
-            $error = $e->getMessage();
+            $error = $translator->trans($e->getMessage());
             $form = null;
         }
 

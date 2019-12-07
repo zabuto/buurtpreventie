@@ -4,8 +4,8 @@
     <h1>{% trans %}security.activate{% endtrans %}</h1>
 
     {% if error is not null %}
-        <div class="alert alert-error" role="alert">
-            {{ error|trans(error) }}
+        <div class="alert alert-danger" role="alert">
+            {{ error }}
         </div>
     {% endif %}
 
