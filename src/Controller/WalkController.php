@@ -158,9 +158,10 @@ class WalkController extends AbstractController
         $form = $this->createForm(RoundResultType::class, $result);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($result);
             $entityManager->flush();
 
-            return $this->redirectToRoute('walked_list');
+            return $this->redirectToRoute('walk_detail', ['id' => $id]);
         }
 
         return $this->render('walk/result-form.html.twig', [
