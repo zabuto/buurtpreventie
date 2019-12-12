@@ -5,6 +5,10 @@
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
     locale: 'nl'
+    router.request_context.scheme: '%env(WEBSITE_SCHEME)%'
+    router.request_context.host: '%env(WEBSITE_HOST)%'
+    router.request_context.base_url: '%env(WEBSITE_BASE_URL)%'
+    asset.request_context.base_path: '%router.request_context.base_url%'
 
 services:
     # default configuration for services in *this* file

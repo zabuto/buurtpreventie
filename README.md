@@ -30,4 +30,7 @@ APP_DEBUG=0
 APP_SECRET=s$cretf0rt3st
 DATABASE_URL=mysql://username:password@localhost:3306/dbname
 MAILER_URL=sendmail://127.0.0.1
+WEBSITE_SCHEME=https
+WEBSITE_HOST=example.org
+WEBSITE_BASE_URL=my/path
 ```
