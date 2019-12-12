@@ -20,7 +20,7 @@ class MailService
     /**
      * @var string
      */
-    private $siteName;
+    private $site;
 
     /**
      * @var array
@@ -43,16 +43,15 @@ class MailService
     private $templating;
 
     /**
-     * @param  string          $siteName
      * @param  string          $fromName
      * @param  string          $fromEmail
      * @param  Swift_Mailer    $mailer
      * @param  TwigTemplating  $templating
      * @param  RouterInterface $router
      */
-    public function __construct($siteName, $fromName, $fromEmail, Swift_Mailer $mailer, TwigTemplating $templating, RouterInterface $router)
+    public function __construct($fromName, $fromEmail, Swift_Mailer $mailer, TwigTemplating $templating, RouterInterface $router)
     {
-        $this->siteName = $siteName;
+        $this->site = $fromName;
         $this->from = [$fromEmail => $fromName];
         $this->mailer = $mailer;
         $this->templating = $templating;
@@ -66,7 +65,7 @@ class MailService
     public function activateNewUser(User $user)
     {
         $message = new Swift_Message();
-        $message->setSubject(sprintf('Welkom bij %s', $this->siteName));
+        $message->setSubject(sprintf('Welkom bij %s', $this->site));
         $message->setFrom($this->from);
         $message->setTo($user->getEmail(), $user->getName());
 
@@ -101,7 +100,7 @@ class MailService
         $url = $this->router->generate('token', ['token' => $user->getToken()], UrlGeneratorInterface::ABSOLUTE_URL);
 
         $message = new Swift_Message();
-        $message->setSubject(sprintf('Herstel je wachtwoord voor %s', $this->siteName));
+        $message->setSubject(sprintf('Herstel je wachtwoord voor %s', $this->site));
         $message->setFrom($this->from);
         $message->setTo($user->getEmail(), $user->getName());
         $message->setBody(sprintf('Beste %s,\n\nJe kunt je wachtwoord instellen via de onderstaande link:\n%s', $user, $url));
@@ -126,7 +125,7 @@ class MailService
         $message->setTo($model->getWalker()->getEmail(), $model->getWalker()->getName());
 
         $url = $this->router->generate('home', [], UrlGeneratorInterface::ABSOLUTE_URL);
-        $txt = $this->templating->render('mail/reminder.txt.twig', ['model' => $model, 'siteName' => $this->siteName, 'url' => $url]);
+        $txt = $this->templating->render('mail/reminder.txt.twig', ['model' => $model, 'siteName' => $this->site, 'url' => $url]);
         $message->setBody($txt);
 
         $recipients = $this->mailer->send($message);

@@ -59,10 +59,9 @@ services:
 
     App\Service\MailService:
         arguments:
-            $siteName: 'Buurtpreventie'
-            $fromName: 'Buurtpreventie'
-            $fromEmail: 'noreply@buurtpreventie.nl'
+            $fromName: '%env(WEBSITE_NAME)%'
+            $fromEmail: '%env(WEBSITE_EMAIL)%'
 
     App\Service\WalkService:
         arguments:
-            $walkerMinimum: 2
+            $walkerMinimum: '%env(WALKER_MINIMUM)%'
