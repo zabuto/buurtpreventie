@@ -128,6 +128,20 @@
     background-size: 33% 100%;
 }
 
+.tod-m-0-e-0 {
+    background: linear-gradient(180deg, #f2dede 50%, #f2dede 50%), linear-gradient(180deg, #ffffff 50%, #ffffff 50%), linear-gradient(180deg, #f2dede 50%, #f2dede 50%);
+    background-position: top left, top center, top right;
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    background-size: 33% 100%;
+}
+
+.tod-m-0-e-1 {
+    background: linear-gradient(180deg, #f2dede 50%, #f2dede 50%), linear-gradient(180deg, #ffffff 50%, #ffffff 50%), linear-gradient(180deg, #8cc665 50%, #8cc665 50%);
+    background-position: top left, top center, top right;
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    background-size: 33% 100%;
+}
+
 .tod-m-1 {
     background: linear-gradient(180deg, #8cc665 50%, #8cc665 50%);
     background-position: top left;
@@ -172,6 +186,20 @@
 
 .tod-m-1-a-1-e-1 {
     background: linear-gradient(180deg, #8cc665 50%, #8cc665 50%), linear-gradient(180deg, #8cc665 50%, #8cc665 50%), linear-gradient(180deg, #8cc665 50%, #8cc665 50%);
+    background-position: top left, top center, top right;
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    background-size: 33% 100%;
+}
+
+.tod-m-1-e-0 {
+    background: linear-gradient(180deg, #8cc665 50%, #8cc665 50%), linear-gradient(180deg, #ffffff 50%, #ffffff 50%), linear-gradient(180deg, #f2dede 50%, #f2dede 50%);
+    background-position: top left, top center, top right;
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    background-size: 33% 100%;
+}
+
+.tod-m-1-e-1 {
+    background: linear-gradient(180deg, #8cc665 50%, #8cc665 50%), linear-gradient(180deg, #ffffff 50%, #ffffff 50%), linear-gradient(180deg, #8cc665 50%, #8cc665 50%);
     background-position: top left, top center, top right;
     background-repeat: no-repeat, no-repeat, no-repeat;
     background-size: 33% 100%;
