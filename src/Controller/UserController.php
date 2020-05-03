@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\RoundWalker;
 use App\Entity\User;
 use App\Exception\MailException;
 use App\Exception\UserInvalidException;
@@ -130,6 +131,8 @@ class UserController extends AbstractController
     public function delete($id, EntityManagerInterface $entityManager)
     {
         $repo = $entityManager->getRepository(User::class);
+
+        /** @var User $user */
         $user = $repo->find($id);
         if (null === $user) {
             $this->createNotFoundException('exception.user.not-found');
@@ -140,6 +143,12 @@ class UserController extends AbstractController
         $user->setPhone(null);
         $user->setMobile(null);
         $user->setPassword('');
+
+        $walking = $entityManager->getRepository(RoundWalker::class)->getFutureForWalker($user);
+        foreach ($walking as $walk) {
+            $walk->doHardDelete();
+            $entityManager->remove($walk);
+        }
 
         $entityManager->remove($user);
         $entityManager->flush();

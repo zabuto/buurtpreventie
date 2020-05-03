@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Round;
 use App\Entity\RoundWalker;
 use App\Entity\User;
+use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bridge\Doctrine\RegistryInterface;
@@ -41,5 +42,26 @@ class RoundWalkerRepository extends ServiceEntityRepository
         $qb->setParameter('user_id', $user->getId());
 
         return $qb->getQuery()->getOneOrNullResult();
+    }
+
+    /**
+     * @param  User $user
+     * @return RoundWalker[]
+     */
+    public function getFutureForWalker(User $user)
+    {
+        $now = new DateTime();
+
+        $qb = $this->createQueryBuilder('rw');
+        $qb->innerJoin(Round::class, 'r', 'WITH', 'rw.round = r.id');
+        $qb->innerJoin(User::class, 'u', 'WITH', 'rw.walker = u.id');
+
+        $qb->andWhere('u.id = :user_id');
+        $qb->andWhere($qb->expr()->gt('r.date', ':today'));
+
+        $qb->setParameter('user_id', $user->getId());
+        $qb->setParameter('today', $now);
+
+        return $qb->getQuery()->getResult();
     }
 }
