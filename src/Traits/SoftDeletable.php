@@ -15,6 +15,11 @@ trait SoftDeletable
     protected $deletedAt;
 
     /**
+     * @var bool
+     */
+    protected $hardDelete = false;
+
+    /**
      * Marks entity as deleted
      */
     public function delete(): void
@@ -56,5 +61,21 @@ trait SoftDeletable
         }
 
         return false;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isHardDelete(): bool
+    {
+        return $this->hardDelete;
+    }
+
+    /**
+     * Do hard delete
+     */
+    public function doHardDelete(): void
+    {
+        $this->hardDelete = true;
     }
 }

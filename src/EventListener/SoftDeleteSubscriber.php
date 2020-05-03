@@ -84,6 +84,10 @@ class SoftDeleteSubscriber implements EventSubscriber
                 continue; // hard-delete
             }
 
+            if (method_exists($entity, 'isHardDelete') && true === $entity->isHardDelete()) {
+                continue; // hard-delete
+            }
+
             $oldDeletedAtValue = $entity->getDeletedAt();
 
             $entity->delete();
