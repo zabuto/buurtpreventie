@@ -35,6 +35,7 @@ class ResultController extends AbstractController
         $resultModel = $walkService->getResults($user);
 
         return $this->render('result/list.html.twig', [
+            'service' => $walkService,
             'list'    => $resultModel->getList(),
             'metrics' => $resultModel->getMetrics(),
         ]);

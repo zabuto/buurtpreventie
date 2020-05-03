@@ -28,7 +28,7 @@
                     <th scope="col" style="width: 70px;">{% trans %}walk.round-time{% endtrans %}</th>
                     <th scope="col"><i class="far fa-hand-rock"></i></th>
                     {% if is_granted('ROLE_COORDINATE') %}
-                        <th scope="col">{% trans %}walk.walker{% endtrans %}</th>
+                        <th scope="col" style="min-width: 150px;">{% trans %}walk.walker{% endtrans %}</th>
                     {% endif %}
                     <th scope="col">{% trans %}walk.result.memo{% endtrans %}</th>
                 </tr>
@@ -48,7 +48,7 @@
                                title="{{ result.result.description }}"></i>
                         </td>
                         {% if is_granted('ROLE_COORDINATE') %}
-                            <td>{{ result.updatedBy|default(result.createdBy) }}</td>
+                            <td>{{ service.getUserName(result) }}</td>
                         {% endif %}
                         <td>{{ result.memo|default('-') }}</td>
                     </tr>

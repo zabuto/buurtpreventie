@@ -73,8 +73,8 @@
             </p>
 
             <ul class="list-inline list-inline-comma">
-                {% for walker in round.walkers %}
-                    <li class="list-inline-item">{{ walker.walker }}</li>
+                {% for walker in service.getWalkers(round) %}
+                    <li class="list-inline-item">{{ walker }}</li>
                 {% endfor %}
             </ul>
 
@@ -91,7 +91,7 @@
                                 {% set _icon_class = 'far fa-thumbs-up text-success' %}
                             {% endif %}
                             <dt class="col-4">
-                                {{ result.updatedBy|default(result.createdBy) }}
+                                {{ service.getUserName(result) }}
                                 <i class="{{ _icon_class }} float-right" style="margin-top: 0.2em;"
                                    data-toggle="tooltip"
                                    data-placement="right" title="{{ result.result.description }}"></i>
@@ -121,7 +121,7 @@
             <dl id="comments" class="row dl-bordered">
                 {% for comment in round.comments %}
                     <dt data-id="{{ comment.id }}" class="col-4">
-                        {{ comment.updatedBy|default(comment.createdBy) }}
+                        {{ service.getUserName(comment) }}
                         <br>
                         <small>{{ comment.updatedAt|default(comment.createdAt)|date('d-m-Y H:i') }}</small>
                     </dt>

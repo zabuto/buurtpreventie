@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\AbstractBaseEntity;
 use App\Entity\Comment;
 use App\Entity\Result;
 use App\Entity\Round;
@@ -226,13 +227,22 @@ class WalkService
     public function getWalkedWith(Round $round)
     {
         $list = [];
+        $inactive = 0;
+
         foreach ($round->getWalkers() as $walker) {
             if ($walker->getWalker() !== $this->security->getUser()) {
-                $list[] = $walker->getWalker()->getName();
+                try {
+                    $list[] = $walker->getWalker()->getName();
+                } catch (Exception $e) {
+                    $inactive++;
+                }
             }
         }
 
         sort($list);
+        if ($inactive > 0) {
+            $list[] = sprintf('%s inactieve %s', $inactive, ($inactive === 1) ? 'loper' : 'lopers');
+        }
 
         return $list;
     }
@@ -249,6 +259,43 @@ class WalkService
         }
 
         return false;
+    }
+
+    /**
+     * @param  Round $round
+     * @return array
+     */
+    public function getWalkers(Round $round)
+    {
+        $filterEnabled = $this->em->getFilters()->isEnabled('soft_delete');
+        if ($filterEnabled) {
+            $this->em->getFilters()->disable('soft_delete');
+        }
+
+        $entities = $this->em->getRepository(RoundWalker::class)->findBy(['round' => $round]);
+        $list = [];
+        $inactive = 0;
+
+        /** @var RoundWalker $entity */
+        foreach ($entities as $entity) {
+            $user = $entity->getWalker();
+            if (false === $user->isDeleted()) {
+                $list[] = (string)$user;
+            } else {
+                $inactive++;
+            }
+        }
+
+        sort($list);
+        if ($inactive > 0) {
+            $list[] = sprintf('%s inactieve %s', $inactive, ($inactive === 1) ? 'loper' : 'lopers');
+        }
+
+        if ($filterEnabled) {
+            $this->em->getFilters()->enable('soft_delete');
+        }
+
+        return $list;
     }
 
     /**
@@ -399,5 +446,25 @@ class WalkService
         $model->setMetrics($metrics);
 
         return $model;
+    }
+
+    /**
+     * @param  object $entity
+     * @return string
+     */
+    public function getUserName($entity)
+    {
+        try {
+            if ($entity instanceof AbstractBaseEntity) {
+                /** @var User $user */
+                $user = (null !== $entity->getUpdatedBy()) ? $entity->getUpdatedBy() : $entity->getCreatedBy();
+                if (null !== $user && false === $user->isDeleted()) {
+                    return (string)$user;
+                }
+            }
+        } catch (Exception $e) {
+        }
+
+        return 'Inactieve loper';
     }
 }

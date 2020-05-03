@@ -143,6 +143,7 @@ class UserController extends AbstractController
         $user->setPhone(null);
         $user->setMobile(null);
         $user->setPassword('');
+        $user->setActive(false);
 
         $walking = $entityManager->getRepository(RoundWalker::class)->getFutureForWalker($user);
         foreach ($walking as $walk) {

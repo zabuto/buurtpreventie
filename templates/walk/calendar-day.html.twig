@@ -46,8 +46,8 @@
                         <li class="list-group-item">
                             <ul class="list-inline list-inline-comma">
                                 <li class="list-inline-item no-comma"><i class="fas fa-walking fa-fw"></i></li>
-                                {% for walker in round.walkers %}
-                                    <li class="list-inline-item">{{ walker.walker }}</li>
+                                {% for walker in service.getWalkers(round) %}
+                                    <li class="list-inline-item">{{ walker }}</li>
                                 {% endfor %}
                             </ul>
                         </li>

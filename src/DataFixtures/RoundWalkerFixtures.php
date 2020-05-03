@@ -87,16 +87,10 @@ class RoundWalkerFixtures extends AbstractDataFixtures
         $this->addFixture($walk_p_4a);
 
         $walk_p_4b = new RoundWalker();
-        $walk_p_4b->setCreatedBy($user_walker_2);
-        $walk_p_4b->setWalker($user_walker_2);
+        $walk_p_4b->setCreatedBy($user_walker_4);
+        $walk_p_4b->setWalker($user_walker_4);
         $walk_p_4b->setRound($this->getReference(RoundFixtures::PAST_4_REFERENCE));
         $this->addFixture($walk_p_4b);
-
-        $walk_p_4c = new RoundWalker();
-        $walk_p_4c->setCreatedBy($user_walker_4);
-        $walk_p_4c->setWalker($user_walker_4);
-        $walk_p_4c->setRound($this->getReference(RoundFixtures::PAST_4_REFERENCE));
-        $this->addFixture($walk_p_4c);
 
         $walk_p_5a = new RoundWalker();
         $walk_p_5a->setCreatedBy($user_walker_1);

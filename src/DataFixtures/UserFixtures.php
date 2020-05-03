@@ -124,6 +124,7 @@ class UserFixtures extends Fixture
         $walker4->setDeletedAt(new DateTime(date('Y-01-01')));
         $walker4->setPermitted(false);
         $walker4->setPassword('');
+        $walker4->setActive(false);
         $this->addFixture($walker4, self::WALKER4_REFERENCE);
     }
 
