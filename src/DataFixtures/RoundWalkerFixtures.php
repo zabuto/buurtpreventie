@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\RoundWalker;
+use App\Entity\User;
 use Doctrine\Common\Persistence\ObjectManager;
 use Exception;
 
@@ -28,9 +29,14 @@ class RoundWalkerFixtures extends AbstractDataFixtures
      */
     public function load(ObjectManager $manager)
     {
+        /** @var User $user_walker_1 */
         $user_walker_1 = $this->getReference(UserFixtures::WALKER1_REFERENCE);
+        /** @var User $user_walker_2 */
         $user_walker_2 = $this->getReference(UserFixtures::WALKER2_REFERENCE);
+        /** @var User $user_walker_3 */
         $user_walker_3 = $this->getReference(UserFixtures::WALKER3_REFERENCE);
+        /** @var User $user_walker_4 */
+        $user_walker_4 = $this->getReference(UserFixtures::WALKER4_REFERENCE);
 
         $walk_p_1a = new RoundWalker();
         $walk_p_1a->setCreatedBy($user_walker_1);
@@ -57,8 +63,8 @@ class RoundWalkerFixtures extends AbstractDataFixtures
         $this->addFixture($walk_p_2b);
 
         $walk_p_2c = new RoundWalker();
-        $walk_p_2c->setCreatedBy($user_walker_3);
-        $walk_p_2c->setWalker($user_walker_3);
+        $walk_p_2c->setCreatedBy($user_walker_4);
+        $walk_p_2c->setWalker($user_walker_4);
         $walk_p_2c->setRound($this->getReference(RoundFixtures::PAST_2_REFERENCE));
         $this->addFixture($walk_p_2c);
 
@@ -85,6 +91,12 @@ class RoundWalkerFixtures extends AbstractDataFixtures
         $walk_p_4b->setWalker($user_walker_2);
         $walk_p_4b->setRound($this->getReference(RoundFixtures::PAST_4_REFERENCE));
         $this->addFixture($walk_p_4b);
+
+        $walk_p_4c = new RoundWalker();
+        $walk_p_4c->setCreatedBy($user_walker_4);
+        $walk_p_4c->setWalker($user_walker_4);
+        $walk_p_4c->setRound($this->getReference(RoundFixtures::PAST_4_REFERENCE));
+        $this->addFixture($walk_p_4c);
 
         $walk_p_5a = new RoundWalker();
         $walk_p_5a->setCreatedBy($user_walker_1);

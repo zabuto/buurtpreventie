@@ -66,10 +66,8 @@ class RoundFixtures extends AbstractDataFixtures
 
         /** @var UserInterface $user_walker_1 */
         $user_walker_1 = $this->getReference(UserFixtures::WALKER1_REFERENCE);
-
         /** @var UserInterface $user_walker_2 */
         $user_walker_2 = $this->getReference(UserFixtures::WALKER2_REFERENCE);
-
         /** @var UserInterface $user_walker_3 */
         $user_walker_3 = $this->getReference(UserFixtures::WALKER3_REFERENCE);
 

@@ -4,6 +4,7 @@ namespace App\DataFixtures;
 
 use App\Exception\UserInvalidException;
 use App\Service\UserService;
+use DateTime;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\Persistence\ObjectManager;
 use Exception;
@@ -36,6 +37,9 @@ class UserFixtures extends Fixture
 
     /** @var string */
     public const WALKER3_REFERENCE = 'user-walker-3';
+
+    /** @var string */
+    public const WALKER4_REFERENCE = 'user-walker-4';
 
     /**
      * @var UserService
@@ -114,6 +118,13 @@ class UserFixtures extends Fixture
         $walker3->setRoles(['ROLE_WALK']);
         $walker3->setCredited(true);
         $this->addFixture($walker3, self::WALKER3_REFERENCE);
+
+        $walker4 = $this->service->createUser('Gerrie Gestopt', 'vier@test.nl', 'test');
+        $walker4->setRoles(['ROLE_WALK']);
+        $walker4->setDeletedAt(new DateTime(date('Y-01-01')));
+        $walker4->setPermitted(false);
+        $walker4->setPassword('');
+        $this->addFixture($walker4, self::WALKER4_REFERENCE);
     }
 
     /**

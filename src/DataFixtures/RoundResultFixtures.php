@@ -32,12 +32,12 @@ class RoundResultFixtures extends AbstractDataFixtures
     {
         /** @var UserInterface $user_walker_1 */
         $user_walker_1 = $this->getReference(UserFixtures::WALKER1_REFERENCE);
-
         /** @var UserInterface $user_walker_2 */
         $user_walker_2 = $this->getReference(UserFixtures::WALKER2_REFERENCE);
-
         /** @var UserInterface $user_walker_3 */
         $user_walker_3 = $this->getReference(UserFixtures::WALKER3_REFERENCE);
+        /** @var UserInterface $user_walker_4 */
+        $user_walker_4 = $this->getReference(UserFixtures::WALKER4_REFERENCE);
 
         $result1 = new RoundResult();
         $result1->setCreatedBy($user_walker_3);
@@ -54,13 +54,13 @@ class RoundResultFixtures extends AbstractDataFixtures
         $this->addFixture($result2);
 
         $result3a = new RoundResult();
-        $result3a->setCreatedBy($user_walker_2);
+        $result3a->setCreatedBy($user_walker_1);
         $result3a->setRound($this->getReference(RoundFixtures::PAST_4_REFERENCE));
         $result3a->setResult($this->getReference(ResultFixtures::NO_REMARKS_REFERENCE));
         $this->addFixture($result3a);
 
         $result3b = new RoundResult();
-        $result3b->setCreatedBy($user_walker_1);
+        $result3b->setCreatedBy($user_walker_4);
         $result3b->setRound($this->getReference(RoundFixtures::PAST_4_REFERENCE));
         $result3b->setResult($this->getReference(ResultFixtures::REMARKS_REFERENCE));
         $result3b->setMemo('Aliquam libero nisi, hendrerit non dignissim non, ullamcorper ac dolor. Maecenas quis nulla non purus euismod venenatis nec id urna. Etiam velit leo, vehicula tristique turpis nec, venenatis finibus velit. Phasellus efficitur pulvinar neque, sit amet tristique arcu lobortis sed.');

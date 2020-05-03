@@ -32,12 +32,12 @@ class CommentFixtures extends AbstractDataFixtures
     {
         /** @var UserInterface $user_walker_1 */
         $user_walker_1 = $this->getReference(UserFixtures::WALKER1_REFERENCE);
-
         /** @var UserInterface $user_walker_2 */
         $user_walker_2 = $this->getReference(UserFixtures::WALKER2_REFERENCE);
-
         /** @var UserInterface $user_walker_3 */
         $user_walker_3 = $this->getReference(UserFixtures::WALKER3_REFERENCE);
+        /** @var UserInterface $user_walker_4 */
+        $user_walker_4 = $this->getReference(UserFixtures::WALKER4_REFERENCE);
 
         $date_past_2a = new DateTime();
         $date_past_2a->modify('-10 day');
@@ -60,7 +60,7 @@ class CommentFixtures extends AbstractDataFixtures
         $date_past_2c = new DateTime();
         $date_past_2c->modify('-9 day')->modify('+15 minutes');
         $past2c = new Comment();
-        $past2c->setCreatedBy($user_walker_1);
+        $past2c->setCreatedBy($user_walker_4);
         $past2c->setCreatedAt($date_past_2c);
         $past2c->setRound($this->getReference(RoundFixtures::PAST_2_REFERENCE));
         $past2c->setMemo('Vestibulum finibus velit urna. Nullam libero turpis, consequat id hendrerit ac, tempus sit amet libero. Aenean rhoncus urna nec sem lobortis, et sagittis elit mattis. Suspendisse ullamcorper, quam vel gravida tempus, quam mi porttitor leo, malesuada placerat risus nulla sed quam.');
