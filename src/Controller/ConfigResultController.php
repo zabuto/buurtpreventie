@@ -74,7 +74,7 @@ class ConfigResultController extends AbstractController
         $repo = $entityManager->getRepository(Result::class);
         $result = $repo->find($id);
         if (null === $result) {
-            $this->createNotFoundException('exception.result.not-found');
+            throw $this->createNotFoundException('exception.result.not-found');
         }
 
         $form = $this->createForm(ResultType::class, $result);
@@ -104,7 +104,7 @@ class ConfigResultController extends AbstractController
         $repo = $entityManager->getRepository(Result::class);
         $result = $repo->find($id);
         if (null === $result) {
-            $this->createNotFoundException('exception.result.not-found');
+            throw $this->createNotFoundException('exception.result.not-found');
         }
 
         $entityManager->remove($result);
@@ -126,7 +126,7 @@ class ConfigResultController extends AbstractController
         $repo = $entityManager->getRepository(Result::class);
         $result = $repo->find($id);
         if (null === $result) {
-            $this->createNotFoundException('exception.result.not-found');
+            throw $this->createNotFoundException('exception.result.not-found');
         }
 
         $result->restore();

@@ -125,7 +125,7 @@ class WalkController extends AbstractController
         $repo = $entityManager->getRepository(Round::class);
         $round = $repo->find($id);
         if (null === $round) {
-            $this->createNotFoundException('exception.round.not-found');
+            throw $this->createNotFoundException('exception.round.not-found');
         }
 
         return $this->render('walk/detail.html.twig', [
@@ -149,7 +149,7 @@ class WalkController extends AbstractController
         $repo = $entityManager->getRepository(Round::class);
         $round = $repo->find($id);
         if (null === $round) {
-            $this->createNotFoundException('exception.round.not-found');
+            throw $this->createNotFoundException('exception.round.not-found');
         }
 
         $result = new RoundResult();

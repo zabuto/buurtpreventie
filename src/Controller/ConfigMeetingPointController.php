@@ -75,7 +75,7 @@ class ConfigMeetingPointController extends AbstractController
         $repo = $entityManager->getRepository(MeetingPoint::class);
         $meetingpoint = $repo->find($id);
         if (null === $meetingpoint) {
-            $this->createNotFoundException('exception.meetingpoint.not-found');
+            throw $this->createNotFoundException('exception.meetingpoint.not-found');
         }
 
         $form = $this->createForm(MeetingPointType::class, $meetingpoint);
@@ -106,7 +106,7 @@ class ConfigMeetingPointController extends AbstractController
         $repo = $entityManager->getRepository(MeetingPoint::class);
         $meetingpoint = $repo->find($id);
         if (null === $meetingpoint) {
-            $this->createNotFoundException('exception.meetingpoint.not-found');
+            throw $this->createNotFoundException('exception.meetingpoint.not-found');
         }
 
         $entityManager->remove($meetingpoint);
@@ -128,7 +128,7 @@ class ConfigMeetingPointController extends AbstractController
         $repo = $entityManager->getRepository(MeetingPoint::class);
         $meetingpoint = $repo->find($id);
         if (null === $meetingpoint) {
-            $this->createNotFoundException('exception.meetingpoint.not-found');
+            throw $this->createNotFoundException('exception.meetingpoint.not-found');
         }
 
         $meetingpoint->restore();

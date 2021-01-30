@@ -103,7 +103,7 @@ class UserController extends AbstractController
         $repo = $entityManager->getRepository(User::class);
         $user = $repo->find($id);
         if (null === $user) {
-            $this->createNotFoundException('exception.user.not-found');
+            throw $this->createNotFoundException('exception.user.not-found');
         }
 
         $form = $this->createForm(UserEditType::class, $user);
@@ -143,7 +143,7 @@ class UserController extends AbstractController
         /** @var User $user */
         $user = $repo->find($id);
         if (null === $user) {
-            $this->createNotFoundException('exception.user.not-found');
+            throw $this->createNotFoundException('exception.user.not-found');
         }
 
         $user->setPermitted(false);
@@ -174,7 +174,7 @@ class UserController extends AbstractController
         $repo = $entityManager->getRepository(User::class);
         $user = $repo->find($id);
         if (null === $user) {
-            $this->createNotFoundException('exception.user.not-found');
+            throw $this->createNotFoundException('exception.user.not-found');
         }
 
         $user->restore();

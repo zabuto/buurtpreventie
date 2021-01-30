@@ -57,7 +57,7 @@ class RoundController extends AbstractController
         $repo = $entityManager->getRepository(Round::class);
         $round = $repo->find($id);
         if (null === $round) {
-            $this->createNotFoundException('exception.round.not-found');
+            throw $this->createNotFoundException('exception.round.not-found');
         }
 
         return $this->render('round/detail.html.twig', [
@@ -106,7 +106,7 @@ class RoundController extends AbstractController
         $repo = $entityManager->getRepository(Round::class);
         $round = $repo->find($id);
         if (null === $round) {
-            $this->createNotFoundException('exception.round.not-found');
+            throw $this->createNotFoundException('exception.round.not-found');
         }
 
         $form = $this->createForm(RoundType::class, $round);
@@ -136,7 +136,7 @@ class RoundController extends AbstractController
         $repo = $entityManager->getRepository(Round::class);
         $round = $repo->find($id);
         if (null === $round) {
-            $this->createNotFoundException('exception.round.not-found');
+            throw $this->createNotFoundException('exception.round.not-found');
         }
 
         $entityManager->remove($round);
@@ -159,7 +159,7 @@ class RoundController extends AbstractController
         $repo = $entityManager->getRepository(Round::class);
         $round = $repo->find($id);
         if (null === $round) {
-            $this->createNotFoundException('exception.round.not-found');
+            throw $this->createNotFoundException('exception.round.not-found');
         }
 
         if ($type === 'time') {
@@ -167,7 +167,7 @@ class RoundController extends AbstractController
         } elseif ($type === 'meeting-point') {
             $form = $this->createForm(RoundMeetingPointType::class, $round);
         } else {
-            $this->createNotFoundException('Type not valid');
+            throw $this->createNotFoundException('Type not valid');
         }
 
         return $this->render('round/change-form.html.twig', [

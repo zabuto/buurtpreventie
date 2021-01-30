@@ -56,7 +56,7 @@ class MemberController extends AbstractController
         $repo = $entityManager->getRepository(User::class);
         $user = $repo->find($id);
         if (null === $user) {
-            $this->createNotFoundException('exception.member.not-found');
+            throw $this->createNotFoundException('exception.member.not-found');
         }
 
         $form = $this->createForm(MemberType::class, $user);
