@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use App\Entity\RoundWalker;
 use App\Entity\User;
 use App\Exception\MailException;
 use App\Exception\UserInvalidException;
@@ -11,6 +10,7 @@ use App\Form\UserEditType;
 use App\Interfaces\UserTokenInterface;
 use App\Service\MailService;
 use App\Service\UserService;
+use App\Service\WalkService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
@@ -59,6 +59,7 @@ class UserController extends AbstractController
         $form = $this->createForm(UserAddType::class, $user);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
+            /** @var User $user */
             $user = $form->getData();
             $userService->saveUser($user);
             $assign = ['user' => $user, 'token' => null];
@@ -90,13 +91,14 @@ class UserController extends AbstractController
      *
      * @param  integer                $id
      * @param  UserService            $userService
+     * @param  WalkService            $walkService
      * @param  EntityManagerInterface $entityManager
      * @param  Request                $request
      * @return Response|RedirectResponse
      * @throws NotFoundHttpException
      * @throws UserInvalidException
      */
-    public function edit($id, UserService $userService, EntityManagerInterface $entityManager, Request $request)
+    public function edit($id, UserService $userService, WalkService $walkService, EntityManagerInterface $entityManager, Request $request)
     {
         $repo = $entityManager->getRepository(User::class);
         $user = $repo->find($id);
@@ -107,8 +109,13 @@ class UserController extends AbstractController
         $form = $this->createForm(UserEditType::class, $user);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
+            /** @var User $user */
             $user = $form->getData();
             $userService->saveUser($user);
+
+            if (false === $user->isActive()) {
+                $walkService->walkerRemoveFromFutureRounds($user);
+            }
 
             return $this->redirectToRoute('user_list');
         }
@@ -124,11 +131,12 @@ class UserController extends AbstractController
      * @Route("/admin/user/{id}/delete", name="user_delete")
      *
      * @param  integer                $id
+     * @param  WalkService            $walkService
      * @param  EntityManagerInterface $entityManager
      * @return Response|RedirectResponse
      * @throws NotFoundHttpException
      */
-    public function delete($id, EntityManagerInterface $entityManager)
+    public function delete($id, WalkService $walkService, EntityManagerInterface $entityManager)
     {
         $repo = $entityManager->getRepository(User::class);
 
@@ -145,11 +153,7 @@ class UserController extends AbstractController
         $user->setPassword('');
         $user->setActive(false);
 
-        $walking = $entityManager->getRepository(RoundWalker::class)->getFutureForWalker($user);
-        foreach ($walking as $walk) {
-            $walk->doHardDelete();
-            $entityManager->remove($walk);
-        }
+        $walkService->walkerRemoveFromFutureRounds($user);
 
         $entityManager->remove($user);
         $entityManager->flush();

@@ -221,6 +221,18 @@ class WalkService
     }
 
     /**
+     * @param  User $user
+     */
+    public function walkerRemoveFromFutureRounds(User $user)
+    {
+        $walking = $this->em->getRepository(RoundWalker::class)->getFutureForWalker($user);
+        foreach ($walking as $walk) {
+            $walk->doHardDelete();
+            $this->em->remove($walk);
+        }
+    }
+
+    /**
      * @param  Round $round
      * @return string[]
      */
