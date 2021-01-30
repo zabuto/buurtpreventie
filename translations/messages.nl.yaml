@@ -22,6 +22,7 @@ exception.round-result.invalid: Ronde resultaat is ongeldig
 exception.round-comment.invalid: Commentaar is ongeldig
 exception.result.not-found: Resultaat niet gevonden
 exception.round.not-found: Loopronde niet gevonden
+exception.round.delete-denied: Loopronde verwijderen niet toegestaan
 exception.user.not-found: Gebruiker niet gevonden
 exception.member.not-found: Lid niet gevonden
 exception.token.invalid: Token ongeldig

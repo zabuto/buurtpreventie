@@ -139,10 +139,14 @@ class RoundController extends AbstractController
             throw $this->createNotFoundException('exception.round.not-found');
         }
 
-        $entityManager->remove($round);
-        $entityManager->flush();
+        if ($this->isGranted('ROLE_COORDINATE') || $round->getCreatedBy() === $this->getUser()) {
+            $entityManager->remove($round);
+            $entityManager->flush();
 
-        return $this->redirectToRoute('round_list');
+            return $this->redirectToRoute('round_list');
+        }
+
+        throw $this->createAccessDeniedException('exception.round.delete-denied');
     }
 
     /**

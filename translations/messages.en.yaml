@@ -22,6 +22,7 @@ exception.round-result.invalid: Round result is invalid
 exception.round-comment.invalid: Comment is invalid
 exception.result.not-found: Result not found
 exception.round.not-found: Round not found
+exception.round.delete-denied: Round delete not allowed
 exception.user.not-found: User not found
 exception.member.not-found: Member not found
 exception.token.invalid: Token invalid
