@@ -41,6 +41,12 @@
                             {% trans %}Change{% endtrans %}
                             <span style="text-transform: lowercase;">{% trans %}walk.meeting-point{% endtrans %}</span>
                         </a>
+                        {% if is_granted('ROLE_COORDINATE') %}
+                            <a class="dropdown-item round-delete text-danger" style="width: 100%;" href="#">
+                                <i class="fas fa-trash fa-fw"></i>
+                                {% trans %}Delete{% endtrans %}
+                            </a>
+                        {% endif %}
                     {% endif %}
                 </div>
             </div>
@@ -285,6 +291,35 @@
                         '</div>'
                     );
                 })
+            });
+
+            $('a.round-delete').on('click', function () {
+                let url = roundDeleteUrl.replace('placeholder', '{{ round.id }}');
+                bootbox.confirm({
+                    message: "{% trans %}Delete{% endtrans %} " + "{% trans %}walk.round{% endtrans %}".toLowerCase() + "?",
+                    buttons: {
+                        confirm: {
+                            label: '{% trans %}Yes{% endtrans %}',
+                            className: 'btn-danger'
+                        },
+                        cancel: {
+                            label: '{% trans %}No{% endtrans %}',
+                            className: 'btn-muted'
+                        }
+                    },
+                    callback: function (result) {
+                        if (result) {
+                            $.ajax({
+                                type: "DELETE",
+                                url: url
+                            }).done(function () {
+                                window.location = '{{ path('calendar') }}';
+                            }).fail(function (xhr, status, error) {
+                                bootbox.alert(xhr.responseText);
+                            });
+                        }
+                    }
+                });
             });
 
             $('#add_comment_button').on('click', function () {
