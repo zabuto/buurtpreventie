@@ -88,6 +88,7 @@ user.members: Leden
 user.member: Lid
 user.member-count: Er zijn %count% actieve leden.
 user.email-readonly: Het e-mailadres van een gebruiker kan alleen worden aangepast door de applicatiebeheerder.
+user.email-found: Het e-mailadres is al geregistreerd bij een andere gebruiker
 
 # Admin
 admin.config: Configuratie

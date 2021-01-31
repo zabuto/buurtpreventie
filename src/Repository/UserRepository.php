@@ -38,4 +38,20 @@ class UserRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getResult();
     }
+
+    /**
+     * @param  string $email
+     * @return int
+     */
+    public function getUserCountForEmail(string $email): int
+    {
+        $this->getEntityManager()->getFilters()->disable('soft_delete');
+
+        $qb = $this->createQueryBuilder('u');
+        $qb->select($qb->expr()->count('u.id'));
+        $qb->andWhere('u.email = :email');
+        $qb->setParameter('email', $email);
+
+        return (int)$qb->getQuery()->getSingleScalarResult();
+    }
 }

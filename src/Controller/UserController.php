@@ -61,7 +61,10 @@ class UserController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             /** @var User $user */
             $user = $form->getData();
+
+            $userService->checkNewUser($user);
             $userService->saveUser($user);
+
             $assign = ['user' => $user, 'token' => null];
 
             if ($user instanceof UserTokenInterface) {

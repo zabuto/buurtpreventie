@@ -88,6 +88,7 @@ user.members: Members
 user.member: Member
 user.member-count: There are %count% active members.
 user.email-readonly: The email address of a user can only be changed by the system administrator.
+user.email-found: The email address is already registered with another user
 
 # Admin
 admin.config: Configuration

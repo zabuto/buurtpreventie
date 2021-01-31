@@ -74,6 +74,23 @@ class UserService
      * @param  User $user
      * @throws UserInvalidException
      */
+    public function checkNewUser(User $user)
+    {
+        $errors = $this->validator->validate($user);
+        if (count($errors) > 0) {
+            throw new UserInvalidException('exception.user.invalid');
+        }
+
+        $count = $this->em->getRepository(User::class)->getUserCountForEmail($user->getEmail());
+        if ($count > 0) {
+            throw new UserInvalidException('user.email-found');
+        }
+    }
+
+    /**
+     * @param  User $user
+     * @throws UserInvalidException
+     */
     public function saveUser(User $user)
     {
         $errors = $this->validator->validate($user);
