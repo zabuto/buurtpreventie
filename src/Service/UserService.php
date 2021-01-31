@@ -61,13 +61,23 @@ class UserService
         $user = new User();
         $user->setPassword('');
 
+        $this->generateToken($user);
+
+        return $user;
+    }
+
+    /**
+     * @param  User $user
+     * @param  int  $hours
+     * @throws Exception
+     */
+    public function generateToken(User $user, int $hours = 12): void
+    {
         if ($user instanceof UserTokenInterface) {
-            $date = new DateTime('+12 hours');
+            $date = new DateTime(sprintf('+%s hours', $hours));
             $user->setToken(sha1(random_bytes(10)));
             $user->setTokenValidUntil($date);
         }
-
-        return $user;
     }
 
     /**

@@ -185,4 +185,42 @@ class UserController extends AbstractController
 
         return $this->redirectToRoute('user_list');
     }
+
+    /**
+     * @Route("/admin/user/{id}/token", name="user_token")s
+     *
+     * @param  integer                $id
+     * @param  UserService            $userService
+     * @param  MailService            $mailService
+     * @param  EntityManagerInterface $entityManager
+     * @return Response
+     * @throws NotFoundHttpException
+     */
+    public function token($id, UserService $userService, MailService $mailService, EntityManagerInterface $entityManager)
+    {
+        $repo = $entityManager->getRepository(User::class);
+        $user = $repo->find($id);
+        if (null === $user) {
+            throw $this->createNotFoundException('exception.user.not-found');
+        }
+
+        $assign = ['user' => $user, 'token' => null];
+        if ($user instanceof UserTokenInterface) {
+            $userService->generateToken($user, 24);
+            $entityManager->flush();
+
+            $assign['token'] = [
+                'hash' => $user->getToken(),
+                'date' => $user->getTokenValidUntil(),
+            ];
+
+            try {
+                $mailService->activateNewUser($user);
+            } catch (MailException $e) {
+                $assign['warning'] = $e->getMessage();
+            }
+        }
+
+        return $this->render('user/token.html.twig', $assign);
+    }
 }

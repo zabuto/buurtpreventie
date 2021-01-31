@@ -79,6 +79,8 @@ user.permitted.no: No, sharing of my contact data with other members is NOT perm
 user.last-login: Last login
 user.roles: Role(s)
 user.token: Token
+user.token-regenerate: Token regenerate
+user.token-fail: Token cannot be generated
 user.active: Active
 user.add: Add user
 user.added: User added

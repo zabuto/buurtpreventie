@@ -79,6 +79,8 @@ user.permitted.no: Nee, mijn contactgegevens mogen NIET door andere leden worden
 user.last-login: Laatste login
 user.roles: Rol(len)
 user.token: Token
+user.token-regenerate: Token hergenereren
+user.token-fail: Token kan niet worden gegenereerd
 user.active: Actief
 user.add: Gebruiker toevoegen
 user.added: Gebruiker toegevoegd

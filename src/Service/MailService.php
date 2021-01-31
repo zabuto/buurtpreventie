@@ -76,9 +76,10 @@ class MailService
             $message->addPart(sprintf('<p>Beste %s,</p><p>Welkom als gebruiker van de actieve buurtpreventie</p><p>Ga om in te loggen naar:<br><a href="%s">%s</a></p>', $user, $url, $url), 'text/html');
         } else {
             $url = $this->router->generate('token', ['token' => $user->getToken()], UrlGeneratorInterface::ABSOLUTE_URL);
+            $valid = (null !== $user->getTokenValidUntil()) ? sprintf('Let op: de link is geldig tot %s.', $user->getTokenValidUntil()->format('d-m-Y H:i')) : '';
 
-            $message->setBody(sprintf('Beste %s,\n\nWelkom als gebruiker van de actieve buurtpreventie.\n\nJe kunt je wachtwoord instellen via de onderstaande link:\n%s', $user, $url));
-            $message->addPart(sprintf('<p>Beste %s,</p><p>Welkom als gebruiker van de actieve buurtpreventie</p><p>Je kunt je wachtwoord instellen via de onderstaande link:<br><a href="%s">%s</a></p>', $user, $url, $url), 'text/html');
+            $message->setBody(sprintf('Beste %s,\n\nWelkom als gebruiker van de actieve buurtpreventie.\n\nJe kunt je wachtwoord instellen via de onderstaande link:\n%s\n\n%s.', $user, $url, $valid));
+            $message->addPart(sprintf('<p>Beste %s,</p><p>Welkom als gebruiker van de actieve buurtpreventie</p><p>Je kunt je wachtwoord instellen via de onderstaande link:<br><a href="%s">%s</a></p><p>&nbsp;</p><p>%s</p>', $user, $url, $url, $valid), 'text/html');
         }
 
         $recipients = $this->mailer->send($message);

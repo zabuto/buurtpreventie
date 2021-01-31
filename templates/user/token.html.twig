@@ -1,0 +1,30 @@
+{% extends "base.html.twig" %}
+
+{% block body %}
+    <h1>{% trans %}user.user{% endtrans %}</h1>
+
+    {% if warning is defined %}
+        <div class="alert alert-warning" role="alert">
+            {{ warning|trans(warning) }}
+        </div>
+    {% endif %}
+
+    <dl>
+        <dt>{% trans %}user.name{% endtrans %}</dt>
+        <dd>{{ user.name }}</dd>
+        <dt>{% trans %}user.email{% endtrans %}</dt>
+        <dd>{{ user.email }}</dd>
+    </dl>
+
+    {% if token is not null %}
+        <div class="alert alert-dark" role="alert">
+            {% trans with {'%url%': path('token', {token: token.hash}), '%datetime%': token.date|date('d-m-Y H:i:s')} %}
+                user.activation
+            {% endtrans %}
+        </div>
+    {% else %}
+        <div class="alert alert-warning" role="alert">
+            {% trans %}user.token-fail{% endtrans %}
+        </div>
+    {% endif %}
+{% endblock %}
