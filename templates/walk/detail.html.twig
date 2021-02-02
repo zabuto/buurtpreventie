@@ -41,12 +41,12 @@
                             {% trans %}Change{% endtrans %}
                             <span style="text-transform: lowercase;">{% trans %}walk.meeting-point{% endtrans %}</span>
                         </a>
-                        {% if is_granted('ROLE_COORDINATE') %}
-                            <a class="dropdown-item round-delete text-danger" style="width: 100%;" href="#">
-                                <i class="fas fa-trash fa-fw"></i>
-                                {% trans %}Delete{% endtrans %}
-                            </a>
-                        {% endif %}
+                    {% endif %}
+                    {% if is_granted('ROLE_COORDINATE') %}
+                        <a class="dropdown-item round-delete text-danger" style="width: 100%;" href="#">
+                            <i class="fas fa-trash fa-fw"></i>
+                            {% trans %}Delete{% endtrans %}
+                        </a>
                     {% endif %}
                 </div>
             </div>
