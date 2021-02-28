@@ -311,7 +311,7 @@ class WalkService
         }
 
         if ($deleted > 0 && ($this->security->isGranted('ROLE_COORDINATE'))) {
-            $list[] = sprintf('%s %s verwijderd', $deleted, ($deleted === 1) ? 'loper' : 'lopers');
+            $list[] = sprintf('%s %s afgemeld', $deleted, ($deleted === 1) ? 'loper' : 'lopers');
         }
 
         if ($filterEnabled) {
