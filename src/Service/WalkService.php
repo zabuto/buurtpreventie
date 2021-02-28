@@ -287,9 +287,16 @@ class WalkService
         $entities = $this->em->getRepository(RoundWalker::class)->findBy(['round' => $round]);
         $list = [];
         $inactive = 0;
+        $deleted = 0;
 
         /** @var RoundWalker $entity */
         foreach ($entities as $entity) {
+            if ($entity->isDeleted()) {
+                $deleted++;
+                continue;
+            }
+
+            /** @var User $user */
             $user = $entity->getWalker();
             if (false === $user->isDeleted()) {
                 $list[] = (string)$user;
@@ -301,6 +308,10 @@ class WalkService
         sort($list);
         if ($inactive > 0) {
             $list[] = sprintf('%s inactieve %s', $inactive, ($inactive === 1) ? 'loper' : 'lopers');
+        }
+
+        if ($deleted > 0 && ($this->security->isGranted('ROLE_COORDINATE'))) {
+            $list[] = sprintf('%s %s verwijderd', $deleted, ($deleted === 1) ? 'loper' : 'lopers');
         }
 
         if ($filterEnabled) {
