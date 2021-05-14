@@ -29,6 +29,9 @@
     "doctrine/dbal": {
         "version": "v2.10.0"
     },
+    "doctrine/deprecations": {
+        "version": "v0.5.3"
+    },
     "doctrine/doctrine-bundle": {
         "version": "1.6",
         "recipe": {
@@ -262,6 +265,9 @@
     "symfony/dependency-injection": {
         "version": "v4.2.12"
     },
+    "symfony/deprecation-contracts": {
+        "version": "v2.4.0"
+    },
     "symfony/doctrine-bridge": {
         "version": "v4.2.12"
     },
@@ -402,6 +408,9 @@
         "version": "v4.2.12"
     },
     "symfony/property-info": {
+        "version": "v4.2.12"
+    },
+    "symfony/proxy-manager-bridge": {
         "version": "v4.2.12"
     },
     "symfony/routing": {
