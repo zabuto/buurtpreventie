@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\MeetingPoint;
 use App\Entity\Round;
+use Doctrine\ORM\EntityRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
@@ -37,8 +38,12 @@ class RoundType extends AbstractType
                 'label'        => 'walk.round-time',
             ])
             ->add('meetingPoint', EntityType::class, [
-                'class' => MeetingPoint::class,
-                'label' => 'walk.meeting-point',
+                'class'         => MeetingPoint::class,
+                'label'         => 'walk.meeting-point',
+                'query_builder' => function (EntityRepository $er) {
+                    return $er->createQueryBuilder('mp')
+                        ->orderBy('mp.description', 'ASC');
+                },
             ])
             ->add('memo', TextareaType::class, [
                 'mapped' => false,
