@@ -74,11 +74,11 @@
             });
         });
 
-        $calEl.on('calendar:render', function () {
+        $calEl.on('zabuto:calendar:render', function () {
             $('#round-legend').removeClass('invisible');
         });
 
-        $calEl.on('calendar:day', function (e) {
+        $calEl.on('zabuto:calendar:day', function (e) {
             let now = new Date();
             let date = e.date;
 

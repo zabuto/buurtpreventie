@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css"
           integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
     <link rel="stylesheet" href="https://openlayers.org/en/v4.6.5/css/ol.css">
-    <link href="https://zabuto.com/dev/calendar/dist/zabuto_calendar.min.css" rel="stylesheet">
+    <link href="{{ asset('lib/calendar/zabuto_calendar.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/style.css') }}" rel="stylesheet">
     <link href="{{ asset('css/calendar.css') }}" rel="stylesheet">
     {% block stylesheets %}{% endblock %}
@@ -40,7 +40,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js"></script>
 <script src="https://openlayers.org/en/v4.6.5/build/ol.js"></script>
 <script src="https://nlmaps.nl/dist/nlmaps.iife.js"></script>
-<script src="https://zabuto.com/dev/calendar/dist/zabuto_calendar.min.js"></script>
+<script src="{{ asset('lib/calendar/zabuto_calendar.min.js') }}"></script>
 
 <script>
     const dataUrl = '{{ path('api_month')|escape('js') }}';
