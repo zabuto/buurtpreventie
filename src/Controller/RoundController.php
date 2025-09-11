@@ -1,42 +1,32 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Entity\Result;
 use App\Entity\Round;
+use App\Entity\User;
 use App\Form\RoundMeetingPointType;
-use App\Form\RoundResultType;
 use App\Form\RoundTimeType;
 use App\Form\RoundType;
-use Doctrine\ORM\EntityManagerInterface;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use App\Repository\RoundRepository;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-/**
- * RoundController
- *
- * @IsGranted("ROLE_USER")
- */
+#[IsGranted('ROLE_USER')]
 class RoundController extends AbstractController
 {
-    /**
-     * @Route("/round", name="round_list")
-     *
-     * @param  EntityManagerInterface $entityManager
-     * @return Response
-     */
-    public function list(EntityManagerInterface $entityManager)
+    #[Route('/round', name: 'round_list', methods: ['GET'])]
+    public function list(RoundRepository $repo): Response
     {
+        /** @var User $user */
         $user = $this->getUser();
         if ($this->isGranted('ROLE_COORDINATE') || $this->isGranted('ROLE_ANALYST')) {
             $user = null;
         }
 
-        $repo = $entityManager->getRepository(Round::class);
         $list = $repo->getOrderedResults($user, 'DESC');
 
         return $this->render('round/list.html.twig', [
@@ -44,17 +34,9 @@ class RoundController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/round/{id}", name="round_detail", requirements={"id"="\d+"})
-     *
-     * @param  integer                $id
-     * @param  EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NotFoundHttpException
-     */
-    public function detail($id, EntityManagerInterface $entityManager)
+    #[Route('/round/{id}', name: 'round_detail', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function detail(int $id, RoundRepository $repo): Response
     {
-        $repo = $entityManager->getRepository(Round::class);
         $round = $repo->find($id);
         if (null === $round) {
             throw $this->createNotFoundException('exception.round.not-found');
@@ -65,45 +47,29 @@ class RoundController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/round/add", name="round_add")
-     * @IsGranted("ROLE_MEMBER")
-     *
-     * @param  EntityManagerInterface $entityManager
-     * @param  Request                $request
-     * @return Response|RedirectResponse
-     */
-    public function add(EntityManagerInterface $entityManager, Request $request)
+    #[Route('/round/add', name: 'round_add', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_MEMBER')]
+    public function add(Request $request, RoundRepository $repo): RedirectResponse|Response
     {
-        $form = $this->createForm(RoundType::class);
+        $round = new Round();
+        $form = $this->createForm(RoundType::class, $round);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $round = $form->getData();
-            $entityManager->persist($round);
-            $entityManager->flush();
+            $repo->create($round);
 
             return $this->redirectToRoute('round_detail', ['id' => $round->getId()]);
         }
 
         return $this->render('round/form.html.twig', [
-            'id'   => null,
+            'id' => null,
             'form' => $form->createView(),
         ]);
     }
 
-    /**
-     * @Route("/round/{id}/edit", name="round_edit")
-     * @IsGranted("ROLE_MEMBER")
-     *
-     * @param  integer                $id
-     * @param  EntityManagerInterface $entityManager
-     * @param  Request                $request
-     * @return Response|RedirectResponse
-     * @throws NotFoundHttpException
-     */
-    public function edit($id, EntityManagerInterface $entityManager, Request $request)
+    #[Route('/round/{id}/edit', name: 'round_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_MEMBER')]
+    public function edit(int $id, Request $request, RoundRepository $repo): RedirectResponse|Response
     {
-        $repo = $entityManager->getRepository(Round::class);
         $round = $repo->find($id);
         if (null === $round) {
             throw $this->createNotFoundException('exception.round.not-found');
@@ -112,36 +78,28 @@ class RoundController extends AbstractController
         $form = $this->createForm(RoundType::class, $round);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
+            $repo->update($round);
 
             return $this->redirectToRoute('round_detail', ['id' => $round->getId()]);
         }
 
         return $this->render('round/form.html.twig', [
-            'id'   => $id,
+            'id' => $id,
             'form' => $form->createView(),
         ]);
     }
 
-    /**
-     * @Route("/round/{id}/delete", name="round_delete")
-     * @IsGranted("ROLE_MEMBER")
-     *
-     * @param  integer                $id
-     * @param  EntityManagerInterface $entityManager
-     * @return Response|RedirectResponse
-     */
-    public function delete($id, EntityManagerInterface $entityManager)
+    #[Route('/round/{id}/delete', name: 'round_delete', requirements: ['id' => '\d+|placeholder'], methods: ['GET', 'POST', 'DELETE'])]
+    #[IsGranted('ROLE_MEMBER')]
+    public function delete(int $id, RoundRepository $repo): RedirectResponse|Response
     {
-        $repo = $entityManager->getRepository(Round::class);
         $round = $repo->find($id);
         if (null === $round) {
             throw $this->createNotFoundException('exception.round.not-found');
         }
 
         if ($this->isGranted('ROLE_COORDINATE') || $round->getCreatedBy() === $this->getUser()) {
-            $entityManager->remove($round);
-            $entityManager->flush();
+            $repo->delete($round);
 
             return $this->redirectToRoute('round_list');
         }
@@ -149,18 +107,9 @@ class RoundController extends AbstractController
         throw $this->createAccessDeniedException('exception.round.delete-denied');
     }
 
-    /**
-     * @Route("/round/{id}/modal/{type}", name="round_modal_type", requirements={"id"="\d+"})
-     *
-     * @param  integer                $id
-     * @param  string                 $type
-     * @param  EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NotFoundHttpException
-     */
-    public function modal($id, $type, EntityManagerInterface $entityManager)
+    #[Route('/round/{id}/modal/{type}', name: 'round_modal_type', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function modal(int $id, string $type, RoundRepository $repo): Response
     {
-        $repo = $entityManager->getRepository(Round::class);
         $round = $repo->find($id);
         if (null === $round) {
             throw $this->createNotFoundException('exception.round.not-found');
@@ -176,7 +125,7 @@ class RoundController extends AbstractController
 
         return $this->render('round/change-form.html.twig', [
             'round' => $round,
-            'form'  => $form->createView(),
+            'form' => $form->createView(),
         ]);
     }
 }

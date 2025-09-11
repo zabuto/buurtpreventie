@@ -1,0 +1,25 @@
+<p>Beste {{ user_name }},</p>
+<p>Welkom als gebruiker van de actieve buurtpreventie.</p>
+{% if token_url is not null %}
+    <p>
+        Je kunt je wachtwoord instellen via de onderstaande link:
+        <br>
+        <a href="{{ token_url }}">{{ token_url }}</a>
+        {% if token_valid is not null %}
+            <br><br>
+            Let op: de link is geldig tot {{ token_valid }}.
+        {% endif %}
+    </p>
+{% else %}
+    <p>
+        Ga om in te loggen naar:
+        <br>
+        <a href="{{ app_url }}">{{ app_url }}</a>
+    </p>
+{% endif %}
+<p>
+    <br><br>
+    {{ app_name }}
+    <br>
+    <em>* Deze email is automatisch verzonden *</em>
+</p>

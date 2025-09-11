@@ -1,38 +1,20 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\EventListener;
 
 use Doctrine\Common\EventSubscriber;
-use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
-use Doctrine\ORM\Events;
 use Doctrine\ORM\Event\OnFlushEventArgs;
-use Exception;
-use Symfony\Component\Security\Core\Security;
+use Doctrine\ORM\Events;
+use Doctrine\Persistence\Event\LifecycleEventArgs;
+use Symfony\Bundle\SecurityBundle\Security;
 
-/**
- * SoftDeleteSubscriber
- */
-class SoftDeleteSubscriber implements EventSubscriber
+readonly class SoftDeleteSubscriber implements EventSubscriber
 {
-    /**
-     * @var Security
-     */
-    private $security;
-
-    /**
-     * Constructors
-     *
-     * @param  Security $security
-     */
-    public function __construct(Security $security)
+    public function __construct(private Security $security)
     {
-        $this->security = $security;
     }
 
-    /**
-     * @return array|string[]
-     */
-    public function getSubscribedEvents()
+    public function getSubscribedEvents(): array
     {
         return [
             Events::preUpdate,
@@ -40,11 +22,7 @@ class SoftDeleteSubscriber implements EventSubscriber
         ];
     }
 
-    /**
-     * @param  LifecycleEventArgs $args
-     * @throws Exception
-     */
-    public function preUpdate(LifecycleEventArgs $args)
+    public function preUpdate(LifecycleEventArgs $args): void
     {
         $entity = $args->getObject();
 
@@ -66,15 +44,11 @@ class SoftDeleteSubscriber implements EventSubscriber
         }
     }
 
-    /**
-     * @param  OnFlushEventArgs $args
-     * @throws Exception
-     */
-    public function onFlush(OnFlushEventArgs $args)
+    public function onFlush(OnFlushEventArgs $args): void
     {
-        $em = $args->getEntityManager();
-        $unitOfWork = $em->getUnitOfWork();
-        $eventManager = $em->getEventManager();
+        $om = $args->getObjectManager();
+        $unitOfWork = $om->getUnitOfWork();
+        $eventManager = $om->getEventManager();
 
         #-- remove event, if we call $this->em->flush() now there is no infinite recursion loop!
         $eventManager->removeEventListener('onFlush', $this);
@@ -91,7 +65,7 @@ class SoftDeleteSubscriber implements EventSubscriber
             $oldDeletedAtValue = $entity->getDeletedAt();
 
             $entity->delete();
-            $em->persist($entity);
+            $om->persist($entity);
 
             $unitOfWork->propertyChanged($entity, 'deletedAt', $oldDeletedAtValue, $entity->getDeletedAt());
             $update = [

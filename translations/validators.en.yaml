@@ -1,1 +1,3 @@
+lookup.description-already-in-use: This description is already in use.
 user.email-already-in-use: This email address is already registered to an existing user.
+user.name-already-in-use: This name is already registered to an existing user.

@@ -1,50 +1,19 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Model;
 
-/**
- * MetricModel
- */
-class MetricModel
+final class MetricModel
 {
-    /**
-     * @var int
-     */
-    private $id;
-
-    /**
-     * @var string
-     */
-    private $description;
-
-    /**
-     * @var string|null
-     */
-    private $class;
-
-    /**
-     * @var int
-     */
-    private $count = 0;
-
-    /**
-     * @var float
-     */
-    private $percentage = 0.00;
-
-    /**
-     * @param  int    $id
-     * @param  string $description
-     */
-    public function __construct(int $id, string $description)
+    public function __construct(
+        public int     $id,
+        public string  $description,
+        public int     $count = 0,
+        public float   $percentage = 0.00,
+        public ?string $class = null,
+    )
     {
-        $this->id = $id;
-        $this->description = $description;
     }
 
-    /**
-     * @param  int $total
-     */
     public function add(int $total): void
     {
         $this->count++;
@@ -53,53 +22,5 @@ class MetricModel
         } else {
             $this->percentage = round(($this->count / $total) * 100);
         }
-    }
-
-    /**
-     * @param  string|null $class
-     */
-    public function setClass(?string $class): void
-    {
-        $this->class = $class;
-    }
-
-    /**
-     * @return int
-     */
-    public function getId(): int
-    {
-        return $this->id;
-    }
-
-    /**
-     * @return string
-     */
-    public function getDescription(): string
-    {
-        return $this->description;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getClass(): ?string
-    {
-        return $this->class;
-    }
-
-    /**
-     * @return int
-     */
-    public function getCount(): int
-    {
-        return $this->count;
-    }
-
-    /**
-     * @return float
-     */
-    public function getPercentage(): float
-    {
-        return $this->percentage;
     }
 }

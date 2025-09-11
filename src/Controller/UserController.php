@@ -1,41 +1,31 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Dto\UserDto;
 use App\Entity\User;
 use App\Exception\MailException;
 use App\Exception\UserInvalidException;
 use App\Form\UserAddType;
 use App\Form\UserEditType;
-use App\Interfaces\UserTokenInterface;
+use App\Repository\UserRepository;
 use App\Service\MailService;
-use App\Service\UserService;
 use App\Service\WalkService;
-use Doctrine\ORM\EntityManagerInterface;
-use Exception;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\ObjectMapper\ObjectMapperInterface;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-/**
- * UserController
- *
- * @IsGranted("ROLE_ADMIN")
- */
+#[IsGranted('ROLE_ADMIN')]
 class UserController extends AbstractController
 {
-    /**
-     * @Route("/admin/user", name="user_list")
-     *
-     * @param  EntityManagerInterface $entityManager
-     * @return Response
-     */
-    public function list(EntityManagerInterface $entityManager)
+    #[Route('/admin/user', name: 'user_list', methods: ['GET'])]
+    public function list(UserRepository $repo): Response
     {
-        $repo = $entityManager->getRepository(User::class);
         $list = $repo->findBy([], ['name' => 'ASC']);
 
         return $this->render('user/list.html.twig', [
@@ -43,67 +33,53 @@ class UserController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/admin/user/add", name="user_add")
-     *
-     * @param  UserService $userService
-     * @param  MailService $mailService
-     * @param  Request     $request
-     * @return Response
-     * @throws UserInvalidException
-     * @throws Exception
-     */
-    public function add(UserService $userService, MailService $mailService, Request $request)
+    #[Route('/admin/user/add', name: 'user_add', methods: ['GET', 'POST'])]
+    public function add(Request $request, MailService $mailService, ObjectMapperInterface $mapper, UserRepository $repo, ValidatorInterface $validator): Response
     {
-        $user = $userService->initUser();
+        $user = new User();
         $form = $this->createForm(UserAddType::class, $user);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            /** @var User $user */
-            $user = $form->getData();
-
-            $userService->checkNewUser($user);
-            $userService->saveUser($user);
-
-            $assign = ['user' => $user, 'token' => null];
-
-            if ($user instanceof UserTokenInterface) {
-                $assign['token'] = [
-                    'hash' => $user->getToken(),
-                    'date' => $user->getTokenValidUntil(),
-                ];
-
-                try {
-                    $mailService->activateNewUser($user);
-                } catch (MailException $e) {
-                    $assign['warning'] = $e->getMessage();
-                }
+            $count = $repo->getUserCountForEmail($user->getEmail());
+            if ($count > 0) {
+                throw new UserInvalidException('user.email-found');
             }
 
-            return $this->render('user/added.html.twig', $assign);
+            $user->generateToken(12);
+            $errors = $validator->validate($user);
+            if (count($errors) > 0) {
+                throw new UserInvalidException('exception.user.invalid');
+            }
+
+            $repo->create($user);
+
+            try {
+                $userDto = $mapper->map($user, UserDto::class);
+                $mailService->welcomeNewUser($userDto);
+                $warning = null;
+            } catch (MailException $e) {
+                $warning = $e->getMessage();
+            }
+
+            return $this->render('user/added.html.twig', [
+                'warning' => $warning,
+                'user' => $user,
+                'token' => [
+                    'hash' => $user->getToken(),
+                    'date' => $user->getTokenValidUntil(),
+                ]
+            ]);
         }
 
         return $this->render('user/form.html.twig', [
-            'id'   => null,
+            'id' => null,
             'form' => $form->createView(),
         ]);
     }
 
-    /**
-     * @Route("/admin/user/{id}/edit", name="user_edit")
-     *
-     * @param  integer                $id
-     * @param  UserService            $userService
-     * @param  WalkService            $walkService
-     * @param  EntityManagerInterface $entityManager
-     * @param  Request                $request
-     * @return Response|RedirectResponse
-     * @throws NotFoundHttpException
-     * @throws UserInvalidException
-     */
-    public function edit($id, UserService $userService, WalkService $walkService, EntityManagerInterface $entityManager, Request $request)
+    #[Route('/admin/user/{id}/edit', name: 'user_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    public function edit(int $id, Request $request, UserRepository $repo, WalkService $walkService): RedirectResponse|Response
     {
-        $repo = $entityManager->getRepository(User::class);
         $user = $repo->find($id);
         if (null === $user) {
             throw $this->createNotFoundException('exception.user.not-found');
@@ -112,10 +88,7 @@ class UserController extends AbstractController
         $form = $this->createForm(UserEditType::class, $user);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            /** @var User $user */
-            $user = $form->getData();
-            $userService->saveUser($user);
-
+            $repo->update($user);
             if (false === $user->isActive()) {
                 $walkService->walkerRemoveFromFutureRounds($user);
             }
@@ -124,103 +97,66 @@ class UserController extends AbstractController
         }
 
         return $this->render('user/form.html.twig', [
-            'id'      => $id,
+            'id' => $id,
             'deleted' => $user->isDeleted(),
-            'form'    => $form->createView(),
+            'form' => $form->createView(),
         ]);
     }
 
-    /**
-     * @Route("/admin/user/{id}/delete", name="user_delete")
-     *
-     * @param  integer                $id
-     * @param  WalkService            $walkService
-     * @param  EntityManagerInterface $entityManager
-     * @return Response|RedirectResponse
-     * @throws NotFoundHttpException
-     */
-    public function delete($id, WalkService $walkService, EntityManagerInterface $entityManager)
+    #[Route('/admin/user/{id}/delete', name: 'user_delete', requirements: ['id' => '\d+'], methods: ['GET', 'POST', 'DELETE'])]
+    public function delete(int $id, UserRepository $repo, WalkService $walkService): RedirectResponse|Response
     {
-        $repo = $entityManager->getRepository(User::class);
-
-        /** @var User $user */
         $user = $repo->find($id);
         if (null === $user) {
             throw $this->createNotFoundException('exception.user.not-found');
         }
 
-        $user->setPermitted(false);
-        $user->setAddress(null);
-        $user->setPhone(null);
-        $user->setMobile(null);
-        $user->setPassword('');
-        $user->setActive(false);
-
+        $user->erasePersonalInformation();
         $walkService->walkerRemoveFromFutureRounds($user);
-
-        $entityManager->remove($user);
-        $entityManager->flush();
+        $repo->delete($user);
 
         return $this->redirectToRoute('user_list');
     }
 
-    /**
-     * @Route("/admin/user/{id}/restore", name="user_restore")
-     *
-     * @param  integer                $id
-     * @param  EntityManagerInterface $entityManager
-     * @return Response|RedirectResponse
-     * @throws NotFoundHttpException
-     */
-    public function restore($id, EntityManagerInterface $entityManager)
+    #[Route('/admin/user/{id}/restore', name: 'user_restore', requirements: ['id' => '\d+'], methods: ['GET', 'POST', 'PUT'])]
+    public function restore(int $id, UserRepository $repo): RedirectResponse|Response
     {
-        $repo = $entityManager->getRepository(User::class);
         $user = $repo->find($id);
         if (null === $user) {
             throw $this->createNotFoundException('exception.user.not-found');
         }
 
-        $user->restore();
-        $entityManager->flush();
+        $repo->restore($user);
 
         return $this->redirectToRoute('user_list');
     }
 
-    /**
-     * @Route("/admin/user/{id}/token", name="user_token")s
-     *
-     * @param  integer                $id
-     * @param  UserService            $userService
-     * @param  MailService            $mailService
-     * @param  EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NotFoundHttpException
-     */
-    public function token($id, UserService $userService, MailService $mailService, EntityManagerInterface $entityManager)
+    #[Route('/admin/user/{id}/token', name: 'user_token', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function token(int $id, MailService $mailService, ObjectMapperInterface $mapper, UserRepository $repo): Response
     {
-        $repo = $entityManager->getRepository(User::class);
         $user = $repo->find($id);
         if (null === $user) {
             throw $this->createNotFoundException('exception.user.not-found');
         }
 
-        $assign = ['user' => $user, 'token' => null];
-        if ($user instanceof UserTokenInterface) {
-            $userService->generateToken($user, 24);
-            $entityManager->flush();
+        $user->generateToken(24);
+        $repo->update($user);
 
-            $assign['token'] = [
+        try {
+            $userDto = $mapper->map($user, UserDto::class);
+            $mailService->welcomeNewUser($userDto);
+            $warning = null;
+        } catch (MailException $e) {
+            $warning = $e->getMessage();
+        }
+
+        return $this->render('user/token.html.twig', [
+            'warning' => $warning,
+            'user' => $user,
+            'token' => [
                 'hash' => $user->getToken(),
                 'date' => $user->getTokenValidUntil(),
-            ];
-
-            try {
-                $mailService->activateNewUser($user);
-            } catch (MailException $e) {
-                $assign['warning'] = $e->getMessage();
-            }
-        }
-
-        return $this->render('user/token.html.twig', $assign);
+            ]
+        ]);
     }
 }

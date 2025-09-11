@@ -1,52 +1,33 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Dto\Formatter\DateTimeFormatter;
+use App\Dto\RoundDto;
+use App\Dto\WalkerDto;
 use App\Entity\Round;
-use App\Model\WalkerDayModel;
-use App\Model\WalkModel;
+use App\Model\WalkerSingleDayModel;
+use App\Repository\RoundRepository;
 use DateTime;
-use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use Symfony\Component\ObjectMapper\ObjectMapperInterface;
 
-/**
- * CalendarService
- */
-class CalendarService
+readonly class CalendarService
 {
-    /**
-     * @var WalkService
-     */
-    private $walkService;
-
-    /**
-     * @var EntityManagerInterface
-     */
-    private $entityManager;
-
-    /**
-     * Constructor
-     *
-     * @param  WalkService            $walkService
-     * @param  EntityManagerInterface $entityManager
-     */
-    public function __construct(WalkService $walkService, EntityManagerInterface $entityManager)
+    public function __construct(
+        private WalkService           $walkService,
+        private ObjectMapperInterface $mapper,
+        private RoundRepository       $roundRepo,
+    )
     {
-        $this->walkService = $walkService;
-        $this->entityManager = $entityManager;
     }
 
     /**
-     * @param  int $year
-     * @param  int $month
-     * @return array
      * @throws Exception
      */
-    public function getMonth(int $year, int $month)
+    public function getMonth(int $year, int $month): array
     {
-        $this->entityManager->getFilters()->enable('soft_delete');
-        $repo = $this->entityManager->getRepository(Round::class);
-        $rounds = $repo->getRoundsForMonth($year, $month);
+        $rounds = $this->roundRepo->getRoundsForMonth($year, $month);
         $dates = $this->getDates($rounds);
 
         $data = [];
@@ -90,9 +71,9 @@ class CalendarService
             }
 
             $data[] = [
-                'date'      => $date,
-                'classname' => 'tod-' . join('-', $parts),
-                'markup'    => $markup,
+                'date' => $date,
+                'classname' => 'tod-' . implode('-', $parts),
+                'markup' => $markup,
             ];
         }
 
@@ -100,47 +81,40 @@ class CalendarService
     }
 
     /**
-     * @param  DateTime $date
-     * @return WalkerDayModel[]
-     * @throws Exception
+     * @return WalkerSingleDayModel[]
      */
-    public function getWalksForDate(DateTime $date)
+    public function getWalksForDateReminders(DateTime $date): array
     {
-        $this->entityManager->getFilters()->enable('soft_delete');
-        $repo = $this->entityManager->getRepository(Round::class);
-        $rounds = $repo->getRoundsForDate($date);
+        $rounds = $this->roundRepo->getRoundsForDate($date);
 
-        $walks = [];
+        $walksForDate = [];
         foreach ($rounds as $round) {
+            $roundDto = $this->mapper->map($round, RoundDto::class);
+
             foreach ($round->getWalkers() as $roundWalker) {
-                if ($roundWalker->wasReminded()) {
+                if ($roundWalker->wasReminded() || null === $roundWalker->getWalker()) {
                     continue;
                 }
 
-                $walker = $roundWalker->getWalker();
-                $walk = new WalkModel(
-                    $roundWalker->getId(),
-                    $round,
-                    $this->walkService->getTimeOfDay($round),
-                    $this->walkService->hasMinimumWalkers($round)
-                );
-
-                $key = sprintf('%s|%s', $walker->getId(), $walk->getDate());
-                if (array_key_exists($key, $walks)) {
-                    $model = $walks[$key];
+                $walkerDto = $this->mapper->map($roundWalker, WalkerDto::class);
+                $key = sprintf('%s|%s', $roundWalker->getWalker()->getId(), $roundDto->date);
+                if (array_key_exists($key, $walksForDate)) {
+                    $walkerSingleDay = $walksForDate[$key];
                 } else {
-                    $model = new WalkerDayModel();
-                    $model->setWalker($walker);
-                    $model->setDate($round->getDate());
+                    $walkerSingleDay = new WalkerSingleDayModel(
+                        walker: $walkerDto,
+                        datetime: $round->getDatetime(),
+                    );
                 }
 
-                $model->addWalk($walk);
+                $walkerSingleDay->addRound($roundDto);
+                $walkerSingleDay->addRoundWalkerId($roundWalker->getId());
 
-                $walks[$key] = $model;
+                $walksForDate[$key] = $walkerSingleDay;
             }
         }
 
-        return array_values($walks);
+        return array_values($walksForDate);
     }
 
     /**
@@ -148,42 +122,42 @@ class CalendarService
      * @return array
      * @throws Exception
      */
-    private function getDates(array $rounds)
+    private function getDates(array $rounds): array
     {
         $dates = [];
         foreach ($rounds as $round) {
-            $date = $round->getDate()->format('Y-m-d');
+            $date = $round->getDatetime()?->format('Y-m-d');
             $tod = $this->walkService->getTimeOfDay($round);
             $min = $this->walkService->hasMinimumWalkers($round);
 
             if (!array_key_exists($date, $dates)) {
                 $item = [
-                    'walking'      => 0,
-                    'walked'       => 0,
-                    'result'       => 0,
-                    'incident'     => 0,
-                    'morning'      => 0,
-                    'morning_ok'   => 0,
-                    'afternoon'    => 0,
+                    'walking' => 0,
+                    'walked' => 0,
+                    'result' => 0,
+                    'incident' => 0,
+                    'morning' => 0,
+                    'morning_ok' => 0,
+                    'afternoon' => 0,
                     'afternoon_ok' => 0,
-                    'evening'      => 0,
-                    'evening_ok'   => 0,
+                    'evening' => 0,
+                    'evening_ok' => 0,
                 ];
             } else {
                 $item = $dates[$date];
             }
 
-            if ($tod === WalkService::TIMEOFDAY_MORNING) {
+            if ($tod === DateTimeFormatter::TIMEOFDAY_MORNING) {
                 $item['morning']++;
                 if ($min) {
                     $item['morning_ok']++;
                 }
-            } elseif ($tod === WalkService::TIMEOFDAY_AFTERNOON) {
+            } elseif ($tod === DateTimeFormatter::TIMEOFDAY_AFTERNOON) {
                 $item['afternoon']++;
                 if ($min) {
                     $item['afternoon_ok']++;
                 }
-            } elseif ($tod === WalkService::TIMEOFDAY_EVENING) {
+            } elseif ($tod === DateTimeFormatter::TIMEOFDAY_EVENING) {
                 $item['evening']++;
                 if ($min) {
                     $item['evening_ok']++;
@@ -194,14 +168,12 @@ class CalendarService
                 $item['walking']++;
             }
 
-            if ($this->walkService->inPast($round)) {
-                if ($this->walkService->wasWalked($round)) {
-                    $item['walked']++;
-                    if ($this->walkService->hasResult($round)) {
-                        $item['result']++;
-                        if ($this->walkService->hasIncident($round)) {
-                            $item['incident']++;
-                        }
+            if ($this->walkService->inPast($round) && $this->walkService->wasWalked($round)) {
+                $item['walked']++;
+                if ($this->walkService->hasResult($round)) {
+                    $item['result']++;
+                    if ($this->walkService->hasIncident($round)) {
+                        $item['incident']++;
                     }
                 }
             }

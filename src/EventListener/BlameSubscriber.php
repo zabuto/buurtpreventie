@@ -1,37 +1,19 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\EventListener;
 
 use Doctrine\Common\EventSubscriber;
-use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
 use Doctrine\ORM\Events;
-use Exception;
-use Symfony\Component\Security\Core\Security;
+use Doctrine\Persistence\Event\LifecycleEventArgs;
+use Symfony\Bundle\SecurityBundle\Security;
 
-/**
- * BlameSubscriber
- */
-class BlameSubscriber implements EventSubscriber
+readonly class BlameSubscriber implements EventSubscriber
 {
-    /**
-     * @var Security
-     */
-    private $security;
-
-    /**
-     * Constructor
-     *
-     * @param  Security $security
-     */
-    public function __construct(Security $security)
+    public function __construct(private Security $security)
     {
-        $this->security = $security;
     }
 
-    /**
-     * @return array|string[]
-     */
-    public function getSubscribedEvents()
+    public function getSubscribedEvents(): array
     {
         return [
             Events::prePersist,
@@ -39,11 +21,7 @@ class BlameSubscriber implements EventSubscriber
         ];
     }
 
-    /**
-     * @param  LifecycleEventArgs $args
-     * @throws Exception
-     */
-    public function prePersist(LifecycleEventArgs $args)
+    public function prePersist(LifecycleEventArgs $args): void
     {
         $entity = $args->getObject();
 
@@ -56,11 +34,7 @@ class BlameSubscriber implements EventSubscriber
         }
     }
 
-    /**
-     * @param  LifecycleEventArgs $args
-     * @throws Exception
-     */
-    public function preUpdate(LifecycleEventArgs $args)
+    public function preUpdate(LifecycleEventArgs $args): void
     {
         $entity = $args->getObject();
 

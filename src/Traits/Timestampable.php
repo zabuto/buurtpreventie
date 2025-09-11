@@ -1,52 +1,30 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Traits;
 
-use DateTime;
+use DateTimeImmutable;
 
-/**
- * Trait Timestampable
- */
 trait Timestampable
 {
-    /**
-     * @var DateTime|null
-     */
-    protected $createdAt;
+    protected ?DateTimeImmutable $createdAt = null;
+    protected ?DateTimeImmutable $updatedAt = null;
 
-    /**
-     * @var DateTime|null
-     */
-    protected $updatedAt;
-
-    /**
-     * @return DateTime|null
-     */
-    public function getCreatedAt(): ?DateTime
+    public function getCreatedAt(): ?DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    /**
-     * @param  DateTime|null $createdAt
-     */
-    public function setCreatedAt(?DateTime $createdAt): void
+    public function setCreatedAt(?DateTimeImmutable $createdAt): void
     {
         $this->createdAt = $createdAt;
     }
 
-    /**
-     * @return DateTime|null
-     */
-    public function getUpdatedAt(): ?DateTime
+    public function getUpdatedAt(): ?DateTimeImmutable
     {
         return $this->updatedAt;
     }
 
-    /**
-     * @param  DateTime|null $updatedAt
-     */
-    public function setUpdatedAt(?DateTime $updatedAt): void
+    public function setUpdatedAt(?DateTimeImmutable $updatedAt): void
     {
         $this->updatedAt = $updatedAt;
     }

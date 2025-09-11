@@ -1,54 +1,51 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Dto\UserDto;
+use App\Entity\User;
 use App\Exception\MailException;
-use App\Exception\TokenInvalidException;
 use App\Exception\UserInvalidException;
 use App\Form\PasswordChangeType;
 use App\Form\PasswordRepeatType;
 use App\Form\PermittedChangeType;
-use App\Interfaces\UserTokenInterface;
+use App\Repository\UserRepository;
 use App\Service\MailService;
-use App\Service\UserService;
-use Doctrine\ORM\EntityManagerInterface;
-use Exception;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use RuntimeException;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\ObjectMapper\ObjectMapperInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
-use Symfony\Component\Translation\TranslatorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
-/**
- * SecurityController
- */
 class SecurityController extends AbstractController
 {
-    /**
-     * @Route("/login", name="login")
-     *
-     * @param  AuthenticationUtils $authenticationUtils
-     * @return Response
-     */
-    public function login(AuthenticationUtils $authenticationUtils)
+    #[Route('/login', name: 'app_login', methods: ['GET', 'POST'])]
+    public function login(AuthenticationUtils $authenticationUtils): Response
     {
         return $this->render('security/login.html.twig', [
             'last_username' => $authenticationUtils->getLastUsername(),
-            'error'         => $authenticationUtils->getLastAuthenticationError(),
+            'error' => $authenticationUtils->getLastAuthenticationError(),
         ]);
     }
 
-    /**
-     * @Route("/account", name="account")
-     * @IsGranted("ROLE_USER")
-     *
-     * @return Response
-     */
-    public function account()
+    #[Route('/logout', name: 'app_logout', methods: ['GET'])]
+    public function logout(): never
     {
+        throw new RuntimeException('You must activate the logout in your security firewall configuration.');
+    }
+
+    #[Route('/account', name: 'account', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
+    public function account(): Response
+    {
+        /** @var User $user */
         $user = $this->getUser();
 
         return $this->render('security/account.html.twig', [
@@ -56,22 +53,17 @@ class SecurityController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/permitted-change", name="permitted_change")
-     * @IsGranted("ROLE_USER")
-     *
-     * @param  Request                $request
-     * @param  EntityManagerInterface $entityManager
-     * @return Response|RedirectResponse
-     */
-    public function permitted(Request $request, EntityManagerInterface $entityManager)
+    #[Route('/permitted-change', name: 'permitted_change', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function permitted(Request $request, UserRepository $repo): RedirectResponse|Response
     {
+        /** @var User $user */
         $user = $this->getUser();
-        $form = $this->createForm(PermittedChangeType::class, $user);
 
+        $form = $this->createForm(PermittedChangeType::class, $user);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
+            $repo->update($user);
 
             return $this->redirectToRoute('account');
         }
@@ -81,32 +73,29 @@ class SecurityController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/password-change", name="password_change")
-     * @IsGranted("ROLE_USER")
-     *
-     * @param  UserService         $userService
-     * @param  TranslatorInterface $translator
-     * @param  Request             $request
-     * @return Response|RedirectResponse
-     */
-    public function password(UserService $userService, TranslatorInterface $translator, Request $request)
+    #[Route('/password-change', name: 'password_change', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function password(Request $request, TranslatorInterface $translator, UserRepository $repo, UserPasswordHasherInterface $passwordHasher): RedirectResponse|Response
     {
+        /** @var User $user */
         $user = $this->getUser();
+
         $form = $this->createForm(PasswordChangeType::class);
 
         try {
             $form->handleRequest($request);
             if ($form->isSubmitted()) {
-                $current = $form->get('current')->getData();
-                if (false === $userService->checkPassword($user, $current)) {
+                $currentPassword = $form->get('current')->getData();
+                if (false === $passwordHasher->isPasswordValid($user, $currentPassword)) {
                     $error = new FormError($translator->trans('security.password-current-invalid'));
                     $form->get('current')->addError($error);
                 }
 
                 if ($form->isValid()) {
-                    $new = $form->get('new')->getData();
-                    $userService->updatePassword($user, $new);
+                    $plaintextNewPassword = $form->get('new')->getData();
+                    $hashedNewPassword = $passwordHasher->hashPassword($user, $plaintextNewPassword);
+                    $user->setPassword($hashedNewPassword);
+                    $repo->update($user);
 
                     return $this->redirectToRoute('account');
                 }
@@ -121,66 +110,59 @@ class SecurityController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/reset-password", name="password_reset")
-     *
-     * @param  UserService $userService
-     * @param  MailService $mailService
-     * @param  Request     $request
-     * @return RedirectResponse|Response
-     * @throws Exception
-     */
-    public function reset(UserService $userService, MailService $mailService, Request $request)
+    #[Route('/reset-password', name: 'password_reset', methods: ['GET', 'POST'])]
+    public function reset(Request $request, MailService $mailService, ObjectMapperInterface $mapper, UserRepository $repo): RedirectResponse|Response
     {
-        $assign = ['email' => null];
+        $email = null;
+        $warning = null;
+
         if ($request->isMethod(Request::METHOD_POST)) {
-            $email = $request->request->get('reset_email');
-            $assign['email'] = $email;
-            $user = $userService->resetPassword($email);
-            if ($user instanceof UserTokenInterface) {
+            $email = (string)$request->request->get('reset_email');
+            $user = $repo->findOneByEmail($email);
+            if (null !== $user) {
+                $user->generateToken();
+                $repo->update($user);
+
                 try {
-                    $mailService->resetTokenUser($user);
+                    $userDto = $mapper->map($user, UserDto::class);
+                    $mailService->resetTokenUser($userDto);
                 } catch (MailException $e) {
+                    $warning = $e->getMessage();
                 }
             }
         }
 
-        return $this->render('security/reset.html.twig', $assign);
+        return $this->render('security/reset.html.twig', ['email' => $email, 'warning' => $warning]);
     }
 
-    /**
-     * @Route("/token/{token}", name="token")
-     *
-     * @param  string              $token
-     * @param  Request             $request
-     * @param  UserService         $userService
-     * @param  TranslatorInterface $translator
-     * @return Response|RedirectResponse
-     */
-    public function token($token, Request $request, UserService $userService, TranslatorInterface $translator)
+    #[Route('/token/{token}', name: 'token', methods: ['GET', 'POST'])]
+    public function token(string $token, Request $request, TranslatorInterface $translator, UserRepository $repo, UserPasswordHasherInterface $passwordHasher): RedirectResponse|Response
     {
-        try {
-            $error = null;
+        $form = null;
+        $error = null;
 
-            $user = $userService->getUserByToken($token);
+        $user = $repo->findOneByToken($token);
+        if (null !== $user && $user->isTokenValid()) {
             $user->setPassword('');
 
             $form = $this->createForm(PasswordRepeatType::class, $user);
             $form->handleRequest($request);
             if ($form->isSubmitted() && $form->isValid()) {
-                $user = $form->getData();
-                $userService->saveTokenUser($user, $user->getPassword());
+                $plaintextPassword = $form->get('password')->getData();
+                $hashedPassword = $passwordHasher->hashPassword($user, $plaintextPassword);
+                $user->setPassword($hashedPassword);
+                $user->resetToken();
+                $repo->update($user);
 
                 return $this->redirectToRoute('login');
             }
-        } catch (TokenInvalidException $e) {
-            $error = $translator->trans($e->getMessage());
-            $form = null;
+        } else {
+            $error = (null === $user) ? $translator->trans('exception.token.invalid') : $translator->trans('exception.token.expired');
         }
 
         return $this->render('security/token.html.twig', [
             'token' => $token,
-            'form'  => (null !== $form) ? $form->createView() : null,
+            'form' => (null !== $form) ? $form->createView() : null,
             'error' => $error,
         ]);
     }

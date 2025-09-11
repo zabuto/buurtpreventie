@@ -1,29 +1,27 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\DataFixtures;
 
 use App\Entity\MeetingPoint;
 use App\Geo\ValueObject\Point;
-use Doctrine\Common\Persistence\ObjectManager;
-use Exception;
+use Doctrine\Persistence\ObjectManager;
 
-/**
- * MeetingPointFixtures
- */
 class MeetingPointFixtures extends AbstractDataFixtures
 {
-    /** @var string */
-    public const BUSSTOP_REFERENCE = 'meeting-point-busstop';
+    public const string BUSSTOP_REFERENCE = 'meeting-point-busstop';
+    public const string CORNER_REFERENCE = 'meeting-point-corner';
 
-    /** @var string */
-    public const CORNER_REFERENCE = 'meeting-point-corner';
-
-    /**
-     * @param  ObjectManager $manager
-     * @throws Exception
-     */
-    public function load(ObjectManager $manager)
+    public function getDependencies(): array
     {
+        return [
+            UserFixtures::class,
+        ];
+    }
+
+    public function load(ObjectManager $manager): void
+    {
+        $this->setManager($manager);
+
         $busstop = new MeetingPoint();
         $busstop->setDescription($this->translator->trans('walk.meeting-point.busstop'));
         $busstop->setLocation(Point::latlng('51.422976,5.510360'));

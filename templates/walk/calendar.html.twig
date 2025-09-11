@@ -68,7 +68,7 @@
         let $calEl = $("#round-calendar");
         $(document).ready(function () {
             $calEl.zabuto_calendar({
-                language: 'nl',
+                language: '{{ app_region }}',
                 classname: 'table table-bordered clickable',
                 ajax: dataUrl
             });

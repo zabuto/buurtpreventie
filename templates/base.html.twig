@@ -1,10 +1,11 @@
 <!doctype html>
-<html lang="{{ locale }}">
+<html lang="{{ app_region }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <title>{% trans %}app.title{% endtrans %} {% block title %}{% endblock %}</title>
+    <meta name="version" content="{{ app_version }}">
 
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/apple-touch-icon.png') }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/favicon-32x32.png') }}">

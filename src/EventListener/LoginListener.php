@@ -1,43 +1,24 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\EventListener;
 
-use App\Interfaces\LastLoginInterface;
-use DateTime;
-use Doctrine\ORM\EntityManagerInterface;
-use Exception;
-use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
+use App\Entity\User;
+use App\Repository\UserRepository;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+use Symfony\Component\Security\Http\Event\LoginSuccessEvent;
 
-/**
- * LoginListener
- */
-class LoginListener
+#[AsEventListener(event: LoginSuccessEvent::class, method: 'onLoginSuccess')]
+readonly class LoginListener
 {
-    /**
-     * @var EntityManagerInterface
-     */
-    private $em;
-
-    /**
-     * @param  EntityManagerInterface $em
-     */
-    public function __construct(EntityManagerInterface $em)
+    public function __construct(private UserRepository $repo)
     {
-        $this->em = $em;
     }
 
-    /**
-     * @param  InteractiveLoginEvent $event
-     * @throws Exception
-     */
-    public function onSecurityInteractiveLogin(InteractiveLoginEvent $event)
+    public function onLoginSuccess(LoginSuccessEvent $event): void
     {
-        $user = $event->getAuthenticationToken()->getUser();
-        if ($user instanceof LastLoginInterface) {
-            $user->setLastLogin(new DateTime());
-
-            $this->em->persist($user);
-            $this->em->flush();
+        $user = $event->getUser();
+        if ($user instanceof User) {
+            $this->repo->saveLastLogin($user);
         }
     }
 }

@@ -1,29 +1,19 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Filter;
 
-use Doctrine\ORM\Mapping\ClassMetaData;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Query\Expr;
 use Doctrine\ORM\Query\Filter\SQLFilter;
 
-/**
- * SoftDeleteFilter
- */
 class SoftDeleteFilter extends SQLFilter
 {
-    /**
-     * @param  ClassMetaData $targetEntity
-     * @param  string        $targetTableAlias
-     * @return string
-     */
-    public function addFilterConstraint(ClassMetadata $targetEntity, $targetTableAlias)
+    public function addFilterConstraint(ClassMetadata $targetEntity, string $targetTableAlias): string
     {
         if (false === $targetEntity->hasField('deletedAt')) {
             return '';
         }
 
-        $expr = new Expr();
-
-        return $expr->isNull(sprintf('%s.%s', $targetTableAlias, 'deleted_at'));
+        return (new Expr())->isNull(sprintf('%s.%s', $targetTableAlias, 'deleted_at'));
     }
 }

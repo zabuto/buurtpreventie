@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Controller;
 
@@ -6,78 +6,54 @@ use App\Entity\Round;
 use App\Entity\RoundResult;
 use App\Form\RoundResultType;
 use App\Form\RoundType;
+use App\Repository\RoundRepository;
+use App\Repository\RoundResultRepository;
 use App\Service\WalkService;
 use DateTime;
-use Doctrine\ORM\EntityManagerInterface;
-use Exception;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use DateTimeImmutable;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-/**
- * WalkController
- *
- * @IsGranted("ROLE_USER")
- */
+#[IsGranted('ROLE_USER')]
 class WalkController extends AbstractController
 {
-    /**
-     * @Route("/calendar", name="calendar")
-     *
-     * @param  WalkService $service
-     * @return Response
-     */
-    public function calendar(WalkService $service)
+    #[Route('/calendar', name: 'calendar', methods: ['GET'])]
+    public function calendar(WalkService $service): Response
     {
         return $this->render('walk/calendar.html.twig', [
             'minimum' => $service->getWalkerMinimum(),
         ]);
     }
 
-    /**
-     * @Route("/calendar/day/{value}", name="calendar_day")
-     *
-     * @param  string                 $value
-     * @param  WalkService            $service
-     * @param  EntityManagerInterface $entityManager
-     * @return Response
-     * @throws Exception
-     */
-    public function calendarDay($value, WalkService $service, EntityManagerInterface $entityManager)
+    #[Route('/calendar/day/{value}', name: 'calendar_day', methods: ['GET'])]
+    public function calendarDay(string $value, RoundRepository $repo, WalkService $service): Response
     {
         $now = new DateTime();
-        $date = new DateTime($value);
-
-        $entityManager->getFilters()->enable('soft_delete');
-        $repo = $entityManager->getRepository(Round::class);
+        $date = DateTimeImmutable::createFromFormat('!Y-m-d', $value);
         $list = $repo->getRoundsForDate($date);
 
         $round = new Round();
-        $round->setDate($date);
+        $round->setDatetime($date);
 
         $form = $this->createForm(RoundType::class, $round, ['action' => $this->generateUrl('calendar_new_round')]);
 
         return $this->render('walk/calendar-day.html.twig', [
-            'service'   => $service,
-            'date'      => $date,
-            'list'      => $list,
+            'service' => $service,
+            'date' => $date,
+            'list' => $list,
             'allow_new' => ($date->format('Ymd') >= $now->format('Ymd')),
-            'form'      => $form->createView(),
+            'form' => $form->createView(),
         ]);
     }
 
-    /**
-     * @Route("/calendar/new-round", name="calendar_new_round")
-     * @IsGranted("ROLE_WALK")
-     *
-     * @param  Request     $request
-     * @param  WalkService $service
-     * @return JsonResponse
-     */
-    public function newRound(Request $request, WalkService $service)
+    #[Route('/calendar/new-round', name: 'calendar_new_round', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_WALK')]
+    public function newRound(Request $request, WalkService $service): JsonResponse
     {
         $round = new Round();
         $form = $this->createForm(RoundType::class, $round);
@@ -86,43 +62,28 @@ class WalkController extends AbstractController
             if ($form->isValid()) {
                 $added = $service->addRound($round, $form->get('memo')->getData());
 
-                return new JsonResponse($added->getId(), Response::HTTP_CREATED);
-            } else {
-                return new JsonResponse(null, Response::HTTP_BAD_REQUEST);
+                return new JsonResponse($added?->getId(), Response::HTTP_CREATED);
             }
+
+            return new JsonResponse(null, Response::HTTP_BAD_REQUEST);
         }
 
         return new JsonResponse(null, Response::HTTP_NOT_MODIFIED);
     }
 
-    /**
-     * @Route("/walked", name="walked_list")
-     * @IsGranted("ROLE_WALK")
-     *
-     * @param  WalkService $service
-     * @return Response
-     * @throws Exception
-     */
-    public function walked(WalkService $service)
+    #[Route('/walked', name: 'walked_list', methods: ['GET'])]
+    #[IsGranted('ROLE_WALK')]
+    public function walked(WalkService $service): Response
     {
         return $this->render('walk/walked.html.twig', [
             'service' => $service,
-            'list'    => $service->getWalked(),
+            'list' => $service->getWalked(),
         ]);
     }
 
-    /**
-     * @Route("/walk/{id}", name="walk_detail", requirements={"id"="\d+"})
-     *
-     * @param  integer                $id
-     * @param  WalkService            $service
-     * @param  EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NotFoundHttpException
-     */
-    public function detail($id, WalkService $service, EntityManagerInterface $entityManager)
+    #[Route('/walk/{id}', name: 'walk_detail', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function detail(int $id, WalkService $service, RoundRepository $repo): Response
     {
-        $repo = $entityManager->getRepository(Round::class);
         $round = $repo->find($id);
         if (null === $round) {
             throw $this->createNotFoundException('exception.round.not-found');
@@ -130,24 +91,14 @@ class WalkController extends AbstractController
 
         return $this->render('walk/detail.html.twig', [
             'service' => $service,
-            'round'   => $round,
+            'round' => $round,
         ]);
     }
 
-    /**
-     * @Route("/walked/{id}/result", name="walked_result", requirements={"id"="\d+"})
-     * @IsGranted("ROLE_WALK")
-     *
-     * @param  integer                $id
-     * @param  EntityManagerInterface $entityManager
-     * @param  Request                $request
-     * @return Response
-     * @throws NotFoundHttpException
-     */
-    public function result($id, EntityManagerInterface $entityManager, Request $request)
+    #[Route('/walked/{id}/result', name: 'walked_result', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    public function result(int $id, Request $request, RoundRepository $roundRepo, RoundResultRepository $repo): RedirectResponse|Response
     {
-        $repo = $entityManager->getRepository(Round::class);
-        $round = $repo->find($id);
+        $round = $roundRepo->find($id);
         if (null === $round) {
             throw $this->createNotFoundException('exception.round.not-found');
         }
@@ -158,14 +109,13 @@ class WalkController extends AbstractController
         $form = $this->createForm(RoundResultType::class, $result);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->persist($result);
-            $entityManager->flush();
+            $repo->create($result);
 
             return $this->redirectToRoute('walk_detail', ['id' => $id]);
         }
 
         return $this->render('walk/result-form.html.twig', [
-            'id'   => $id,
+            'id' => $id,
             'form' => $form->createView(),
         ]);
     }

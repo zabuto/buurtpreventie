@@ -33,9 +33,9 @@ exception.token.expired: Token expired
 app.title: Neighbourhood watch
 app.description: Neighbourhood watch
 app.security-title: Security
-app.security-text: Doel van actieve buurtpreventie is door middel van preventieve acties de veiligheid en het veiligheidsgevoel van de bewoners te verhogen.
+app.security-text: The aim of active neighborhood prevention is to increase the safety and sense of security of residents through preventive actions.
 app.cooperation-title: Cooperation
-app.cooperation-text: De bewoners en politie zorgen er samen voor dat dieven, inbrekers en vernielers minder gemakkelijk de kans krijgen hun slag te slaan.
+app.cooperation-text: The residents and the police work together to ensure that thieves, burglars and vandalists have less opportunity to strike.
 app.alertness-title: Alertness
 app.alertness-text: Neighbourhood watch has everything to do with keeping your eyes and ears open is your own interest and that of your direct surroundings.
 

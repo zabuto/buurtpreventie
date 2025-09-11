@@ -6,7 +6,7 @@
     <h1>{% trans %}walk.results{% endtrans %}</h1>
     <p>
         {% trans %}walk.result-explanation{% endtrans %}
-        {% transchoice list|length %}walk.result-count{% endtranschoice %}
+        {{ 'walk.result-count'|trans({'count': list|length}) }}
     </p>
 
     {% if list|length > 0 %}
@@ -36,7 +36,7 @@
                 <tbody>
                 {% for result in list %}
                     <tr data-result="{{ result.result.id }}" {% if result.isDeleted %}class="table-muted"{% endif %}>
-                        <td>{{ result.round.datetime|localizeddate('none', 'none', null, null, 'eeeeee d MMM Y') }}</td>
+                        <td>{{ result.round.datetime|format_datetime('full', 'none', locale: app_region) }}</td>
                         <td>{{ result.round.datetime|date('H:i') }}</td>
                         <td>
                             {% if result.result.incident %}

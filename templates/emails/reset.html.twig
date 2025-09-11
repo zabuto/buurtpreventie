@@ -1,0 +1,15 @@
+<p>
+    Beste {{ user_name }},
+    <br><br>
+    Je kunt je wachtwoord instellen via de onderstaande link:
+    <br>
+    <a href="{{ token_url }}">{{ token_url }}</a>
+    {% if token_valid is not null %}
+        <br><br>
+        Let op: de link is geldig tot {{ token_valid }}.
+    {% endif %}
+    <br><br><br>
+    {{ app_name }}
+    <br>
+    <em>* Deze email is automatisch verzonden *</em>
+</p>

@@ -1,31 +1,27 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\DataFixtures;
 
 use App\Entity\Result;
-use Doctrine\Common\Persistence\ObjectManager;
-use Exception;
+use Doctrine\Persistence\ObjectManager;
 
-/**
- * ResultFixtures
- */
 class ResultFixtures extends AbstractDataFixtures
 {
-    /** @var string */
-    public const NO_REMARKS_REFERENCE = 'result-no-remarks';
+    public const string NO_REMARKS_REFERENCE = 'result-no-remarks';
+    public const string REMARKS_REFERENCE = 'result-remarks';
+    public const string INCIDENT_REFERENCE = 'result-incident';
 
-    /** @var string */
-    public const REMARKS_REFERENCE = 'result-remarks';
-
-    /** @var string */
-    public const INCIDENT_REFERENCE = 'result-incident';
-
-    /**
-     * @param  ObjectManager $manager
-     * @throws Exception
-     */
-    public function load(ObjectManager $manager)
+    public function getDependencies(): array
     {
+        return [
+            UserFixtures::class,
+        ];
+    }
+
+    public function load(ObjectManager $manager): void
+    {
+        $this->setManager($manager);
+
         $noremarks = new Result();
         $noremarks->setDescription($this->translator->trans('walk.result.no-remarks'));
         $noremarks->setRemarks(false);
@@ -39,7 +35,6 @@ class ResultFixtures extends AbstractDataFixtures
         $this->addFixture($remarks, self::REMARKS_REFERENCE);
 
         $incident = new Result();
-        $incident->setDescription('Incident melding');
         $incident->setDescription($this->translator->trans('walk.result.incident'));
         $incident->setRemarks(true);
         $incident->setIncident(true);

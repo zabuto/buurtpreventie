@@ -1,54 +1,44 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Entity;
 
 use App\Traits\Blameable;
 use App\Traits\SoftDeletable;
 use App\Traits\Timestampable;
-use DateTime;
+use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\ObjectMapper\Attribute\Map;
+use Symfony\Component\Serializer\Attribute\Ignore;
 
-/**
- * @ORM\MappedSuperclass
- */
+#[ORM\MappedSuperclass]
 abstract class AbstractBaseEntity
 {
     use Blameable, SoftDeletable, Timestampable;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\User")
-     * @var UserInterface|null
-     */
-    protected $createdBy;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[Ignore]
+    #[Map(if: false)]
+    protected ?User $createdBy = null;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     * @var DateTime|null
-     */
-    protected $createdAt;
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    #[Map(if: false)]
+    protected ?DateTimeImmutable $createdAt = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\User")
-     * @var UserInterface|null
-     */
-    protected $updatedBy;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[Ignore]
+    #[Map(if: false)]
+    protected ?User $updatedBy = null;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     * @var DateTime|null
-     */
-    protected $updatedAt;
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    #[Map(if: false)]
+    protected ?DateTimeImmutable $updatedAt = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\User")
-     * @var UserInterface|null
-     */
-    protected $deletedBy;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[Ignore]
+    #[Map(if: false)]
+    protected ?User $deletedBy = null;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     * @var DateTime|null
-     */
-    protected $deletedAt;
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    #[Map(if: false)]
+    protected ?DateTimeImmutable $deletedAt = null;
 }

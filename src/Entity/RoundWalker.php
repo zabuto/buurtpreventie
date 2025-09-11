@@ -1,113 +1,80 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Entity;
 
-use App\Interfaces\RoundWalkerInterface;
+use App\Dto\Formatter\UserFormatter;
+use App\Dto\WalkerDto;
+use App\Repository\RoundWalkerRepository;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\ObjectMapper\Attribute\Map;
 use Symfony\Component\Validator\Constraints as Assert;
 
-/**
- * @ORM\Table()
- * @ORM\Entity(repositoryClass="App\Repository\RoundWalkerRepository")
- */
-class RoundWalker extends AbstractBaseEntity implements RoundWalkerInterface
+#[ORM\Table]
+#[ORM\Entity(repositoryClass: RoundWalkerRepository::class)]
+#[Map(target: WalkerDto::class)]
+class RoundWalker extends AbstractBaseEntity
 {
-    /**
-     * @ORM\Column(type="integer")
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="AUTO")
-     * @var int|null
-     */
-    private $id;
+    #[ORM\Id]
+    #[ORM\Column(type: 'integer')]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[Map(if: false)]
+    private ?int $id = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Round", inversedBy="walkers")
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
-     * @Assert\NotNull()
-     * @var Round|null
-     */
-    private $round;
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: Round::class, inversedBy: 'walkers')]
+    #[Assert\NotNull]
+    #[Map(if: false)]
+    private ?Round $round;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\User")
-     * @ORM\JoinColumn(nullable=false)
-     * @Assert\NotNull()
-     * @var User|null
-     */
-    private $walker;
+    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[Assert\NotNull]
+    #[Map(target: 'name', transform: [UserFormatter::class, 'name'])]
+    #[Map(target: 'email', transform: [UserFormatter::class, 'email'])]
+    private ?User $walker;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     * @var DateTime|null
-     */
-    private $reminded;
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[Map(if: false)]
+    private ?DateTime $reminded;
 
-    /**
-     * @return int|null
-     */
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    /**
-     * @return Round|null
-     */
     public function getRound(): ?Round
     {
         return $this->round;
     }
 
-    /**
-     * @param  Round|null $round
-     */
-    public function setRound($round): void
+    public function setRound(?Round $round): void
     {
         $this->round = $round;
     }
 
-    /**
-     * @return User|null
-     */
     public function getWalker(): ?User
     {
         return $this->walker;
     }
 
-    /**
-     * @param  User|null $walker
-     */
-    public function setWalker($walker): void
+    public function setWalker(?User $walker): void
     {
         $this->walker = $walker;
     }
 
-    /**
-     * @return DateTime|null
-     */
     public function getReminded(): ?DateTime
     {
         return $this->reminded;
     }
 
-    /**
-     * @param  DateTime|null $reminded
-     */
     public function setReminded(?DateTime $reminded): void
     {
         $this->reminded = $reminded;
     }
 
-    /**
-     * @return bool
-     */
-    public function wasReminded()
+    public function wasReminded(): bool
     {
-        if (null !== $this->reminded) {
-            return true;
-        }
-
-        return false;
+        return null !== $this->reminded;
     }
 }

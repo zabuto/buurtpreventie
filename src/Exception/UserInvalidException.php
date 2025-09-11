@@ -1,13 +1,9 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Exception;
 
-use Exception;
+use LogicException;
 
-/**
- * UserInvalidException
- */
-class UserInvalidException extends Exception
+class UserInvalidException extends LogicException
 {
-
 }

@@ -1,30 +1,20 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Traits;
 
-use DateTime;
+use DateTimeImmutable;
 
-/**
- * Trait SoftDeletable
- */
 trait SoftDeletable
 {
-    /**
-     * @var DateTime|null
-     */
-    protected $deletedAt;
-
-    /**
-     * @var bool
-     */
-    protected $hardDelete = false;
+    protected ?DateTimeImmutable $deletedAt = null;
+    protected bool $hardDelete = false;
 
     /**
      * Marks entity as deleted
      */
     public function delete(): void
     {
-        $this->deletedAt = new DateTime();
+        $this->deletedAt = new DateTimeImmutable();
     }
 
     /**
@@ -35,45 +25,26 @@ trait SoftDeletable
         $this->deletedAt = null;
     }
 
-    /**
-     * @return DateTime|null
-     */
-    public function getDeletedAt(): ?DateTime
+    public function getDeletedAt(): ?DateTimeImmutable
     {
         return $this->deletedAt;
     }
 
-    /**
-     * @param  DateTime|null $deletedAt
-     */
-    public function setDeletedAt(?DateTime $deletedAt): void
+    public function setDeletedAt(?DateTimeImmutable $deletedAt): void
     {
         $this->deletedAt = $deletedAt;
     }
 
-    /**
-     * @return bool
-     */
     public function isDeleted(): bool
     {
-        if (null !== $this->deletedAt) {
-            return true;
-        }
-
-        return false;
+        return null !== $this->deletedAt;
     }
 
-    /**
-     * @return bool
-     */
     public function isHardDelete(): bool
     {
         return $this->hardDelete;
     }
 
-    /**
-     * Do hard delete
-     */
     public function doHardDelete(): void
     {
         $this->hardDelete = true;

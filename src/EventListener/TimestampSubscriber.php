@@ -1,22 +1,15 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\EventListener;
 
-use DateTime;
+use DateTimeImmutable;
 use Doctrine\Common\EventSubscriber;
-use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
 use Doctrine\ORM\Events;
-use Exception;
+use Doctrine\Persistence\Event\LifecycleEventArgs;
 
-/**
- * TimestampSubscriber
- */
 class TimestampSubscriber implements EventSubscriber
 {
-    /**
-     * @return array|string[]
-     */
-    public function getSubscribedEvents()
+    public function getSubscribedEvents(): array
     {
         return [
             Events::prePersist,
@@ -24,11 +17,7 @@ class TimestampSubscriber implements EventSubscriber
         ];
     }
 
-    /**
-     * @param  LifecycleEventArgs $args
-     * @throws Exception
-     */
-    public function prePersist(LifecycleEventArgs $args)
+    public function prePersist(LifecycleEventArgs $args): void
     {
         $entity = $args->getObject();
 
@@ -37,15 +26,11 @@ class TimestampSubscriber implements EventSubscriber
         }
 
         if (null === $entity->getCreatedAt()) {
-            $entity->setCreatedAt(new DateTime());
+            $entity->setCreatedAt(new DateTimeImmutable());
         }
     }
 
-    /**
-     * @param  LifecycleEventArgs $args
-     * @throws Exception
-     */
-    public function preUpdate(LifecycleEventArgs $args)
+    public function preUpdate(LifecycleEventArgs $args): void
     {
         $entity = $args->getObject();
 
@@ -53,6 +38,6 @@ class TimestampSubscriber implements EventSubscriber
             return;
         }
 
-        $entity->setUpdatedAt(new DateTime());
+        $entity->setUpdatedAt(new DateTimeImmutable());
     }
 }

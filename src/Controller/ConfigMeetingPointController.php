@@ -1,33 +1,23 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Controller;
 
 use App\Entity\MeetingPoint;
 use App\Form\MeetingPointType;
-use Doctrine\ORM\EntityManagerInterface;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use App\Repository\MeetingPointRepository;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-/**
- * ConfigMeetingPointController
- *
- * @IsGranted("ROLE_ADMIN")
- */
+#[IsGranted('ROLE_ADMIN')]
 class ConfigMeetingPointController extends AbstractController
 {
-    /**
-     * @Route("/admin/meeting-point", name="config_meetingpoint_list")
-     *
-     * @param  EntityManagerInterface $entityManager
-     * @return Response
-     */
-    public function list(EntityManagerInterface $entityManager)
+    #[Route('/admin/meeting-point', name: 'config_meetingpoint_list', methods: ['GET'])]
+    public function list(MeetingPointRepository $repo): Response
     {
-        $repo = $entityManager->getRepository(MeetingPoint::class);
         $list = $repo->findBy([], ['description' => 'ASC']);
 
         return $this->render('config/meetingpoint_list.html.twig', [
@@ -35,44 +25,28 @@ class ConfigMeetingPointController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/admin/meeting-point/add", name="config_meetingpoint_add")
-     *
-     * @param  EntityManagerInterface $entityManager
-     * @param  Request                $request
-     * @return Response|RedirectResponse
-     */
-    public function add(EntityManagerInterface $entityManager, Request $request)
+    #[Route('/admin/meeting-point/add', name: 'config_meetingpoint_add', methods: ['GET', 'POST'])]
+    public function add(Request $request, MeetingPointRepository $repo): RedirectResponse|Response
     {
-        $form = $this->createForm(MeetingPointType::class);
+        $meetingpoint = new MeetingPoint();
+        $form = $this->createForm(MeetingPointType::class, $meetingpoint);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $meetingpoint = $form->getData();
-            $entityManager->persist($meetingpoint);
-            $entityManager->flush();
+            $repo->create($meetingpoint);
 
             return $this->redirectToRoute('config_meetingpoint_list');
         }
 
         return $this->render('config/meetingpoint_form.html.twig', [
-            'id'    => null,
+            'id' => null,
             'point' => null,
-            'form'  => $form->createView(),
+            'form' => $form->createView(),
         ]);
     }
 
-    /**
-     * @Route("/admin/meeting-point/{id}/edit", name="config_meetingpoint_edit")
-     *
-     * @param  integer                $id
-     * @param  EntityManagerInterface $entityManager
-     * @param  Request                $request
-     * @return Response|RedirectResponse
-     * @throws NotFoundHttpException
-     */
-    public function edit($id, EntityManagerInterface $entityManager, Request $request)
+    #[Route('/admin/meeting-point/{id}/edit', name: 'config_meetingpoint_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    public function edit(int $id, Request $request, MeetingPointRepository $repo): RedirectResponse|Response
     {
-        $repo = $entityManager->getRepository(MeetingPoint::class);
         $meetingpoint = $repo->find($id);
         if (null === $meetingpoint) {
             throw $this->createNotFoundException('exception.meetingpoint.not-found');
@@ -81,58 +55,41 @@ class ConfigMeetingPointController extends AbstractController
         $form = $this->createForm(MeetingPointType::class, $meetingpoint);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
+            $repo->update($meetingpoint);
 
             return $this->redirectToRoute('config_meetingpoint_list');
         }
 
         return $this->render('config/meetingpoint_form.html.twig', [
-            'id'      => $id,
-            'point'   => $meetingpoint->getLocation(),
+            'id' => $id,
+            'point' => $meetingpoint->getLocation(),
             'deleted' => $meetingpoint->isDeleted(),
-            'form'    => $form->createView(),
+            'form' => $form->createView(),
         ]);
     }
 
-    /**
-     * @Route("/admin/meeting-point/{id}/delete", name="config_meetingpoint_delete")
-     *
-     * @param  integer                $id
-     * @param  EntityManagerInterface $entityManager
-     * @return Response|RedirectResponse
-     */
-    public function delete($id, EntityManagerInterface $entityManager)
+    #[Route('/admin/meeting-point/{id}/delete', name: 'config_meetingpoint_delete', requirements: ['id' => '\d+'], methods: ['GET', 'POST', 'DELETE'])]
+    public function delete(int $id, MeetingPointRepository $repo): RedirectResponse|Response
     {
-        $repo = $entityManager->getRepository(MeetingPoint::class);
         $meetingpoint = $repo->find($id);
         if (null === $meetingpoint) {
             throw $this->createNotFoundException('exception.meetingpoint.not-found');
         }
 
-        $entityManager->remove($meetingpoint);
-        $entityManager->flush();
+        $repo->delete($meetingpoint);
 
         return $this->redirectToRoute('config_meetingpoint_list');
     }
 
-    /**
-     * @Route("/admin/meeting-point/{id}/restore", name="config_meetingpoint_restore")
-     *
-     * @param  integer                $id
-     * @param  EntityManagerInterface $entityManager
-     * @return Response|RedirectResponse
-     * @throws NotFoundHttpException
-     */
-    public function restore($id, EntityManagerInterface $entityManager)
+    #[Route('/admin/meeting-point/{id}/restore', name: 'config_meetingpoint_restore', requirements: ['id' => '\d+'], methods: ['GET', 'POST', 'PUT'])]
+    public function restore(int $id, MeetingPointRepository $repo): RedirectResponse|Response
     {
-        $repo = $entityManager->getRepository(MeetingPoint::class);
         $meetingpoint = $repo->find($id);
         if (null === $meetingpoint) {
             throw $this->createNotFoundException('exception.meetingpoint.not-found');
         }
 
-        $meetingpoint->restore();
-        $entityManager->flush();
+        $repo->restore($meetingpoint);
 
         return $this->redirectToRoute('config_meetingpoint_list');
     }

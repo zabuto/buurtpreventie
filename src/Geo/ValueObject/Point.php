@@ -1,77 +1,41 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Geo\ValueObject;
 
-/**
- * Point
- */
-class Point
+final class Point
 {
-    /**
-     * @var float
-     */
-    private $latitude;
+    private float $latitude;
+    private float $longitude;
 
-    /**
-     * @var float
-     */
-    private $longitude;
-
-    /**
-     * Point
-     *
-     * @param  string $latlng
-     * @return Point
-     */
-    public static function latlng($latlng)
+    public static function latlng(string $latlng): Point
     {
         $list = explode(',', $latlng);
 
-        return new static($list[0], $list[1]);
+        return new static((float)$list[0], (float)$list[1]);
     }
 
-    /**
-     * Constructor
-     *
-     * @param  float $latitude
-     * @param  float $longitude
-     */
-    public function __construct($latitude, $longitude)
+    public function __construct(float $latitude, float $longitude)
     {
         $this->latitude = $latitude;
         $this->longitude = $longitude;
     }
 
-    /**
-     * @return string
-     */
-    public function getLatLng()
+    public function getLatLng(): string
     {
         return $this->latitude . ',' . $this->longitude;
     }
 
-    /**
-     * @return float
-     */
-    public function getLatitude()
+    public function getLatitude(): float
     {
         return $this->latitude;
     }
 
-    /**
-     * @return float
-     */
-    public function getLongitude()
+    public function getLongitude(): float
     {
         return $this->longitude;
     }
 
-    /**
-     * Magic method toString
-     *
-     * @return string
-     */
-    public function __toString()
+    public function __toString(): string
     {
         return sprintf('POINT(%f %f)', $this->longitude, $this->latitude);
     }

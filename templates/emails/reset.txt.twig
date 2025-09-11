@@ -1,0 +1,12 @@
+Beste {{ user_name }},
+
+Je kunt je wachtwoord instellen via de onderstaande link:
+{{ token_url }}
+
+{% if token_valid is not null %}
+Let op: de link is geldig tot {{ token_valid }}.
+{% endif %}
+
+
+{{ app_name }}
+* Deze email is automatisch verzonden *

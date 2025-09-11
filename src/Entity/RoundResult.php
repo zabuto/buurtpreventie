@@ -1,99 +1,64 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Entity;
 
-use App\Interfaces\RoundResultInterface;
+use App\Repository\RoundResultRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
-/**
- * @ORM\Table()
- * @ORM\Entity(repositoryClass="App\Repository\RoundResultRepository")
- */
-class RoundResult extends AbstractBaseEntity implements RoundResultInterface
+#[ORM\Table]
+#[ORM\Entity(repositoryClass: RoundResultRepository::class)]
+class RoundResult extends AbstractBaseEntity
 {
-    /**
-     * @ORM\Column(type="integer")
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="AUTO")
-     * @var int|null
-     */
-    private $id;
+    #[ORM\Id]
+    #[ORM\Column(type: 'integer')]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    private ?int $id = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Round", inversedBy="results")
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
-     * @Assert\NotNull()
-     * @var Round|null
-     */
-    private $round;
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: Round::class, inversedBy: 'results')]
+    #[Assert\NotNull]
+    private ?Round $round;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Result")
-     * @ORM\JoinColumn(nullable=false)
-     * @Assert\NotNull()
-     * @var Result|null
-     */
-    private $result;
+    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\ManyToOne(targetEntity: Result::class)]
+    #[Assert\NotNull]
+    private ?Result $result;
 
-    /**
-     * @ORM\Column(type="text", nullable=true)
-     * @var string|null
-     */
-    private $memo;
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $memo;
 
-    /**
-     * @return int|null
-     */
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    /**
-     * @return Round|null
-     */
     public function getRound(): ?Round
     {
         return $this->round;
     }
 
-    /**
-     * @param  Round|null $round
-     */
-    public function setRound($round): void
+    public function setRound(?Round $round): void
     {
         $this->round = $round;
     }
 
-    /**
-     * @return Result|null
-     */
     public function getResult(): ?Result
     {
         return $this->result;
     }
 
-    /**
-     * @param  Result|null $result
-     */
-    public function setResult($result): void
+    public function setResult(?Result $result): void
     {
         $this->result = $result;
     }
 
-    /**
-     * @return string|null
-     */
     public function getMemo(): ?string
     {
         return $this->memo;
     }
 
-    /**
-     * @param  string|null $memo
-     */
-    public function setMemo($memo): void
+    public function setMemo(?string $memo): void
     {
         $this->memo = $memo;
     }

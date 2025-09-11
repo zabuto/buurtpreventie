@@ -1,33 +1,23 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Controller;
 
 use App\Entity\Result;
 use App\Form\ResultType;
-use Doctrine\ORM\EntityManagerInterface;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use App\Repository\ResultRepository;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-/**
- * ConfigResultController
- *
- * @IsGranted("ROLE_ADMIN")
- */
+#[IsGranted('ROLE_ADMIN')]
 class ConfigResultController extends AbstractController
 {
-    /**
-     * @Route("/admin/result", name="config_result_list")
-     *
-     * @param  EntityManagerInterface $entityManager
-     * @return Response
-     */
-    public function list(EntityManagerInterface $entityManager)
+    #[Route('/admin/result', name: 'config_result_list', methods: ['GET'])]
+    public function list(ResultRepository $repo): Response
     {
-        $repo = $entityManager->getRepository(Result::class);
         $list = $repo->findBy([], ['description' => 'ASC']);
 
         return $this->render('config/result_list.html.twig', [
@@ -35,43 +25,27 @@ class ConfigResultController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/admin/result/add", name="config_result_add")
-     *
-     * @param  EntityManagerInterface $entityManager
-     * @param  Request                $request
-     * @return Response|RedirectResponse
-     */
-    public function add(EntityManagerInterface $entityManager, Request $request)
+    #[Route('/admin/result/add', name: 'config_result_add', methods: ['GET', 'POST'])]
+    public function add(Request $request, ResultRepository $repo): RedirectResponse|Response
     {
-        $form = $this->createForm(ResultType::class);
+        $result = new Result();
+        $form = $this->createForm(ResultType::class, $result);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $result = $form->getData();
-            $entityManager->persist($result);
-            $entityManager->flush();
+            $repo->create($result);
 
             return $this->redirectToRoute('config_result_list');
         }
 
         return $this->render('config/result_form.html.twig', [
-            'id'   => null,
+            'id' => null,
             'form' => $form->createView(),
         ]);
     }
 
-    /**
-     * @Route("/admin/result/{id}/edit", name="config_result_edit")
-     *
-     * @param  integer                $id
-     * @param  EntityManagerInterface $entityManager
-     * @param  Request                $request
-     * @return Response|RedirectResponse
-     * @throws NotFoundHttpException
-     */
-    public function edit($id, EntityManagerInterface $entityManager, Request $request)
+    #[Route('/admin/result/{id}/edit', name: 'config_result_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    public function edit(int $id, Request $request, ResultRepository $repo): RedirectResponse|Response
     {
-        $repo = $entityManager->getRepository(Result::class);
         $result = $repo->find($id);
         if (null === $result) {
             throw $this->createNotFoundException('exception.result.not-found');
@@ -80,57 +54,40 @@ class ConfigResultController extends AbstractController
         $form = $this->createForm(ResultType::class, $result);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
+            $repo->update($result);
 
             return $this->redirectToRoute('config_result_list');
         }
 
         return $this->render('config/result_form.html.twig', [
-            'id'      => $id,
+            'id' => $id,
             'deleted' => $result->isDeleted(),
-            'form'    => $form->createView(),
+            'form' => $form->createView(),
         ]);
     }
 
-    /**
-     * @Route("/admin/result/{id}/delete", name="config_result_delete")
-     *
-     * @param  integer                $id
-     * @param  EntityManagerInterface $entityManager
-     * @return Response|RedirectResponse
-     */
-    public function delete($id, EntityManagerInterface $entityManager)
+    #[Route('/admin/result/{id}/delete', name: 'config_result_delete', requirements: ['id' => '\d+'], methods: ['GET', 'POST', 'DELETE'])]
+    public function delete(int $id, ResultRepository $repo): RedirectResponse|Response
     {
-        $repo = $entityManager->getRepository(Result::class);
         $result = $repo->find($id);
         if (null === $result) {
             throw $this->createNotFoundException('exception.result.not-found');
         }
 
-        $entityManager->remove($result);
-        $entityManager->flush();
+        $repo->delete($result);
 
         return $this->redirectToRoute('config_result_list');
     }
 
-    /**
-     * @Route("/admin/result/{id}/restore", name="config_result_restore")
-     *
-     * @param  integer                $id
-     * @param  EntityManagerInterface $entityManager
-     * @return Response|RedirectResponse
-     * @throws NotFoundHttpException
-     */
-    public function restore($id, EntityManagerInterface $entityManager)
+    #[Route('/admin/result/{id}/restore', name: 'config_result_restore', requirements: ['id' => '\d+'], methods: ['GET', 'POST', 'PUT'])]
+    public function restore(int $id, ResultRepository $repo): RedirectResponse|Response
     {
-        $repo = $entityManager->getRepository(Result::class);
         $result = $repo->find($id);
         if (null === $result) {
             throw $this->createNotFoundException('exception.result.not-found');
         }
 
-        $result->restore();
-        $entityManager->flush();
+        $repo->restore($result);
 
         return $this->redirectToRoute('config_result_list');
     }

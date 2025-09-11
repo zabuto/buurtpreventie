@@ -1,73 +1,41 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Traits;
 
-use Symfony\Component\Security\Core\User\UserInterface;
+use App\Entity\User;
 
-/**
- * Trait Blameable
- */
 trait Blameable
 {
-    /**
-     * @var UserInterface|null
-     */
-    protected $createdBy;
+    protected ?User $createdBy = null;
+    protected ?User $updatedBy = null;
+    protected ?User $deletedBy = null;
 
-    /**
-     * @var UserInterface|null
-     */
-    protected $updatedBy;
-
-    /**
-     * @var UserInterface|null
-     */
-    protected $deletedBy;
-
-    /**
-     * @return UserInterface|null
-     */
-    public function getCreatedBy(): ?UserInterface
+    public function getCreatedBy(): ?User
     {
         return $this->createdBy;
     }
 
-    /**
-     * @param  UserInterface|null $createdBy
-     */
-    public function setCreatedBy(?UserInterface $createdBy): void
+    public function setCreatedBy(?User $createdBy): void
     {
         $this->createdBy = $createdBy;
     }
 
-    /**
-     * @return UserInterface|null
-     */
-    public function getUpdatedBy(): ?UserInterface
+    public function getUpdatedBy(): ?User
     {
         return $this->updatedBy;
     }
 
-    /**
-     * @param  UserInterface|null $updatedBy
-     */
-    public function setUpdatedBy(?UserInterface $updatedBy): void
+    public function setUpdatedBy(?User $updatedBy): void
     {
         $this->updatedBy = $updatedBy;
     }
 
-    /**
-     * @return UserInterface|null
-     */
-    public function getDeletedBy(): ?UserInterface
+    public function getDeletedBy(): ?User
     {
         return $this->deletedBy;
     }
 
-    /**
-     * @param  UserInterface|null $deletedBy
-     */
-    public function setDeletedBy(?UserInterface $deletedBy): void
+    public function setDeletedBy(?User $deletedBy): void
     {
         $this->deletedBy = $deletedBy;
     }

@@ -1,114 +1,75 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Entity;
 
-use App\Interfaces\ResultInterface;
+use App\Repository\ResultRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
-/**
- * @ORM\Table()
- * @ORM\Entity(repositoryClass="App\Repository\ResultRepository")
- */
-class Result extends AbstractBaseEntity implements ResultInterface
+#[ORM\Table]
+#[ORM\Entity(repositoryClass: ResultRepository::class)]
+#[UniqueEntity(fields: ['description'], message: 'lookup.description-already-in-use')]
+class Result extends AbstractBaseEntity implements Stringable
 {
-    /**
-     * @ORM\Column(type="integer")
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="AUTO")
-     * @var int|null
-     */
-    private $id;
+    #[ORM\Id]
+    #[ORM\Column(type: 'integer')]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    private ?int $id = null;
 
-    /**
-     * @ORM\Column(type="string", length=50, unique=true)
-     * @Assert\NotBlank()
-     * @var string
-     */
-    private $description;
+    #[ORM\Column(type: 'string', length: 50, unique: true)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 50)]
+    private string $description = '';
 
-    /**
-     * @ORM\Column(type="boolean")
-     * @Assert\Type("bool")
-     * @var bool
-     */
-    private $remarks = false;
+    #[ORM\Column(type: 'boolean', options: ['default' => 0])]
+    private bool $remarks = false;
 
-    /**
-     * @ORM\Column(type="boolean")
-     * @Assert\Type("bool")
-     * @var bool
-     */
-    private $incident = false;
+    #[ORM\Column(type: 'boolean', options: ['default' => 0])]
+    private bool $incident = false;
 
-    /**
-     * @return int|null
-     */
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    /**
-     * @return string
-     */
-    public function getDescription(): ?string
+    public function getDescription(): string
     {
         return $this->description;
     }
 
-    /**
-     * @param  string $description
-     */
-    public function setDescription($description): void
+    public function setDescription(?string $description): void
     {
-        $this->description = $description;
+        $this->description = trim((string)$description);
     }
 
-    /**
-     * @return bool
-     */
     public function isRemarks(): bool
     {
         return $this->remarks;
     }
 
-    /**
-     * @param  bool $remarks
-     */
-    public function setRemarks($remarks): void
+    public function setRemarks(bool $remarks): void
     {
         $this->remarks = $remarks;
     }
 
-    /**
-     * @return bool
-     */
     public function isIncident(): bool
     {
         return $this->incident;
     }
 
-    /**
-     * @param  bool $incident
-     */
-    public function setIncident($incident): void
+    public function setIncident(bool $incident): void
     {
         $this->incident = $incident;
     }
 
-    /**
-     * @return boolean
-     */
-    public function allowRemarks()
+    public function allowRemarks(): bool
     {
         return $this->remarks;
     }
 
-    /**
-     * @return string
-     */
-    public function __toString()
+    public function __toString(): string
     {
         return $this->description;
     }

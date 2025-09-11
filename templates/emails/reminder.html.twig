@@ -1,0 +1,47 @@
+<p>Beste {{ walker.name }},</p>
+<p>
+    Je hebt je aangemeld als buurtpreventie loper op de volgende datum:
+    <br>
+    {{ datetime|format_datetime('full', 'none', locale: app_region) }}
+</p>
+{% if rounds|length is same as(1) %}
+    {% set round = rounds|first %}
+    <p>
+        {% if round.walkers|length is same as(1) %}
+            Op dit moment ben je als enige loper aangemeld.
+        {% else %}
+            Op dit moment ben je één van de {{ round.walkers|length }} aangemelde lopers.
+        {% endif %}
+    </p>
+    {% if round.minimum %}
+        <p>Dit is voldoende om de loopronde te kunnen maken.</p>
+        <p>De aanvangstijd is {{ rounds.time }}
+            .{% if round.meetingpoint is not null %} Startpunt {{ round.meetingpoint }}.{% endif %}</p>
+        <p>De aangemelde lopers zijn:</p>
+        <ul>
+            {% for round_walker in round.walkers %}
+                <li>{{ round_walker.name }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Dit is niet voldoende om de loopronde te kunnen maken.</p>
+    {% endif %}
+{% else %}
+    <p>Je loopt op de volgende tijdstippen:</p>
+    <ul>
+        {% for round in rounds %}
+            <li>{{ round.time }}{% if round.meetingpoint is not null %}, startpunt {{ round.meetingpoint }}{% endif %}{% if not round.minimum %} (onvoldoende lopers){% endif %}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+<p>
+    Ga om in te loggen naar:
+    <br>
+    <a href="{{ app_url }}">{{ app_url }}</a>
+</p>
+<p>
+    <br><br>
+    {{ app_name }}
+    <br>
+    <em>* Deze email is automatisch verzonden *</em>
+</p>

@@ -1,32 +1,25 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Entity\Result;
 use App\Entity\Round;
+use App\Entity\User;
 use App\Form\RoundResultType;
+use App\Repository\ResultRepository;
+use App\Repository\RoundRepository;
 use App\Service\WalkService;
-use Doctrine\ORM\EntityManagerInterface;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-/**
- * ResultController
- *
- * @IsGranted("ROLE_USER")
- */
+#[IsGranted('ROLE_USER')]
 class ResultController extends AbstractController
 {
-    /**
-     * @Route("/result", name="result_list")
-     *
-     * @param  WalkService $walkService
-     * @return Response
-     */
-    public function list(WalkService $walkService)
+    #[Route('/result', name: 'result_list', methods: ['GET'])]
+    public function list(WalkService $walkService): Response
     {
+        /** @var User $user */
         $user = $this->getUser();
         if ($this->isGranted('ROLE_COORDINATE') || $this->isGranted('ROLE_ANALYST')) {
             $user = null;
@@ -36,53 +29,38 @@ class ResultController extends AbstractController
 
         return $this->render('result/list.html.twig', [
             'service' => $walkService,
-            'list'    => $resultModel->getList(),
-            'metrics' => $resultModel->getMetrics(),
+            'list' => $resultModel->list,
+            'metrics' => $resultModel->metrics,
         ]);
     }
 
-    /**
-     * @Route("/result/round/{id}/modal", name="result_round_modal", requirements={"id"="\d+"})
-     *
-     * @param  integer                $id
-     * @param  EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NotFoundHttpException
-     */
-    public function modal($id, EntityManagerInterface $entityManager)
+    #[Route('/result/round/{id}/modal', name: 'result_round_modal', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function modal(int $id, RoundRepository $roundRepo, ResultRepository $resultRepo): Response
     {
-        $repo = $entityManager->getRepository(Round::class);
-        $round = $repo->find($id);
+        $round = $roundRepo->find($id);
         if (null === $round) {
             throw $this->createNotFoundException('exception.round.not-found');
         }
 
-        $results = $entityManager->getRepository(Result::class)->findAll();
-
+        $results = $resultRepo->findAll();
         $form = $this->createForm(RoundResultType::class);
 
         return $this->render('result/modal.html.twig', [
-            'round'   => $round,
+            'round' => $round,
             'results' => $results,
-            'form'    => $form->createView(),
+            'form' => $form->createView(),
         ]);
     }
 
-    /**
-     * @param  Round                  $round
-     * @param  EntityManagerInterface $entityManager
-     * @return Response
-     */
-    public function inline(Round $round, EntityManagerInterface $entityManager)
+    public function inline(Round $round, ResultRepository $resultRepo): Response
     {
-        $results = $entityManager->getRepository(Result::class)->findAll();
-
+        $results = $resultRepo->findAll();
         $form = $this->createForm(RoundResultType::class);
 
         return $this->render('result/inline.html.twig', [
-            'round'   => $round,
+            'round' => $round,
             'results' => $results,
-            'form'    => $form->createView(),
+            'form' => $form->createView(),
         ]);
     }
 }

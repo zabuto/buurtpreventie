@@ -5,7 +5,7 @@
 {% block body %}
     <h1>{% trans %}walk.walked-rounds{% endtrans %}</h1>
     <p>
-        {% transchoice list|length %}walk.walked-count{% endtranschoice %}
+        {{ 'walk.result-count'|trans({'count': list|length}) }}
         {% trans %}walk.result-explanation{% endtrans %}
     </p>
     {% if list|length > 0 %}
@@ -35,7 +35,7 @@
                     {% endif %}
 
                     <tr data-round="{{ round.id }}" class="round-result-{{ _round_result }}">
-                        <td>{{ round.datetime|localizeddate('none', 'none', null, null, 'eeeeee d MMM Y') }}</td>
+                        <td>{{ round.datetime|format_datetime('full', 'none', locale: app_region) }}</td>
                         <td>{{ round.datetime|date('H:i') }}</td>
                         <td>
                             {% if _round_result is same as('is-open') %}

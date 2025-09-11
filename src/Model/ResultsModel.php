@@ -1,53 +1,17 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Model;
 
 use App\Entity\RoundResult;
 
-/**
- * ResultsModel
- */
-class ResultsModel
+final readonly class ResultsModel
 {
-    /**
-     * @var array
-     */
-    private $metrics = [];
-
-    /**
-     * @var RoundResult[]
-     */
-    private $list = [];
-
-    /**
-     * @return array
-     */
-    public function getMetrics(): array
+    public function __construct(
+        /* @var MetricModel[] */
+        public array $metrics = [],
+        /* @var RoundResult[] */
+        public array $list = [],
+    )
     {
-        return $this->metrics;
-    }
-
-    /**
-     * @param  array $metrics
-     */
-    public function setMetrics(array $metrics): void
-    {
-        $this->metrics = $metrics;
-    }
-
-    /**
-     * @return RoundResult[]
-     */
-    public function getList(): array
-    {
-        return $this->list;
-    }
-
-    /**
-     * @param  RoundResult[] $list
-     */
-    public function setList(array $list): void
-    {
-        $this->list = $list;
     }
 }

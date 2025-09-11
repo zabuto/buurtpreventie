@@ -1,407 +1,291 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Entity;
 
-use App\Interfaces\LastLoginInterface;
-use App\Interfaces\UserTokenInterface;
-use App\Interfaces\WalkerInterface;
+use App\Dto\Formatter\DateTimeFormatter;
+use App\Dto\UserDto;
+use App\Repository\UserRepository;
 use App\Traits\SoftDeletable;
-use DateTime;
+use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
-use libphonenumber\PhoneNumber;
+use libphonenumber\NumberParseException;
+use libphonenumber\PhoneNumberUtil;
 use Misd\PhoneNumberBundle\Validator\Constraints\PhoneNumber as AssertPhoneNumber;
-use Serializable;
+use Stringable;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\ObjectMapper\Attribute\Map;
+use Symfony\Component\ObjectMapper\Condition\TargetClass;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
-/**
- * @ORM\Table()
- * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
- * @UniqueEntity(fields={"email"}, message="user.email-already-in-use")
- */
-class User implements LastLoginInterface, UserTokenInterface, UserInterface, WalkerInterface, Serializable
+#[ORM\Table]
+#[ORM\Entity(repositoryClass: UserRepository::class)]
+#[UniqueEntity(fields: ['name'], message: 'user.name-already-in-use')]
+#[UniqueEntity(fields: ['email'], message: 'user.email-already-in-use')]
+#[Map(target: UserDto::class)]
+class User implements UserInterface, PasswordAuthenticatedUserInterface, Stringable
 {
     use SoftDeletable;
 
-    /**
-     * @ORM\Column(type="integer")
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="AUTO")
-     * @var int|null
-     */
-    private $id;
+    #[ORM\Id]
+    #[ORM\Column(type: 'integer')]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[Map(if: false)]
+    private ?int $id = null;
 
-    /**
-     * @ORM\Column(type="string", length=254, unique=true)
-     * @Assert\NotBlank()
-     * @var string
-     */
-    private $name;
+    #[ORM\Column(type: 'string', length: 254, unique: true)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 254)]
+    #[Map(target: 'name')]
+    private string $name = '';
 
-    /**
-     * @ORM\Column(type="string", length=254, unique=true)
-     * @Assert\NotNull()
-     * @Assert\Email()
-     * @var string
-     */
-    private $email;
+    #[ORM\Column(type: 'string', length: 254, unique: true)]
+    #[Assert\NotNull]
+    #[Assert\Email]
+    #[Assert\Length(max: 254)]
+    #[Map(target: 'email')]
+    private string $email = '';
 
-    /**
-     * @ORM\Column(type="phone_number", nullable=true)
-     * @AssertPhoneNumber()
-     * @var string|PhoneNumber|null
-     */
+    #[ORM\Column(type: 'phone_number', nullable: true)]
+    #[AssertPhoneNumber]
+    #[Map(if: false)]
     private $phone;
 
-    /**
-     * @ORM\Column(type="phone_number", nullable=true)
-     * @AssertPhoneNumber()
-     * @var string|PhoneNumber|null
-     */
+    #[ORM\Column(type: 'phone_number', nullable: true)]
+    #[AssertPhoneNumber(type: [AssertPhoneNumber::MOBILE])]
+    #[Map(if: false)]
     private $mobile;
 
-    /**
-     * @ORM\Column(type="string", length=254, nullable=true)
-     * @var string|null
-     */
-    private $address;
+    #[ORM\Column(type: 'string', length: 254, nullable: true)]
+    #[Assert\Length(max: 254)]
+    #[Map(if: false)]
+    private ?string $address;
 
-    /**
-     * @ORM\Column(type="string", length=64)
-     * @Assert\NotNull()
-     * @var string
-     */
-    private $password;
+    #[ORM\Column(type: 'string')]
+    #[Map(if: false)]
+    private string $password = '';
 
-    /**
-     * @ORM\Column(type="json_array")
-     * @var array
-     */
-    private $roles = ['ROLE_USER'];
+    /** @var  array<int, string> */
+    #[ORM\Column(type: 'json')]
+    #[Map(if: false)]
+    private array $roles = ['ROLE_USER'];
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     * @Assert\DateTime()
-     * @var DateTime|null
-     */
-    private $lastLogin;
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    #[Map(if: false)]
+    private ?DateTimeImmutable $lastLogin;
 
-    /**
-     * @ORM\Column(type="string", length=100, nullable=true)
-     * @var string|null
-     */
-    private $token;
+    #[ORM\Column(type: 'string', length: 100, nullable: true)]
+    #[Map(target: 'token', if: new TargetClass(UserDto::class))]
+    private ?string $token;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     * @Assert\DateTime()
-     * @var DateTime|null
-     */
-    private $tokenValidUntil;
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    #[Map(target: 'valid_until', if: new TargetClass(UserDto::class), transform: [DateTimeFormatter::class, 'format'])]
+    private ?DateTimeImmutable $tokenValidUntil;
 
-    /**
-     * @ORM\Column(type="boolean")
-     * @var bool
-     */
-    private $credited = false;
+    #[ORM\Column(type: 'boolean', options: ['default' => 0])]
+    #[Map(if: false)]
+    private bool $credited = false;
 
-    /**
-     * @ORM\Column(type="boolean")
-     * @var bool
-     */
-    private $permitted = true;
+    #[ORM\Column(type: 'boolean', options: ['default' => 0])]
+    #[Map(if: false)]
+    private bool $permitted = true;
 
-    /**
-     * @ORM\Column(type="boolean")
-     * @var bool
-     */
-    private $active = true;
+    #[ORM\Column(type: 'boolean', options: ['default' => 1])]
+    #[Map(if: false)]
+    private bool $active = true;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     * @var DateTime|null
-     */
-    protected $deletedAt;
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    #[Map(if: false)]
+    protected ?DateTimeImmutable $deletedAt = null;
 
-    /**
-     * @return int|null
-     */
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    /**
-     * @return string
-     */
-    public function getName(): ?string
+    public function getName(): string
     {
         return $this->name;
     }
 
-    /**
-     * @param  string $name
-     */
     public function setName(?string $name): void
     {
-        $this->name = $name;
+        $this->name = trim((string)$name);
     }
 
-    /**
-     * @return string
-     */
-    public function getEmail(): ?string
+    public function getEmail(): string
     {
         return $this->email;
     }
 
-    /**
-     * @param  string $email
-     */
     public function setEmail(?string $email): void
     {
-        $this->email = strtolower(trim($email));
+        $this->email = strtolower(trim((string)$email));
     }
 
-    /**
-     * @return PhoneNumber|null|string
-     */
     public function getPhone()
     {
         return $this->phone;
     }
 
     /**
-     * @param  PhoneNumber|null|string $phone
+     * @throws NumberParseException
      */
     public function setPhone($phone): void
     {
-        $this->phone = $phone;
+        if (is_string($phone)) {
+            $this->phone = PhoneNumberUtil::getInstance()->parse($phone);
+        } else {
+            $this->phone = $phone;
+        }
     }
 
-    /**
-     * @return PhoneNumber|string|null
-     */
     public function getMobile()
     {
         return $this->mobile;
     }
 
     /**
-     * @param  PhoneNumber|string|null $mobile
+     * @throws NumberParseException
      */
     public function setMobile($mobile): void
     {
-        $this->mobile = $mobile;
+        if (is_string($mobile)) {
+            $this->mobile = PhoneNumberUtil::getInstance()->parse($mobile);
+        } else {
+            $this->mobile = $mobile;
+        }
     }
 
-    /**
-     * @return string|null
-     */
     public function getAddress(): ?string
     {
         return $this->address;
     }
 
-    /**
-     * @param  string|null $address
-     */
     public function setAddress(?string $address): void
     {
         $this->address = $address;
     }
 
-    /**
-     * @return string
-     */
     public function getPassword(): string
     {
         return $this->password;
     }
 
-    /**
-     * @param  string $password
-     */
     public function setPassword(string $password): void
     {
         $this->password = $password;
     }
 
-    /**
-     * @return string|null
-     */
     public function getToken(): ?string
     {
         return $this->token;
     }
 
-    /**
-     * @param  string|null $token
-     */
-    public function setToken(?string $token): void
-    {
-        $this->token = $token;
-    }
-
-    /**
-     * @return DateTime|null
-     */
-    public function getTokenValidUntil(): ?DateTime
+    public function getTokenValidUntil(): ?DateTimeImmutable
     {
         return $this->tokenValidUntil;
     }
 
-    /**
-     * @param  DateTime|null $tokenValidUntil
-     */
-    public function setTokenValidUntil(?DateTime $tokenValidUntil): void
+    public function generateToken(int $hours = 4): void
     {
-        $this->tokenValidUntil = $tokenValidUntil;
+        $this->token = sha1(random_bytes(10));
+        $this->tokenValidUntil = new DateTimeImmutable(sprintf('+%s hours', $hours));
     }
 
-    /**
-     * @return bool
-     */
+    public function resetToken(): void
+    {
+        $this->token = null;
+        $this->tokenValidUntil = null;
+    }
+
+    public function isTokenValid(): bool
+    {
+        $now = new DateTimeImmutable();
+
+        return !(null === $this->tokenValidUntil || $this->tokenValidUntil->format('YmdHis') < $now->format('YmdHis'));
+    }
+
     public function isCredited(): bool
     {
         return $this->credited;
     }
 
-    /**
-     * @param  bool $credited
-     */
     public function setCredited(bool $credited): void
     {
         $this->credited = $credited;
     }
 
-    /**
-     * @return bool
-     */
     public function isPermitted(): bool
     {
         return $this->permitted;
     }
 
-    /**
-     * @param  bool $permitted
-     */
     public function setPermitted(bool $permitted): void
     {
         $this->permitted = $permitted;
     }
 
-    /**
-     * @return bool
-     */
     public function isActive(): bool
     {
         return $this->active;
     }
 
-    /**
-     * @param  bool $active
-     */
     public function setActive(bool $active): void
     {
         $this->active = $active;
 
-        if (false === $this->active) {
+        if (false === $active) {
             $this->password = '';
             $this->token = null;
             $this->tokenValidUntil = null;
         }
     }
 
-    /**
-     * @return array
-     */
     public function getRoles(): array
     {
         return $this->roles;
     }
 
-    /**
-     * @param  array $roles
-     */
     public function setRoles(array $roles): void
     {
         $this->roles = $roles;
     }
 
-    /**
-     * @return DateTime|null
-     */
-    public function getLastLogin(): ?DateTime
+    public function getLastLogin(): ?DateTimeImmutable
     {
         return $this->lastLogin;
     }
 
-    /**
-     * @param  DateTime $lastLogin
-     */
-    public function setLastLogin(DateTime $lastLogin): void
+    public function setLastLogin(?DateTimeImmutable $date): void
     {
-        $this->lastLogin = $lastLogin;
+        $this->lastLogin = $date;
     }
 
-    /**
-     * @return string
-     * @see UserInterface::getUsername()
-     */
-    public function getUsername()
+    public function getUserIdentifier(): string
     {
         return $this->email;
     }
 
-    /**
-     * @return string|null
-     * @see UserInterface::getSalt()
-     */
-    public function getSalt()
-    {
-        return null;
-    }
-
-    /**
-     * @see UserInterface::eraseCredentials()
-     */
-    public function eraseCredentials()
+    public function eraseCredentials(): void
     {
     }
 
-    /**
-     * @see Serializable::serialize()
-     */
-    public function serialize()
+    public function erasePersonalInformation(): void
     {
-        return serialize([
-            $this->id,
-            $this->email,
-            $this->password,
-            $this->active,
-        ]);
+        $this->password = '';
+        $this->token = null;
+        $this->tokenValidUntil = null;
+
+        $this->active = false;
+        $this->permitted = false;
+        $this->address = null;
+        $this->phone = null;
+        $this->mobile = null;
     }
 
-    /**
-     * @param  string $serialized
-     * @see Serializable::unserialize()
-     */
-    public function unserialize($serialized)
-    {
-        [
-            $this->id,
-            $this->email,
-            $this->password,
-            $this->active,
-        ] = unserialize($serialized, ['allowed_classes' => false]);
-    }
-
-    /**
-     * @return string
-     */
-    public function __toString()
+    public function __toString(): string
     {
         return $this->name;
     }

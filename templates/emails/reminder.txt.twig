@@ -1,0 +1,37 @@
+Beste {{ walker.name }},
+
+Je hebt je aangemeld als buurtpreventie loper op de volgende datum:
+{{ datetime|format_datetime('full', 'none', locale: app_region) }}
+
+{% if rounds|length is same as(1) %}
+{% set round = rounds|first %}
+{% if round.walkers|length is same as(1) %}
+Op dit moment ben je als enige loper aangemeld.
+{% else %}
+Op dit moment ben je één van de {{ round.walkers|length }} aangemelde lopers.
+{% endif %}
+{% if round.minimum %}
+Dit is voldoende om de loopronde te kunnen maken.
+
+De aanvangstijd is {{ rounds.time }}.{% if round.meetingpoint is not null %} Startpunt {{ round.meetingpoint }}.{% endif %}
+
+De aangemelde lopers zijn:
+{% for round_walker in round.walkers %}
+-  {{ round_walker.name }}
+{% endfor %}
+{% else %}
+Dit is niet voldoende om de loopronde te kunnen maken.
+{% endif %}
+{% else %}
+Je loopt op de volgende tijdstippen:
+{% for round in rounds %}
+- {{ round.time }}{% if round.meetingpoint is not null %}, startpunt {{ round.meetingpoint }}{% endif %}{% if not round.minimum %} (onvoldoende lopers){% endif %}
+{% endfor %}
+{% endif %}
+
+Ga om in te loggen naar:
+{{ app_url }}
+
+
+{{ app_name }}
+* Deze email is automatisch verzonden *

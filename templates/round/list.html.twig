@@ -34,7 +34,7 @@
                             {{ round.id }}
                         </a>
                     </th>
-                    <td>{{ round.datetime|localizeddate('none', 'none', null, null, 'eeeeee d MMM Y') }}</td>
+                    <td>{{ round.datetime|format_datetime('full', 'none', locale: app_region) }}</td>
                     <td>{{ round.datetime|date('H:i') }}</td>
                     <td>{{ round.walkers|length }}</td>
                     <td>{{ round.results|length }}</td>

@@ -1,23 +1,19 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Geo\Types;
 
 use App\Geo\ValueObject\Point;
-use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
+use Doctrine\DBAL\Types\Type;
 
 /**
  * Doctrine Point Mapping Type
  */
 class PointType extends Type
 {
-    /** @var string */
-    const POINT = 'point';
+    public const string POINT = 'point';
 
-    /**
-     * {@inheritDoc}
-     */
-    public function getName()
+    public function getName(): string
     {
         return self::POINT;
     }
@@ -25,7 +21,7 @@ class PointType extends Type
     /**
      * {@inheritDoc}
      */
-    public function getSqlDeclaration(array $fieldDeclaration, AbstractPlatform $platform)
+    public function getSqlDeclaration(array $column, AbstractPlatform $platform): string
     {
         return 'POINT';
     }
@@ -39,7 +35,7 @@ class PointType extends Type
             return null;
         }
 
-        list($longitude, $latitude) = sscanf($value, "POINT(%f %f)");
+        [$longitude, $latitude] = sscanf($value, "POINT(%f %f)");
         if ($longitude === 0.0 && $latitude === 0.0) {
             return null;
         }
@@ -66,7 +62,7 @@ class PointType extends Type
     /**
      * {@inheritDoc}
      */
-    public function canRequireSQLConversion()
+    public function canRequireSQLConversion(): bool
     {
         return true;
     }
@@ -74,17 +70,17 @@ class PointType extends Type
     /**
      * {@inheritDoc}
      */
-    public function convertToDatabaseValueSQL($sqlExpr, AbstractPlatform $platform)
+    public function convertToDatabaseValueSQL($sqlExpr, AbstractPlatform $platform): string
     {
-        return 'PointFromText(' . $sqlExpr . ')';
+        return 'ST_PointFromText(' . $sqlExpr . ')';
     }
 
     /**
      * {@inheritDoc}
      */
-    public function convertToPHPValueSQL($sqlExpr, $platform)
+    public function convertToPHPValueSQL($sqlExpr, $platform): string
     {
-        return sprintf('AsText(%s)', $sqlExpr);
+        return sprintf('ST_AsText(%s)', $sqlExpr);
     }
 
     /**

@@ -48,15 +48,15 @@
                 <a class="nav-item nav-link d-block d-lg-none" href="{{ path('account') }}">
                     {% trans %}user.account{% endtrans %}
                 </a>
-                <a class="btn btn-outline-primary d-none d-lg-block" href="{{ path('logout') }}">
+                <a class="btn btn-outline-primary d-none d-lg-block" href="{{ path('app_logout') }}">
                     {% trans %}security.logout{% endtrans %}
                     <i class="fas fa-sign-out-alt"></i>
                 </a>
-                <a class="nav-item nav-link d-block d-lg-none" href="{{ path('logout') }}">
+                <a class="nav-item nav-link d-block d-lg-none" href="{{ path('app_logout') }}">
                     {% trans %}security.logout{% endtrans %}
                 </a>
             {% else %}
-                <a class="btn btn-outline-primary d-none d-lg-block" href="{{ path('login') }}">
+                <a class="btn btn-outline-primary d-none d-lg-block" href="{{ path('app_login') }}">
                     {% trans %}security.login{% endtrans %}
                     <i class="fas fa-sign-in-alt"></i>
                 </a>

@@ -1,21 +1,45 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Repository;
 
 use App\Entity\Result;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * ResultRepository
+ * @extends ServiceEntityRepository<Result>
+ * @method Result|null find($id, $lockMode = null, $lockVersion = null)
+ * @method Result|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Result[]    findAll()
+ * @method Result[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class ResultRepository extends ServiceEntityRepository
 {
-    /**
-     * @param  RegistryInterface $registry
-     */
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Result::class);
+    }
+
+    public function create(Result $result): void
+    {
+        $this->getEntityManager()->persist($result);
+        $this->getEntityManager()->flush();
+    }
+
+    public function update(Result $result): void
+    {
+        $this->getEntityManager()->flush();
+    }
+
+    public function delete(Result $result): void
+    {
+        $this->getEntityManager()->remove($result);
+        $this->getEntityManager()->flush();
+    }
+
+    public function restore(Result $result): void
+    {
+        $result->restore();
+        $this->getEntityManager()->flush();
     }
 }

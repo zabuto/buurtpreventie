@@ -1,83 +1,58 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Entity;
 
 use App\Geo\ValueObject\Point;
-use App\Interfaces\MeetingPointInterface;
+use App\Repository\MeetingPointRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
-/**
- * @ORM\Table()
- * @ORM\Entity(repositoryClass="App\Repository\MeetingPointRepository")
- */
-class MeetingPoint extends AbstractBaseEntity implements MeetingPointInterface
+#[ORM\Table]
+#[ORM\Entity(repositoryClass: MeetingPointRepository::class)]
+#[UniqueEntity(fields: ['description'], message: 'lookup.description-already-in-use')]
+class MeetingPoint extends AbstractBaseEntity implements Stringable
 {
-    /**
-     * @ORM\Column(type="integer")
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="AUTO")
-     * @var int|null
-     */
-    private $id;
+    #[ORM\Id]
+    #[ORM\Column(type: 'integer')]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    private ?int $id = null;
 
-    /**
-     * @ORM\Column(type="string", length=100, unique=true)
-     * @Assert\NotBlank()
-     * @var string
-     */
-    private $description;
+    #[ORM\Column(type: 'string', length: 100, unique: true)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 100)]
+    private string $description = '';
 
-    /**
-     * @ORM\Column(type="point", nullable=true)
-     * @var Point
-     */
-    private $location;
+    #[ORM\Column(type: 'point', nullable: true)]
+    private ?Point $location;
 
-    /**
-     * @return int|null
-     */
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    /**
-     * @return string
-     */
-    public function getDescription(): ?string
+    public function getDescription(): string
     {
         return $this->description;
     }
 
-    /**
-     * @param  string $description
-     */
-    public function setDescription($description): void
+    public function setDescription(?string $description): void
     {
-        $this->description = $description;
+        $this->description = trim((string)$description);
     }
 
-    /**
-     * @return Point|null
-     */
     public function getLocation(): ?Point
     {
         return $this->location;
     }
 
-    /**
-     * @param  Point|null $location
-     */
-    public function setLocation($location): void
+    public function setLocation(?Point $location): void
     {
         $this->location = $location;
     }
 
-    /**
-     * @return string
-     */
-    public function __toString()
+    public function __toString(): string
     {
         return $this->description;
     }

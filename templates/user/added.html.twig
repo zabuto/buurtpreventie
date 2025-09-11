@@ -3,7 +3,7 @@
 {% block body %}
     <h1>{% trans %}user.added{% endtrans %}</h1>
 
-    {% if warning is defined %}
+    {% if warning is not null %}
         <div class="alert alert-warning" role="alert">
             {{ warning|trans(warning) }}
         </div>

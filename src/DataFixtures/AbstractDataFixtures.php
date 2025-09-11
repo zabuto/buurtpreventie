@@ -1,76 +1,45 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\DataFixtures;
 
 use App\Entity\AbstractBaseEntity;
-use Doctrine\Common\DataFixtures\DependentFixtureInterface;
+use App\Entity\User;
+use DateTimeImmutable;
 use Doctrine\Bundle\FixturesBundle\Fixture;
-use Doctrine\Common\Persistence\ObjectManager;
-use Exception;
-use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Translation\TranslatorInterface;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
+use Doctrine\Persistence\ObjectManager;
+use LogicException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
-/**
- * AbstractDataFixtures
- */
 abstract class AbstractDataFixtures extends Fixture implements DependentFixtureInterface
 {
-    /**
-     * @var ObjectManager
-     */
-    protected $manager;
+    protected ObjectManager $manager;
 
-    /**
-     * @var ValidatorInterface
-     */
-    protected $validator;
-
-    /**
-     * @var TranslatorInterface
-     */
-    protected $translator;
-
-    /**
-     * @param  ObjectManager       $manager
-     * @param  ValidatorInterface  $validator
-     * @param  TranslatorInterface $translator
-     */
-    public function __construct(ObjectManager $manager, ValidatorInterface $validator, TranslatorInterface $translator)
+    public function __construct(
+        protected readonly TranslatorInterface $translator,
+        private readonly ValidatorInterface    $validator,
+    )
     {
-        $this->manager = $manager;
-        $this->validator = $validator;
-        $this->translator = $translator;
     }
 
-    /**
-     * @return array
-     */
-    public function getDependencies()
+    protected function addFixture(object $entity, ?string $reference = null): void
     {
-        return [
-            UserFixtures::class,
-        ];
-    }
+        if (($entity instanceof AbstractBaseEntity)) {
+            if (null === $entity->getCreatedAt()) {
+                $created = sprintf('%s 11:11:11', date('Y-m-d'));
+                $entity->setCreatedAt(DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $created));
+            }
 
-    /**
-     * @param  object $entity
-     * @param  string $reference
-     * @throws Exception
-     */
-    protected function addFixture($entity, ?string $reference = null)
-    {
-        if ($entity instanceof AbstractBaseEntity) {
             if (null === $entity->getCreatedBy()) {
-                /** @var UserInterface $user */
-                $user = $this->getReference(UserFixtures::ADMIN_REFERENCE);
+                $user = $this->getReference(UserFixtures::ADMIN_REFERENCE, User::class);
                 $entity->setCreatedBy($user);
             }
         }
 
         $errors = $this->validator->validate($entity);
         if (count($errors) > 0) {
-            throw new Exception('exception.datafixture.invalid');
+            throw new LogicException($this->translator->trans('exception.datafixture.invalid'));
         }
 
         $this->manager->persist($entity);
@@ -79,5 +48,10 @@ abstract class AbstractDataFixtures extends Fixture implements DependentFixtureI
         if (null !== $reference) {
             $this->addReference($reference, $entity);
         }
+    }
+
+    protected function setManager(ObjectManager $manager): void
+    {
+        $this->manager = $manager;
     }
 }

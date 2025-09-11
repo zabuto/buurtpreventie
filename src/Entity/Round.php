@@ -1,81 +1,63 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Entity;
 
-use App\Interfaces\CommentInterface;
-use App\Interfaces\RoundInterface;
-use App\Interfaces\RoundResultInterface;
-use App\Interfaces\RoundWalkerInterface;
-use DateTime;
+use App\Dto\Formatter\DateTimeFormatter;
+use App\Dto\Formatter\ToStringFormatter;
+use App\Dto\RoundDto;
+use App\Dto\Transformer\CollectionTransformer;
+use App\Dto\Transformer\WalkerMinimumTransformer;
+use App\Repository\RoundRepository;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Exception;
-use InvalidArgumentException;
+use Symfony\Component\ObjectMapper\Attribute\Map;
 use Symfony\Component\Validator\Constraints as Assert;
 
-/**
- * @ORM\Table()
- * @ORM\Entity(repositoryClass="App\Repository\RoundRepository")
- */
-class Round extends AbstractBaseEntity implements RoundInterface
+#[ORM\Table]
+#[ORM\Entity(repositoryClass: RoundRepository::class)]
+#[Map(target: RoundDto::class)]
+class Round extends AbstractBaseEntity
 {
-    /**
-     * @ORM\Column(type="integer")
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="AUTO")
-     * @var int|null
-     */
-    private $id;
+    #[ORM\Id]
+    #[ORM\Column(type: 'integer')]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[Map(target: 'id')]
+    private ?int $id = null;
 
-    /**
-     * @ORM\Column(type="date")
-     * @Assert\NotNull()
-     * @Assert\Date()
-     * @var DateTime|null
-     */
-    private $date;
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    #[Assert\NotNull]
+    #[Map(if: false)]
+    #[Map(target: 'date', transform: [DateTimeFormatter::class, 'date'])]
+    #[Map(target: 'time', transform: [DateTimeFormatter::class, 'time'])]
+    #[Map(target: 'time_of_day', transform: [DateTimeFormatter::class, 'timeOfDay'])]
+    private ?DateTimeImmutable $datetime;
 
-    /**
-     * @ORM\Column(type="time")
-     * @Assert\NotNull()
-     * @Assert\Time()
-     * @var DateTime|null
-     */
-    private $time;
+    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\ManyToOne(targetEntity: MeetingPoint::class)]
+    #[Map(target: 'meetingpoint', transform: [ToStringFormatter::class, 'format'])]
+    private ?MeetingPoint $meetingPoint = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\MeetingPoint")
-     * @ORM\JoinColumn(nullable=true)
-     * @var MeetingPoint|null
-     */
-    private $meetingPoint;
+    /** @var Collection<int, RoundWalker> */
+    #[ORM\OneToMany(targetEntity: RoundWalker::class, mappedBy: 'round', cascade: ['persist', 'remove'])]
+    #[Assert\Valid]
+    #[Map(target: 'walkers', transform: CollectionTransformer::class)]
+    #[Map(target: 'minimum', transform: WalkerMinimumTransformer::class)]
+    private Collection $walkers;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\RoundWalker", mappedBy="round", cascade={"persist", "remove"})
-     * @Assert\Valid()
-     * @var RoundWalker[]
-     */
-    private $walkers;
+    /** @var Collection<int, RoundResult> */
+    #[ORM\OneToMany(targetEntity: RoundResult::class, mappedBy: 'round', cascade: ['persist', 'remove'])]
+    #[Assert\Valid]
+    #[Map(if: false)]
+    private Collection $results;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\RoundResult", mappedBy="round")
-     * @Assert\Valid()
-     * @var RoundResult[]
-     */
-    private $results;
+    /** @var Collection<int, Comment> */
+    #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'round', cascade: ['persist', 'remove'])]
+    #[Assert\Valid]
+    #[Map(if: false)]
+    private Collection $comments;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Comment", mappedBy="round", cascade={"persist"})
-     * @Assert\Valid()
-     * @var Comment[]
-     */
-    private $comments;
-
-    /**
-     * Constructor
-     */
     public function __construct()
     {
         $this->walkers = new ArrayCollection();
@@ -83,89 +65,48 @@ class Round extends AbstractBaseEntity implements RoundInterface
         $this->comments = new ArrayCollection();
     }
 
-    /**
-     * @return int|null
-     */
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    /**
-     * @return DateTime|null
-     */
-    public function getDate(): ?DateTime
+    public function getDatetime(): ?DateTimeImmutable
     {
-        return $this->date;
+        return $this->datetime;
     }
 
-    /**
-     * @param  DateTime|null $date
-     */
-    public function setDate($date): void
+    public function setDatetime(?DateTimeImmutable $datetime): void
     {
-        $this->date = $date;
+        $this->datetime = $datetime;
     }
 
-    /**
-     * @return DateTime|null
-     */
-    public function getTime(): ?DateTime
-    {
-        return $this->time;
-    }
-
-    /**
-     * @param  DateTime|null $time
-     */
-    public function setTime($time): void
-    {
-        $this->time = $time;
-    }
-
-    /**
-     * @return MeetingPoint|null
-     */
     public function getMeetingPoint(): ?MeetingPoint
     {
         return $this->meetingPoint;
     }
 
-    /**
-     * @param  MeetingPoint|null $meetingPoint
-     */
-    public function setMeetingPoint($meetingPoint): void
+    public function setMeetingPoint(?MeetingPoint $meetingPoint): void
     {
         $this->meetingPoint = $meetingPoint;
     }
 
     /**
-     * @return Collection|RoundWalker[]
+     * @return RoundWalker[]
      */
-    public function getWalkers(): Collection
+    public function getWalkers(): array
     {
-        return $this->walkers;
+        return $this->walkers->toArray();
     }
 
-    /**
-     * @param  RoundWalker $walker
-     */
-    public function addWalker($walker): void
+    public function addWalker(RoundWalker $walker): void
     {
-        if (!($walker instanceof RoundWalkerInterface)) {
-            throw new InvalidArgumentException('exception.round-walker.invalid');
-        }
-
         if (!$this->walkers->contains($walker)) {
             $walker->setRound($this);
             $this->walkers[] = $walker;
         }
     }
 
-    /**
-     * @param  RoundWalker $walker
-     */
-    public function removeWalker($walker): void
+    public function removeWalker(RoundWalker $walker): void
     {
         if ($this->walkers->contains($walker)) {
             $this->walkers->removeElement($walker);
@@ -173,32 +114,22 @@ class Round extends AbstractBaseEntity implements RoundInterface
     }
 
     /**
-     * @return Collection|RoundResult[]
+     * @return RoundResult[]
      */
-    public function getResults(): Collection
+    public function getResults(): array
     {
-        return $this->results;
+        return $this->results->toArray();
     }
 
-    /**
-     * @param  RoundResult $result
-     */
-    public function addResult($result): void
+    public function addResult(RoundResult $result): void
     {
-        if (!($result instanceof RoundResultInterface)) {
-            throw new InvalidArgumentException('exception.round-result.invalid');
-        }
-
         if (!$this->results->contains($result)) {
             $result->setRound($this);
             $this->results[] = $result;
         }
     }
 
-    /**
-     * @param  RoundResult $result
-     */
-    public function removeResult($result): void
+    public function removeResult(RoundResult $result): void
     {
         if ($this->results->contains($result)) {
             $this->results->removeElement($result);
@@ -206,51 +137,25 @@ class Round extends AbstractBaseEntity implements RoundInterface
     }
 
     /**
-     * @return Collection|Comment[]
+     * @return Comment[]
      */
-    public function getComments(): Collection
+    public function getComments(): array
     {
-        return $this->comments;
+        return $this->comments->toArray();
     }
 
-    /**
-     * @param  Comment $comment
-     */
-    public function addComment($comment): void
+    public function addComment(Comment $comment): void
     {
-        if (!($comment instanceof CommentInterface)) {
-            throw new InvalidArgumentException('exception.round-comment.invalid');
-        }
-
         if (!$this->comments->contains($comment)) {
             $comment->setRound($this);
             $this->comments[] = $comment;
         }
     }
 
-    /**
-     * @param  Comment $comment
-     */
-    public function removeComment($comment): void
+    public function removeComment(Comment $comment): void
     {
         if ($this->comments->contains($comment)) {
             $this->comments->removeElement($comment);
         }
-    }
-
-    /**
-     * @return DateTimeImmutable|null
-     * @throws Exception
-     */
-    public function getDatetime()
-    {
-        if (null === $this->date || null === $this->time) {
-            return null;
-        }
-
-        $datetime = clone $this->date;
-        $datetime->setTime($this->time->format('H'), $this->time->format('i'), 0, 0);
-
-        return DateTimeImmutable::createFromMutable($datetime);
     }
 }
