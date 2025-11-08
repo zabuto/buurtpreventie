@@ -18,7 +18,7 @@ class Comment extends AbstractBaseEntity
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     #[ORM\ManyToOne(targetEntity: Round::class, inversedBy: 'comments')]
     #[Assert\NotNull]
-    private ?Round $round;
+    private ?Round $round = null;
 
     #[ORM\Column(type: 'text')]
     #[Assert\NotBlank]

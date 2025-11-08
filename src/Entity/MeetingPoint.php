@@ -25,7 +25,7 @@ class MeetingPoint extends AbstractBaseEntity implements Stringable
     private string $description = '';
 
     #[ORM\Column(type: 'point', nullable: true)]
-    private ?Point $location;
+    private ?Point $location = null;
 
     public function getId(): ?int
     {

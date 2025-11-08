@@ -18,15 +18,15 @@ class RoundResult extends AbstractBaseEntity
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     #[ORM\ManyToOne(targetEntity: Round::class, inversedBy: 'results')]
     #[Assert\NotNull]
-    private ?Round $round;
+    private ?Round $round = null;
 
     #[ORM\JoinColumn(nullable: false)]
     #[ORM\ManyToOne(targetEntity: Result::class)]
     #[Assert\NotNull]
-    private ?Result $result;
+    private ?Result $result = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $memo;
+    private ?string $memo = null;
 
     public function getId(): ?int
     {

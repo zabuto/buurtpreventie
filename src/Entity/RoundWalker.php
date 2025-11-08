@@ -25,18 +25,18 @@ class RoundWalker extends AbstractBaseEntity
     #[ORM\ManyToOne(targetEntity: Round::class, inversedBy: 'walkers')]
     #[Assert\NotNull]
     #[Map(if: false)]
-    private ?Round $round;
+    private ?Round $round = null;
 
     #[ORM\JoinColumn(nullable: false)]
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[Assert\NotNull]
     #[Map(target: 'name', transform: [UserFormatter::class, 'name'])]
     #[Map(target: 'email', transform: [UserFormatter::class, 'email'])]
-    private ?User $walker;
+    private ?User $walker = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
     #[Map(if: false)]
-    private ?DateTime $reminded;
+    private ?DateTime $reminded = null;
 
     public function getId(): ?int
     {

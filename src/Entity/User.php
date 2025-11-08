@@ -50,17 +50,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Stringa
     #[ORM\Column(type: 'phone_number', nullable: true)]
     #[AssertPhoneNumber]
     #[Map(if: false)]
-    private $phone;
+    private $phone = null;
 
     #[ORM\Column(type: 'phone_number', nullable: true)]
     #[AssertPhoneNumber(type: [AssertPhoneNumber::MOBILE])]
     #[Map(if: false)]
-    private $mobile;
+    private $mobile = null;
 
     #[ORM\Column(type: 'string', length: 254, nullable: true)]
     #[Assert\Length(max: 254)]
     #[Map(if: false)]
-    private ?string $address;
+    private ?string $address = null;
 
     #[ORM\Column(type: 'string')]
     #[Map(if: false)]
@@ -73,15 +73,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Stringa
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     #[Map(if: false)]
-    private ?DateTimeImmutable $lastLogin;
+    private ?DateTimeImmutable $lastLogin = null;
 
     #[ORM\Column(type: 'string', length: 100, nullable: true)]
     #[Map(target: 'token', if: new TargetClass(UserDto::class))]
-    private ?string $token;
+    private ?string $token = null;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     #[Map(target: 'valid_until', if: new TargetClass(UserDto::class), transform: [DateTimeFormatter::class, 'format'])]
-    private ?DateTimeImmutable $tokenValidUntil;
+    private ?DateTimeImmutable $tokenValidUntil = null;
 
     #[ORM\Column(type: 'boolean', options: ['default' => 0])]
     #[Map(if: false)]

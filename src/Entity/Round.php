@@ -32,7 +32,7 @@ class Round extends AbstractBaseEntity
     #[Map(target: 'date', transform: [DateTimeFormatter::class, 'date'])]
     #[Map(target: 'time', transform: [DateTimeFormatter::class, 'time'])]
     #[Map(target: 'time_of_day', transform: [DateTimeFormatter::class, 'timeOfDay'])]
-    private ?DateTimeImmutable $datetime;
+    private ?DateTimeImmutable $datetime = null;
 
     #[ORM\JoinColumn(nullable: true)]
     #[ORM\ManyToOne(targetEntity: MeetingPoint::class)]
