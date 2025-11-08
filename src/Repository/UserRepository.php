@@ -64,12 +64,19 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
 
     public function getUserCountForEmail(string $email): int
     {
-        $this->getEntityManager()->getFilters()->disable('soft_delete');
+        $filterEnabled = $this->getEntityManager()->getFilters()->isEnabled('soft_delete');
+        if ($filterEnabled) {
+            $this->getEntityManager()->getFilters()->disable('soft_delete');
+        }
 
         $qb = $this->createQueryBuilder('u');
         $qb->select($qb->expr()->count('u.id'));
         $qb->andWhere('u.email = :email');
         $qb->setParameter('email', $email);
+
+        if ($filterEnabled) {
+            $this->getEntityManager()->getFilters()->enable('soft_delete');
+        }
 
         return (int)$qb->getQuery()->getSingleScalarResult();
     }

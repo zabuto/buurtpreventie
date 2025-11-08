@@ -2,24 +2,18 @@
 
 namespace App\EventListener;
 
-use Doctrine\Common\EventSubscriber;
+use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Events;
 use Doctrine\Persistence\Event\LifecycleEventArgs;
 use Symfony\Bundle\SecurityBundle\Security;
 
-readonly class SoftDeleteSubscriber implements EventSubscriber
+#[AsDoctrineListener(event: Events::preUpdate)]
+#[AsDoctrineListener(event: Events::onFlush)]
+readonly class SoftDeleteSubscriber
 {
     public function __construct(private Security $security)
     {
-    }
-
-    public function getSubscribedEvents(): array
-    {
-        return [
-            Events::preUpdate,
-            Events::onFlush,
-        ];
     }
 
     public function preUpdate(LifecycleEventArgs $args): void
@@ -46,6 +40,8 @@ readonly class SoftDeleteSubscriber implements EventSubscriber
 
     public function onFlush(OnFlushEventArgs $args): void
     {
+        $user = $this->security->getUser();
+
         $om = $args->getObjectManager();
         $unitOfWork = $om->getUnitOfWork();
         $eventManager = $om->getEventManager();
@@ -63,15 +59,18 @@ readonly class SoftDeleteSubscriber implements EventSubscriber
             }
 
             $oldDeletedAtValue = $entity->getDeletedAt();
-
             $entity->delete();
-            $om->persist($entity);
-
+            $update = ['deletedAt' => [$oldDeletedAtValue, $entity->getDeletedAt()]];
             $unitOfWork->propertyChanged($entity, 'deletedAt', $oldDeletedAtValue, $entity->getDeletedAt());
-            $update = [
-                'deletedAt' => [$oldDeletedAtValue, $entity->getDeletedAt()],
-            ];
 
+            if (method_exists($entity, 'setDeletedBy')) {
+                $oldDeletedByValue = $entity->getDeletedBy();
+                $entity->setDeletedBy($user);
+                $update['deletedBy'] = [$oldDeletedByValue, $entity->getDeletedBy()];
+                $unitOfWork->propertyChanged($entity, 'deletedBy', $oldDeletedByValue, $entity->getDeletedBy());
+            }
+
+            $om->persist($entity);
             $unitOfWork->scheduleExtraUpdate($entity, $update);
         }
 

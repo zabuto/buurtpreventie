@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\MeetingPoint;
 use App\Entity\Round;
+use DateTime;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
@@ -59,13 +60,19 @@ class RoundType extends AbstractType
             }
         });
 
-        $builder->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event): void {
+        $builder->addEventListener(FormEvents::SUBMIT, function (FormEvent $event): void {
             /** @var Round $round */
             $round = $event->getData();
             $form = $event->getForm();
 
-            $string = sprintf('%s %s', $form->get('date')->getData(), $form->get('time')->getData());
-            $datetime = DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $string);
+            /** @var DateTime $time */
+            $time = $form->get('time')->getData();
+
+            /** @var DateTime $date */
+            $date = $form->get('date')->getData();
+            $date->setTime((int)$time->format('H'), (int)$time->format('i'), (int)$time->format('s'));
+
+            $datetime = DateTimeImmutable::createFromMutable($date);
             $round->setDatetime($datetime);
         });
     }

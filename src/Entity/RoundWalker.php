@@ -77,4 +77,9 @@ class RoundWalker extends AbstractBaseEntity
     {
         return null !== $this->reminded;
     }
+
+    public function canWalk(): bool
+    {
+        return null !== $this->walker && $this->walker->isActive() && !$this->walker->isDeleted();
+    }
 }

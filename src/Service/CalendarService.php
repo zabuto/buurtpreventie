@@ -96,6 +96,10 @@ readonly class CalendarService
                     continue;
                 }
 
+                if (false === $roundWalker->canWalk()) {
+                    continue;
+                }
+
                 $walkerDto = $this->mapper->map($roundWalker, WalkerDto::class);
                 $key = sprintf('%s|%s', $roundWalker->getWalker()->getId(), $roundDto->date);
                 if (array_key_exists($key, $walksForDate)) {

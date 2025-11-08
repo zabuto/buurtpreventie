@@ -18,6 +18,7 @@ use App\Repository\RoundRepository;
 use App\Repository\RoundResultRepository;
 use App\Repository\RoundWalkerRepository;
 use DateTime;
+use Doctrine\ORM\EntityNotFoundException;
 use Exception;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -178,14 +179,19 @@ readonly class WalkService
         $list = [];
         $inactive = 0;
 
-        foreach ($round->getWalkers() as $walker) {
-            if ($walker->getWalker() === $user) {
-                continue;
-            }
+        foreach ($round->getWalkers() as $roundWalker) {
+            try {
+                $walker = $roundWalker->getWalker();
+                if ($walker === $user) {
+                    continue;
+                }
 
-            if (null !== $walker->getWalker() && $walker->getWalker()->isActive()) {
-                $list[] = $walker->getWalker()->getName();
-            } else {
+                if (null !== $walker && $walker->isActive() && !$walker->isDeleted()) {
+                    $list[] = $walker->getName();
+                } else {
+                    $inactive++;
+                }
+            } catch (EntityNotFoundException) {
                 $inactive++;
             }
         }
