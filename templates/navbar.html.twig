@@ -1,3 +1,14 @@
+{% macro navbar_item(route, label) %}
+    {% set _current_route = app.request.attributes.get('_route') %}
+    {% set _class = '' %}
+    {% if route is same as(_current_route) %}
+        {% set _class = 'active' %}
+    {% endif %}
+    <a class="nav-item nav-link {{ _class }}" href="{{ path(route) }}">
+        {{ label|trans }}
+    </a>
+{% endmacro %}
+
 <nav class="navbar sticky-top navbar-light bg-light navbar-expand-lg">
     <a class="navbar-brand" href="{{ path('home') }}">
         <img src="{{ asset('images/favicon-32x32.png') }}" class="d-inline-block align-top" alt="">
@@ -12,38 +23,29 @@
     <div class="collapse navbar-collapse" id="navbarMenu">
         <div class="navbar-nav mr-auto mt-2 mt-lg-0">
             {% if is_granted('ROLE_USER') %}
-                <a class="nav-item nav-link active" href="{{ path('calendar') }}">
-                    {% trans %}walk.schema{% endtrans %}
-                </a>
+                {{ _self.navbar_item('calendar', 'walk.schema') }}
 
                 {% if is_granted('ROLE_WALK') %}
-                    <a class="nav-item nav-link" href="{{ path('walked_list') }}">
-                        {% trans %}walk.walked-rounds{% endtrans %}
-                    </a>
+                    {{ _self.navbar_item('walked_list', 'walk.walked-rounds') }}
                 {% endif %}
 
                 {% if is_granted('ROLE_COORDINATE') or is_granted('ROLE_ANALYST') %}
-                    <a class="nav-item nav-link" href="{{ path('result_list') }}">
-                        {% trans %}walk.results{% endtrans %}
-                    </a>
+                    {{ _self.navbar_item('result_list', 'walk.results') }}
                 {% endif %}
 
                 {% if is_granted('ROLE_MEMBER') %}
-                    <a class="nav-item nav-link" href="{{ path('member_list') }}">
-                        {% trans %}user.members{% endtrans %}
-                    </a>
+                    {{ _self.navbar_item('member_list', 'user.members') }}
                 {% endif %}
+
                 {% if is_granted('ROLE_ADMIN') %}
-                    <a class="nav-item nav-link" href="{{ path('user_list') }}">
-                        {% trans %}user.users{% endtrans %}
-                    </a>
+                    {{ _self.navbar_item('user_list', 'user.users') }}
                 {% endif %}
             {% endif %}
         </div>
         <div class="navbar-nav my-2 my-lg-0">
             {% if is_granted('ROLE_USER') %}
                 <a class="nav-item nav-link nav-account mr-4 d-none d-lg-block text-dark" href="{{ path('account') }}">
-                    <i class="fas fa-user fa-lg"></i>
+                    <i class="fas fa-user fa-lg"></i><span class="pl-2">{{ app.user }}</span>
                 </a>
                 <a class="nav-item nav-link d-block d-lg-none" href="{{ path('account') }}">
                     {% trans %}user.account{% endtrans %}

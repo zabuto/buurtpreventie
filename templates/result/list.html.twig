@@ -6,7 +6,7 @@
     <h1>{% trans %}walk.results{% endtrans %}</h1>
     <p>
         {% trans %}walk.result-explanation{% endtrans %}
-        {{ 'walk.result-count'|trans({'count': list|length}) }}
+        {{ 'walk.result-count'|trans({'%count%':  list|length}, 'messages') }}
     </p>
 
     {% if list|length > 0 %}
