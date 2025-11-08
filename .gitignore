@@ -1,3 +1,5 @@
+.DS_Store
+/.idea/
 
 ###> symfony/framework-bundle ###
 /.env.local
@@ -21,4 +23,5 @@
 
 ###> phpstan/phpstan ###
 phpstan.neon
+phpstan-errors.txt
 ###< phpstan/phpstan ###

@@ -11,6 +11,7 @@ use Symfony\Component\ObjectMapper\ObjectMapperInterface;
 use Symfony\Component\ObjectMapper\TransformCallableInterface;
 
 /**
+ * @implements TransformCallableInterface<Collection, array>
  * @template T
  * @template T2
  */

@@ -1,8 +1,13 @@
 parameters:
-    level: 6
+    level: 5
     paths:
         - bin/
         - config/
         - public/
         - src/
         - tests/
+    ignoreErrors:
+        -
+            message: '#^Property [A-Za-z0-9\\\\]+::\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+            paths:
+                - src/Entity/*

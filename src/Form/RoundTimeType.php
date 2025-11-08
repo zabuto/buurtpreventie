@@ -24,7 +24,7 @@ class RoundTimeType extends AbstractType
                 'label' => 'walk.round-time',
             ]);
 
-        $builder->addEventListener(FormEvents::POST_SET_DATA, static function (FormEvent $event) {
+        $builder->addEventListener(FormEvents::POST_SET_DATA, static function (FormEvent $event): void {
             /** @var Round|null $round */
             $round = $event->getData();
             $form = $event->getForm();
@@ -34,7 +34,7 @@ class RoundTimeType extends AbstractType
             }
         });
 
-        $builder->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event) {
+        $builder->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event): void {
             /** @var Round $round */
             $round = $event->getData();
             $form = $event->getForm();

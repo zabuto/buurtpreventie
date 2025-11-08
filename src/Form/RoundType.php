@@ -48,7 +48,7 @@ class RoundType extends AbstractType
                 'label' => 'comment.memo',
             ]);
 
-        $builder->addEventListener(FormEvents::POST_SET_DATA, static function (FormEvent $event) {
+        $builder->addEventListener(FormEvents::POST_SET_DATA, static function (FormEvent $event): void {
             /** @var Round|null $round */
             $round = $event->getData();
             $form = $event->getForm();
@@ -59,7 +59,7 @@ class RoundType extends AbstractType
             }
         });
 
-        $builder->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event) {
+        $builder->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event): void {
             /** @var Round $round */
             $round = $event->getData();
             $form = $event->getForm();

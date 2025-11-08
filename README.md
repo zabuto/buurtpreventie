@@ -64,6 +64,13 @@ symfony composer dump-env prod
 
 ## Development
 
+Het onderstaande commando haalt de nieuwste versies van packages op (volgens het composer.json-bestand) en werkt
+overeenkomstig het composer.lock bestand bij:
+
+```bash
+symfony composer update
+```
+
 De codebase kan via [PHPStan](https://phpstan.org) gescant worden om te zoeken naar zowel voor de hand liggende als
 lastige bugs.
 
