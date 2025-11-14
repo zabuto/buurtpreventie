@@ -46,4 +46,10 @@ class RoundResultRepository extends ServiceEntityRepository
         $this->getEntityManager()->persist($result);
         $this->getEntityManager()->flush();
     }
+
+    public function delete(RoundResult $result): void
+    {
+        $this->getEntityManager()->remove($result);
+        $this->getEntityManager()->flush();
+    }
 }

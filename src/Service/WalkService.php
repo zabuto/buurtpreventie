@@ -141,6 +141,13 @@ readonly class WalkService
         return $roundResult;
     }
 
+    public function isUserRoundResult(RoundResult $result): bool
+    {
+        $owner = $result->getUpdatedBy() ?? $result->getCreatedBy();
+
+        return $owner === $this->security->getUser();
+    }
+
     public function addComment(Round $round, string $memo): Comment
     {
         $comment = new Comment();
@@ -152,7 +159,7 @@ readonly class WalkService
         return $comment;
     }
 
-    public function userComment(Comment $comment): bool
+    public function isUserComment(Comment $comment): bool
     {
         $owner = $comment->getUpdatedBy() ?? $comment->getCreatedBy();
 

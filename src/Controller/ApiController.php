@@ -6,6 +6,7 @@ use App\Repository\CommentRepository;
 use App\Repository\MeetingPointRepository;
 use App\Repository\ResultRepository;
 use App\Repository\RoundRepository;
+use App\Repository\RoundResultRepository;
 use App\Service\CalendarService;
 use App\Service\WalkService;
 use DateTimeImmutable;
@@ -133,14 +134,27 @@ class ApiController extends AbstractController
     }
 
     #[Route('/api/comment/{id}/delete', name: 'api_comment_delete', requirements: ['id' => '\d+|placeholder'], methods: ['GET', 'POST', 'DELETE'])]
-    public function commentDelete(int $id, CommentRepository $repo): JsonResponse
+    public function commentDelete(int $id, CommentRepository $repo, WalkService $service): JsonResponse
     {
         $comment = $repo->find($id);
-        if (null === $comment) {
+        if (null === $comment || false === $service->isUserComment($comment)) {
             return new JsonResponse(sprintf('Comment %s not found', $id), Response::HTTP_NOT_FOUND);
         }
 
         $repo->delete($comment);
+
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+    }
+
+    #[Route('/api/roundresult/{id}/delete', name: 'api_roundresult_delete', requirements: ['id' => '\d+|placeholder'], methods: ['GET', 'POST', 'DELETE'])]
+    public function roundResultDelete(int $id, RoundResultRepository $repo, WalkService $service): JsonResponse
+    {
+        $result = $repo->find($id);
+        if (null === $result || false === $service->isUserRoundResult($result)) {
+            return new JsonResponse(sprintf('Result %s not found', $id), Response::HTTP_NOT_FOUND);
+        }
+
+        $repo->delete($result);
 
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }

@@ -105,6 +105,13 @@
                                 <small>{{ result.updatedAt|default(result.createdAt)|date('d-m-Y H:i') }}</small>
                             </dt>
                             <dd class="col-8">
+                                {% if service.isUserRoundResult(result) %}
+                                    <a href="#" class="delete_roundresult float-right action-icon"
+                                       data-id="{{ result.id }}"
+                                       style="margin-top: 0.2em;">
+                                        <i class="fas fa-times fa-fw float-right"></i>
+                                    </a>
+                                {% endif %}
                                 {% if result.memo is not empty %}{{ result.memo|nl2br }}{% endif %}
                             </dd>
                         {% endfor %}
@@ -132,8 +139,9 @@
                         <small>{{ comment.updatedAt|default(comment.createdAt)|date('d-m-Y H:i') }}</small>
                     </dt>
                     <dd data-id="{{ comment.id }}" class="col-8">
-                        {% if service.userComment(comment) %}
-                            <a href="#" class="delete_comment float-right action-icon" data-id="{{ comment.id }}">
+                        {% if service.isUserComment(comment) %}
+                            <a href="#" class="delete_comment float-right action-icon" data-id="{{ comment.id }}"
+                               style="margin-top: 0.2em;">
                                 <i class="fas fa-times fa-fw float-right"></i>
                             </a>
                         {% endif %}
@@ -362,6 +370,36 @@
                     window.location.reload(false);
                 }).fail(function () {
                 });
+            });
+
+            $('.delete_roundresult').on('click', function () {
+                let url = roundResultDeleteUrl.replace('placeholder', $(this).data('id'));
+                bootbox.confirm({
+                    message: "{% trans %}Delete{% endtrans %} " + "{% trans %}walk.result{% endtrans %}".toLowerCase() + "?",
+                    buttons: {
+                        confirm: {
+                            label: '{% trans %}Yes{% endtrans %}',
+                            className: 'btn-danger'
+                        },
+                        cancel: {
+                            label: '{% trans %}No{% endtrans %}',
+                            className: 'btn-muted'
+                        }
+                    },
+                    callback: function (result) {
+                        if (result) {
+                            $.ajax({
+                                type: "DELETE",
+                                url: url
+                            }).done(function () {
+                                window.location.reload(false);
+                            }).fail(function (xhr, status, error) {
+                                bootbox.alert(xhr.responseText);
+                            });
+                        }
+                    }
+                });
+
             });
         });
 
