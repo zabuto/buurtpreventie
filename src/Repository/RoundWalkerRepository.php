@@ -67,17 +67,18 @@ class RoundWalkerRepository extends ServiceEntityRepository
      */
     public function getFutureForWalker(User $user): array
     {
-        $now = new DateTime();
+        $today = new DateTime();
+        $today->setTime(23, 59, 59);
 
         $qb = $this->createQueryBuilder('rw');
         $qb->innerJoin(Round::class, 'r', 'WITH', 'rw.round = r.id');
         $qb->innerJoin(User::class, 'u', 'WITH', 'rw.walker = u.id');
 
         $qb->andWhere('u.id = :user_id');
-        $qb->andWhere($qb->expr()->gt('r.date', ':today'));
+        $qb->andWhere($qb->expr()->gt('r.datetime', ':today'));
 
         $qb->setParameter('user_id', $user->getId());
-        $qb->setParameter('today', $now);
+        $qb->setParameter('today', $today);
 
         return $qb->getQuery()->getResult();
     }
