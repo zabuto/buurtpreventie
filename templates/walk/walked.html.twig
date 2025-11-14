@@ -58,10 +58,16 @@
                                         type="button" class="btn btn-outline-primary float-right round-button-result">
                                     {% trans %}walk.result-add{% endtrans %}
                                 </button>
+                            {% else %}
+                                <button data-round="{{ round.id }}"
+                                        data-location="{{ path('walk_detail', {id: round.id}) }}"
+                                        type="button" class="btn btn-light float-right round-button-detail">
+                                    {% trans %}View details{% endtrans %}
+                                </button>
                             {% endif %}
 
                             {% if round.results|length > 0 %}
-                                <ul class="list-unstyled">
+                                <ul class="list-unstyled d-none d-sm-block">
                                     {% for result in round.results %}
                                         <li data-result="{{ result.id }}">
                                             {{ service.getUserName(result) }}
@@ -93,6 +99,10 @@
 {% block javascripts %}
     <script>
         $(function () {
+            $('.round-button-detail').on('click', function () {
+                window.location = $(this).data('location');
+            });
+
             $('.round-button-result').on('click', function () {
                 let round = $(this).data('round');
                 $('#result-modal').modal();
