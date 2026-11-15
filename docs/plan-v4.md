@@ -24,8 +24,8 @@ Buurtpreventie v4 wordt een Symfony 7.4 LTS-backend met een echte REST-API (`/ap
 | 1 | Domein, use cases, Voters, auditlog, database, voorbeelddata | bezig: T1 tot en met T8 van 16 klaar (`feature/phase-1`) |
 | 2 | REST-API v1 met inloggen en API-tokens | open |
 | 3 | Branding en configuratie | open |
-| 4 | Frontend (Lit, PWA, WCAG 2.2 AA) | open |
-| 5 | MCP-server | open |
+| 4 | MCP-server | open |
+| 5 | Frontend (Lit, PWA, WCAG 2.2 AA) | open |
 | 5b | Conversie v3 → v4 | open |
 | 6a | Installeren en releasen | open |
 | 6b | Bijwerken, onderhoud en overdracht | open |
@@ -194,7 +194,7 @@ De applicatielaag is het hart: een regel als "minimaal twee lopers" of "alleen e
 
 **Waarom buildless.** Geen Node-toolchain bij installeren of bijwerken, net als in je andere projecten. Lit draait als één gevendord bestand (lit-core.min.js) via relatieve imports, zonder importmap; de release-workflow kopieert `frontend/` naar `public/app/`.
 
-**Lit, met een evaluatiemoment.** Lit is de keuze voor v4, ook al heeft de ontwikkelaar er nog weinig ervaring mee. Fase 4 begint daarom met een proef van één scherm. Na fase 4 legt een korte ADR vast hoe het bevalt. Blijkt Lit lastig, dan kan een latere versie overstappen, bijvoorbeeld naar Preact met htm, zonder gevolgen voor API, MCP of backend: de frontend staat volledig los.
+**Lit, met een evaluatiemoment.** Lit is de keuze voor v4, ook al heeft de ontwikkelaar er nog weinig ervaring mee. Fase 5 begint daarom met een proef van één scherm. Na fase 5 legt een korte ADR vast hoe het bevalt. Blijkt Lit lastig, dan kan een latere versie overstappen, bijvoorbeeld naar Preact met htm, zonder gevolgen voor API, MCP of backend: de frontend staat volledig los.
 
 ## Codestructuur
 
@@ -408,7 +408,7 @@ Testen met echte lopers en toestellen:
 
 - Automatisch: axe-core op elk scherm in CI (Playwright, alleen in CI, niet nodig op de server), met de tags `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa` en `wcag22aa`. De contrastregel blijft aan, omdat beheerders de kleuren zelf instellen.
 - Handmatig per release: één ronde met alleen toetsenbord, met VoiceOver op een iPhone en met NVDA op Windows; checklist in `docs/testing.md`.
-- In fase 4: twee echte lopers doen aanmelden en terugmelden op hun eigen telefoon, met voorbeelddata.
+- In fase 5: twee echte lopers doen aanmelden en terugmelden op hun eigen telefoon, met voorbeelddata.
 - Een korte toegankelijkheidsverklaring staat in de app (standaardtekst, aan te passen in de instellingen).
 
 ## Domeinmodel en API-ontwerp
@@ -628,7 +628,7 @@ De vereniging is verwerkingsverantwoordelijke: zij stelt de privacyverklaring, b
 **Beveiliging.**
 
 - Alleen HTTPS; de installer weigert zonder.
-- Beveiligingsheaders: de API stuurt een CSP die niets toestaat, `nosniff`, `Referrer-Policy: no-referrer` en `Cross-Origin-Opener-Policy: same-origin` (fase 1); de frontend krijgt een eigen CSP en `Permissions-Policy` (fase 4), HSTS volgt in fase 6a.
+- Beveiligingsheaders: de API stuurt een CSP die niets toestaat, `nosniff`, `Referrer-Policy: no-referrer` en `Cross-Origin-Opener-Policy: same-origin` (fase 1); de frontend krijgt een eigen CSP en `Permissions-Policy` (fase 5), HSTS volgt in fase 6a.
 - Wachtwoorden en tokens alleen gehasht opgeslagen.
 - Elk geheim maakt de app zelf, met `random_bytes`, en niemand typt het in: API-tokens, inloglinks, wachtwoord-reset, het installer-token, `APP_SECRET` en de tick-sleutel. Zo kan er geen kort of zelfbedacht geheim in komen. De installer schrijft `APP_SECRET` en `TICK_SECRET` in `shared/.env.local`; Onderhoud vervangt de tick-sleutel met een knop, zonder invoerveld. Het domein weigert een geheim dat niet het gegenereerde formaat heeft.
 - Rechten via rollen en Voters, gecontroleerd met de matrixtest.
@@ -757,7 +757,7 @@ v4 start op 7.4 LTS en stapt in 2028 over naar 8.4 LTS (verwacht november 2027),
 
 Fase 0 t/m 6 zijn de kern, fase 7 tot en met 15 optionele uitbreidingen, in volgorde van aanpak; na fase 2 is de API bruikbaar, na fase 6 is de MVP klaar; de overstap van bestaande installaties is daarna een apart project. Elke fase levert iets testbaars op en krijgt bij de start een eigen gedetailleerd taakplan (test eerst, kleine commits).
 
-Fase 3, 4 en 5 hangen alleen van de API af; wie het frontend het eerst nodig heeft, doet fase 3 en 4 vóór MCP.
+Fase 3, 4 en 5 hangen alleen van de API af; MCP (fase 4) gaat vóór de frontend (fase 5).
 
 ### Fase 0 — Basis
 
@@ -789,7 +789,7 @@ Fase 3, 4 en 5 hangen alleen van de API af; wie het frontend het eerst nodig hee
   - hij zoekt het token op de SHA-256-hash; het token zelf staat nergens, en draagt geen inhoud en geen controlegetal;
   - één `match` met elke reden om te weigeren: onbekend, ingetrokken, verlopen, lid gedeactiveerd of gewist (review-focus 4: het token werkt meteen niet meer);
   - een weigering is een 401 zonder body, met `WWW-Authenticate: Bearer`; de reden gaat alleen naar ons log, in woorden die het datamodel niet prijsgeven, en de exceptie draagt een algemene melding;
-  - bij succes: `markUsed()` op het token, de scopes `read`, `write` en `admin` vertaald voor de Voters, en `ExecutionContext` gevuld met het lid, zijn rollen en kanaal `api` (of `mcp` in fase 5), zodat er één bron is voor wie de actie uitvoert;
+  - bij succes: `markUsed()` op het token, de scopes `read`, `write` en `admin` vertaald voor de Voters, en `ExecutionContext` gevuld met het lid, zijn rollen en kanaal `api` (of `mcp` in fase 4), zodat er één bron is voor wie de actie uitvoert;
   - geen JWT: dat is niet meteen in te trekken zonder toch bij elk verzoek op te zoeken, de inhoud is leesbaar, en één gelekte sleutel ondertekent elk token.
   Of dit Symfony's `access_token`-authenticator met eigen handler wordt of een eigen authenticator, beslist het taakplan; het moet ook een ontbrekend token loggen.
 - [ ] Alle endpoints uit het API-ontwerp, `problem+json`-fouten, OpenAPI via NelmioApiDocBundle.
@@ -805,7 +805,15 @@ Fase 3, 4 en 5 hangen alleen van de API af; wie het frontend het eerst nodig hee
 
 **Klaar als:** een tweede vereniging alleen via het beheerscherm een eigen naam, logo, kleuren en teksten krijgt, zonder codewijziging.
 
-### Fase 4 — Frontend
+### Fase 4 — MCP-server
+
+- [ ] `symfony/mcp-bundle` + `mcp/sdk` (minor vastgepind), tools als `…Tool`-klasse in de map van de use case: dunne wrappers om de handler, met een pariteitstest tegen de REST-controller.
+- [ ] Use case `RoundStatistics` met de tool `round_statistics` (het scherm volgt in fase 8); token-scopes, rate limit, audit `via: mcp`, DNS-rebinding-instelling.
+- [ ] Tests met de SDK-client in PHPUnit: elke tool, en elke tool geweigerd zonder juiste scope of rol.
+
+**Klaar als:** de MCP Inspector alle tools ziet en Claude Code met een token `staffing_gaps` en `sign_up_for_round` kan gebruiken.
+
+### Fase 5 — Frontend
 
 **Eerst ontwerp.** Vóór de Lit-proef komen er schetsen op telefoonformaat van de vijf belangrijkste schermen: Zoekt een loopmaatje, ronde (aan- en afmelden), terugmelden, Mijn rondes en inloggen. Twee lopers, onder wie een minder ervaren loper, kijken ernaar; pas daarna wordt er gebouwd.
 
@@ -817,14 +825,6 @@ Fase 3, 4 en 5 hangen alleen van de API af; wie het frontend het eerst nodig hee
 **Klaar als:** elk scherm van de oude app een tegenhanger heeft en een loper op een telefoon in drie tikken kan aanmelden, ook op een iPhone met iOS 15, en de minst ervaren testloper dat zonder hulp doet. De evaluatie van Lit staat in een ADR.
 
 **Ter goedkeuring in het taakplan:** Renovate om de versies van gevendorde bibliotheken (Lit, later Leaflet) te volgen, met dezelfde cooldown; Dependabot ziet gevendorde bestanden niet. Alleen zelf gedraaid in GitHub Actions, nooit de gehoste app van Mend, omdat die schrijfrechten op de repo krijgt (ADR 0004).
-
-### Fase 5 — MCP-server
-
-- [ ] `symfony/mcp-bundle` + `mcp/sdk` (minor vastgepind), tools als `…Tool`-klasse in de map van de use case: dunne wrappers om de handler, met een pariteitstest tegen de REST-controller.
-- [ ] Use case `RoundStatistics` met de tool `round_statistics` (het scherm volgt in fase 8); token-scopes, rate limit, audit `via: mcp`, DNS-rebinding-instelling.
-- [ ] Tests met de SDK-client in PHPUnit: elke tool, en elke tool geweigerd zonder juiste scope of rol.
-
-**Klaar als:** de MCP Inspector alle tools ziet en Claude Code met een token `staffing_gaps` en `sign_up_for_round` kan gebruiken.
 
 ### Fase 5b — Conversie v3 → v4
 
@@ -863,14 +863,14 @@ Na fase 6 draait de kern. De uitbreidingen staan in de volgorde waarin ze het me
 | Fase | Uitbreiding | Waarde | Moeite | Waarom op deze plek |
 | --- | --- | --- | --- | --- |
 | 7 | iCal-feed met eigen rondes | middel | klein | Snelle winst: rondes in de eigen agenda, met de herinnering van de telefoon, ook zonder cron |
-| 8 | Statistieken voor analist | middel tot hoog | klein | Snelle winst: de use case bestaat al sinds fase 5 (MCP); alleen het scherm komt erbij |
+| 8 | Statistieken voor analist | middel tot hoog | klein | Snelle winst: de use case bestaat al sinds fase 4 (MCP); alleen het scherm komt erbij |
 | 9 | Vast loopmaatje uitnodigen | hoog | middel | Pakt het kernprobleem aan: ruim een kwart van de rondes vindt geen loopmaatje |
 | 10 | Pushmeldingen | middel | middel | Maakt herinneringen en uitnodigingen sneller; daarom na fase 9 |
 | 11 | Offline terugmelden | laag tot middel | middel | Handig bij slecht bereik; terugmelden kan ook thuis |
 | 12 | Route en incidentkaart | middel | groot | Veel werk en privacy-afwegingen; alleen met toestemming en na afstemming met het bestuur |
 | 13 | OAuth voor MCP-clients | laag | groot | Later: maakt MCP bruikbaar voor lopers vanuit web- en telefoonapps, met inloggen in plaats van een token; per vereniging aan of uit |
 | 14 | Vaste export voor politie en gemeente | nog te bepalen | klein tot middel | Eerst met de coördinator uitwerken welke cijfers, in welke vorm en hoe vaak |
-| 15 | Terugmelden met spraak | middel | klein tot middel | Makkelijker terugmelden onderweg; dicteren via het toetsenbord kan al in fase 4, de route via MCP pas na OAuth (fase 13) |
+| 15 | Terugmelden met spraak | middel | klein tot middel | Makkelijker terugmelden onderweg; dicteren via het toetsenbord kan al in fase 5, de route via MCP pas na OAuth (fase 13) |
 | 16 | Reageren op de terugmelding | laag tot middel | klein | Eén terugmelding per ronde; de andere lopers laten zien of ze het ermee eens zijn |
 
 ### Fase 7 — iCal-feed met eigen rondes
@@ -888,7 +888,7 @@ Er komt een scherm Statistieken voor analist en coördinator, met exacte cijfers
 
 - [ ] **Grafieken:** per maand gelopen tegenover niet gelopen (geen loopmaatje), met percentage; per weekdag; per dagdeel; uitkomsten en incidenten per maand; de komende weken met rondes die nog een loopmaatje zoeken.
 - [ ] **Filters:** periode, dagdeel en startpunt, en vergelijken met de vorige periode.
-- [ ] **API en MCP:** `GET /api/v1/stats/rounds?from=&to=&groupBy=month|weekday|daypart` en `GET /api/v1/stats/outcomes`, gebouwd op de use case `RoundStatistics` uit fase 5, die ook de MCP-tool `round_statistics` voedt.
+- [ ] **API en MCP:** `GET /api/v1/stats/rounds?from=&to=&groupBy=month|weekday|daypart` en `GET /api/v1/stats/outcomes`, gebouwd op de use case `RoundStatistics` uit fase 4, die ook de MCP-tool `round_statistics` voedt.
 - [ ] **Getekend als eigen SVG-componenten in Lit**, zonder grafiekbibliotheek. Elke grafiek heeft een titel die de conclusie zegt, een tabelweergave voor schermlezers, en kleur is nooit de enige drager (WCAG).
 - [ ] **Privacy:** alleen totalen, geen ranglijsten of cijfers per loper. Een loper ziet alleen zijn eigen aantallen onder Mijn rondes.
 - [ ] **Export:** de getoonde cijfers als CSV; een vaste rapportage voor politie en gemeente volgt eventueel in fase 14.
@@ -934,7 +934,7 @@ Een loper kan iemand met wie hij vaak loopt vragen of die weer meeloopt, maar al
 Een losse uitbreiding die pas start als fase 0 t/m 6 draaien. Standaard staat hij uit; een vereniging zet hem aan in de instellingen, en daarna kiest elke loper zelf of hij meedoet.
 
 - [ ] **Toestemming per loper:** apart vinkje "mijn route mag worden vastgelegd", standaard uit en altijd in te trekken. Pas na toestemming verschijnt de knop "Route opnemen".
-- [ ] **Locatie in `Permissions-Policy`:** `geolocation=(self)` alleen als de uitbreiding aan staat; uit fase 4 staat locatie uit.
+- [ ] **Locatie in `Permissions-Policy`:** `geolocation=(self)` alleen als de uitbreiding aan staat; uit fase 5 staat locatie uit.
 - [ ] **Route opnemen tijdens de ronde** via de locatie van de browser, alleen zolang de app open en het scherm aan is: een webapp kan niet betrouwbaar op de achtergrond volgen. Duidelijke melding "Route wordt opgenomen" met een stopknop.
 - [ ] **Alternatief zonder volgen:** de route achteraf op de kaart intekenen of alleen de gelopen straten aantikken. Werkt ook op oude telefoons en kost geen batterij.
 - [ ] **Pin bij een melding:** bij een terugmelding "Locatie toevoegen", met de huidige plek of door op de kaart te tikken, zodat de coördinator weet waar het was.
@@ -949,7 +949,7 @@ Een losse uitbreiding die pas start als fase 0 t/m 6 draaien. Standaard staat hi
 ### Fase 13 — OAuth voor MCP-clients (later)
 
 - [ ] OAuth 2.1-autorisatieserver (authorization code + PKCE) naast de bestaande tokens, voor MCP-clients die alleen OAuth ondersteunen. Opt-in per vereniging: standaard uit, de beheerder zet het aan in de instellingen, dus elke vereniging beslist zelf. Uitzetten trekt alle OAuth-koppelingen meteen in.
-- [ ] Een latere uitbreiding: tot die tijd werkt MCP met de tokens uit fase 5, vooral voor ontwikkelaar en coördinator vanuit bijvoorbeeld Claude Code of Claude Desktop. Met OAuth kunnen ook lopers MCP gebruiken vanuit een web- of telefoonapp, door in te loggen in plaats van een token in te vullen. De MCP SDK controleert tokens maar geeft ze niet uit, dus dit is extra code en extra beveiligingsrisico.
+- [ ] Een latere uitbreiding: tot die tijd werkt MCP met de tokens uit fase 4, vooral voor ontwikkelaar en coördinator vanuit bijvoorbeeld Claude Code of Claude Desktop. Met OAuth kunnen ook lopers MCP gebruiken vanuit een web- of telefoonapp, door in te loggen in plaats van een token in te vullen. De MCP SDK controleert tokens maar geeft ze niet uit, dus dit is extra code en extra beveiligingsrisico.
 
 **Klaar als:** de gewenste client via OAuth inlogt, met dezelfde scopes en rollen als een token.
 
@@ -961,13 +961,13 @@ Nog open: of de coördinator een vaste rapportage wil, en zo ja welke. Vóór he
 - [ ] In welke vorm: CSV, een afdrukbare pagina of PDF.
 - [ ] Hoe vaak, en of de export automatisch per mail moet (dat vraagt dan een tijdtrigger).
 
-De bouwstenen zijn er dan al: de use case `RoundStatistics` (fase 5), het statistiekenscherm (fase 8) en de MCP-prompt `monthly_report`. Uitgangspunt: geen persoonsgegevens in de export.
+De bouwstenen zijn er dan al: de use case `RoundStatistics` (fase 4), het statistiekenscherm (fase 8) en de MCP-prompt `monthly_report`. Uitgangspunt: geen persoonsgegevens in de export.
 
 ### Fase 15 — Terugmelden met spraak (later)
 
 Een loper zegt na de ronde wat er was, in plaats van te typen. Dat helpt onderweg, met koude handen, en voor lopers die moeilijk typen. Opt-in per vereniging, en de browserroute ook per lid.
 
-- [ ] **Dicteren via het toetsenbord:** het notitieveld is groot genoeg en de uitleg wijst op de microfoonknop van het telefoontoetsenbord (iPhone en Android). Dat vraagt geen code en werkt ook op iOS 15; de tip kan al in fase 4 mee.
+- [ ] **Dicteren via het toetsenbord:** het notitieveld is groot genoeg en de uitleg wijst op de microfoonknop van het telefoontoetsenbord (iPhone en Android). Dat vraagt geen code en werkt ook op iOS 15; de tip kan al in fase 5 mee.
 - [ ] **Microfoonknop in de app:** spraakherkenning van de browser, alleen waar de browser dat ondersteunt; anders is de knop er niet. De tekst komt eerst in het veld, de loper controleert en verstuurt zelf. Vooraf een melding dat de browser de spraak verwerkt, bij Chrome via Google.
 - [ ] **Via MCP:** de loper spreekt in een AI-app, bijvoorbeeld "Ronde van vanavond gelopen, niets bijzonders, lantaarnpaal kapot bij de school". De AI-app maakt daar een uitkomst en notitie van en roept `report_round_result` aan, na bevestiging door de loper. Voor lopers op de telefoon is OAuth nodig (fase 13). De terugmelding is daarna in de app aan te passen of te verwijderen; het auditlog noteert kanaal `mcp`.
 - [ ] **Bescherming in de notitie:** lijkt iets op een kenteken, telefoonnummer of e-mailadres, dan waarschuwt de app ("Geef dit liever direct door aan de politie"), in het scherm én in de uitvoer van de MCP-tool.
@@ -986,7 +986,7 @@ Een ronde heeft één terugmelding, van één loper of de coördinator. De ander
 
 ## Overstap van bestaande v3-installaties
 
-Een vereniging die nu op v3 draait, blijft dat doen tot de MVP klaar is (fase 0 tot en met 4, 5b en 6a/6b). De overstap is per vereniging een apart project, buiten deze repo; de ontwikkeling van v4 wacht er niet op. De stappen in het kort:
+Een vereniging die nu op v3 draait, blijft dat doen tot de MVP klaar is (fase 0 tot en met 3, 5, 5b en 6a/6b). De overstap is per vereniging een apart project, buiten deze repo; de ontwikkeling van v4 wacht er niet op. De stappen in het kort:
 
 1. **Voorbereiden:** subdomein en certificaat, PHP 8.4, cron, een mailadres voor de app.
 2. **Installeren en oefenen:** web-installer, cronregel, testmail; een generale repetitie van de conversie op een kopie van de database, eerst met `--dry-run`, en de kopie daarna wissen; testen met de coördinator en een paar lopers.
@@ -1106,24 +1106,24 @@ Neem de teksten uit ../buurtpreventie-legacy/translations als startpunt.
 Links in e-mails moeten werken in een submap (review-focus 5).
 ```
 
-Fase 4 — frontend:
+Fase 4 — MCP:
 
 ```text
-Fase 4 uit docs/plan-v4.md, met de sectie Frontend: PWA, responsive en toegankelijk.
+Fase 4 uit docs/plan-v4.md. Taakplan eerst, wacht op akkoord.
+symfony/mcp-bundle + mcp/sdk (minor vastgepind), stateless HTTP op /mcp, tools uit de
+sectie MCP-server als dunne wrappers om bestaande handlers. Scopes, rate limit, kanaal
+"mcp" in het auditlog. Test elke tool met de SDK-client, ook geweigerd zonder scope of rol.
+```
+
+Fase 5 — frontend:
+
+```text
+Fase 5 uit docs/plan-v4.md, met de sectie Frontend: PWA, responsive en toegankelijk.
 Taakplan eerst, wacht op akkoord.
 Bouw frontend/ buildless met de gevendorde Lit-bundel (geen importmap), alleen tegen
 /api/v1. Doelgroep: lopers van elk digitaal niveau, ook op iOS 15; zie die alinea. Gebruik
 ../buurtpreventie-legacy/templates als lijst van schermen, niet als ontwerp. Mobiel eerst,
 WCAG 2.2 AA, formulieren in light DOM, service worker op het basispad, axe-core in CI.
-```
-
-Fase 5 — MCP:
-
-```text
-Fase 5 uit docs/plan-v4.md. Taakplan eerst, wacht op akkoord.
-symfony/mcp-bundle + mcp/sdk (minor vastgepind), stateless HTTP op /mcp, tools uit de
-sectie MCP-server als dunne wrappers om bestaande handlers. Scopes, rate limit, kanaal
-"mcp" in het auditlog. Test elke tool met de SDK-client, ook geweigerd zonder scope of rol.
 ```
 
 Fase 5b — conversie v3 → v4:
@@ -1189,7 +1189,7 @@ Alleen rapporteren, niets wijzigen.
 
 | Risico | Gevolg | Maatregel |
 | --- | --- | --- |
-| MCP SDK en bundle zijn nog pre-1.0 | Breaking changes bij updates | Minor vastpinnen, alle MCP-code in `…Tool`-klassen, tests per tool; MCP pas in fase 5 |
+| MCP SDK en bundle zijn nog pre-1.0 | Breaking changes bij updates | Minor vastpinnen, alle MCP-code in `…Tool`-klassen, tests per tool; MCP pas in fase 4 |
 | Hosting zonder SSH | Geen `bin/console` voor installatie en migraties | Release-zip + web-installer; herinneringen via cron in het hostingpaneel, of een externe tick |
 | Host stript `Authorization`-header | Tokens en MCP werken niet | Regel in `.htaccess` + een diagnosepagina in de installer die het controleert |
 | Persoonsgegevens via AI-clients | AVG-vraag voor de vereniging | Dataminimalisatie in MCP-uitvoer, MCP standaard uit, per vereniging aan te zetten |
@@ -1201,6 +1201,6 @@ Alleen rapporteren, niets wijzigen.
 
 1. **Twee lopers melden tegelijk aan** voor de laatste plek of de eerste aanmelding: geen dubbele `Participation`, nooit meer lopers dan het maximum (de ander krijgt "ronde is vol"), minimumstatus klopt (slot op de ronde, unique constraint + test, fase 1).
 2. **Rondes rond de zomer-/wintertijdwissel**: een ronde om 22:00 blijft 22:00 lokale tijd in kalender, API, MCP en herinnering (fase 1 en 2).
-3. **Lid zonder toestemming** verschijnt in `/members`, `get_round` of een e-mail: nooit telefoon, e-mail of adres (fase 2 en 5).
+3. **Lid zonder toestemming** verschijnt in `/members`, `get_round` of een e-mail: nooit telefoon, e-mail of adres (fase 2 en 4).
 4. **Gedeactiveerd of verwijderd lid** in toekomstige rondes, ledenlijst of als token-eigenaar: wordt uitgeschreven, en het token werkt meteen niet meer (fase 1 en 2).
 5. **App in een pad of op een subdomein**: links in e-mails, wachtwoord-reset, inloglinks en `manifest` gebruiken de ingestelde basis-URL (subdomein of `/buurtpreventie/`) en bevatten nooit `/public/` (fase 3 en 6).

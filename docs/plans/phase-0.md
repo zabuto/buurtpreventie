@@ -42,9 +42,9 @@ Oude repo afgerond en hernoemd, nieuwe repo `zabuto/buurtpreventie` met `main` e
    entiteiten in de uitvoer) worden bewaakt. `<Naam>Result` valt af omdat `ReportRoundResult` dan
    `ReportRoundResultResult` wordt. `AGENTS.md` (Structure) en Codestructuur in het plan krijgen
    die regel erbij.
-4. **`<Naam>Tool.php` zonder MCP SDK tot fase 5.** De generator maakt de tool als gewone klasse
-   die alleen de eigen handler aanroept, zodat regel 3 voor tools nu al getest wordt. Fase 5 voegt
-   het MCP-attribuut toe aan het sjabloon en aan bestaande tools. Alternatief: de tool pas in fase 5
+4. **`<Naam>Tool.php` zonder MCP SDK tot fase 4.** De generator maakt de tool als gewone klasse
+   die alleen de eigen handler aanroept, zodat regel 3 voor tools nu al getest wordt. Fase 4 voegt
+   het MCP-attribuut toe aan het sjabloon en aan bestaande tools. Alternatief: de tool pas in fase 4
    genereren; dan is regel 3 voor tools tot die tijd onbewaakt.
 5. **De regel "elke module heeft Domain, UseCase en Infrastructure" wordt een PHPUnit-test, geen
    PHPat-regel.** PHPat controleert afhankelijkheden tussen klassen; lege mappen bevatten geen
@@ -149,7 +149,7 @@ Daarna de PHPat-regels, elk met een `because()`-tekst met de reden en een link n
    uitvoer) of via interfaces in `Shared\Domain`.
 5. Twig alleen in de mailinfrastructuur en de installer.
 
-Regel 6 uit het plan (frontend roept alleen endpoints uit de OpenAPI-spec aan) hoort bij fase 4.
+Regel 6 uit het plan (frontend roept alleen endpoints uit de OpenAPI-spec aan) hoort bij fase 5.
 
 ### T6. Generator `app:make:use-case` (test eerst)
 

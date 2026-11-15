@@ -49,7 +49,7 @@ A `UseCase/<Name>/` folder holds only these files, all `final readonly`:
 | `<Name>Controller.php` | REST adapter: request to input, call the handler, return JSON | when there is a REST entry |
 | `<Name>Tool.php` | MCP adapter: tool call to input, call the handler | when there is an MCP entry |
 
-The tool gets its MCP binding in phase 5; until then it is a plain class that calls the handler.
+The tool gets its MCP binding in phase 4; until then it is a plain class that calls the handler.
 
 ## Worked example: CheckHealth
 
@@ -238,4 +238,4 @@ installer, nothing else.
 ### Rule 6: frontend and OpenAPI
 
 The frontend calls only endpoints listed in the OpenAPI spec. This contract test arrives with the
-frontend in phase 4.
+frontend in phase 5.
