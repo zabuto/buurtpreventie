@@ -480,7 +480,7 @@ De MCP-server is een dunne laag op `/mcp` die dezelfde use cases en Voters aanro
 | `sign_up_for_round` / `withdraw_from_round` | Aan- en afmelden | `write` | loper |
 | `create_round` | Nieuwe ronde op datum, tijd, startpunt | `write` | loper |
 | `report_round_result` | Uitkomst + notitie na de ronde | `write` | loper |
-| `add_round_comment` | Opmerking bij een ronde | `write` | lid |
+| `add_round_comment` | Opmerking bij een ronde | `write` | loper van die ronde, coördinator, beheerder |
 | `report_summary` | Aantallen per uitkomst en incidenten in een periode | `read` | analist |
 | `list_meeting_points`, `list_outcomes` | Keuzelijsten | `read` | lid |
 | `round_statistics` | Aantallen gepland, gelopen, niet gelopen (geen loopmaatje) en incidenten, per maand, weekdag of dagdeel, met percentages en vergelijking met de vorige periode | `read` | analist, coördinator |
