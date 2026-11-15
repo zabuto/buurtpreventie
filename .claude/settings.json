@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(/.env)",
+      "Read(/.env.dev)",
+      "Read(/.env.test)",
+      "Edit(/.env)",
+      "Edit(/.env.dev)",
+      "Edit(/.env.test)"
+    ]
+  },
+  "sandbox": {
+    "filesystem": {
+      "allowRead": [".env", ".env.dev", ".env.test"]
+    }
+  }
+}
