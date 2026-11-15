@@ -6,10 +6,10 @@ namespace App\Patrol\UseCase\ChangeOutcome;
 
 use App\Patrol\Domain\OutcomeNameTaken;
 use App\Patrol\Domain\OutcomeRepository;
+use App\Patrol\Domain\UniqueCatalogueName;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\AuditTrail;
 use App\Shared\Domain\Authorization;
-use App\Shared\Domain\LookupKey;
 use App\Shared\Domain\NotFound;
 use App\Shared\Domain\Transaction;
 use App\Shared\Domain\WriteAction;
@@ -20,6 +20,7 @@ final readonly class ChangeOutcomeHandler
 {
     public function __construct(
         private OutcomeRepository $outcomes,
+        private UniqueCatalogueName $uniqueName,
         private Authorization $authorization,
         private AuditTrail $auditTrail,
         private Transaction $transaction,
@@ -36,12 +37,7 @@ final readonly class ChangeOutcomeHandler
 
         $this->transaction->run(function () use ($input): void {
             $outcome = $this->outcomes->get(Uuid::fromString($input->outcomeId));
-
-            // Another spelling of its own name is no clash.
-            $existing = $this->outcomes->findByNameKey(LookupKey::fromName($input->name));
-            if (null !== $existing && !$existing->id()->equals($outcome->id())) {
-                throw OutcomeNameTaken::by($existing);
-            }
+            $this->uniqueName->ensureOutcomeNameAvailable($input->name, $outcome->id());
 
             $oldName = $outcome->name();
             $outcome->rename($input->name);

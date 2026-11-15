@@ -7,11 +7,13 @@ namespace App\Tests\Patrol\UseCase\CreateOutcome;
 use App\Patrol\Domain\Outcome;
 use App\Patrol\Domain\OutcomeKind;
 use App\Patrol\Domain\OutcomeNameTaken;
+use App\Patrol\Domain\UniqueCatalogueName;
 use App\Patrol\UseCase\CreateOutcome\CreateOutcome;
 use App\Patrol\UseCase\CreateOutcome\CreateOutcomeHandler;
 use App\Shared\Domain\AccessDenied;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\LookupKey;
+use App\Tests\Patrol\Fake\InMemoryMeetingPointRepository;
 use App\Tests\Patrol\Fake\InMemoryOutcomeRepository;
 use App\Tests\Shared\Fake\FakeAuthorization;
 use App\Tests\Shared\Fake\ImmediateTransaction;
@@ -117,6 +119,7 @@ final class CreateOutcomeHandlerTest extends TestCase
     {
         return new CreateOutcomeHandler(
             $this->outcomes,
+            new UniqueCatalogueName(new InMemoryMeetingPointRepository(), $this->outcomes),
             $authorization ?? FakeAuthorization::granting(),
             $this->auditTrail,
             new ImmediateTransaction(),

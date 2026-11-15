@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace App\Patrol\UseCase\ChangeMeetingPoint;
 
 use App\Patrol\Domain\Coordinates;
-use App\Patrol\Domain\MeetingPoint;
 use App\Patrol\Domain\MeetingPointNameTaken;
 use App\Patrol\Domain\MeetingPointRepository;
+use App\Patrol\Domain\UniqueCatalogueName;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\AuditTrail;
 use App\Shared\Domain\Authorization;
-use App\Shared\Domain\LookupKey;
 use App\Shared\Domain\NotFound;
 use App\Shared\Domain\Transaction;
 use App\Shared\Domain\WriteAction;
@@ -23,6 +22,7 @@ final readonly class ChangeMeetingPointHandler
 {
     public function __construct(
         private MeetingPointRepository $meetingPoints,
+        private UniqueCatalogueName $uniqueName,
         private Authorization $authorization,
         private AuditTrail $auditTrail,
         private Transaction $transaction,
@@ -37,11 +37,11 @@ final readonly class ChangeMeetingPointHandler
     public function __invoke(ChangeMeetingPoint $input): void
     {
         $this->authorization->denyUnlessGranted('catalogue.manage');
-        $coordinates = $this->coordinates($input);
+        $coordinates = Coordinates::fromOptional($input->latitude, $input->longitude);
 
         $this->transaction->run(function () use ($input, $coordinates): void {
             $meetingPoint = $this->meetingPoints->get(Uuid::fromString($input->meetingPointId));
-            $this->guardName($meetingPoint, $input->name);
+            $this->uniqueName->ensureMeetingPointNameAvailable($input->name, $meetingPoint->id());
 
             $old = ['name' => $meetingPoint->name(), ...$this->position($meetingPoint->coordinates())];
             $meetingPoint->rename($input->name);
@@ -64,32 +64,6 @@ final readonly class ChangeMeetingPointHandler
 
             $this->auditTrail->record(new AuditedAction('meeting_point.changed', 'meeting_point', $meetingPoint->id(), $changes));
         });
-    }
-
-    private function coordinates(ChangeMeetingPoint $input): ?Coordinates
-    {
-        if (null === $input->latitude && null === $input->longitude) {
-            return null;
-        }
-
-        if (null === $input->latitude || null === $input->longitude) {
-            throw new InvalidArgumentException('A meeting point takes both a latitude and a longitude, or neither.');
-        }
-
-        return new Coordinates($input->latitude, $input->longitude);
-    }
-
-    /**
-     * A meeting point may take another spelling of its own name.
-     */
-    private function guardName(MeetingPoint $meetingPoint, string $name): void
-    {
-        $existing = $this->meetingPoints->findByNameKey(LookupKey::fromName($name));
-        if (null === $existing || $existing->id()->equals($meetingPoint->id())) {
-            return;
-        }
-
-        throw MeetingPointNameTaken::by($existing);
     }
 
     /**

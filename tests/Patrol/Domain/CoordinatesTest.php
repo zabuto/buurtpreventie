@@ -47,4 +47,36 @@ final class CoordinatesTest extends TestCase
 
         $this->assertSame([52.370_214, 4.895_168], [$coordinates->latitude, $coordinates->longitude]);
     }
+
+    #[Test]
+    public function it_takes_no_position_from_two_missing_coordinates(): void
+    {
+        $this->assertNull(Coordinates::fromOptional(null, null));
+    }
+
+    #[Test]
+    public function it_takes_a_position_from_both_coordinates(): void
+    {
+        $coordinates = Coordinates::fromOptional(52.1, 5.1);
+
+        $this->assertSame([52.1, 5.1], [$coordinates?->latitude, $coordinates?->longitude]);
+    }
+
+    /**
+     * @return iterable<string, array{float|null, float|null}>
+     */
+    public static function halfAPosition(): iterable
+    {
+        yield 'latitude only' => [52.1, null];
+        yield 'longitude only' => [null, 5.1];
+    }
+
+    #[DataProvider('halfAPosition')]
+    #[Test]
+    public function it_refuses_one_coordinate_without_the_other(?float $latitude, ?float $longitude): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        Coordinates::fromOptional($latitude, $longitude);
+    }
 }

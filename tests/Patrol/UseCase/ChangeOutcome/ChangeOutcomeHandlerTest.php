@@ -7,11 +7,13 @@ namespace App\Tests\Patrol\UseCase\ChangeOutcome;
 use App\Patrol\Domain\Outcome;
 use App\Patrol\Domain\OutcomeKind;
 use App\Patrol\Domain\OutcomeNameTaken;
+use App\Patrol\Domain\UniqueCatalogueName;
 use App\Patrol\UseCase\ChangeOutcome\ChangeOutcome;
 use App\Patrol\UseCase\ChangeOutcome\ChangeOutcomeHandler;
 use App\Shared\Domain\AccessDenied;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\NotFound;
+use App\Tests\Patrol\Fake\InMemoryMeetingPointRepository;
 use App\Tests\Patrol\Fake\InMemoryOutcomeRepository;
 use App\Tests\Shared\Fake\FakeAuthorization;
 use App\Tests\Shared\Fake\ImmediateTransaction;
@@ -139,6 +141,7 @@ final class ChangeOutcomeHandlerTest extends TestCase
     {
         return new ChangeOutcomeHandler(
             $this->outcomes,
+            new UniqueCatalogueName(new InMemoryMeetingPointRepository(), $this->outcomes),
             $authorization ?? FakeAuthorization::granting(),
             $this->auditTrail,
             new ImmediateTransaction(),

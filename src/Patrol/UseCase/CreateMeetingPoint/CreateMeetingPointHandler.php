@@ -8,10 +8,10 @@ use App\Patrol\Domain\Coordinates;
 use App\Patrol\Domain\MeetingPoint;
 use App\Patrol\Domain\MeetingPointNameTaken;
 use App\Patrol\Domain\MeetingPointRepository;
+use App\Patrol\Domain\UniqueCatalogueName;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\AuditTrail;
 use App\Shared\Domain\Authorization;
-use App\Shared\Domain\LookupKey;
 use App\Shared\Domain\Transaction;
 use App\Shared\Domain\WriteAction;
 use InvalidArgumentException;
@@ -21,6 +21,7 @@ final readonly class CreateMeetingPointHandler
 {
     public function __construct(
         private MeetingPointRepository $meetingPoints,
+        private UniqueCatalogueName $uniqueName,
         private Authorization $authorization,
         private AuditTrail $auditTrail,
         private Transaction $transaction,
@@ -34,13 +35,10 @@ final readonly class CreateMeetingPointHandler
     public function __invoke(CreateMeetingPoint $input): CreateMeetingPointOutput
     {
         $this->authorization->denyUnlessGranted('catalogue.manage');
-        $coordinates = $this->coordinates($input);
+        $coordinates = Coordinates::fromOptional($input->latitude, $input->longitude);
 
         return $this->transaction->run(function () use ($input, $coordinates): CreateMeetingPointOutput {
-            $existing = $this->meetingPoints->findByNameKey(LookupKey::fromName($input->name));
-            if (null !== $existing) {
-                throw MeetingPointNameTaken::by($existing);
-            }
+            $this->uniqueName->ensureMeetingPointNameAvailable($input->name);
 
             $meetingPoint = MeetingPoint::create($input->name);
             $meetingPoint->placeAt($coordinates);
@@ -54,19 +52,6 @@ final readonly class CreateMeetingPointHandler
 
             return new CreateMeetingPointOutput($meetingPoint->id()->toRfc4122());
         });
-    }
-
-    private function coordinates(CreateMeetingPoint $input): ?Coordinates
-    {
-        if (null === $input->latitude && null === $input->longitude) {
-            return null;
-        }
-
-        if (null === $input->latitude || null === $input->longitude) {
-            throw new InvalidArgumentException('A meeting point takes both a latitude and a longitude, or neither.');
-        }
-
-        return new Coordinates($input->latitude, $input->longitude);
     }
 
     /**

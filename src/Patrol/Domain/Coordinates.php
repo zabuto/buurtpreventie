@@ -26,4 +26,22 @@ final readonly class Coordinates
         $this->latitude = \round($latitude, 6);
         $this->longitude = \round($longitude, 6);
     }
+
+    /**
+     * A meeting point has a position or none; half a position is a mistake in the input.
+     *
+     * @throws InvalidArgumentException for one coordinate without the other, or a point off the globe
+     */
+    public static function fromOptional(?float $latitude, ?float $longitude): ?self
+    {
+        if (null === $latitude && null === $longitude) {
+            return null;
+        }
+
+        if (null === $latitude || null === $longitude) {
+            throw new InvalidArgumentException('A meeting point takes both a latitude and a longitude, or neither.');
+        }
+
+        return new self($latitude, $longitude);
+    }
 }

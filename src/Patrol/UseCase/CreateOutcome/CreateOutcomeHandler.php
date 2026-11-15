@@ -8,10 +8,10 @@ use App\Patrol\Domain\Outcome;
 use App\Patrol\Domain\OutcomeKind;
 use App\Patrol\Domain\OutcomeNameTaken;
 use App\Patrol\Domain\OutcomeRepository;
+use App\Patrol\Domain\UniqueCatalogueName;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\AuditTrail;
 use App\Shared\Domain\Authorization;
-use App\Shared\Domain\LookupKey;
 use App\Shared\Domain\Transaction;
 use App\Shared\Domain\WriteAction;
 
@@ -20,6 +20,7 @@ final readonly class CreateOutcomeHandler
 {
     public function __construct(
         private OutcomeRepository $outcomes,
+        private UniqueCatalogueName $uniqueName,
         private Authorization $authorization,
         private AuditTrail $auditTrail,
         private Transaction $transaction,
@@ -34,10 +35,7 @@ final readonly class CreateOutcomeHandler
         $this->authorization->denyUnlessGranted('catalogue.manage');
 
         return $this->transaction->run(function () use ($input): CreateOutcomeOutput {
-            $existing = $this->outcomes->findByNameKey(LookupKey::fromName($input->name));
-            if (null !== $existing) {
-                throw OutcomeNameTaken::by($existing);
-            }
+            $this->uniqueName->ensureOutcomeNameAvailable($input->name);
 
             $outcome = Outcome::create($input->name, OutcomeKind::from($input->kind));
             $this->outcomes->add($outcome);

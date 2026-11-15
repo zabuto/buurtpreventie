@@ -7,12 +7,14 @@ namespace App\Tests\Patrol\UseCase\CreateMeetingPoint;
 use App\Patrol\Domain\Coordinates;
 use App\Patrol\Domain\MeetingPoint;
 use App\Patrol\Domain\MeetingPointNameTaken;
+use App\Patrol\Domain\UniqueCatalogueName;
 use App\Patrol\UseCase\CreateMeetingPoint\CreateMeetingPoint;
 use App\Patrol\UseCase\CreateMeetingPoint\CreateMeetingPointHandler;
 use App\Shared\Domain\AccessDenied;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\LookupKey;
 use App\Tests\Patrol\Fake\InMemoryMeetingPointRepository;
+use App\Tests\Patrol\Fake\InMemoryOutcomeRepository;
 use App\Tests\Shared\Fake\FakeAuthorization;
 use App\Tests\Shared\Fake\ImmediateTransaction;
 use App\Tests\Shared\Fake\RecordingAuditTrail;
@@ -165,6 +167,7 @@ final class CreateMeetingPointHandlerTest extends TestCase
     {
         return new CreateMeetingPointHandler(
             $this->meetingPoints,
+            new UniqueCatalogueName($this->meetingPoints, new InMemoryOutcomeRepository()),
             $authorization ?? FakeAuthorization::granting(),
             $this->auditTrail,
             new ImmediateTransaction(),
