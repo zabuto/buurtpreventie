@@ -40,4 +40,9 @@ versions follow [Semantic Versioning](https://semver.org/).
   meeting points with coordinates, comments, reminders once per walker per day, and who may change a
   round or delete a report or comment.
 - The first migration, with the Patrol tables, and storage of rounds through Doctrine.
+- Membership: members with one e-mail address for mail and login, a unique display name and an
+  erasure that keeps the member; adding, changing, roles, consent, (de)activating, erasing and a
+  member list that shows full names only to coordinators and admins.
+- Identity: accounts with a password that accepts v3 hashes, and API tokens stored as a hash with
+  scopes, expiry and revocation. Settings: the default minimum and maximum walkers of a new round.
 - Responses do not name the PHP version: the app and `public/.htaccess` remove `X-Powered-By`.

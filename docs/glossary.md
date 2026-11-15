@@ -11,7 +11,7 @@ dezelfde naam.
 | Ledenbeheer | `Membership` | Leden, rollen, toestemming, certificaat |
 | Inloggen | `Identity` | Accounts, inloglinks, wachtwoorden, API-tokens |
 | Auditlog | `Audit` | Wie deed wat, wanneer en via welk kanaal |
-| Instellingen | `Settings` | Branding en teksten per vereniging |
+| Instellingen | `Settings` | Branding, teksten en het minimum- en maximumaantal lopers per vereniging |
 | Onderhoud | `Maintenance` | Gezondheidscheck, herinneringen, updates, installer, conversie uit v3 |
 
 ## Domein
@@ -34,7 +34,7 @@ dezelfde naam.
 | Volledige naam | `name` | Naam van een lid; doorzoekbaar, niet uniek |
 | Weergavenaam | `displayName` | Unieke naam in rondes, lijsten en auditlog, zoals "Jan H." |
 | Zoeksleutel | `LookupKey` | Naam zonder hoofdletters, accenten, leestekens en dubbele spaties; zoeken en uniek zijn gaan hierop |
-| Account | `Account` | Inloggegevens van een lid |
+| Account | `Account` | Inloggegevens van een lid: wachtwoord en laatste login; het e-mailadres staat op het lid |
 | Toestemming contactgegevens | `consentContactShare` | Andere leden zien telefoon en adres alleen hiermee |
 | Certificaat | `certified` | Lid heeft een certificaat (in v3: `credited`) |
 | Melding bij open ronde | `notifyOpenRounds` | Lid wil mail bij een nieuwe ronde die een loopmaatje zoekt |
@@ -53,7 +53,7 @@ dezelfde naam.
 | Auditregel | `AuditEntry` | Eén regel in het auditlog |
 | Kanaal | channel: `web`, `api`, `mcp`, `cron`, `console` | Hoe een actie binnenkwam; `console` voor conversie en voorbeelddata |
 | Instelling | `Setting` | Waarde die een vereniging zelf instelt |
-| API-token | `ApiToken` | Persoonlijke sleutel voor scripts en MCP |
+| API-token | `ApiToken` | Persoonlijke sleutel voor scripts en MCP, met scopes `read`, `write` en `admin`; alleen de hash wordt bewaard |
 | Tijdtrigger, tick | `app:scheduler:run`, `POST /api/v1/system/tick` | Start taken op een vast moment |
 | Gezondheidscheck | `CheckHealth`, `GET /api/v1/health` | Antwoordt `ok` als de app draait |
 
