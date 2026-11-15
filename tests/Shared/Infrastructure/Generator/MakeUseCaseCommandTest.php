@@ -27,12 +27,12 @@ final class MakeUseCaseCommandTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->sourceRoot = sys_get_temp_dir() . '/make-use-case-' . bin2hex(random_bytes(4)) . '/src';
+        $this->sourceRoot = \sys_get_temp_dir() . '/make-use-case-' . \bin2hex(\random_bytes(4)) . '/src';
         foreach (['Domain', 'UseCase', 'Infrastructure'] as $folder) {
-            mkdir($this->sourceRoot . '/Patrol/' . $folder, 0o777, recursive: true);
+            \mkdir($this->sourceRoot . '/Patrol/' . $folder, 0o777, recursive: true);
         }
         foreach (['Domain', 'Infrastructure'] as $folder) {
-            mkdir($this->sourceRoot . '/Shared/' . $folder, 0o777, recursive: true);
+            \mkdir($this->sourceRoot . '/Shared/' . $folder, 0o777, recursive: true);
         }
     }
 
@@ -99,13 +99,13 @@ final class MakeUseCaseCommandTest extends TestCase
     public function it_leaves_an_existing_use_case_untouched(): void
     {
         $folder = $this->sourceRoot . '/Patrol/UseCase/SignUpForRound';
-        mkdir($folder);
-        file_put_contents($folder . '/SignUpForRound.php', 'existing');
+        \mkdir($folder);
+        \file_put_contents($folder . '/SignUpForRound.php', 'existing');
 
         $tester = $this->generate('Patrol', 'SignUpForRound');
 
         self::assertSame(Command::FAILURE, $tester->getStatusCode());
-        self::assertSame('existing', file_get_contents($folder . '/SignUpForRound.php'));
+        self::assertSame('existing', \file_get_contents($folder . '/SignUpForRound.php'));
         self::assertSame(['SignUpForRound.php'], $this->visibleEntries($folder));
     }
 
@@ -117,17 +117,17 @@ final class MakeUseCaseCommandTest extends TestCase
     {
         $this->generate('Patrol', 'SignUpForRound');
 
-        exec(
+        \exec(
             \sprintf(
                 'cd %s && vendor/bin/mago format --dry-run %s 2>&1',
-                escapeshellarg(self::PROJECT_ROOT),
-                escapeshellarg($this->sourceRoot),
+                \escapeshellarg(self::PROJECT_ROOT),
+                \escapeshellarg($this->sourceRoot),
             ),
             $output,
             $exitCode,
         );
 
-        $this->assertSame(0, $exitCode, implode("\n", $output));
+        $this->assertSame(0, $exitCode, \implode("\n", $output));
     }
 
     /**
@@ -138,9 +138,9 @@ final class MakeUseCaseCommandTest extends TestCase
     {
         $this->generate('Patrol', 'SignUpForRound');
 
-        $projectRoot = (string) realpath(self::PROJECT_ROOT);
+        $projectRoot = (string) \realpath(self::PROJECT_ROOT);
         $config = \dirname($this->sourceRoot) . '/phpstan.neon';
-        file_put_contents($config, <<<NEON
+        \file_put_contents($config, <<<NEON
             includes:
                 - {$projectRoot}/vendor/phpat/phpat/extension.neon
                 - {$projectRoot}/vendor/phpstan/phpstan-deprecation-rules/rules.neon
@@ -174,10 +174,10 @@ final class MakeUseCaseCommandTest extends TestCase
      */
     private function visibleEntries(string $path): array
     {
-        $found = scandir($path);
+        $found = \scandir($path);
         $entries = [];
         foreach (false === $found ? [] : $found as $entry) {
-            if (str_starts_with($entry, '.')) {
+            if (\str_starts_with($entry, '.')) {
                 continue;
             }
 
@@ -189,7 +189,7 @@ final class MakeUseCaseCommandTest extends TestCase
 
     private function removeRecursively(string $path): void
     {
-        if (!is_dir($path)) {
+        if (!\is_dir($path)) {
             return;
         }
         $iterator = new RecursiveIteratorIterator(
@@ -198,8 +198,8 @@ final class MakeUseCaseCommandTest extends TestCase
         );
         foreach ($iterator as $entry) {
             \assert($entry instanceof SplFileInfo, 'RecursiveDirectoryIterator yields SplFileInfo by default.');
-            $entry->isDir() ? rmdir($entry->getPathname()) : unlink($entry->getPathname());
+            $entry->isDir() ? \rmdir($entry->getPathname()) : \unlink($entry->getPathname());
         }
-        rmdir($path);
+        \rmdir($path);
     }
 }

@@ -30,9 +30,11 @@ final readonly class ComposerFiles
         $requirements = [];
         foreach (['require', 'require-dev'] as $section) {
             foreach ($this->list($composer, $section) as $package => $constraint) {
-                if (\is_string($package) && \is_string($constraint)) {
-                    $requirements[$package] = $constraint;
+                if (!\is_string($package) || !\is_string($constraint)) {
+                    continue;
                 }
+
+                $requirements[$package] = $constraint;
             }
         }
 
@@ -85,6 +87,6 @@ final readonly class ComposerFiles
 
     private function read(string $file): mixed
     {
-        return json_decode((string) file_get_contents($this->projectRoot . '/' . $file), true);
+        return \json_decode((string) \file_get_contents($this->projectRoot . '/' . $file), true);
     }
 }

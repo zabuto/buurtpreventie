@@ -15,8 +15,8 @@ final readonly class UseCaseTemplates
     public function render(string $module, string $name): array
     {
         $namespace = \sprintf('App\%s\UseCase\%s', $module, $name);
-        $path = '/' . implode('-', $this->words($name));
-        $routeName = strtolower($module) . '_' . implode('_', $this->words($name));
+        $path = '/' . \implode('-', $this->words($name));
+        $routeName = \strtolower($module) . '_' . \implode('_', $this->words($name));
 
         return [
             $name . '.php' => <<<PHP
@@ -116,8 +116,8 @@ final readonly class UseCaseTemplates
      */
     private function words(string $name): array
     {
-        $words = preg_split('/(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])/', $name);
+        $words = \preg_split('/(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])/', $name);
 
-        return array_map(strtolower(...), false === $words ? [$name] : $words);
+        return \array_map(\strtolower(...), false === $words ? [$name] : $words);
     }
 }

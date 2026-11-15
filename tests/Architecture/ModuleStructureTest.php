@@ -26,7 +26,7 @@ final class ModuleStructureTest extends TestCase
     public static function modules(): iterable
     {
         foreach (self::entries(self::SOURCE_ROOT) as $entry) {
-            if ('Shared' === $entry || !is_dir(self::SOURCE_ROOT . '/' . $entry)) {
+            if ('Shared' === $entry || !\is_dir(self::SOURCE_ROOT . '/' . $entry)) {
                 continue;
             }
 
@@ -51,7 +51,7 @@ final class ModuleStructureTest extends TestCase
     {
         foreach (self::entries(self::SOURCE_ROOT) as $entry) {
             self::assertTrue(
-                is_dir(self::SOURCE_ROOT . '/' . $entry) || 'Kernel.php' === $entry,
+                \is_dir(self::SOURCE_ROOT . '/' . $entry) || 'Kernel.php' === $entry,
                 \sprintf('src/%s is neither a module folder nor Kernel.php. %s', $entry, self::EXPLANATION),
             );
         }
@@ -85,7 +85,7 @@ final class ModuleStructureTest extends TestCase
         $folder = self::SOURCE_ROOT . '/' . $module . '/UseCase/' . $useCase;
         self::assertDirectoryExists($folder, \sprintf('%s/UseCase/%s must be a folder. %s', $module, $useCase, self::EXPLANATION));
 
-        $allowed = array_map(
+        $allowed = \array_map(
             static fn(string $suffix): string => $useCase . $suffix . '.php',
             ['', 'Handler', 'Controller', 'Tool', 'Output'],
         );
@@ -93,12 +93,12 @@ final class ModuleStructureTest extends TestCase
 
         self::assertSame(
             [],
-            array_values(array_diff($files, $allowed)),
+            \array_values(\array_diff($files, $allowed)),
             \sprintf(
                 '%s/UseCase/%s may only hold %s. %s',
                 $module,
                 $useCase,
-                implode(', ', $allowed),
+                \implode(', ', $allowed),
                 self::EXPLANATION,
             ),
         );
@@ -111,9 +111,9 @@ final class ModuleStructureTest extends TestCase
      */
     private static function folders(string $path): array
     {
-        return array_values(array_filter(
+        return \array_values(\array_filter(
             self::entries($path),
-            static fn(string $entry): bool => is_dir($path . '/' . $entry),
+            static fn(string $entry): bool => \is_dir($path . '/' . $entry),
         ));
     }
 
@@ -124,13 +124,13 @@ final class ModuleStructureTest extends TestCase
      */
     private static function entries(string $path): array
     {
-        $entries = scandir($path);
+        $entries = \scandir($path);
         if (false === $entries) {
             return [];
         }
 
-        $visible = array_values(array_filter($entries, static fn(string $entry): bool => !str_starts_with($entry, '.')));
-        sort($visible);
+        $visible = \array_values(\array_filter($entries, static fn(string $entry): bool => !\str_starts_with($entry, '.')));
+        \sort($visible);
 
         return $visible;
     }

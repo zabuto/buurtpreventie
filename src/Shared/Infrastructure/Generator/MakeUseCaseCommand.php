@@ -50,28 +50,28 @@ final class MakeUseCaseCommand extends Command
         $name = $input->getArgument('name');
         \assert(\is_string($module) && \is_string($name), 'Both arguments are required strings.');
 
-        if (1 !== preg_match(self::PASCAL_CASE, $name)) {
+        if (1 !== \preg_match(self::PASCAL_CASE, $name)) {
             $io->error(\sprintf('"%s" is not a PascalCase name such as SignUpForRound.', $name));
 
             return Command::INVALID;
         }
-        if ('Shared' === $module || 1 !== preg_match(self::PASCAL_CASE, $module) || !is_dir($this->sourceRoot . '/' . $module . '/UseCase')) {
-            $io->error(\sprintf('"%s" is not a module. Modules: %s.', $module, implode(', ', $this->modules())));
+        if ('Shared' === $module || 1 !== \preg_match(self::PASCAL_CASE, $module) || !\is_dir($this->sourceRoot . '/' . $module . '/UseCase')) {
+            $io->error(\sprintf('"%s" is not a module. Modules: %s.', $module, \implode(', ', $this->modules())));
 
             return Command::INVALID;
         }
 
         $folder = \sprintf('%s/%s/UseCase/%s', $this->sourceRoot, $module, $name);
-        if (file_exists($folder)) {
+        if (\file_exists($folder)) {
             $io->error(\sprintf('src/%s/UseCase/%s already exists; nothing was written.', $module, $name));
 
             return Command::FAILURE;
         }
 
-        mkdir($folder);
+        \mkdir($folder);
         $created = [];
         foreach ($this->templates->render($module, $name) as $file => $contents) {
-            file_put_contents($folder . '/' . $file, $contents);
+            \file_put_contents($folder . '/' . $file, $contents);
             $created[] = \sprintf('src/%s/UseCase/%s/%s', $module, $name, $file);
         }
 
@@ -88,10 +88,10 @@ final class MakeUseCaseCommand extends Command
      */
     private function modules(): array
     {
-        $modules = glob($this->sourceRoot . '/*/UseCase', \GLOB_ONLYDIR);
+        $modules = \glob($this->sourceRoot . '/*/UseCase', \GLOB_ONLYDIR);
 
-        return array_map(
-            static fn(string $path): string => basename(\dirname($path)),
+        return \array_map(
+            static fn(string $path): string => \basename(\dirname($path)),
             false === $modules ? [] : $modules,
         );
     }

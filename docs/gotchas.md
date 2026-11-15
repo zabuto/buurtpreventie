@@ -26,8 +26,9 @@ Things that are not obvious and cost time when you do not know them.
   releases on GitHub. Without network access on a fresh install, the Mago checks cannot run.
 - **Recipe files are excluded** from Mago, PHPStan and Rector; see
   [code-style.md](code-style.md#symfony-recipe-files).
-- **`ambiguous-function-call` hints** (an unqualified global function such as `sprintf()`) do not fail
-  the check. Write global functions as `\sprintf()` in new code.
+- **Global functions and constants are written fully qualified**: `\sprintf()`, `\PHP_BINARY`. Mago
+  fails the check on an unqualified call, because PHP first looks for the name in the current
+  namespace.
 
 ## Rector
 
