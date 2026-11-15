@@ -757,7 +757,15 @@ Fase 3, 4 en 5 hangen alleen van de API af; wie het frontend het eerst nodig hee
 
 ### Fase 2 — REST-API v1
 
-- [ ] Auth: `json_login` + sessie + CSRF; `access_token`-authenticator; `/me/tokens`; inloglink per e-mail en ingelogd blijven (90 dagen); aan- en afmelden namens een loper (coördinator); auditlog-endpoints.
+- [ ] Auth: `json_login` + sessie + CSRF; authenticator voor API-tokens (zie hieronder); `/me/tokens`; inloglink per e-mail en ingelogd blijven (90 dagen); aan- en afmelden namens een loper (coördinator); auditlog-endpoints.
+- [ ] Authenticator voor `Authorization: Bearer <token>` (vastgelegd op 15 november 2026):
+  - hij neemt elk verzoek op de API-firewall aan, zodat een ontbrekend token net zo geweigerd en gelogd wordt als een fout token;
+  - hij zoekt het token op de SHA-256-hash; het token zelf staat nergens, en draagt geen inhoud en geen controlegetal;
+  - één `match` met elke reden om te weigeren: onbekend, ingetrokken, verlopen, lid gedeactiveerd of gewist (review-focus 4: het token werkt meteen niet meer);
+  - een weigering is een 401 zonder body, met `WWW-Authenticate: Bearer`; de reden gaat alleen naar ons log, in woorden die het datamodel niet prijsgeven, en de exceptie draagt een algemene melding;
+  - bij succes: `markUsed()` op het token, de scopes `read`, `write` en `admin` vertaald voor de Voters, en `ExecutionContext` gevuld met het lid, zijn rollen en kanaal `api` (of `mcp` in fase 5), zodat er één bron is voor wie de actie uitvoert;
+  - geen JWT: dat is niet meteen in te trekken zonder toch bij elk verzoek op te zoeken, de inhoud is leesbaar, en één gelekte sleutel ondertekent elk token.
+  Of dit Symfony's `access_token`-authenticator met eigen handler wordt of een eigen authenticator, beslist het taakplan; het moet ook een ontbrekend token loggen.
 - [ ] Alle endpoints uit het API-ontwerp, `problem+json`-fouten, OpenAPI via NelmioApiDocBundle.
 - [ ] Functionele tests per endpoint plus één matrixtest rol × actie.
 - [ ] Opengrep-regelset uitgebreid voor wat deze fase toevoegt: verzoekinvoer naar SQL en bestandspaden, inloggen en CSRF; elke regel met een regeltest.
