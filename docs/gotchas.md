@@ -18,8 +18,9 @@ Things that are not obvious and cost time when you do not know them.
 
 - **PHPStan reads the Symfony container from `var/cache/dev/`.** After a new service or a config
   change, run `bin/console cache:warmup` first; `composer check` does that itself.
-- **Symfony generates `config/reference.php`** when warming the cache. It is in Git for the
-  autocompletion of PHP config, and is excluded from PHPStan, PHP-CS-Fixer and Rector.
+- **Symfony generates `config/reference.php`** on every cache warm-up, with different contents per
+  environment (`dev` adds `when@dev` blocks). It only helps autocompletion of PHP config, so it stays
+  out of Git and out of PHPStan, PHP-CS-Fixer and Rector.
 
 ## Rector
 

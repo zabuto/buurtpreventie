@@ -73,19 +73,11 @@ final class ArchitectureRulesTest extends TestCase
             return self::$errorsByFile;
         }
 
-        $command = \sprintf(
-            'cd %s && %s vendor/bin/phpstan analyse --configuration=%s --error-format=json --no-progress --memory-limit=512M 2>/dev/null',
-            escapeshellarg(self::PROJECT_ROOT),
-            escapeshellarg(\PHP_BINARY),
-            escapeshellarg(self::FIXTURES.'/phpstan.neon'),
-        );
-        exec($command, $outputLines);
-        $output = implode("\n", $outputLines);
-
-        $report = json_decode($output, true);
-        self::assertIsArray($report, 'PHPStan did not return JSON: '.$output);
-        self::assertSame([], $report['errors'] ?? null, 'PHPStan reported general errors.');
-        self::assertIsArray($report['files'] ?? null);
+        $phpstan = PhpStanProcess::analyse(self::PROJECT_ROOT.'/'.self::FIXTURES.'/phpstan.neon');
+        $report = $phpstan->report();
+        self::assertIsArray($report, $phpstan->describe());
+        self::assertSame([], $report['errors'] ?? null, $phpstan->describe());
+        self::assertIsArray($report['files'] ?? null, $phpstan->describe());
 
         $fixturesRoot = realpath(self::PROJECT_ROOT.'/'.self::FIXTURES);
         self::assertIsString($fixturesRoot);

@@ -16,6 +16,7 @@
          beStrictAboutOutputDuringTests="true"
          bootstrap="tests/bootstrap.php"
          cacheDirectory=".phpunit.cache"
+         executionOrder="random"
 >
     <php>
         <ini name="display_errors" value="1" />

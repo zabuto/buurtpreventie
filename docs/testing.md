@@ -7,8 +7,9 @@
 
 | Folder | What |
 | --- | --- |
-| `tests/Architecture/` | The PHPat rules, the test that proves they fire, and the folder layout test |
+| `tests/Architecture/` | The PHPat rules, the test that proves they fire, the folder layout test, and the test that every linked section of `architecture.md` exists |
 | `tests/Architecture/Fixtures/` | Deliberate violations; outside the regular PHPStan run and the autoloader |
+| `tests/Dependencies/` | Every Symfony component in `composer.json` and `composer.lock` is on the release line in `extra.symfony.require` (7.4 LTS) |
 
 ## Kinds of tests
 
@@ -23,6 +24,20 @@ at level max with the architecture rules on it. A mistake in the templates thus 
 the next use case.
 
 Test names describe the expected behaviour, such as `testRefusesWritesBecauseTheCheckChangesNothing`.
+
+## Reliable results
+
+A test passes or fails for one reason only, every time:
+
+- **Random order.** PHPUnit runs the tests in a random order and prints the seed, so a test that
+  depends on another one fails early. Repeat a failing order with `vendor/bin/phpunit --random-order-seed=<seed>`.
+- **No shared state.** Tests that write files use their own temporary folder and remove it.
+  `tests/Architecture/PhpStanProcess.php` gives every PHPStan run a fresh cache folder, so an old
+  result cache cannot hide a changed rule, and shows stdout and stderr when a run fails.
+- **No noise.** The test environment uses a null logger, so expected errors (such as a 405) do not
+  print between the results.
+- **No clock, network or randomness in assertions.** Time-dependent code takes a clock that tests set
+  (from phase 1); nothing in a test reaches the network.
 
 ## Checks
 
