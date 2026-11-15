@@ -110,6 +110,16 @@ final readonly class RoundPolicy
     }
 
     /**
+     * Walkers know each other by display name; whoever arranges rounds or members needs the full name.
+     *
+     * @param Actor|null $actor null for the system
+     */
+    public function maySeeFullNames(?Actor $actor): bool
+    {
+        return null === $actor || $actor->hasRole(Role::Coordinator) || $actor->hasRole(Role::Admin);
+    }
+
+    /**
      * The phone numbers of walkers who consent to sharing them, for the walkers of the round and coordinators.
      */
     public function maySeeWalkerPhones(Actor $actor, Round $round): bool

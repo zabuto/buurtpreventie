@@ -19,7 +19,6 @@ use App\Shared\Domain\MemberDirectory;
 use App\Shared\Domain\MemberProfile;
 use App\Shared\Domain\NotFound;
 use App\Shared\Domain\ReadAction;
-use App\Shared\Domain\Role;
 use Psr\Clock\ClockInterface;
 use Symfony\Component\Uid\Uuid;
 
@@ -85,7 +84,7 @@ final readonly class GetRoundHandler
     private function walkers(Round $round): array
     {
         $actor = $this->executionContext->actor();
-        $withFullNames = null === $actor || $actor->hasRole(Role::Coordinator) || $actor->hasRole(Role::Admin);
+        $withFullNames = $this->policy->maySeeFullNames($actor);
         $withPhones = null !== $actor && $this->policy->maySeeWalkerPhones($actor, $round);
 
         $profiles = $this->memberDirectory->profilesOf($round->walkerIds());

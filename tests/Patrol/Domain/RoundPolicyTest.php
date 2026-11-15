@@ -198,6 +198,33 @@ final class RoundPolicyTest extends TestCase
     }
 
     /**
+     * @return iterable<string, array{list<Role>|null, bool}>
+     */
+    public static function fullNameReaders(): iterable
+    {
+        yield 'no role' => [[], false];
+        yield 'a walker' => [[Role::Walker], false];
+        yield 'an analyst' => [[Role::Analyst], false];
+        yield 'a coordinator' => [[Role::Coordinator], true];
+        yield 'an admin' => [[Role::Admin], true];
+        yield 'the system' => [null, true];
+    }
+
+    /**
+     * Walkers know each other by display name; whoever arranges rounds or members needs the full name.
+     *
+     * @param list<Role>|null $roles null for the system
+     */
+    #[DataProvider('fullNameReaders')]
+    #[Test]
+    public function it_shows_full_names_to_coordinators_admins_and_the_system(?array $roles, bool $expected): void
+    {
+        $actor = null === $roles ? null : new Actor(Uuid::v7(), $roles);
+
+        $this->assertSame($expected, new RoundPolicy()->maySeeFullNames($actor));
+    }
+
+    /**
      * @return iterable<string, array{bool, list<Role>, bool}>
      */
     public static function deleters(): iterable
