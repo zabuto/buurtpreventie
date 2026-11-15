@@ -94,8 +94,7 @@ Klaar als:
 8. **Sessiecookie** `Secure`, `HttpOnly`, `SameSite=Lax`, eigen naam (`bp_session`), sessies in bestanden onder
    `var/`; een nieuwe sessie-id na inloggen. De map in `shared/` volgt met de mapindeling in fase 6a.
 9. **Ingelogd blijven 90 dagen met Symfony's `remember_me`, op handtekening.** De handtekening dekt het lid-id en een
-   nieuw veld `Account.credentialsChangedAt`, dat wachtwoord wijzigen en resetten zet: dan vervalt elk onthouden
-   apparaat. Een gedeactiveerd lid valt via beslissing 5 af. Alternatief: tokens in de database (meer tabellen en
+   nieuw veld `Account.credentialsChangedAt`, dat een nieuw wachtwoord zet: dan vervalt elk onthouden apparaat. Een gedeactiveerd lid valt via beslissing 5 af. Alternatief: tokens in de database (meer tabellen en
    opruimwerk) of geen "onthouden" (tegen het plan).
 10. **Inloggen per mail met een cijfercode, niet met een link.** Een code van 6 cijfers die het lid overneemt in
     het scherm waar het hem aanvroeg. Dat is de extra controle: de code werkt alleen samen met de aanvraag uit die
@@ -104,9 +103,11 @@ Klaar als:
     - `POST /auth/login-code` met `{email}` geeft altijd 202 met een `challengeId` (128 willekeurige bits), ook bij een
       onbekend of inactief adres, zodat het antwoord niet verraadt of een adres bestaat; de frontend bewaart het id in de browser;
     - `POST /auth/login-code/verify` met `{challengeId, code}` logt in;
-    - de wachtwoord-reset werkt net zo: `POST /auth/password-reset` met `{email}` geeft een `challengeId`, en
-      `POST /auth/password-reset/confirm` met `{challengeId, code, password}` zet het nieuwe wachtwoord. Wie al een
-      wachtwoord heeft, kan ook alleen een code gebruiken; een wachtwoord is nooit verplicht.
+    - **er is geen aparte wachtwoord-reset.** "Wachtwoord vergeten" is inloggen met een code; daarna zet het lid in
+      de recente sessie een nieuw wachtwoord zonder het oude (beslissing 16). Eén soort code met één termijn is
+      makkelijker uit te leggen, en even veilig: een recente sessie geeft dezelfde macht als een reset-code, en een
+      nieuw wachtwoord logt elk onthouden apparaat uit. Afwijking van het API-ontwerp
+      (`POST /auth/password-reset`, `POST /auth/password-reset/{token}`). Een wachtwoord is nooit verplicht.
 11. **Bruikbaar voor elke loper.** De code volgt WCAG 2.2 succescriterium 3.3.8 (toegankelijk inloggen): overnemen
     met plakken en automatisch invullen mag, er is geen puzzel.
     - Zes cijfers, geen letters: geen verwarring tussen `0` en `O` of `1` en `l`, en op een telefoon het
@@ -116,23 +117,24 @@ Klaar als:
     - In de mail groot en in twee groepen (`482 913`), bovenaan, met in gewone taal waar hij in te vullen is; de code
       niet in het onderwerp, want dat staat in meldingen op een vergrendeld scherm.
     - Het scherm noemt het adres waar de code heen ging, met "Code niet ontvangen? Stuur een nieuwe" (na 60 seconden)
-      en "Kijk ook in je spam".
+      en "Kijk ook in je spam"; een link "Wachtwoord vergeten?" bij het wachtwoordveld leidt naar dezelfde code.
     - Een foute code: "Deze code klopt niet. Je kunt het nog 4 keer proberen." Een verlopen of opgebruikte code: een
       melding in gewone taal met de knop "Stuur een nieuwe code".
-    - De frontend bewaart de aanvraag in `localStorage`, zodat de code ook werkt na het sluiten van de browser of de
-      volgende dag, op hetzelfde toestel.
-12. **Opslag en geldigheid.** Entiteit `LoginChallenge` (id, lid of geen, doel `log_in` of `reset_password`,
-    codehash, `expiresAt`, `attempts`, `usedAt`).
+    - De frontend bewaart de aanvraag in `localStorage`, zodat de code ook werkt na het sluiten van de browser, op
+      hetzelfde toestel, zolang hij geldig is.
+12. **Opslag en geldigheid.** Entiteit `LoginChallenge` (id, lid of geen, codehash, `expiresAt`, `attempts`,
+    `usedAt`).
     - Een code van 6 cijfers heeft maar een miljoen mogelijkheden: een gewone SHA-256 (beslissing 20 van fase 1) is
       met een kopie van de database in een seconde terug te rekenen. Daarom HMAC-SHA-256 met `APP_SECRET` over
       `challengeId` en code, vergeleken met `hash_equals()`. De code komt uit `random_int()`.
     - Hooguit 5 pogingen per aanvraag; daarna is de aanvraag ongeldig. De kans om te raden: 5 op een miljoen per aanvraag, en
       aanvragen zijn begrensd (beslissing 13).
-    - Eén keer bruikbaar; een nieuwe aanvraag maakt eerdere van hetzelfde lid en doel ongeldig.
-    - Een inlogcode is 24 uur geldig, een reset-code 12 uur, voor wie de mail pas later leest of er hulp bij nodig
-      heeft; een reset zet een nieuw wachtwoord en krijgt daarom de kortere termijn. Het risico van die termijn blijft
-      klein door de koppeling aan de aanvraag, de 5 pogingen, één keer gebruik, en de sessie die maar 15 minuten
-      recent is (beslissing 15). Elke aanvraag en elk gebruik staat in het auditlog.
+    - Eén keer bruikbaar; een nieuwe aanvraag maakt eerdere van hetzelfde lid ongeldig.
+    - **Een code is 60 minuten geldig.** Het lid staat op het scherm te wachten, dus een lange termijn helpt niet;
+      opnieuw aanvragen is één tik. Korter is te krap: mailservers houden mail van een onbekende afzender vaak 5 tot
+      30 minuten vast (greylisting), en een minder ervaren loper zoekt de mail soms nog in de spam of vraagt hulp. De
+      5 pogingen gelden per aanvraag, dus de termijn maakt raden niet makkelijker. Elke aanvraag en elk gebruik staat
+      in het auditlog.
     - **De uitnodiging blijft een link**, 48 uur geldig: een nieuw lid heeft nog geen scherm waarin het een code kan
       aanvragen. Entiteit `Invitation` met het hash-patroon van `ApiToken` (geheim `bpi_` plus 64 hex-tekens,
       SHA-256). De link wijst naar de frontend met het geheim achter een `#` (`…/app/#/welcome/bpi_…`): dat deel
@@ -143,7 +145,7 @@ Klaar als:
       opslag. API-scripts en MCP gebruiken altijd het persoonlijke token, nooit een code of sessie.
 13. **Beperkt aantal pogingen met `symfony/rate-limiter`** (cache in bestanden): inloggen 5 mislukte pogingen per
     15 minuten per adres en IP (`login_throttling`), en daarnaast 30 mislukte pogingen per uur per IP over alle
-    adressen, tegen het proberen van één wachtwoord op veel adressen; code- en reset-aanvragen 3 per uur per adres en
+    adressen, tegen het proberen van één wachtwoord op veel adressen; code-aanvragen 3 per uur per adres en
     10 per uur per IP; daarna 429 met `Retry-After` en een melding in gewone taal. Een geslaagde inlog telt niet mee. Het plan zette
     de rate limiter bij MCP (fase 4); inloggen heeft hem nu nodig.
 14. **Auditregels voor inloggen**: `account.logged_in` en `account.login_failed` met een ingekort IP-adres
@@ -155,8 +157,9 @@ Klaar als:
     bevestigde, telt als recent; ingelogd blijven telt nooit. `POST /auth/confirm` met het wachtwoord maakt een sessie
     recent. Nodig voor: token aanmaken, rollen wijzigen, lid wissen. Een API-token is nooit recent, dus die acties
     kunnen alleen in de browser.
-16. **Wachtwoord wijzigen vraagt het huidige wachtwoord**; een lid zonder wachtwoord (alleen codes) zet het eerste
-    wachtwoord in een recente sessie.
+16. **Wachtwoord wijzigen vraagt het huidige wachtwoord, of een recente sessie.** In een recente sessie
+    (beslissing 15, ook na inloggen met een code) zet het lid een nieuw wachtwoord zonder het oude: zo werkt
+    "wachtwoord vergeten" (beslissing 10). Daarbuiten vraagt het het huidige wachtwoord.
 
 ### Tokens en scopes
 
@@ -207,7 +210,7 @@ Klaar als:
     e-mailadres nooit (het plan geeft e-mail alleen aan de beheerder). Coördinator en beheerder zien ook de volledige
     naam, zoals nu. De beheerder ziet alles via `/admin/members`.
 27. **Wat een lid zelf wijzigt** (`PATCH /me`): telefoon, adres, toestemming en meldingen over open rondes. Naam,
-    weergavenaam en e-mailadres wijzigt alleen de beheerder: een gekaapte sessie kan zo het adres voor een reset niet
+    weergavenaam en e-mailadres wijzigt alleen de beheerder: een gekaapte sessie kan zo het adres voor een inlogcode niet
     omzetten.
 28. **Uitnodigen door de beheerder** (`POST /admin/members/{id}/invitation`) maakt een uitnodiging (48 uur geldig,
     beslissing 12) en stuurt hem via de
@@ -334,19 +337,17 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
   geldige CSRF-controle geeft 403; `POST /auth/logout` wist sessie en cookie.
 - Authenticator, user provider, CSRF-listener, entry point; auditregels uit beslissing 14.
 
-### T6. Ingelogd blijven, code per mail, uitnodiging en wachtwoord-reset (test eerst)
+### T6. Ingelogd blijven, code per mail en uitnodiging (test eerst)
 
 - `LoginChallenge` en `Invitation` met migratie (alleen toevoegen) en `Account.credentialsChangedAt` (beslissingen 9,
   10 en 12).
-- Use cases (Identity): `RequestLoginCode`, `LogInWithCode`, `RequestPasswordReset`, `ResetPassword`,
-  `AcceptInvitation`, `ConfirmPassword`; `InviteMember` in Membership roept de uitnodiging aan.
-- Tests: elke code en uitnodiging één keer bruikbaar; een inlogcode verloopt na 24 uur, een reset-code na 12 uur, een uitnodiging
-  na 48 uur; een
-  code werkt alleen met zijn eigen `challengeId`; na 5 foute pogingen werkt ook de goede code niet meer; een
-  reset-code werkt niet om in te loggen; een nieuwe aanvraag maakt de vorige ongeldig; spaties en een streepje in de
-  code tellen niet mee; 202 met een `challengeId` bij een onbekend adres, zonder verschil in antwoord; in de database
-  staat geen code die met SHA-256 alleen terug te rekenen is; na een reset en na
-  wachtwoord wijzigen werkt een onthouden apparaat niet meer; `remember_me` houdt een sessie 90 dagen vast maar telt
+- Use cases (Identity): `RequestLoginCode`, `LogInWithCode`, `AcceptInvitation`, `ConfirmPassword`; `InviteMember` in Membership roept de uitnodiging aan.
+- Tests: elke code en uitnodiging één keer bruikbaar; een code verloopt na 60 minuten, een uitnodiging na 48 uur;
+  een code werkt alleen met zijn eigen `challengeId`; na 5 foute pogingen werkt ook de goede code niet meer; een
+  nieuwe aanvraag maakt de vorige ongeldig; spaties en een streepje in de code tellen niet mee; 202 met een
+  `challengeId` bij een onbekend adres, zonder verschil in antwoord; in de database staat geen code die met SHA-256
+  alleen terug te rekenen is; na inloggen met een code zet het lid een nieuw wachtwoord zonder het oude; na een
+  nieuw wachtwoord werkt een onthouden apparaat niet meer; `remember_me` houdt een sessie 90 dagen vast maar telt
   niet als recent (beslissing 15).
 - `LoggingNotifier` zonder parameters, `DevCodeNotifier` in `dev` (beslissing 29).
 
@@ -431,7 +432,7 @@ Per regel eerst het testbestand, dan de regel (beslissing 34). Lokaal gedraaid z
 - `docs/architecture.md`: `RuleViolation`, `RecentAuthentication`, de uitbreiding van `MemberDirectory`, regel 3,
   de firewalls; `docs/testing.md`: `InMemoryKernel`, HTTP- en scopematrix, de nieuwe Opengrep-regels;
   `docs/configuration.md`: sessie, rate limits, geldigheid van links en tokens; `docs/glossary.md`: inlogcode,
-  uitnodiging, wachtwoord-reset, `LoginChallenge`, `Invitation`, scope, kanaal `web`; `docs/gotchas.md`: wat opvalt.
+  uitnodiging, `LoginChallenge`, `Invitation`, scope, kanaal `web`; `docs/gotchas.md`: wat opvalt.
 - `docs/plans/plan.md`: Fase 2 afvinken, de endpointtabel bijwerken (beslissingen 10, 12, 25), de afwijkingen van
   beslissingen 4 en 17 in Fase 2; `CHANGELOG.md`; `AGENTS.md` (Commands) als er een commando bijkomt.
 
@@ -464,7 +465,7 @@ Per regel eerst het testbestand, dan de regel (beslissing 34). Lokaal gedraaid z
 Gemeld, niet in deze fase opgelost:
 
 - **Berichten gaan binnen de transactie uit**; versturen na de commit staat in fase 3. In deze fase komen er
-  berichten bij (inlogcode, reset, uitnodiging), die zo ook binnen de transactie vertrekken.
+  berichten bij (inlogcode, uitnodiging), die zo ook binnen de transactie vertrekken.
 - **`anonymisedAt` uit beslissing 8 van fase 1** volgt in fase 5b of 6a.
 - **Het slot op alle ledenrijen in `activeAdminsForUpdate()`** is een geaccepteerd risico (ADR 0005).
 - **De hashketen in het auditlog** (beslissing 16 van fase 1) staat nog open.
