@@ -85,6 +85,11 @@ symfony proxy:domain:attach buurtpreventie
 symfony proxy:start
 ```
 
+`server:ca:install` puts the local certificate authority in the macOS keychain, which Safari, Chrome
+and Firefox trust. On macOS it can still end with "no Firefox security databases found": the
+terminal may not read Firefox's profile folder, so its own copy fails. The site then works anyway;
+check with the health check below.
+
 The browser reaches `.wip` domains only when the system or browser proxy uses
 `http://127.0.0.1:7080/proxy.pac`; see
 [Setting up the local proxy](https://symfony.com/doc/current/setup/symfony_cli.html#setting-up-the-local-proxy).
