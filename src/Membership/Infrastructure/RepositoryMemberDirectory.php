@@ -7,6 +7,7 @@ namespace App\Membership\Infrastructure;
 use App\Membership\Domain\Member;
 use App\Membership\Domain\MemberRepository;
 use App\Shared\Domain\MemberDirectory;
+use App\Shared\Domain\MemberIdentity;
 use App\Shared\Domain\MemberProfile;
 use App\Shared\Domain\NotFound;
 use App\Shared\Domain\Role;
@@ -56,5 +57,17 @@ final readonly class RepositoryMemberDirectory implements MemberDirectory
         }
 
         return $profiles;
+    }
+
+    #[Override]
+    public function identity(Uuid $memberId): ?MemberIdentity
+    {
+        try {
+            $member = $this->members->get($memberId);
+        } catch (NotFound) {
+            return null;
+        }
+
+        return new MemberIdentity($member->id(), $member->roles(), $member->isActive());
     }
 }

@@ -80,6 +80,7 @@ final readonly class ProblemResponder
             $throwable instanceof RuleViolation => [422, ProblemCode::of($throwable), []],
             $throwable instanceof NotFound => [404, 'not_found', []],
             $throwable instanceof AccessDenied => [403, 'access_denied', []],
+            $throwable instanceof NamedProblem => self::fromHttp($throwable, $throwable->problemCode()),
             $throwable instanceof HttpExceptionInterface => self::fromHttp($throwable),
             default => [500, 'internal_error', []],
         };
@@ -88,7 +89,7 @@ final readonly class ProblemResponder
     /**
      * @return array{int, string, array<string, string>}
      */
-    private static function fromHttp(HttpExceptionInterface $exception): array
+    private static function fromHttp(HttpExceptionInterface $exception, ?string $code = null): array
     {
         $status = $exception->getStatusCode();
         if ($status >= 500) {
@@ -102,7 +103,7 @@ final readonly class ProblemResponder
             }
         }
 
-        return [$status, self::HTTP_CODES[$status] ?? 'request_failed', $headers];
+        return [$status, $code ?? self::HTTP_CODES[$status] ?? 'request_failed', $headers];
     }
 
     /**

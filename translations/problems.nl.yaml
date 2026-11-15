@@ -27,6 +27,7 @@ invalid_name: Deze naam klopt niet. Gebruik minstens één letter of cijfer.
 invalid_input: Niet alle gegevens kloppen.
 bad_request: Dit verzoek kan de app niet lezen.
 unauthorized: Je bent niet ingelogd.
+insufficient_scope: Je token mag dit niet. Maak een token met de juiste rechten.
 access_denied: Dit mag je niet doen.
 not_found: Dit bestaat niet (meer).
 method_not_allowed: Dit kan op dit adres niet.

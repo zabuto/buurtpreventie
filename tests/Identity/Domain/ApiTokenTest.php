@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Identity\Domain;
 
 use App\Identity\Domain\ApiToken;
+use App\Identity\Domain\TokenRefusal;
 use App\Identity\Domain\TokenScope;
 use App\Identity\Domain\TokenTerms;
 use DateTimeImmutable;
@@ -144,5 +145,71 @@ final class ApiTokenTest extends TestCase
         $token->markUsed(new DateTimeImmutable('2026-11-16T08:00:00+00:00'));
 
         $this->assertEquals(new DateTimeImmutable('2026-11-16T08:00:00+00:00'), $token->lastUsedAt());
+    }
+
+    #[Test]
+    public function it_records_a_use_within_a_minute_of_the_last_one_only_once(): void
+    {
+        $token = $this->token();
+        $token->markUsed(new DateTimeImmutable('2026-11-16T08:00:00+00:00'));
+
+        $recorded = $token->markUsed(new DateTimeImmutable('2026-11-16T08:00:59+00:00'));
+
+        $this->assertFalse($recorded);
+        $this->assertEquals(new DateTimeImmutable('2026-11-16T08:00:00+00:00'), $token->lastUsedAt());
+    }
+
+    #[Test]
+    public function it_records_a_use_a_minute_after_the_last_one(): void
+    {
+        $token = $this->token();
+        $token->markUsed(new DateTimeImmutable('2026-11-16T08:00:00+00:00'));
+
+        $recorded = $token->markUsed(new DateTimeImmutable('2026-11-16T08:01:00+00:00'));
+
+        $this->assertTrue($recorded);
+        $this->assertEquals(new DateTimeImmutable('2026-11-16T08:01:00+00:00'), $token->lastUsedAt());
+    }
+
+    #[Test]
+    public function it_admits_a_usable_token_of_an_active_member(): void
+    {
+        $token = $this->token();
+
+        $this->assertNull($token->refusalAt(new DateTimeImmutable('2026-11-16T08:00:00+00:00'), memberIsActive: true));
+    }
+
+    #[Test]
+    public function it_refuses_once_revoked(): void
+    {
+        $token = $this->token();
+        $token->revoke(new DateTimeImmutable('2026-11-16T07:00:00+00:00'));
+
+        $this->assertSame(TokenRefusal::Revoked, $token->refusalAt(new DateTimeImmutable('2026-11-16T08:00:00+00:00'), memberIsActive: true));
+    }
+
+    #[Test]
+    public function it_refuses_from_its_expiry_on(): void
+    {
+        $token = $this->token(new DateTimeImmutable('2026-11-16T08:00:00+00:00'));
+
+        $this->assertSame(TokenRefusal::Expired, $token->refusalAt(new DateTimeImmutable('2026-11-16T08:00:00+00:00'), memberIsActive: true));
+    }
+
+    #[Test]
+    public function it_refuses_for_a_member_who_is_deactivated_or_erased(): void
+    {
+        $token = $this->token();
+
+        $this->assertSame(TokenRefusal::MemberInactive, $token->refusalAt(new DateTimeImmutable('2026-11-16T08:00:00+00:00'), memberIsActive: false));
+    }
+
+    #[Test]
+    public function it_names_revocation_before_an_inactive_member(): void
+    {
+        $token = $this->token();
+        $token->revoke(new DateTimeImmutable('2026-11-16T07:00:00+00:00'));
+
+        $this->assertSame(TokenRefusal::Revoked, $token->refusalAt(new DateTimeImmutable('2026-11-16T08:00:00+00:00'), memberIsActive: false));
     }
 }

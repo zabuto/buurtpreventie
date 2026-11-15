@@ -151,7 +151,7 @@ A handler reaches storage, rights, the audit log and messages only through inter
 | `ExecutionContext`, `Channel` | The member performing the action with their roles (an `Actor`), or none for the system, and the channel (`web`, `api`, `mcp`, `cron`, `console`) | `Shared\Infrastructure\Security\TokenExecutionContext`, which reads Symfony's token storage; `RunAs` fills it for console commands, fixtures and the scheduler, an authenticator for HTTP and MCP |
 | `AuditTrail`, `AuditedAction` | Records an action; time, actor and channel come from the clock and the execution context | `Audit\Infrastructure\Persistence\DoctrineAuditTrail` |
 | `MemberNames` | The display name of a member, or none for an erased one, so another module can record or show who acted | `Membership\Infrastructure\RepositoryMemberNames` |
-| `MemberDirectory`, `MemberProfile` | Whether a member is active, who wants to hear about open rounds, and a member's names and phone number (only with consent) | `Membership\Infrastructure\RepositoryMemberDirectory` |
+| `MemberDirectory`, `MemberProfile`, `MemberIdentity` | Whether a member is active, who wants to hear about open rounds, a member's names and phone number (only with consent), and the identity the login works with: id, current roles and whether the member may log in | `Membership\Infrastructure\RepositoryMemberDirectory` |
 | `Authorization`, `AccessDenied` | `denyUnlessGranted()` asks the voters of every module and throws `AccessDenied` on a refusal | `Shared\Infrastructure\Security\SymfonyAuthorization` |
 | `Notifier`, `Notification` | Sends a member a message by type and parameters; the domain holds no texts | `Shared\Infrastructure\Notification\LoggingNotifier`, which only logs |
 | `Role`, `Actor` | The fixed roles `walker`, `coordinator`, `analyst` and `admin`, without inheritance, and a member with their roles, as the policies of every module decide on them | |
@@ -189,6 +189,26 @@ and gets a title in both files; `RuleViolationCoverageTest` fails otherwise.
 A handler that calls the handler of another module, such as `DeactivateMember` calling
 `WithdrawMemberFromUpcomingRounds`, `RevokeMemberApiTokens` and `EraseActorName`, runs that handler's transaction inside
 its own. Doctrine nests it with a savepoint, so a failure in either undoes both.
+
+## Authentication
+
+Two firewalls guard `/api/`, picked by the request:
+
+| Firewall | Takes | Authenticator | Channel |
+| --- | --- | --- | --- |
+| `api_token` | Every API request with an `Authorization` header, whatever its scheme | `Identity\Infrastructure\Security\ApiTokenAuthenticator` | `api` |
+| `main` | Every other request | the browser login of phase 2 | `web` |
+
+The token firewall is stateless. Its authenticator takes every request, so a broken or unknown header is refused
+like a wrong token: an empty 401 with `WWW-Authenticate: Bearer`, and the reason only in the log. It looks the
+token up by the SHA-256 hash of the secret on every request, so a revocation or a deactivation counts at once.
+`ApiToken::refusalAt()` decides why a known token lets nobody in (revoked, expired, member inactive); the member
+comes from `MemberDirectory::identity()`, read afresh, so a changed role counts on the next request.
+
+`TokenScopeGuard` runs right after the firewall and holds a token request to its scopes: `read` for `GET` and
+`HEAD`, `write` for every other method, `admin` for everything under `/api/v1/admin/`. A missing scope is a 403
+problem `insufficient_scope`. The voters then decide on the roles as for any request, so scope and role must both
+allow an action.
 
 ## Handler and domain
 

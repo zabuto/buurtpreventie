@@ -90,3 +90,6 @@ versions follow [Semantic Versioning](https://semver.org/).
 - OpenAPI description of the API at `GET /api/v1/docs.json` (NelmioApiDocBundle), public, in JSON only and as OpenAPI 3.1.
 - API errors as `application/problem+json` with a title in Dutch or English (`Accept-Language`), field errors for
   invalid input, and no internal detail.
+- Personal API tokens in `Authorization: Bearer`: looked up by hash on every request, refused at once when revoked,
+  expired or when the member is deactivated or erased, held to their scopes (`read`, `write`, `admin`), and the
+  last use recorded at most once a minute.

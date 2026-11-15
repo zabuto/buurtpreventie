@@ -37,4 +37,10 @@ final readonly class DoctrineApiTokenRepository implements ApiTokenRepository
         /** @var list<ApiToken> */
         return $this->entityManager->getRepository(ApiToken::class)->findBy(['memberId' => $memberId]);
     }
+
+    #[Override]
+    public function bySecretHash(#[SensitiveParameter] string $secretHash): ?ApiToken
+    {
+        return $this->entityManager->getRepository(ApiToken::class)->findOneBy(['secretHash' => $secretHash]);
+    }
 }

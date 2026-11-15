@@ -33,4 +33,16 @@ final class InMemoryApiTokenRepository implements ApiTokenRepository
     {
         return \array_values(\array_filter($this->tokens, static fn(#[SensitiveParameter] ApiToken $token): bool => $token->memberId()->equals($memberId)));
     }
+
+    #[Override]
+    public function bySecretHash(#[SensitiveParameter] string $secretHash): ?ApiToken
+    {
+        foreach ($this->tokens as $token) {
+            if (\hash_equals($token->secretHash(), $secretHash)) {
+                return $token;
+            }
+        }
+
+        return null;
+    }
 }

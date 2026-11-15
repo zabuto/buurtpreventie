@@ -326,6 +326,20 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
   per minuut.
 - De scopetest (beslissing 33) en de listener (beslissing 17).
 - Firewall `api_token` met request matcher op de header.
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - elk API-verzoek met een `Authorization`-header gaat naar de tokenfirewall, ook `Basic`: zo wordt een verkeerde
+    header daar geweigerd en gelogd, in plaats van als verzoek zonder sessie door te gaan;
+  - waarom een bekend token niet werkt (ingetrokken, verlopen, lid inactief) staat in `ApiToken::refusalAt()`, met
+    domeintests; misvormd en onbekend beslist de authenticator. Ingetrokken gaat vóór de andere redenen;
+  - `ApiToken::markUsed()` schrijft hooguit eens per minuut en geeft terug of het schreef; de authenticator roept hem
+    aan in een `Transaction`;
+  - `MemberDirectory::identity()` komt nu, met `MemberIdentity` (lid, huidige rollen, actief); `identify()` op
+    e-mailadres volgt in T5;
+  - een ontbrekende scope is een 403 met eigen code `insufficient_scope`, via `NamedProblem` in `Shared`. `admin`
+    geldt alleen voor `/api/v1/admin/`: een token met alleen `admin` leest elders niet;
+  - `InMemoryKernel` vervangt de diensten in een compiler pass (`InMemoryServices`), zet de klok stil op een vast
+    moment en bewaart wat de app logt (`RecordingLogger`); een tweede probe-controller toont uitvoerder en kanaal;
+  - het ontbrekende token zonder header gaat via de browserfirewall: dat test T5 met het entry point.
 
 ### T5. Inloggen met wachtwoord en sessie (test eerst)
 

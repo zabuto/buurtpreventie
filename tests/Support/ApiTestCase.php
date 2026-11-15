@@ -29,4 +29,21 @@ abstract class ApiTestCase extends WebTestCase
 
         return $body;
     }
+
+    /**
+     * A fake or other service of the kernel the client runs on, to arrange data before the request or check it after.
+     *
+     * @template T of object
+     *
+     * @param class-string<T> $id
+     *
+     * @return T
+     */
+    protected static function service(string $id): object
+    {
+        $service = self::getContainer()->get($id);
+        self::assertInstanceOf($id, $service);
+
+        return $service;
+    }
 }

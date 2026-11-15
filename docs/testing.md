@@ -32,10 +32,13 @@ A test class that leaves memory carries `#[Group('integration')]`, `#[Group('fun
 ## Endpoint tests
 
 `ApiTestCase` boots `InMemoryKernel`: the app with every repository, the transaction, the audit trail and the
-notifier replaced by the fakes from `tests/<Module>/Fake/` and `tests/Shared/Fake/`, and everything else real,
-security and voters included. Endpoint tests therefore run without a database, also in `composer test` when none is
+notifier replaced by the fakes from `tests/<Module>/Fake/` and `tests/Shared/Fake/`, the clock stopped at
+`InMemoryKernel::NOW` and a `RecordingLogger` that keeps what the app logs; everything else is real, security and
+voters included. `InMemoryServices` makes the swap as a compiler pass, because `config/services.yaml` loads after
+anything registered next to it. Two probe controllers exist only in this kernel: one raises each kind of failure,
+the other answers who a request runs as and through which channel. Endpoint tests therefore run without a database, also in `composer test` when none is
 reachable. The kernel keeps its container in `var/cache/test_in_memory/`. A test arranges its data in the fakes it
-takes from the container, then makes one request; the client boots a fresh kernel per request, so state does not
+takes from the container (`self::service()`), then makes one request; the client boots a fresh kernel per request, so state does not
 leak between tests.
 
 The test client sends `Accept-Language: en-us` unless told otherwise (`Request::create()`). A test that expects

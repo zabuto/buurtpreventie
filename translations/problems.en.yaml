@@ -27,6 +27,7 @@ invalid_name: This name is not valid. Use at least one letter or digit.
 invalid_input: Not all details are valid.
 bad_request: The app cannot read this request.
 unauthorized: You are not logged in.
+insufficient_scope: Your token may not do this. Create a token with the right scope.
 access_denied: You may not do this.
 not_found: This does not exist (any more).
 method_not_allowed: This cannot be done at this address.

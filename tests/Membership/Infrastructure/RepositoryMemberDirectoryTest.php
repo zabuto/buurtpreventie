@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Membership\Infrastructure;
 
 use App\Membership\Infrastructure\RepositoryMemberDirectory;
+use App\Shared\Domain\MemberIdentity;
 use App\Shared\Domain\MemberProfile;
 use App\Shared\Domain\Role;
 use App\Tests\Membership\Fake\InMemoryMemberRepository;
@@ -103,5 +104,32 @@ final class RepositoryMemberDirectoryTest extends TestCase
             [$jan->id()->toRfc4122() => new MemberProfile($jan->id(), null, null, null, active: false)],
             $profiles,
         );
+    }
+
+    #[Test]
+    public function it_identifies_a_member_by_id_with_the_roles_the_member_has_now(): void
+    {
+        $jan = MemberFixture::stored($this->members, 'jan@example.org', 'Jan Bakker', 'Jan B.', [Role::Walker]);
+        $jan->changeRoles([Role::Walker, Role::Coordinator]);
+
+        $this->assertEquals(
+            new MemberIdentity($jan->id(), [Role::Walker, Role::Coordinator], active: true),
+            $this->directory->identity($jan->id()),
+        );
+    }
+
+    #[Test]
+    public function it_identifies_an_erased_member_as_inactive(): void
+    {
+        $jan = MemberFixture::stored($this->members, 'jan@example.org', 'Jan Bakker', 'Jan B.');
+        $jan->erase(new DateTimeImmutable('2026-11-16T08:00:00+00:00'));
+
+        $this->assertFalse($this->directory->identity($jan->id())?->active);
+    }
+
+    #[Test]
+    public function it_identifies_nobody_for_an_unknown_id(): void
+    {
+        $this->assertNull($this->directory->identity(Uuid::v7()));
     }
 }

@@ -24,4 +24,9 @@ interface ApiTokenRepository
      * @return list<ApiToken> revoked and expired tokens included
      */
     public function ofMember(Uuid $memberId): array;
+
+    /**
+     * The token whose secret has this SHA-256 hash; the secret itself is never stored or searched for.
+     */
+    public function bySecretHash(#[SensitiveParameter] string $secretHash): ?ApiToken;
 }
