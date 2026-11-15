@@ -16,9 +16,14 @@ final class DatabaseAvailabilityTest extends TestCase
     {
         $availability = DatabaseAvailability::ready();
 
-        $availability->enforce(required: true);
+        $stoppedBecause = null;
+        try {
+            $availability->enforce(required: true);
+        } catch (AssertionFailedError|SkippedWithMessageException $stopped) {
+            $stoppedBecause = $stopped->getMessage();
+        }
 
-        $this->addToAssertionCount(1);
+        $this->assertNull($stoppedBecause);
     }
 
     #[Test]

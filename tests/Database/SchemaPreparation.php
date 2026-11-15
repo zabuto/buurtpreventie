@@ -54,7 +54,7 @@ final readonly class SchemaPreparation
                 return null;
             }
 
-            $output = (string) \file_get_contents($stdout) . ' ' . (string) \file_get_contents($stderr);
+            $output = \file_get_contents($stdout) . ' ' . \file_get_contents($stderr);
 
             return \sprintf('%s: %s', \implode(' ', $arguments), \trim((string) \preg_replace('/\s+/', ' ', $output)));
         } finally {
