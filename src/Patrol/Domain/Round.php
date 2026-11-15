@@ -155,6 +155,19 @@ final class Round
     }
 
     /**
+     * @return list<Participation> the walkers who have not been reminded of this round
+     */
+    public function participationsToRemind(): array
+    {
+        return \array_values($this->participations->filter(static fn(Participation $participation): bool => null === $participation->remindedAt())->toArray());
+    }
+
+    public function markReminded(Uuid $memberId, DateTimeImmutable $now): void
+    {
+        $this->participationOf($memberId)?->markReminded($now);
+    }
+
+    /**
      * Signs a member up. Signing up twice is no error, also in a full round: a double click on the last spot must
      * not tell the walker the round is full.
      *
