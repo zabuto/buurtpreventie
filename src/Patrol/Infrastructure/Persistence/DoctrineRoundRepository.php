@@ -103,9 +103,7 @@ final readonly class DoctrineRoundRepository implements RoundRepository
         /** @var list<Round> */
         return $this->entityManager
             ->createQuery(\sprintf(
-                'SELECT r FROM %s r WHERE r.startsAt > :now AND EXISTS ('
-                    . 'SELECT 1 FROM %s p WHERE p.round = r AND p.memberId = :member'
-                    . ') ORDER BY r.startsAt',
+                'SELECT r FROM %s r WHERE r.startsAt > :now AND EXISTS (SELECT 1 FROM %s p WHERE p.round = r AND p.memberId = :member) ORDER BY r.startsAt',
                 Round::class,
                 Participation::class,
             ))

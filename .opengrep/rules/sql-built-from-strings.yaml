@@ -4,14 +4,27 @@ rules:
     severity: ERROR
     message: >-
       SQL built with concatenation, interpolation or sprintf() lets a value change the query. Pass values as
-      parameters (`?` or `:name`), or use the query builder with setParameter().
-    patterns:
+      parameters (`?` or `:name`), or use the query builder with setParameter(). A sprintf() that only fills in
+      entity class names (`Round::class`) stays a fixed text.
+    pattern-either:
+      - patterns:
+          - pattern-either:
+              - pattern: $DB->$METHOD("..." . $VALUE, ...)
+              - pattern: $DB->$METHOD($VALUE . "...", ...)
+              - pattern: $DB->$METHOD("...$VALUE...", ...)
+              - pattern: $DB->$METHOD(sprintf(...), ...)
+              - pattern: $DB->$METHOD(\sprintf(...), ...)
+          - pattern-not: $DB->$METHOD(\sprintf("...", $A::class), ...)
+          - pattern-not: $DB->$METHOD(\sprintf("...", $A::class, $B::class), ...)
+          - pattern-not: $DB->$METHOD(sprintf("...", $A::class), ...)
+          - pattern-not: $DB->$METHOD(sprintf("...", $A::class, $B::class), ...)
+          - metavariable-regex:
+              metavariable: $METHOD
+              regex: ^(executeQuery|executeStatement|executeCacheQuery|executeUpdate|query|exec|prepare|fetchAssociative|fetchNumeric|fetchOne|fetchAllAssociative|fetchAllNumeric|fetchAllKeyValue|fetchFirstColumn|iterateAssociative|iterateNumeric|createQuery|createNativeQuery|where|andWhere|orWhere|having|andHaving|orHaving|orderBy|addOrderBy|select|addSelect|from|join|innerJoin|leftJoin|groupBy|addGroupBy|set)$
+      # The query builder's set() takes the SQL expression as its second argument.
       - pattern-either:
-          - pattern: $DB->$METHOD("..." . $VALUE, ...)
-          - pattern: $DB->$METHOD($VALUE . "...", ...)
-          - pattern: $DB->$METHOD("...$VALUE...", ...)
-          - pattern: $DB->$METHOD(sprintf(...), ...)
-          - pattern: $DB->$METHOD(\sprintf(...), ...)
-      - metavariable-regex:
-          metavariable: $METHOD
-          regex: ^(executeQuery|executeStatement|executeCacheQuery|executeUpdate|query|exec|prepare|fetchAssociative|fetchNumeric|fetchOne|fetchAllAssociative|fetchAllNumeric|fetchAllKeyValue|fetchFirstColumn|iterateAssociative|iterateNumeric|createQuery|createNativeQuery|where|andWhere|orWhere|having|andHaving|orHaving|orderBy|addOrderBy)$
+          - pattern: $DB->set($FIELD, "..." . $VALUE)
+          - pattern: $DB->set($FIELD, $VALUE . "...")
+          - pattern: $DB->set($FIELD, "...$VALUE...")
+          - pattern: $DB->set($FIELD, sprintf(...))
+          - pattern: $DB->set($FIELD, \sprintf(...))
