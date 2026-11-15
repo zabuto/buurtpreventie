@@ -19,7 +19,7 @@ final class DependabotCooldownTest extends TestCase
 {
     /** Minimum days per key; Dependabot supports the semver keys for Composer, not for GitHub Actions. */
     private const array MINIMUM_DAYS = [
-        'composer' => ['semver-patch-days' => 3, 'semver-minor-days' => 7, 'semver-major-days' => 14, 'default-days' => 7],
+        'composer' => ['semver-patch-days' => 7, 'semver-minor-days' => 7, 'semver-major-days' => 14, 'default-days' => 7],
         'github-actions' => ['default-days' => 7],
     ];
 

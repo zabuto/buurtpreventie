@@ -36,16 +36,16 @@ final class ReleasePolicyTest extends TestCase
      */
     public static function cooldownBoundaries(): iterable
     {
-        yield 'patch exactly 3 days old' => ['1.33.1', 33, 1, '2026-11-12T12:00:00Z'];
-        yield 'patch one second short of 3 days' => ['1.33.0', 33, 1, '2026-11-12T12:00:01Z'];
+        yield 'patch exactly 7 days old' => ['1.33.1', 33, 1, '2026-11-08T12:00:00Z'];
+        yield 'patch 3 days old' => ['1.33.0', 33, 1, '2026-11-12T12:00:00Z'];
+        yield 'patch one second short of 7 days' => ['1.33.0', 33, 1, '2026-11-08T12:00:01Z'];
         yield 'minor exactly 7 days old' => ['1.34.0', 34, 0, '2026-11-08T12:00:00Z'];
-        yield 'minor 3 days old' => ['1.33.0', 34, 0, '2026-11-12T12:00:00Z'];
         yield 'minor one second short of 7 days' => ['1.33.0', 34, 0, '2026-11-08T12:00:01Z'];
     }
 
     #[Test]
     #[DataProvider('cooldownBoundaries')]
-    public function it_waits_three_days_for_a_patch_and_seven_for_a_minor(string $expected, int $minor, int $patch, string $publishedAt): void
+    public function it_waits_seven_days_for_a_patch_or_a_minor(string $expected, int $minor, int $patch, string $publishedAt): void
     {
         $releases = [$this->release(1, 33, 0, '2026-10-27T10:00:00Z'), $this->release(1, $minor, $patch, $publishedAt)];
 

@@ -12,8 +12,7 @@ use DateTimeImmutable;
  */
 final readonly class ReleasePolicy
 {
-    private const int PATCH_DAYS = 3;
-    private const int MINOR_DAYS = 7;
+    private const int RELEASE_DAYS = 7;
     private const int MAJOR_DAYS = 14;
 
     /**
@@ -25,10 +24,7 @@ final readonly class ReleasePolicy
     {
         $eligible = \array_filter(
             $releases,
-            fn(Release $release): bool => (
-                $release->major === $major
-                && $this->hasWaited($release, 0 === $release->patch ? self::MINOR_DAYS : self::PATCH_DAYS, $now)
-            ),
+            fn(Release $release): bool => $release->major === $major && $this->hasWaited($release, self::RELEASE_DAYS, $now),
         );
 
         return $this->newest($eligible) ?? throw new NoEligibleRelease(\sprintf('No Opengrep %d.x release has passed its cooldown.', $major));
