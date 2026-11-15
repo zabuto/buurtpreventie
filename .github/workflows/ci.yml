@@ -120,6 +120,22 @@ jobs:
       - name: Run the database tests
         run: php vendor/bin/phpunit --group database
 
+      # Outside the test transaction, so every set commits for real; the database tests check what each set holds.
+      - name: Load every sample data set
+        run: |
+          query() {
+            docker exec database sh -c "mysql -uroot -proot -N -e \"$1\" buurtpreventie 2>/dev/null || mariadb -uroot -proot -N -e \"$1\" buurtpreventie"
+          }
+          for set in demo test edge; do
+            php bin/console app:fixtures:load "$set" --no-interaction
+            members="$(query 'SELECT COUNT(*) FROM member')"
+            entries="$(query 'SELECT COUNT(*) FROM audit_entry')"
+            echo "$set: $members members, $entries audit entries"
+            if [ "$members" -lt 1 ] || [ "$entries" -lt 1 ]; then
+              exit 1
+            fi
+          done
+
   security-scan:
     name: Security scan
     runs-on: ubuntu-latest
