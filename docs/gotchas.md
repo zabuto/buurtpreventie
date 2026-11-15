@@ -36,6 +36,14 @@ Things that are not obvious and cost time when you do not know them.
   unused parameter; `rector.php` skips that rule for `src/*/UseCase/*`, because REST and MCP pass the
   same input.
 
+## Database
+
+- **`bin/console` does not see the database container.** Only the Symfony CLI reads the port
+  Docker picked and sets `DATABASE_URL`, so run console commands as `symfony console`. A fixed
+  `DATABASE_URL` in `.env.local` breaks when the container gets a new port after a restart.
+- **Docker Compose reads `.env`, not `.env.local`,** for the variables in `compose.yaml`. Override
+  them in the shell, never in the committed `.env`.
+
 ## Symfony
 
 - **`DEFAULT_URI`** has a default in `config/services.yaml` (`http://localhost`). Without it,

@@ -27,10 +27,10 @@ Oude repo afgerond en hernoemd, nieuwe repo `zabuto/buurtpreventie` met `main` e
 
 ## Voorgestelde beslissingen
 
-1. **Geen database in fase 0.** Doctrine, MariaDB in `compose.yaml` en `app:fixtures:load` komen in
-   fase 1, samen met de eerste entiteiten. Fase 0 heeft geen persistente data, en een databank
-   zonder tabellen voegt alleen opstartwerk toe. De PHPat-regels noemen Doctrine-namespaces al wel,
-   zodat ze in fase 1 meteen werken. `docs/getting-started.md` krijgt de databankstap in fase 1.
+1. **Geen database in fase 0.** Doctrine en `app:fixtures:load` komen in fase 1, samen met de
+   eerste entiteiten; MariaDB in `compose.yaml` staat vóór fase 1 klaar. Fase 0 heeft geen
+   persistente data. De PHPat-regels noemen Doctrine-namespaces al wel, zodat ze in fase 1 meteen
+   werken.
 2. **Voorbeeld-use case: `Maintenance/CheckHealth`**, `GET /api/v1/health`, antwoord
    `{"status": "ok"}`. Klein, echt bruikbaar (de updater in fase 6b heeft een gezondheidscheck nodig)
    en zonder domeinmodel, zodat fase 1 de domeinregels nog steeds test-eerst bouwt. Bewust zonder

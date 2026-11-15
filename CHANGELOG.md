@@ -17,5 +17,7 @@ versions follow [Semantic Versioning](https://semver.org/).
 - GitHub Actions for CI, a weekly audit and a weekly look-ahead on Symfony 8 and PHP 8.5;
   Dependabot with automatic merging of patch and minor updates once CI is green (minor updates of
   packages below 1.0 excepted). Dependabot skips major Symfony updates, so v4 stays on 7.4 LTS.
+- Development database: MariaDB 10.11 in `compose.yaml` on a free port, handed to the app by the
+  Symfony CLI.
 - Test suite in unit, integration and functional groups; `composer test:unit` runs the unit tests.
 - `SECURITY.md` and documentation in `docs/`, including the code style and writing guidelines.

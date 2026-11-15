@@ -64,6 +64,8 @@ The plan lives in docs/plan-v4.md and is leading. Read it before every phase.
 
 - Minimum PHP is 8.4.27 (PHP2Shell, CVE-2026-109618 and CVE-2026-109619); CI runs on 8.4.
 - Install: composer install
+- Database (development): docker compose up -d --wait; run console commands as symfony console,
+  which takes DATABASE_URL from the container.
 - Start: symfony server:start, or php -S localhost:8000 -t public; check /api/v1/health.
 - Test: composer test (all), composer test:unit (in-memory unit tests only)
 - All CI checks: composer check (validate, audit, container lint, deprecations, Mago format,
