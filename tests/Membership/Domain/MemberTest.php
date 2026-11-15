@@ -109,6 +109,20 @@ final class MemberTest extends TestCase
         $member->reactivate();
     }
 
+    /**
+     * An erased member gets no mail at all; a notification setting would make it a recipient again.
+     */
+    #[Test]
+    public function it_refuses_open_round_notifications_once_erased(): void
+    {
+        $member = $this->member();
+        $member->erase(new DateTimeImmutable(self::NOW));
+
+        $this->expectException(MemberErased::class);
+
+        $member->changeOpenRoundNotifications(true);
+    }
+
     #[Test]
     public function it_reactivates_a_deactivated_member(): void
     {

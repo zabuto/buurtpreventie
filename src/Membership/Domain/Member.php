@@ -211,6 +211,16 @@ final class Member
         $this->certified = $certified;
     }
 
+    /**
+     * @throws MemberErased
+     */
+    public function changeOpenRoundNotifications(bool $notify): void
+    {
+        $this->refuseWhenErased();
+
+        $this->notifyOpenRounds = $notify;
+    }
+
     public function deactivate(): void
     {
         $this->active = false;

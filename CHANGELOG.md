@@ -52,6 +52,8 @@ versions follow [Semantic Versioning](https://semver.org/).
 - Who acts comes from Symfony's token storage, for handlers and voters alike: `RunAs` sets a member or
   the system identity (`ROLE_SYSTEM`, channel `cron`) for entry points without HTTP authentication. A
   failed transaction resets the entity manager, so the next use case in the same process works.
+- `MemberDirectory` lets other modules ask whether a member is active, who wants to hear about open
+  rounds, and a member's names and phone number (only with consent).
 - Identity: accounts with a password that accepts v3 hashes, and API tokens stored as a hash with
   scopes, expiry and revocation; a token secret is always generated, and any other value is refused. Settings: the default minimum and maximum walkers of a new round.
 - Responses do not name the PHP version: the app and `public/.htaccess` set `X-Powered-By` to `PHP Symfony`.

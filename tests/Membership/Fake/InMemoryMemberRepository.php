@@ -30,6 +30,29 @@ final class InMemoryMemberRepository implements MemberRepository
     }
 
     #[Override]
+    public function getMany(array $ids): array
+    {
+        $found = [];
+        foreach ($ids as $id) {
+            $member = $this->members[$id->toRfc4122()] ?? null;
+            if (null !== $member) {
+                $found[] = $member;
+            }
+        }
+
+        return $found;
+    }
+
+    #[Override]
+    public function activeWithOpenRoundNotifications(): array
+    {
+        return \array_values(\array_filter(
+            $this->members,
+            static fn(Member $member): bool => $member->isActive() && $member->wantsOpenRoundNotifications(),
+        ));
+    }
+
+    #[Override]
     public function isEmailAddressTaken(EmailAddress $email, ?Uuid $except = null): bool
     {
         return (

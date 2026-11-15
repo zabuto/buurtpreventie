@@ -24,6 +24,20 @@ interface MemberRepository
      */
     public function add(Member $member): void;
 
+    /**
+     * @param list<Uuid> $ids
+     *
+     * @return list<Member> the members found; an unknown id is skipped
+     */
+    public function getMany(array $ids): array;
+
+    /**
+     * Whatever their roles; the caller picks the walkers.
+     *
+     * @return list<Member> the active members who want to hear about rounds that seek a buddy
+     */
+    public function activeWithOpenRoundNotifications(): array;
+
     public function isEmailAddressTaken(EmailAddress $email, ?Uuid $except = null): bool;
 
     public function isDisplayNameTaken(LookupKey $displayName, ?Uuid $except = null): bool;
