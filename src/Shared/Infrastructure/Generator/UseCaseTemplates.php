@@ -16,7 +16,7 @@ final readonly class UseCaseTemplates
     {
         $namespace = \sprintf('App\%s\UseCase\%s', $module, $name);
         $path = '/' . \implode('-', $this->words($name));
-        $routeName = \strtolower($module) . '_' . \implode('_', $this->words($name));
+        $routeName = \mb_strtolower($module) . '_' . \implode('_', $this->words($name));
 
         return [
             $name . '.php' => <<<PHP
@@ -118,6 +118,6 @@ final readonly class UseCaseTemplates
     {
         $words = \preg_split('/(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])/', $name);
 
-        return \array_map(\strtolower(...), false === $words ? [$name] : $words);
+        return \array_map(\mb_strtolower(...), false === $words ? [$name] : $words);
     }
 }

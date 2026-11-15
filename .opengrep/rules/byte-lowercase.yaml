@@ -1,0 +1,12 @@
+rules:
+  - id: byte-lowercase
+    languages: [php]
+    severity: ERROR
+    message: >-
+      strtolower() and strtoupper() change only the letters A to Z, so "É" stays "É" and a lookup or comparison
+      misses it. Use mb_strtolower() or mb_strtoupper(), or LookupKey for a name someone searches for.
+    patterns:
+      - pattern: $FUNCTION(...)
+      - metavariable-regex:
+          metavariable: $FUNCTION
+          regex: ^\\?(strtolower|strtoupper)$
