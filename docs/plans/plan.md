@@ -44,7 +44,7 @@ Buurtpreventie v4 wordt een Symfony 7.4 LTS-backend met een echte REST-API (`/ap
 | U8 | Vaste export voor politie en gemeente | later, nog uit te werken |
 | U9 | Route en incidentkaart | open, na DPIA en afstemming met het bestuur |
 | U10 | OAuth voor MCP-clients | later |
-| U11 | No-shows bijhouden | open, na afstemming met het bestuur |
+| U11 | No-shows bijhouden | open, opt-in per vereniging |
 
 **Klaar-afspraak voor elke taak** (naast het "Klaar als" per fase):
 
@@ -888,7 +888,7 @@ Binnen elke groep gaat waarde vóór moeite.
 | U8 | Vaste export voor politie en gemeente | coördinator | nog te bepalen | klein tot middel | Geen persoonsgegevens in de export | Eerst met de coördinator uitwerken welke cijfers, in welke vorm en hoe vaak |
 | U9 | Route en incidentkaart | coördinator, analist | middel | groot | Locatie is gevoelig: toestemming per loper, DPIA en afstemming met het bestuur vooraf | Veel werk en privacy-afwegingen |
 | U10 | OAuth voor MCP-clients | lopers via een AI-app | laag | groot | Een eigen autorisatieserver is het grootste nieuwe aanvalsoppervlak; per vereniging aan of uit | Maakt MCP bruikbaar met inloggen in plaats van een token; tot dan werkt MCP met tokens |
-| U11 | No-shows bijhouden | coördinator | middel | klein | Een oordeel over betrouwbaarheid is gevoelig: alleen coördinator en het lid zelf, vaste bewaartermijn, inzage en bezwaar, afstemming met het bestuur vooraf | Helpt de coördinator een loper aan te spreken die vaak niet komt, maar vraagt eerst een privacy-afweging |
+| U11 | No-shows bijhouden | coördinator | middel | klein | Een oordeel over betrouwbaarheid is gevoelig: opt-in per vereniging; alleen coördinator en het lid zelf, vaste bewaartermijn, inzage en bezwaar | Helpt de coördinator een loper aan te spreken die vaak niet komt, maar vraagt eerst een privacy-afweging |
 
 ### Uitbreiding U1 — Vast loopmaatje uitnodigen
 
@@ -1003,7 +1003,7 @@ Een losse uitbreiding die pas start als fase 0 t/m 6 draaien. Standaard staat hi
 
 ### Uitbreiding U11 — No-shows bijhouden
 
-Een losse uitbreiding, standaard uit; een vereniging zet hem aan in de instellingen, na afstemming met het bestuur.
+Een opt-in-functie achter een feature flag: standaard uit, de beheerder zet hem per vereniging aan in de instellingen. Zolang hij uit staat, is er geen knop, geen veld in de uitvoer en wordt er niets vastgelegd.
 
 - [ ] **Markeren bij annuleren:** wie een begonnen ronde annuleert (`CancelRound`, een loper van die ronde of de coördinator), vinkt aan welke lopers niet kwamen. De coördinator kan dat achteraf aanpassen.
 - [ ] **Model:** `noShowAt` op de aanmelding (`Participation`) van die loper in die ronde; geen eigen tabel. Elke markering en elke verwijdering laat een auditregel achter.
