@@ -16,6 +16,29 @@ Buurtpreventie v4 wordt een Symfony 7.4 LTS-backend met een echte REST-API (`/ap
 - Licentie PolyForm Noncommercial 1.0.0; README in het Engels met een korte Nederlandse samenvatting; docs in het Engels, behalve de woordenlijst en de plannen; code, API, AGENTS.md, CLAUDE.md en alle map- en bestandsnamen in het Engels.
 - Weinig afhankelijkheden, geen deprecations, tests vóór code, en overdraagbaar aan een andere ontwikkelaar (zie Overdraagbaarheid). Een beter domeinmodel gaat voor compatibiliteit met v3; data gaat over via conversie.
 
+**Fasen en stand** (bijgewerkt op 15 november 2026; details in Implementatieplan):
+
+| Fase | Inhoud | Stand |
+| --- | --- | --- |
+| 0 | Basis: skelet, CI, docs, codescan | klaar, in `develop` |
+| 1 | Domein, use cases, Voters, auditlog, database, voorbeelddata | bezig: T1 tot en met T7 van 16 klaar (`feature/phase-1`) |
+| 2 | REST-API v1 met inloggen en API-tokens | open |
+| 3 | Branding en configuratie | open |
+| 4 | Frontend (Lit, PWA, WCAG 2.2 AA) | open |
+| 5 | MCP-server | open |
+| 5b | Conversie v3 → v4 | open |
+| 6a | Installeren en releasen | open |
+| 6b | Bijwerken, onderhoud en overdracht | open |
+| 7 | iCal-feed met eigen rondes | open |
+| 8 | Statistieken voor analist | open |
+| 9 | Vast loopmaatje uitnodigen | open |
+| 10 | Pushmeldingen | open |
+| 11 | Offline terugmelden | open |
+| 12 | Route en incidentkaart | open, losse uitbreiding |
+| 13 | OAuth voor MCP-clients | later |
+| 14 | Vaste export voor politie en gemeente | later, nog uit te werken |
+| 15 | Terugmelden met spraak | later |
+
 **Klaar-afspraak voor elke taak** (naast het "Klaar als" per fase):
 
 - Tests eerst geschreven en groen; PHPStan, PHPat en Mago schoon; geen nieuwe deprecations.
