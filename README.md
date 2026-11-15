@@ -16,8 +16,8 @@ Licence: PolyForm Noncommercial 1.0.0, see `LICENSE`.
 Required Notice: Copyright (c) 2026 Anke Heijnen (https://github.com/zabuto)
 
 Buurtpreventie is free to use for non-commercial purposes and intended for neighbourhood and
-residents' associations. It is source-available, not open source in the OSI sense. The software is
-provided as is, without warranty or support.
+residents' associations. The code is public, but it is not open source: commercial use is not
+allowed. The software is provided as is, without warranty or support.
 
 ## Samenvatting in het Nederlands
 
@@ -27,6 +27,6 @@ De documentatie in `docs/` is in het Engels; begin bij
 [docs/getting-started.md](docs/getting-started.md). Een kwetsbaarheid meld je privé, zie
 [SECURITY.md](SECURITY.md).
 
-Vrij te gebruiken voor niet-commerciële doelen onder PolyForm Noncommercial 1.0.0, bedoeld voor buurt-
-en bewonersverenigingen. Source-available, geen open source in de zin van de OSI. De software wordt
-geleverd zoals hij is, zonder garantie en zonder support.
+Vrij te gebruiken voor niet-commerciële doelen onder PolyForm Noncommercial 1.0.0, bedoeld voor
+buurt- en bewonersverenigingen. De code is openbaar, maar geen open source: commercieel gebruik is
+niet toegestaan. De software wordt geleverd zoals hij is, zonder garantie en zonder support.

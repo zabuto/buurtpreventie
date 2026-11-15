@@ -16,8 +16,9 @@ The predecessor (v1 to v3) is MIT-licensed, with the same author as copyright ho
 - **The predecessor stays MIT.** Its last commit carries the tag `v3-mit-final` and a README pointing
   to v4; MIT versions keep their licence.
 - **The README speaks of "free to use for non-commercial purposes"**, says the software is meant for
-  neighbourhood and residents' associations, and calls it source-available, not open source in the
-  OSI sense. The software is provided as is, without warranty or support.
+  neighbourhood and residents' associations, and says the code is public but not open source, because
+  commercial use is not allowed (the OSI definition excludes licences that forbid any kind of use). The
+  software is provided as is, without warranty or support.
 
 ## Consequences
 
