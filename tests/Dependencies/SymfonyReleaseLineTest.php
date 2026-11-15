@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Dependencies;
 
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -11,6 +12,7 @@ use PHPUnit\Framework\TestCase;
  * extra.symfony.require (7.4 LTS). These checks stop a dependency update that would mix lines, such as one component
  * on 8.1 next to the rest on 7.4, from passing CI.
  */
+#[Group('integration')]
 final class SymfonyReleaseLineTest extends TestCase
 {
     private const string PROJECT_ROOT = __DIR__.'/../..';
@@ -18,7 +20,7 @@ final class SymfonyReleaseLineTest extends TestCase
     /** Symfony packages with a release line of their own. */
     private const array OWN_RELEASE_LINE = ['/^symfony\/flex$/', '/^symfony\/polyfill-/', '/-contracts$/'];
 
-    public function testEveryRequiredSymfonyComponentUsesTheReleaseLine(): void
+    public function test_every_required_symfony_component_uses_the_release_line(): void
     {
         $line = self::releaseLine();
         $composer = self::json('composer.json');
@@ -34,7 +36,7 @@ final class SymfonyReleaseLineTest extends TestCase
         }
     }
 
-    public function testEveryLockedSymfonyComponentIsOnTheReleaseLine(): void
+    public function test_every_locked_symfony_component_is_on_the_release_line(): void
     {
         $line = self::releaseLine();
         $pattern = '/^v?'.str_replace(['.', '*'], ['\.', '\d+(?:\.\d+)*'], $line).'$/';

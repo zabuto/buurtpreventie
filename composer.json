@@ -70,6 +70,9 @@
         "test": [
             "@php vendor/bin/phpunit"
         ],
+        "test:unit": [
+            "@php vendor/bin/phpunit --exclude-group integration --exclude-group functional"
+        ],
         "check": [
             "@composer validate --strict",
             "@composer audit",
@@ -112,6 +115,7 @@
     },
     "scripts-descriptions": {
         "test": "Runs the test suite",
+        "test:unit": "Runs the in-memory unit tests only",
         "check": "Runs every check CI runs",
         "fix": "Applies Rector and PHP-CS-Fixer changes",
         "deprecations": "Fails when building the container triggered a deprecation"

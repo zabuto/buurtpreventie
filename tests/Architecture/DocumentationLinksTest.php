@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Tests\Architecture;
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
 /**
  * Architecture errors send the reader to a section of docs/architecture.md; a renamed heading would leave them at
  * the top of the page without a hint.
  */
+#[Group('integration')]
 final class DocumentationLinksTest extends TestCase
 {
     private const string PROJECT_ROOT = __DIR__.'/../..';
@@ -38,7 +40,7 @@ final class DocumentationLinksTest extends TestCase
     }
 
     #[DataProvider('linkedSections')]
-    public function testLinkedSectionExistsInTheArchitectureDocument(string $anchor): void
+    public function test_linked_section_exists_in_the_architecture_document(string $anchor): void
     {
         self::assertContains($anchor, self::headingAnchors(), \sprintf('docs/architecture.md has no heading for #%s.', $anchor));
     }

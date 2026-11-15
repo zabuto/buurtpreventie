@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Tests\Architecture;
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
 /**
  * PHPat checks class dependencies, so empty folders and file names fall outside its reach; this test covers them.
  */
+#[Group('integration')]
 final class ModuleStructureTest extends TestCase
 {
     private const string SOURCE_ROOT = __DIR__.'/../../src';
@@ -41,7 +43,7 @@ final class ModuleStructureTest extends TestCase
         }
     }
 
-    public function testSourceRootHoldsOnlyModulesSharedAndTheKernel(): void
+    public function test_source_root_holds_only_modules_shared_and_the_kernel(): void
     {
         foreach (self::entries(self::SOURCE_ROOT) as $entry) {
             self::assertTrue(
@@ -52,7 +54,7 @@ final class ModuleStructureTest extends TestCase
     }
 
     #[DataProvider('modules')]
-    public function testEveryModuleHasExactlyDomainUseCaseAndInfrastructure(string $module): void
+    public function test_every_module_has_exactly_domain_use_case_and_infrastructure(string $module): void
     {
         self::assertSame(
             self::MODULE_FOLDERS,
@@ -61,7 +63,7 @@ final class ModuleStructureTest extends TestCase
         );
     }
 
-    public function testSharedHasOnlyDomainAndInfrastructure(): void
+    public function test_shared_has_only_domain_and_infrastructure(): void
     {
         self::assertSame(
             self::SHARED_FOLDERS,
@@ -71,7 +73,7 @@ final class ModuleStructureTest extends TestCase
     }
 
     #[DataProvider('useCases')]
-    public function testEveryUseCaseFolderHoldsOnlyItsFixedFiles(string $module, string $useCase): void
+    public function test_every_use_case_folder_holds_only_its_fixed_files(string $module, string $useCase): void
     {
         $folder = self::SOURCE_ROOT.'/'.$module.'/UseCase/'.$useCase;
         self::assertDirectoryExists($folder, \sprintf('%s/UseCase/%s must be a folder. %s', $module, $useCase, self::EXPLANATION));

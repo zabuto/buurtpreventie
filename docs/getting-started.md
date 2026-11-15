@@ -46,6 +46,7 @@ is `{"status":"ok"}`.
 | Command | What it does |
 | --- | --- |
 | `composer test` | All tests |
+| `composer test:unit` | Only the in-memory unit tests |
 | `composer check` | Everything CI checks: Composer, security advisories, container, deprecations, code style, Rector, PHPStan with the architecture rules, tests |
 | `composer fix` | Applies Rector and PHP-CS-Fixer |
 

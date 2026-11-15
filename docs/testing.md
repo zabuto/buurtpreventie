@@ -13,17 +13,31 @@
 
 ## Kinds of tests
 
-| Kind | Base | For |
-| --- | --- | --- |
-| Unit | `PHPUnit\Framework\TestCase` | Handlers, domain rules |
-| Functional | `Symfony\Bundle\FrameworkBundle\Test\WebTestCase` | Endpoints: route, status, JSON |
-| Architecture | PHPUnit that inspects PHPStan output or the file system | The rules in [architecture.md](architecture.md#rules) |
+| Kind | Group | Base | For |
+| --- | --- | --- | --- |
+| Unit | none | `PHPUnit\Framework\TestCase` | Handlers, domain rules, templates: in memory only, no files, network, database or real clock |
+| Integration | `integration` | `PHPUnit\Framework\TestCase` | Code that needs files or a process: the generator, the architecture rules, the dependency checks |
+| Functional | `functional` | `Symfony\Bundle\FrameworkBundle\Test\WebTestCase` | Endpoints through the kernel: route, status, JSON |
+
+`composer test` runs all of them; `composer test:unit` runs only the unit tests, in about a second.
+A test class that leaves memory carries `#[Group('integration')]` or `#[Group('functional')]`.
 
 `MakeUseCaseCommandTest` lets the generator create a use case in a temporary folder and runs PHPStan
 at level max with the architecture rules on it. A mistake in the templates thus breaks a test, not
-the next use case.
+the next use case. What the templates contain is unit-tested in memory in `UseCaseTemplatesTest`.
 
-Test names describe the expected behaviour, such as `testRefusesWritesBecauseTheCheckChangesNothing`.
+## Writing tests
+
+- **Arrange, Act, Assert.** Every test sets up its inputs, performs one action, and checks the result,
+  in that order, with a blank line between the three parts.
+- **One behaviour per test.** A test checks a single scenario, so its name says what broke when it
+  fails. Several assertions are fine when together they describe that one outcome.
+- **Names are sentences in snake_case** with the `test_` prefix, stating the expected behaviour:
+  `test_refuses_writes_because_the_check_changes_nothing`. PHP-CS-Fixer enforces the casing.
+- **Real objects over test doubles.** Use the real class wherever it runs in memory. A mock or stub
+  belongs only at a boundary the test cannot run, such as a third-party service.
+- **Descriptive over DRY.** A test may repeat a line of setup so it reads on its own; a helper is for
+  infrastructure (temporary folders, a PHPStan run), not for hiding what the test does.
 
 ## Reliable results
 

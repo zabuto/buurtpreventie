@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Tests\Architecture;
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
 /**
  * Runs PHPStan over fixtures that break each architecture rule once, so a rule that stops firing fails here
  * instead of silently letting violations into src/.
  */
+#[Group('integration')]
 final class ArchitectureRulesTest extends TestCase
 {
     private const string PROJECT_ROOT = __DIR__.'/../..';
@@ -45,7 +47,7 @@ final class ArchitectureRulesTest extends TestCase
      * @param list<string> $expectedRules
      */
     #[DataProvider('fixtures')]
-    public function testEachRuleFiresOnlyOnItsViolation(string $file, array $expectedRules): void
+    public function test_each_rule_fires_only_on_its_violation(string $file, array $expectedRules): void
     {
         $errors = self::errorsByFile()[$file] ?? [];
         $firedRules = array_values(array_unique(array_column($errors, 'rule')));
@@ -54,7 +56,7 @@ final class ArchitectureRulesTest extends TestCase
         self::assertSame($expectedRules, $firedRules);
     }
 
-    public function testEveryViolationPointsToTheArchitectureDocument(): void
+    public function test_every_violation_points_to_the_architecture_document(): void
     {
         $errors = array_merge(...array_values(self::errorsByFile()));
 

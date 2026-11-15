@@ -46,7 +46,7 @@ final readonly class ArchitectureRules
     public function testInputAndHandlerStayFreeOfTransportAndInfrastructure(): BuildStep
     {
         return PHPat::rule()
-            ->classes(Selector::classname('/^App\\\\\w+\\\\UseCase\\\\(\w+)\\\\\1(Handler)?$/', true))
+            ->classes(Selector::classname('/^App\\\\\w+\\\\UseCase\\\\(\w+)\\\\\1(Handler)?$/', regex: true))
             ->shouldNot()->dependOn()
             ->classes(
                 Selector::inNamespace('Symfony\Component\HttpFoundation'),
@@ -54,7 +54,7 @@ final readonly class ArchitectureRules
                 Selector::inNamespace('Symfony\Component\Routing'),
                 Selector::inNamespace('Mcp'),
                 Selector::inNamespace('Symfony\AI\McpBundle'),
-                Selector::classname('/^App\\\\\w+\\\\Infrastructure\\\\/', true),
+                Selector::classname('/^App\\\\\w+\\\\Infrastructure\\\\/', regex: true),
             )
             ->because(
                 'REST and MCP call the same handler with the same input, so neither may know which transport called'
@@ -108,9 +108,9 @@ final readonly class ArchitectureRules
     public function testOutputExposesNoDomainObjects(): BuildStep
     {
         return PHPat::rule()
-            ->classes(Selector::classname('/^App\\\\\w+\\\\UseCase\\\\(\w+)\\\\\1Output$/', true))
+            ->classes(Selector::classname('/^App\\\\\w+\\\\UseCase\\\\(\w+)\\\\\1Output$/', regex: true))
             ->shouldNot()->dependOn()
-            ->classes(Selector::classname('/^App\\\\\w+\\\\Domain\\\\/', true))
+            ->classes(Selector::classname('/^App\\\\\w+\\\\Domain\\\\/', regex: true))
             ->because(
                 'Output is the public contract of REST and MCP; exposing entities would leak fields such as contact'
                 .' details that need consent. '.self::DOCS.'rule-3-controller-tool-and-output',
@@ -126,8 +126,8 @@ final readonly class ArchitectureRules
             yield $module => PHPat::rule()
                 ->classes(Selector::inNamespace(\sprintf('App\%s', $module)))
                 ->shouldNot()->dependOn()
-                ->classes(Selector::classname(\sprintf('/^App\\\\(?!%s\\\\|Shared\\\\)\w+\\\\/', $module), true))
-                ->excluding(Selector::classname('/^App\\\\\w+\\\\UseCase\\\\(\w+)\\\\\1(Handler|Output)?$/', true))
+                ->classes(Selector::classname(\sprintf('/^App\\\\(?!%s\\\\|Shared\\\\)\w+\\\\/', $module), regex: true))
+                ->excluding(Selector::classname('/^App\\\\\w+\\\\UseCase\\\\(\w+)\\\\\1(Handler|Output)?$/', regex: true))
                 ->because(
                     'Modules meet only through use cases or interfaces in Shared\Domain, so each module can change'
                     .' its internals freely. '.self::DOCS.'rule-4-modules-and-shared',
@@ -140,7 +140,7 @@ final readonly class ArchitectureRules
         return PHPat::rule()
             ->classes(Selector::inNamespace('App\Shared'))
             ->shouldNot()->dependOn()
-            ->classes(Selector::classname('/^App\\\\(?!Shared\\\\)\w+\\\\/', true))
+            ->classes(Selector::classname('/^App\\\\(?!Shared\\\\)\w+\\\\/', regex: true))
             ->because(
                 'Shared holds building blocks every module may use; depending on a module would create a cycle.'
                 .' '.self::DOCS.'rule-4-modules-and-shared',
@@ -150,9 +150,9 @@ final readonly class ArchitectureRules
     public function testTwigOnlyRendersEmailsAndTheInstaller(): BuildStep
     {
         return PHPat::rule()
-            ->classes(Selector::classname('/^App\\\\(?!Tests\\\\)/', true))
+            ->classes(Selector::classname('/^App\\\\(?!Tests\\\\)/', regex: true))
             ->excluding(
-                Selector::classname('/^App\\\\\w+\\\\Infrastructure\\\\Mail\\\\/', true),
+                Selector::classname('/^App\\\\\w+\\\\Infrastructure\\\\Mail\\\\/', regex: true),
                 Selector::inNamespace('App\Maintenance\Infrastructure\Installer'),
             )
             ->shouldNot()->dependOn()

@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace App\Tests\Shared\Infrastructure\Generator;
 
 use App\Shared\Infrastructure\Generator\MakeUseCaseCommand;
+use App\Shared\Infrastructure\Generator\UseCaseTemplates;
 use App\Tests\Architecture\PhpStanProcess;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
 
+#[Group('integration')]
 final class MakeUseCaseCommandTest extends TestCase
 {
     private const string PROJECT_ROOT = __DIR__.'/../../../..';
@@ -21,10 +24,10 @@ final class MakeUseCaseCommandTest extends TestCase
     {
         $this->sourceRoot = sys_get_temp_dir().'/make-use-case-'.bin2hex(random_bytes(4)).'/src';
         foreach (['Domain', 'UseCase', 'Infrastructure'] as $folder) {
-            mkdir($this->sourceRoot.'/Patrol/'.$folder, 0o777, true);
+            mkdir($this->sourceRoot.'/Patrol/'.$folder, 0o777, recursive: true);
         }
         foreach (['Domain', 'Infrastructure'] as $folder) {
-            mkdir($this->sourceRoot.'/Shared/'.$folder, 0o777, true);
+            mkdir($this->sourceRoot.'/Shared/'.$folder, 0o777, recursive: true);
         }
     }
 
@@ -33,26 +36,16 @@ final class MakeUseCaseCommandTest extends TestCase
         $this->removeRecursively(\dirname($this->sourceRoot));
     }
 
-    public function testCreatesInputHandlerControllerToolAndOutputInTheUseCaseFolder(): void
+    public function test_writes_the_rendered_templates_into_a_new_use_case_folder(): void
     {
+        $expected = new UseCaseTemplates()->render('Patrol', 'SignUpForRound');
+
         $tester = $this->generate('Patrol', 'SignUpForRound');
 
         self::assertSame(Command::SUCCESS, $tester->getStatusCode());
-        foreach (['', 'Handler', 'Controller', 'Tool', 'Output'] as $suffix) {
-            $file = $this->sourceRoot.'/Patrol/UseCase/SignUpForRound/SignUpForRound'.$suffix.'.php';
-            self::assertFileExists($file);
-            $code = (string) file_get_contents($file);
-            self::assertStringContainsString('namespace App\Patrol\UseCase\SignUpForRound;', $code);
-            self::assertStringContainsString('final readonly class SignUpForRound'.$suffix."\n", $code);
+        foreach ($expected as $file => $code) {
+            self::assertStringEqualsFile($this->sourceRoot.'/Patrol/UseCase/SignUpForRound/'.$file, $code);
         }
-    }
-
-    public function testControllerStartsAsPostOnTheKebabCasedName(): void
-    {
-        $this->generate('Patrol', 'SignUpForRound');
-
-        $controller = (string) file_get_contents($this->sourceRoot.'/Patrol/UseCase/SignUpForRound/SignUpForRoundController.php');
-        self::assertStringContainsString("#[Route('/sign-up-for-round', name: 'patrol_sign_up_for_round', methods: ['POST'])]", $controller);
     }
 
     /**
@@ -68,7 +61,7 @@ final class MakeUseCaseCommandTest extends TestCase
     }
 
     #[DataProvider('invalidNames')]
-    public function testRefusesANameThatIsNotPascalCase(string $name): void
+    public function test_refuses_a_name_that_is_not_pascal_case(string $name): void
     {
         $tester = $this->generate('Patrol', $name);
 
@@ -77,7 +70,7 @@ final class MakeUseCaseCommandTest extends TestCase
         self::assertSame([], $this->visibleEntries($this->sourceRoot.'/Patrol/UseCase'));
     }
 
-    public function testRefusesAModuleThatDoesNotExist(): void
+    public function test_refuses_a_module_that_does_not_exist(): void
     {
         $tester = $this->generate('Rounds', 'SignUpForRound');
 
@@ -85,7 +78,7 @@ final class MakeUseCaseCommandTest extends TestCase
         self::assertDirectoryDoesNotExist($this->sourceRoot.'/Rounds');
     }
 
-    public function testRefusesSharedBecauseItHoldsNoUseCases(): void
+    public function test_refuses_shared_because_it_holds_no_use_cases(): void
     {
         $tester = $this->generate('Shared', 'Clock');
 
@@ -93,7 +86,7 @@ final class MakeUseCaseCommandTest extends TestCase
         self::assertDirectoryDoesNotExist($this->sourceRoot.'/Shared/UseCase');
     }
 
-    public function testLeavesAnExistingUseCaseUntouched(): void
+    public function test_leaves_an_existing_use_case_untouched(): void
     {
         $folder = $this->sourceRoot.'/Patrol/UseCase/SignUpForRound';
         mkdir($folder);
@@ -109,7 +102,7 @@ final class MakeUseCaseCommandTest extends TestCase
     /**
      * Guards the templates themselves: whatever the generator writes must satisfy the same checks as src/.
      */
-    public function testGeneratedUseCasePassesPhpstanAtLevelMaxIncludingTheArchitectureRules(): void
+    public function test_generated_use_case_passes_phpstan_at_level_max_including_the_architecture_rules(): void
     {
         $this->generate('Patrol', 'SignUpForRound');
 
