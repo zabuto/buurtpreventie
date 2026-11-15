@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Rector\Config\RectorConfig;
 use Rector\DeadCode\Rector\ClassMethod\RemoveUnusedPublicMethodParameterRector;
+use Rector\TypeDeclaration\Rector\ClassMethod\NarrowObjectReturnTypeRector;
 
 return RectorConfig::configure()
     ->withPaths([
@@ -23,8 +24,15 @@ return RectorConfig::configure()
         __DIR__.'/src/Kernel.php',
         __DIR__.'/tests/bootstrap.php',
         __DIR__.'/tests/Architecture/Fixtures',
-        // Every handler takes its input, also while the input is still empty: REST and MCP pass the same object.
+        // Every handler takes its input, even an empty one: REST and MCP pass the same object.
         RemoveUnusedPublicMethodParameterRector::class => [__DIR__.'/src/*/UseCase/*'],
+        // The test converts through the Type contract, as Doctrine does; the narrow type would make PHPStan deem the
+        // null and class checks on the result always true.
+        // An entity id is a Uuid by contract; that it is made as UUIDv7 is no promise to its callers.
+        NarrowObjectReturnTypeRector::class => [
+            __DIR__.'/tests/Shared/Infrastructure/Doctrine/UtcDateTimeImmutableTypeTest.php',
+            __DIR__.'/src/*/Domain/*',
+        ],
     ])
     ->withPhpSets(php84: true)
     ->withComposerBased(symfony: true, phpunit: true)

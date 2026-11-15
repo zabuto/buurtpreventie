@@ -20,5 +20,4 @@ fixed in a patch release and described in a GitHub Security Advisory, with a CVE
 
 ## Supported versions
 
-Only the latest v4 release receives security fixes. Versions before v4 live in
-`zabuto/buurtpreventie-legacy` and are outside this policy.
+Only the latest release receives security fixes.

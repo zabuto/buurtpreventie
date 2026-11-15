@@ -1,0 +1,130 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Tests\Patrol\UseCase\FindStaffingGaps;
+
+use App\Patrol\Domain\Catalogue\MeetingPoint;
+use App\Patrol\Domain\Round\Round;
+use App\Patrol\Domain\Round\RoundStart;
+use App\Patrol\Domain\Round\StaffingRule;
+use App\Patrol\UseCase\FindStaffingGaps\FindStaffingGaps;
+use App\Patrol\UseCase\FindStaffingGaps\FindStaffingGapsHandler;
+use App\Shared\Domain\AccessDenied;
+use App\Tests\Patrol\Fake\InMemoryRoundRepository;
+use App\Tests\Shared\Fake\FakeAuthorization;
+use DateTimeImmutable;
+use Override;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\Clock\MockClock;
+use Symfony\Component\Uid\Uuid;
+
+final class FindStaffingGapsHandlerTest extends TestCase
+{
+    private const string NOW = '2026-11-15T12:00:00+00:00';
+    private const string CREATED_AT = '2026-11-01T12:00:00+00:00';
+
+    private InMemoryRoundRepository $rounds;
+
+    #[Override]
+    protected function setUp(): void
+    {
+        $this->rounds = new InMemoryRoundRepository();
+    }
+
+    #[Test]
+    public function it_describes_a_gap_with_the_walkers_it_needs_in_local_time(): void
+    {
+        $round = $this->round(new RoundStart(new DateTimeImmutable('2026-11-16T08:00:00+00:00'), MeetingPoint::create('Speeltuin')), walkers: 1);
+
+        $output = $this->handler()(new FindStaffingGaps());
+
+        $this->assertSame(
+            [
+                [
+                    'id' => $round->id()->toRfc4122(),
+                    'startsAt' => '2026-11-16T09:00:00+01:00',
+                    'daypart' => 'morning',
+                    'walkerCount' => 1,
+                    'minimumWalkers' => 2,
+                    'walkersNeeded' => 1,
+                    'openSpots' => 2,
+                    'meetingPoint' => 'Speeltuin',
+                ],
+            ],
+            $output->gaps,
+        );
+    }
+
+    /**
+     * The maximum is never below the minimum, so a round with no open spots always has enough walkers.
+     */
+    #[Test]
+    public function it_finds_no_gap_in_a_full_or_almost_full_round(): void
+    {
+        $this->round(new RoundStart(new DateTimeImmutable('2026-11-16T21:00:00+00:00')), walkers: 3);
+        $this->round(new RoundStart(new DateTimeImmutable('2026-11-17T21:00:00+00:00')), walkers: 2);
+        $gap = $this->round(new RoundStart(new DateTimeImmutable('2026-11-18T21:00:00+00:00')), walkers: 1);
+
+        $output = $this->handler()(new FindStaffingGaps());
+
+        $this->assertSame([$gap->id()->toRfc4122()], \array_column($output->gaps, 'id'));
+    }
+
+    #[Test]
+    public function it_finds_no_gap_in_a_round_that_has_started(): void
+    {
+        $this->round(new RoundStart(new DateTimeImmutable('2026-11-15T11:30:00+00:00')), walkers: 1);
+
+        $output = $this->handler()(new FindStaffingGaps());
+
+        $this->assertSame([], $output->gaps);
+    }
+
+    #[Test]
+    public function it_lists_the_gaps_by_start(): void
+    {
+        $later = $this->round(new RoundStart(new DateTimeImmutable('2026-11-18T21:00:00+00:00')), walkers: 1);
+        $sooner = $this->round(new RoundStart(new DateTimeImmutable('2026-11-16T21:00:00+00:00')), walkers: 1);
+
+        $output = $this->handler()(new FindStaffingGaps());
+
+        $this->assertSame([$sooner->id()->toRfc4122(), $later->id()->toRfc4122()], \array_column($output->gaps, 'id'));
+    }
+
+    #[Test]
+    public function it_returns_nothing_when_access_is_denied(): void
+    {
+        $this->round(new RoundStart(new DateTimeImmutable('2026-11-16T21:00:00+00:00')), walkers: 1);
+        $authorization = FakeAuthorization::refusing();
+
+        $output = null;
+        $refusal = null;
+        try {
+            $output = $this->handler($authorization)(new FindStaffingGaps());
+        } catch (AccessDenied $exception) {
+            $refusal = $exception;
+        }
+
+        $this->assertInstanceOf(AccessDenied::class, $refusal);
+        $this->assertNull($output);
+        $this->assertSame([['round.list', null]], $authorization->asked);
+    }
+
+    private function round(RoundStart $start, int $walkers): Round
+    {
+        $round = Round::plan($start, Uuid::v7(), new StaffingRule(minimumWalkers: 2, maximumWalkers: 3), new DateTimeImmutable(self::CREATED_AT));
+        for ($walker = 1; $walker < $walkers; ++$walker) {
+            $round->signUp(Uuid::v7(), new DateTimeImmutable(self::CREATED_AT));
+        }
+        $this->rounds->add($round);
+
+        return $round;
+    }
+
+    private function handler(?FakeAuthorization $authorization = null): FindStaffingGapsHandler
+    {
+        return new FindStaffingGapsHandler($this->rounds, $authorization ?? FakeAuthorization::granting(), new MockClock(self::NOW));
+    }
+}

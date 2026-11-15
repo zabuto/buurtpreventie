@@ -9,6 +9,9 @@
 | --- | --- |
 | `tests/Architecture/` | The PHPat rules, the test that proves they fire, the folder layout test, and the test that every linked section of `architecture.md` exists |
 | `tests/Architecture/Fixtures/` | Deliberate violations; outside the regular PHPStan run and the autoloader |
+| `tests/<Module>/Fake/` | In-memory repositories and other small fakes of the interfaces in `Domain`, for the handler tests |
+| `tests/Shared/Fake/` | Fakes of the interfaces in `Shared\Domain`: transaction, execution context, authorization, audit trail, notifier, member directory |
+| `tests/Database/` | The PHPUnit extension that builds the test database before the database tests |
 | `tests/Dependencies/` | Every Symfony component in `composer.json` and `composer.lock` is on the release line in `extra.symfony.require` (7.4 LTS); the Dependabot and Composer cooldowns stay at their minimums without exemptions |
 | `tests/Tools/` | The development tools in `tools/`, such as the Opengrep version choice |
 
@@ -19,13 +22,75 @@
 | Unit | none | `PHPUnit\Framework\TestCase` | Handlers, domain rules, templates: in memory only, no files, network, database or real clock |
 | Integration | `integration` | `PHPUnit\Framework\TestCase` | Code that needs files or a process: the generator, the architecture rules, the dependency checks |
 | Functional | `functional` | `Symfony\Bundle\FrameworkBundle\Test\WebTestCase` | Endpoints through the kernel: route, status, JSON |
+| Database | `database` | `Symfony\Bundle\FrameworkBundle\Test\KernelTestCase` | Doctrine types, transactions, repository queries, the schema, concurrency and the sample data against MariaDB or MySQL |
 
 `composer test` runs all of them; `composer test:unit` runs only the unit tests, in about a second.
-A test class that leaves memory carries `#[Group('integration')]` or `#[Group('functional')]`.
+A test class that leaves memory carries `#[Group('integration')]`, `#[Group('functional')]` or
+`#[Group('database')]`.
+
+## Database tests
+
+Database tests run in `buurtpreventie_test`: the database name from `DATABASE_URL` plus `_test`.
+Locally, start the database as in [getting-started.md](getting-started.md#database) and run the
+tests through the Symfony CLI, which sets `DATABASE_URL`: `symfony composer test`, or only the
+database tests with `symfony php vendor/bin/phpunit --group database`.
+
+- **Schema from the migrations.** Before the first test of the group `database`,
+  `tests/Database/DatabaseSchemaExtension` drops and creates the test database and runs the
+  migrations, once per run. It uses `bin/console` in separate processes, because MariaDB and MySQL
+  commit every DDL statement at once, which would end the transaction of the test bundle.
+- **Every test rolls back.** `dama/doctrine-test-bundle` wraps each test in a transaction and rolls
+  it back afterwards. A test that needs a table of its own creates a `TEMPORARY` table, which
+  commits nothing.
+- **Skip or fail.** A database test calls `TestDatabase::require()` first in its `setUp()`. Without
+  a reachable database the test skips, with the reason; with `REQUIRE_DATABASE=1`, as in CI, it
+  fails instead. A failing migration, a database user without the right to create the test
+  database, or a test that lacks the group always fails.
+- **Without the Symfony CLI**, `.env.test` points at a port that never answers, so the kernel boots
+  and the database tests skip.
+- **Every query has a test.** Each repository method with a query (DQL, query builder or SQL) has an
+  integration test in `tests/<Module>/Infrastructure/Persistence/`, which CI runs on MariaDB and MySQL;
+  `find()` and `findBy()` need none. A test filters on the ids it made itself.
+- **The schema.** `UuidColumnTest` keeps every UUID column `BINARY(16)`, also on MariaDB, which has a
+  type of its own; `UuidColumnIndexTest` requires an index on every UUID column that is not a primary
+  key, since no foreign key between modules adds one ([ADR 0005](adr/0005-database-approach.md)).
+- **The sample data.** `LoadFixturesCommandTest` loads every set and checks what it holds: the same
+  people and pattern on any day, the limits of the `demo` set, every hard case in `edge`.
+
+### Concurrency
+
+`ConcurrentParticipationTest` covers two sign-ups for the last spot, the same member signing up
+twice at once, and a sign-up while the last walker leaves. It switches the test bundle off for itself
+(`#[SkipDatabaseRollback]`), commits for real and removes its rows in `tearDown()`.
+
+One PHP process cannot wait on two connections. The test therefore runs the first action through the
+real handler in a transaction it keeps open, starts the second with `proc_open()` in a process of its
+own (`sign-up.php`), waits until that process waits for the lock on the round, commits, and reads the
+outcome the process prints. It sees the wait in `information_schema.PROCESSLIST`: a `FOR UPDATE`
+query of another session that stays there waits for a lock. The process list needs no `PROCESS`
+privilege for the sessions of the own user, unlike the InnoDB lock tables. When the second process
+never waits within ten seconds, the test fails: without the lock on the round, or with a count that
+does not lock, the second sign-up joins next to the first.
 
 `MakeUseCaseCommandTest` lets the generator create a use case in a temporary folder, checks that
 `mago format` would not change it, and runs PHPStan at level max with the architecture rules on it. A mistake in the templates thus breaks a test, not
 the next use case. What the templates contain is unit-tested in memory in `UseCaseTemplatesTest`.
+
+## Rights and write actions
+
+- `tests/Shared/AuthorizationMatrixTest.php` runs every voter attribute against nobody signed in, the
+  system, and a member with no role or exactly one role, with a row per relation where a right depends
+  on one (oneself, the author, a walker of the round).
+- `tests/Shared/HandlerGuardTest.php` reads every handler: it carries exactly one of `#[WriteAction]`
+  and `#[ReadAction]`, the attribute of every write action has rows in the matrix, the test of every
+  write handler has a test starting with `it_records_`, and the matrix asks every voter in `src/`.
+
+## Sample data in CI
+
+The database jobs in `ci.yml` load every set with `app:fixtures:load <set> --no-interaction`, outside
+the test transaction, and fail when a set leaves no members or no audit entries. Locally,
+`symfony console app:fixtures:load demo` empties the development database; see
+[getting-started.md](getting-started.md#sample-data).
 
 ## Writing tests
 
@@ -60,7 +125,7 @@ A test passes or fails for one reason only, every time:
 - **No noise.** The test environment uses a null logger, so expected errors (such as a 405) do not
   print between the results.
 - **No clock, network or randomness in assertions.** Time-dependent code takes a clock that tests set
-  (from phase 1); nothing in a test reaches the network.
+  (`MockClock`); nothing in a test reaches the network.
 
 ## Checks
 
@@ -93,6 +158,17 @@ In the test file, a comment `ruleid: <id>` marks the next line as one the rule m
 `ok: <id>` as one it must leave alone. Twig test files use HTML comments (`<!-- ruleid: <id> -->`),
 because Opengrep does not read `{# #}` as an annotation. Rules for functions also match the fully
 qualified call (`\exec()`), the form this code base writes.
+
+| Rule | Refuses |
+| --- | --- |
+| `command-execution` | Shell commands and generated PHP (`exec()`, `eval()`, backticks, ...) |
+| `unserialize` | `unserialize()` on anything but a literal string, unless `allowed_classes` is `false` |
+| `request-value-as-file-path` | A request value that reaches a file path |
+| `twig-raw-filter` | The `raw` filter in a template |
+| `sql-built-from-strings` | SQL or DQL built with concatenation, interpolation or `sprintf()`, also in the parts of the query builder (`select`, `from`, `join`, `where`, `groupBy`, the expression of `set`, ...). A `sprintf()` that fills in only class names (`Round::class`) stays a fixed text and is allowed |
+| `sql-outside-repository` | `executeQuery`, `executeStatement`, `fetch*`, `createQuery`, `createNativeQuery` and `createQueryBuilder` outside `src/*/Infrastructure/Persistence/` |
+| `weak-random-or-hash` | `md5`, `sha1`, `rand`, `mt_rand`, `uniqid`, `lcg_value` and `str_shuffle`, also `hash()`, `hash_file()` and `hash_hmac()` with `md5` or `sha1`; secrets come from `random_bytes()` and are hashed with SHA-256 |
+| `byte-lowercase` | `strtolower()` and `strtoupper()`, which leave `É` as it is; use `mb_strtolower()` or `LookupKey` |
 
 ## No deprecations
 

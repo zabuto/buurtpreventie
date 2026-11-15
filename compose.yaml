@@ -1,7 +1,7 @@
 # Development only: production uses the database of the hosting package.
 services:
   database:
-    # The oldest MariaDB LTS line still supported, so local development uses no feature shared hosting lacks.
+    # The oldest supported MariaDB LTS line, so local development uses no feature shared hosting lacks.
     image: mariadb:${MARIADB_VERSION:-10.11}
     # The MYSQL_ names, which the image accepts as aliases, are the ones the Symfony CLI reads to build DATABASE_URL.
     environment:
@@ -20,6 +20,7 @@ services:
       start_period: 30s
     volumes:
       - database_data:/var/lib/mysql
+      - ./docker/database:/docker-entrypoint-initdb.d:ro
 
 volumes:
   database_data:

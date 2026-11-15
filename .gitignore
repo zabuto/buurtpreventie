@@ -5,6 +5,9 @@
 # Secrets and data of an installation (shared/.env.local, uploads, back-ups, logs)
 /shared/
 
+# Generated on every cache warm-up and different per environment; only an autocompletion aid for PHP config.
+/config/reference.php
+
 ###> symfony/framework-bundle ###
 /.env.local
 /.env.local.php
@@ -15,8 +18,6 @@
 /vendor/
 ###< symfony/framework-bundle ###
 
-# Generated on every cache warm-up and different per environment; only an autocompletion aid for PHP config.
-/config/reference.php
 ###> phpunit/phpunit ###
 /phpunit.xml
 /.phpunit.cache/

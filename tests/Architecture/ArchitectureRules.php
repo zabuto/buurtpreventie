@@ -39,6 +39,7 @@ final readonly class ArchitectureRules
                     Selector::inNamespace('App\Shared\Domain'),
                     Selector::inNamespace('Doctrine\ORM\Mapping'),
                     Selector::inNamespace('Doctrine\Common\Collections'),
+                    Selector::inNamespace('Symfony\Component\Uid'),
                 )
                 ->because(
                     'Domain code knows nothing about HTTP, MCP, storage or other modules, so domain rules can be tested'
@@ -62,11 +63,13 @@ final readonly class ArchitectureRules
                 Selector::inNamespace('Symfony\Component\Routing'),
                 Selector::inNamespace('Mcp'),
                 Selector::inNamespace('Symfony\AI\McpBundle'),
+                Selector::inNamespace('Doctrine\ORM'),
+                Selector::inNamespace('Doctrine\DBAL'),
                 Selector::classname('/^App\\\\\w+\\\\Infrastructure\\\\/', regex: true),
             )
             ->because(
                 'REST and MCP call the same handler with the same input, so neither may know which transport called'
-                    . ' it. '
+                    . ' it; storage stays behind repository interfaces and Shared\Domain\Transaction. '
                     . self::DOCS
                     . 'rule-2-input-and-handler',
             )

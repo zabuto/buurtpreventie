@@ -25,6 +25,7 @@ jobs:
         with:
           php-version: '8.4'
           coverage: none
+          extensions: intl, mbstring
           tools: composer:v2
 
       - name: Locate Composer cache
@@ -44,6 +45,101 @@ jobs:
       - name: Run all checks
         run: composer check
 
+  # Shared hosting offers either database, and Doctrine does not make them alike: generated SQL, collations and
+  # locking can differ. Every migration, the schema and the database tests run on both.
+  database:
+    name: Database (${{ matrix.database.name }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        database:
+          - name: MariaDB 10.11
+            image: mariadb:10.11
+            server-version: 10.11.0-MariaDB
+          - name: MySQL 8.4
+            image: mysql:8.4
+            server-version: 8.4.0
+    env:
+      # Without serverVersion, doctrine:database:create and drop connect to the named database to read the version, and
+      # fail while the test database does not exist yet. The image fixes the version, as the Symfony CLI does locally.
+      DATABASE_URL: mysql://root:root@127.0.0.1:3306/buurtpreventie?serverVersion=${{ matrix.database.server-version }}
+      # A database test that cannot reach the database fails instead of skipping.
+      REQUIRE_DATABASE: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # docker run instead of a service container: only the command line sets the server collation.
+      - name: Start the database
+        env:
+          IMAGE: ${{ matrix.database.image }}
+        run: |
+          docker run --detach --name database --publish 3306:3306 \
+            --env MYSQL_ROOT_PASSWORD=root --env MYSQL_DATABASE=buurtpreventie \
+            "$IMAGE" --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+          for attempt in $(seq 60); do
+            if docker exec database sh -c 'mysql -uroot -proot -e "SELECT 1" || mariadb -uroot -proot -e "SELECT 1"' >/dev/null 2>&1; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs database
+          exit 1
+
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.4'
+          coverage: none
+          extensions: intl, mbstring, pdo_mysql
+          tools: composer:v2
+
+      - name: Locate Composer cache
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Run the migrations from an empty database
+        run: php bin/console doctrine:migrations:migrate --no-interaction
+
+      - name: Compare the schema with the mapping
+        run: php bin/console doctrine:schema:validate
+
+      # Every down() runs, and the schema comes back the same.
+      - name: Migrate all the way down and up again
+        run: |
+          php bin/console doctrine:migrations:migrate first --no-interaction
+          php bin/console doctrine:migrations:migrate --no-interaction
+          php bin/console doctrine:schema:validate
+
+      - name: Run the database tests
+        run: php vendor/bin/phpunit --group database
+
+      # Outside the test transaction, so every set commits for real; the database tests check what each set holds.
+      - name: Load every sample data set
+        run: |
+          query() {
+            docker exec database sh -c "mysql -uroot -proot -N -e \"$1\" buurtpreventie 2>/dev/null || mariadb -uroot -proot -N -e \"$1\" buurtpreventie"
+          }
+          for set in demo test edge; do
+            php bin/console app:fixtures:load "$set" --no-interaction
+            members="$(query 'SELECT COUNT(*) FROM member')"
+            entries="$(query 'SELECT COUNT(*) FROM audit_entry')"
+            echo "$set: $members members, $entries audit entries"
+            if [ "$members" -lt 1 ] || [ "$entries" -lt 1 ]; then
+              exit 1
+            fi
+          done
+
   security-scan:
     name: Security scan
     runs-on: ubuntu-latest
@@ -56,6 +152,7 @@ jobs:
         with:
           php-version: '8.4'
           coverage: none
+          extensions: intl, mbstring
           tools: composer:v2
 
       # The release script needs only the autoloader of tools/, so no package gets installed.

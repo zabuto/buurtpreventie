@@ -1,0 +1,21 @@
+rules:
+  - id: weak-random-or-hash
+    languages: [php]
+    severity: ERROR
+    message: >-
+      md5, sha1 and these random functions are predictable or broken, so a token or check built on them can be
+      guessed or forged. Make secrets with random_bytes() or random_int(), and hash them with hash('sha256', ...).
+    pattern-either:
+      - patterns:
+          - pattern: $FUNCTION(...)
+          - metavariable-regex:
+              metavariable: $FUNCTION
+              regex: ^\\?(md5|md5_file|sha1|sha1_file|rand|srand|mt_rand|mt_srand|uniqid|lcg_value|str_shuffle)$
+      - patterns:
+          - pattern: $FUNCTION($ALGORITHM, ...)
+          - metavariable-regex:
+              metavariable: $FUNCTION
+              regex: ^\\?(hash|hash_file|hash_hmac)$
+          - metavariable-regex:
+              metavariable: $ALGORITHM
+              regex: ^['"](md5|sha1)['"]$

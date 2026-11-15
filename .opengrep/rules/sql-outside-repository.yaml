@@ -1,0 +1,15 @@
+rules:
+  - id: sql-outside-repository
+    languages: [php]
+    severity: ERROR
+    message: >-
+      A query belongs in a repository method in src/<Module>/Infrastructure/Persistence/, with an integration test
+      that runs it on MariaDB and MySQL. Call that repository through its interface in Domain instead.
+    paths:
+      exclude:
+        - "src/*/Infrastructure/Persistence/"
+    patterns:
+      - pattern: $DB->$METHOD(...)
+      - metavariable-regex:
+          metavariable: $METHOD
+          regex: ^(executeQuery|executeStatement|executeCacheQuery|executeUpdate|fetch[A-Z][A-Za-z]*|iterate(Associative|Numeric|KeyValue|Column)|createQuery|createNativeQuery|createQueryBuilder)$

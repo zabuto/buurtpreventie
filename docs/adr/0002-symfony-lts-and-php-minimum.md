@@ -5,7 +5,7 @@
 
 ## Context
 
-Buurtpreventie v4 runs on ordinary shared hosting, installed and updated by a volunteer web
+Buurtpreventie runs on ordinary shared hosting, installed and updated by a volunteer web
 administrator. It has one maintainer. Every major framework upgrade costs that maintainer time and
 reaches each installation as a release the administrator has to install.
 
