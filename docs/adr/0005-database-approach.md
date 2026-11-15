@@ -123,5 +123,11 @@ The modules meet only through use cases or interfaces in `Shared\Domain`
   and the handlers keep it valid.
 - Locks make the last spot and the last admin safe, at the cost of short waits on a busy round and of
   role changes waiting for each other.
+- **Accepted risk: the admin lock covers every member row.** While an admin changes roles, deactivates
+  or erases a member, every other write to a member (consent, open round notifications, a change to
+  name or contact details) waits for that transaction, which lasts milliseconds over a few hundred rows. Two such
+  transactions can deadlock; InnoDB then aborts one and that request fails with an error instead of
+  hanging. When waits or deadlocks show up in the log, the fix is an indexed admin column or a single
+  lock row, so the lock covers only the admins.
 - The concurrency test needs a real database and a second PHP process; it skips without a database,
   and fails in CI with `REQUIRE_DATABASE=1`.

@@ -1225,6 +1225,7 @@ Alleen rapporteren, niets wijzigen.
 | Persoonsgegevens via AI-clients | AVG-vraag voor de vereniging | Dataminimalisatie in MCP-uitvoer, MCP standaard uit, per vereniging aan te zetten |
 | Gekaapte release van een afhankelijkheid | Kwaadaardige code via een automatisch samengevoegde update | Dependabot-cooldown (Composer 7, 7 en 14 dagen, actions 7) en een Composer-cooldown van 24 uur; actions vastgepind op commit-SHA; Opengrep alleen met een geldige handtekening van zijn release-workflow, na dezelfde cooldown en binnen de huidige major; CI zonder geheimen in pull requests |
 | Eén onderhouder | Kennis zit bij één persoon | `docs/`, `AGENTS.md`, weinig afhankelijkheden, geen buildstap; webbeheerder werkt zelf bij via het scherm Onderhoud |
+| Slot op alle ledenrijen bij de laatste-beheerdercontrole (geaccepteerd risico) | Terwijl een beheerder rollen wijzigt, een lid deactiveert of wist, wacht elke andere schrijfactie op een lid enkele milliseconden; een deadlock laat één verzoek falen met een fout | Geaccepteerd bij enkele honderden leden (ADR 0005); bij wachttijden of deadlocks in het log een geïndexeerde beheerderskolom of één slotrij |
 | Overstap 7.4 → 8.4 LTS blijft liggen | Na november 2029 geen security-fixes meer | Geen deprecations (CI faalt erop); overstap gepland in 2028 en vastgelegd in docs/operations.md |
 
 **Review-focus** — invoer die geen enkele fasetest vanzelf raakt en die lopers het eerst zullen merken. Elk punt krijgt een test in de genoemde fase:
