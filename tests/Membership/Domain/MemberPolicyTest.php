@@ -39,21 +39,21 @@ final class MemberPolicyTest extends TestCase
     }
 
     #[Test]
-    public function it_lets_a_member_change_their_own_contact_consent(): void
+    public function it_lets_a_member_make_their_own_choice(): void
     {
         $member = MemberFixture::stored(new InMemoryMemberRepository(), 'jan@example.org', 'Jan Bakker', 'Jan B.', []);
 
-        $this->assertTrue(new MemberPolicy()->mayChangeConsent(new Actor($member->id(), []), $member));
+        $this->assertTrue(new MemberPolicy()->mayChangeOwnChoice(new Actor($member->id(), []), $member));
     }
 
     /**
-     * Consent is the member's own choice; not even an admin gives it for them.
+     * Consent and notifications are the member's own choice; not even an admin makes it for them.
      */
     #[Test]
-    public function it_refuses_an_admin_the_contact_consent_of_another_member(): void
+    public function it_refuses_an_admin_the_choice_of_another_member(): void
     {
         $member = MemberFixture::stored(new InMemoryMemberRepository(), 'jan@example.org', 'Jan Bakker', 'Jan B.');
 
-        $this->assertFalse(new MemberPolicy()->mayChangeConsent(new Actor(Uuid::v7(), [Role::Admin]), $member));
+        $this->assertFalse(new MemberPolicy()->mayChangeOwnChoice(new Actor(Uuid::v7(), [Role::Admin]), $member));
     }
 }

@@ -14,7 +14,7 @@ use Symfony\Component\Security\Core\Authorization\Voter\CacheableVoterInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 
 /**
- * Members: the list every member reads, managing members, the consent each member gives for themselves, and the
+ * Members: the list every member reads, managing members, the choices each member makes for themselves, and the
  * first admin, which only the system adds.
  */
 final readonly class MemberVoter implements CacheableVoterInterface
@@ -28,6 +28,7 @@ final readonly class MemberVoter implements CacheableVoterInterface
         'member.reactivate',
         'member.erase',
         'member.change_consent',
+        'member.change_open_round_notifications',
         'member.list',
     ];
 
@@ -75,7 +76,8 @@ final readonly class MemberVoter implements CacheableVoterInterface
         }
 
         return match ($attribute) {
-            'member.change_consent' => $subject instanceof Member && $this->policy->mayChangeConsent($actor, $subject),
+            'member.change_consent', 'member.change_open_round_notifications' => $subject instanceof Member
+                && $this->policy->mayChangeOwnChoice($actor, $subject),
             default => $this->policy->mayManage($actor),
         };
     }

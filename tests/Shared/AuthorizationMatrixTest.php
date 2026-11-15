@@ -121,6 +121,8 @@ final class AuthorizationMatrixTest extends TestCase
         yield 'member.add_first_admin' => ['member.add_first_admin', $nobody, ['system']];
         yield 'member.change_consent of oneself' => ['member.change_consent', 'member:self', self::MEMBERS];
         yield 'member.change_consent of another member' => ['member.change_consent', 'member:other', []];
+        yield 'member.change_open_round_notifications of oneself' => ['member.change_open_round_notifications', 'member:self', self::MEMBERS];
+        yield 'member.change_open_round_notifications of another member' => ['member.change_open_round_notifications', 'member:other', []];
         yield 'member.list' => ['member.list', $nobody, [...self::MEMBERS, 'system']];
     }
 
