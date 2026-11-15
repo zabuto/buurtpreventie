@@ -48,6 +48,8 @@ The plan lives in docs/plan-v4.md and is leading. Read it before every phase.
 - Only made-up sample data (bin/console app:fixtures:load demo).
   Never real personal data in the repo, in tests or in fixtures.
 - Never commit secrets; they belong in .env.local or shared/.env.local.
+- The committed .env, .env.dev and .env.test are public and hold no secrets: agents may read and
+  edit them. .env.local, .env.*.local and shared/.env.local hold secrets: never read or commit them.
 
 ## Way of working
 
