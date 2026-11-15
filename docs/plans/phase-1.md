@@ -630,6 +630,18 @@ beide databases:
 
 Per regel eerst het testbestand, dan de regel (beslissing 32).
 
+- Uitgevoerd op 15 november 2026, met deze keuzes:
+  - `sql-built-from-strings` staat een `sprintf()` toe waarvan elk argument een klassenaam is (`Round::class`):
+    de DQL van de repositories blijft zo een vaste tekst. Bij `set()` van de querybuilder kijkt de regel naar het
+    tweede argument, de SQL-expressie;
+  - `sql-outside-repository` sluit `src/*/Infrastructure/Persistence/` uit met `paths`; de vaste SQL van de
+    catalogus-repositories (`SELECT ... FOR UPDATE`) en de querybuilder met een vaste conditie in de
+    ledenrepository vallen daar al onder;
+  - `weak-random-or-hash` vangt ook `hash()`, `hash_file()` en `hash_hmac()` met `md5` of `sha1`;
+  - de use-case-generator gebruikt `mb_strtolower`, zodat `byte-lowercase` geen uitzondering nodig heeft;
+  - de regeltests en de scan zijn lokaal gedraaid met Opengrep 1.33.1 (de versie die CI kiest), zonder
+    Cosign-verificatie en alleen in een tijdelijke map: alle tests groen, 0 bevindingen.
+
 ### T15. ADR 0005 en documentatie
 
 - `docs/adr/0005-database-approach.md`: beslissingen 4 (UUID-verwijzingen met index, geen foreign keys tussen
