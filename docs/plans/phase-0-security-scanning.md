@@ -67,7 +67,7 @@ Klaar als:
    Geen SARIF-upload: die loopt via `codeql-action`, en ADR 0003 sluit CodeQL uit.
 7. **De regels staan in `.opengrep/rules/`**, per regel een YAML-bestand met een testbestand ernaast.
    Gescand worden `src/`, `config/`, `templates/`, `public/`, `bin/` en `tools/`; `vendor/` en `var/`
-   vallen af via `.gitignore`, `tests/Architecture/Fixtures/` via `.semgrepignore`.
+   vallen buiten de scan; `tests/` ook, want daar draait geen code van de app.
 8. **De eerste regels**, voor wat in fase 1 en 2 komt:
    - `unserialize` op een waarde die geen letterlijke string is;
    - `eval`, `exec`, `shell_exec`, `system`, `passthru`, `proc_open`, `popen` en backticks;

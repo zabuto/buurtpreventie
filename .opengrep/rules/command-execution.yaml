@@ -1,0 +1,14 @@
+rules:
+  - id: command-execution
+    languages: [php]
+    severity: ERROR
+    message: >-
+      The app runs no shell commands and no generated PHP: on shared hosting such a call turns a single injection
+      into control over the account. Use a PHP function or a Symfony component instead.
+    pattern-either:
+      - patterns:
+          - pattern: $FUNCTION(...)
+          - metavariable-regex:
+              metavariable: $FUNCTION
+              regex: ^\\?(eval|exec|shell_exec|system|passthru|proc_open|popen|pcntl_exec)$
+      - pattern: "`...`"

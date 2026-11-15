@@ -1,0 +1,11 @@
+rules:
+  - id: twig-raw-filter
+    languages: [generic]
+    severity: ERROR
+    message: >-
+      The raw filter switches off Twig's escaping, so text a member typed can run as HTML or script in an e-mail
+      or the installer. Let Twig escape it, or build the markup in the template.
+    paths:
+      include:
+        - "*.twig"
+    pattern-regex: \|\s*raw\b

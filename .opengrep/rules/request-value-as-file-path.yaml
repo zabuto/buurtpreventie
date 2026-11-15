@@ -1,0 +1,39 @@
+rules:
+  - id: request-value-as-file-path
+    languages: [php]
+    severity: ERROR
+    mode: taint
+    message: >-
+      A value from the request reaches a file path, so `../` can read or overwrite any file the app may touch,
+      .env.local included. Map the value to a known file name instead, or generate the name on the server.
+    pattern-sources:
+      - pattern: $REQUEST->query->get(...)
+      - pattern: $REQUEST->request->get(...)
+      - pattern: $REQUEST->attributes->get(...)
+      - pattern: $REQUEST->get(...)
+      - pattern: $REQUEST->getContent(...)
+      - pattern: $REQUEST->toArray(...)
+      - pattern: $REQUEST->getPayload()->get(...)
+      - pattern: $FILE->getClientOriginalName()
+      - pattern: $FILE->getClientOriginalExtension()
+      - pattern: $_GET
+      - pattern: $_POST
+      - pattern: $_REQUEST
+      - pattern: $_COOKIE
+    pattern-sinks:
+      - patterns:
+          - pattern: $FUNCTION($PATH, ...)
+          - metavariable-regex:
+              metavariable: $FUNCTION
+              regex: ^\\?(file_get_contents|file_put_contents|fopen|file|readfile|unlink|copy|rename|mkdir|rmdir|touch|is_file|file_exists|parse_ini_file)$
+          - focus-metavariable: $PATH
+      - patterns:
+          - pattern-either:
+              - pattern: new \SplFileObject($PATH, ...)
+              - pattern: new SplFileObject($PATH, ...)
+              - pattern: $FILE->move($DIRECTORY, $PATH)
+              - pattern: include $PATH
+              - pattern: include_once $PATH
+              - pattern: require $PATH
+              - pattern: require_once $PATH
+          - focus-metavariable: $PATH

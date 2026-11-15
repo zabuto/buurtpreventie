@@ -1,0 +1,14 @@
+rules:
+  - id: unserialize-on-variable
+    languages: [php]
+    severity: ERROR
+    message: >-
+      unserialize() on a value that is not a literal string can create any class and run its magic methods. Use
+      json_decode(), or pass ['allowed_classes' => false] for data the app wrote itself.
+    patterns:
+      - pattern: $FUNCTION($VALUE, ...)
+      - metavariable-regex:
+          metavariable: $FUNCTION
+          regex: ^\\?unserialize$
+      - pattern-not: $FUNCTION('...', ...)
+      - pattern-not: $FUNCTION($VALUE, ['allowed_classes' => false])
