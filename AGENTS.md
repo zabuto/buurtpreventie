@@ -23,7 +23,7 @@ The plan lives in docs/plan-v4.md and is leading. Read it before every phase.
   Shared/ is not a module.
 - Per use case: <Name>.php (input), <Name>Handler.php, <Name>Output.php (no entities),
   <Name>Controller.php (REST), <Name>Tool.php (MCP); only input and handler are mandatory.
-  New use case: bin/console app:make:use-case <Module> <Name>.
+  New use case: symfony console app:make:use-case <Module> <Name>.
 - Domain knows nothing about HTTP or MCP. Controllers and tools only call the handler
   in their own folder. Modules use each other only through use cases or interfaces
   in Shared\Domain.
@@ -45,7 +45,7 @@ The plan lives in docs/plan-v4.md and is leading. Read it before every phase.
 
 ## Data and secrets
 
-- Only made-up sample data (bin/console app:fixtures:load demo).
+- Only made-up sample data (symfony console app:fixtures:load demo).
   Never real personal data in the repo, in tests or in fixtures.
 - Never commit secrets; they belong in .env.local or shared/.env.local.
 - The committed .env, .env.dev and .env.test are public and hold no secrets: agents may read and
@@ -78,5 +78,5 @@ The plan lives in docs/plan-v4.md and is leading. Read it before every phase.
 - Fix style: composer fix (Rector, then Mago lint fixes and Mago format).
 - Single tools: vendor/bin/phpstan analyse, vendor/bin/mago format --dry-run, vendor/bin/mago lint,
   vendor/bin/mago analyze,
-  vendor/bin/rector process --dry-run. PHPStan reads var/cache/dev: run bin/console cache:warmup first.
-- Load fixtures: bin/console app:fixtures:load demo (from phase 1).
+  vendor/bin/rector process --dry-run. PHPStan reads var/cache/dev: run symfony console cache:warmup first.
+- Load fixtures: symfony console app:fixtures:load demo (from phase 1).

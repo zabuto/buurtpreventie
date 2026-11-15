@@ -10,7 +10,7 @@ versions follow [Semantic Versioning](https://semver.org/).
 - Symfony 7.4 LTS base on PHP 8.4.27 or later, with the modules `Patrol`, `Membership`, `Identity`,
   `Audit`, `Settings` and `Maintenance`.
 - Health check `GET /api/v1/health`.
-- Generator `bin/console app:make:use-case <Module> <Name>`.
+- Generator `symfony console app:make:use-case <Module> <Name>`.
 - Architecture rules (PHPat) and a folder layout test, explained in `docs/architecture.md`.
 - Checks through `composer check`: PHPStan level max, Mago (format, lint, analyze), Rector, PHPUnit, `composer audit`
   and deprecations.

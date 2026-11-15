@@ -57,7 +57,7 @@ The tool gets its MCP binding in phase 5; until then it is a plain class that ca
 was created with the generator and filled in afterwards.
 
 ```bash
-bin/console app:make:use-case Maintenance CheckHealth
+symfony console app:make:use-case Maintenance CheckHealth
 ```
 
 **Input** (`CheckHealth.php`). The health check asks for nothing, so the input is empty. The handler
@@ -124,7 +124,7 @@ that `POST` is refused).
 ## Adding a feature
 
 1. Pick the module: where does the concept belong according to [glossary.md](glossary.md)?
-2. Create the folder: `bin/console app:make:use-case <Module> <Name>`, with a PascalCase name that
+2. Create the folder: `symfony console app:make:use-case <Module> <Name>`, with a PascalCase name that
    says what happens, such as `SignUpForRound`.
 3. Write the handler test first in `tests/<Module>/UseCase/<Name>/` and watch it fail.
 4. Fill in input and output, then the handler. A write action gets a Voter, an audit entry and a row

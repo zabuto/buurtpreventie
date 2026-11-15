@@ -272,7 +272,7 @@ Welke codestructuur het ook wordt: het project moet over te dragen zijn aan een 
 
 1. **`docs/architecture.md`** legt de gekozen structuur uit met één volledig uitgewerkt voorbeeld, plus een recept "nieuwe functie toevoegen" in een paar stappen.
 2. **Beslisnotities (ADR's)** in `docs/adr/` voor elke grote keuze: structuur, Symfony 7.4 LTS en de route naar 8.4 LTS, buildless frontend, licentie, inloggen, MCP. Een opvolger begrijpt waarom, en kan een keuze bewust herzien.
-3. **Generators of sjablonen** voor terugkerende code, zodat nieuwe code vanzelf het patroon volgt (bij de huidige structuur: `bin/console app:make:use-case`).
+3. **Generators of sjablonen** voor terugkerende code, zodat nieuwe code vanzelf het patroon volgt (bij de huidige structuur: `symfony console app:make:use-case`).
 4. **Bewaking die uitlegt:** architectuurregels en CI-controles zeggen in hun foutmelding waarom ze bestaan en waar de uitleg staat.
 5. **Vaste namen en `docs/glossary.md`**, zodat Nederlandse begrippen en codenamen eenduidig gekoppeld zijn.
 6. **`AGENTS.md` en `CLAUDE.md`** met dezelfde regels, ook voor opvolgers die met AI-tools werken.
@@ -317,7 +317,7 @@ Het project krijgt verzonnen voorbeelddata die altijd actueel ogen: alle datums 
 - **Gebouwd via dezelfde use cases** als de app (`CreateRound`, `SignUpForRound`, …), niet door rechtstreeks in de database te schrijven. Verandert een regel of het model, dan gaan de fixtures mee of falen ze meteen.
 - **Vaste startwaarde voor het toeval** (seed), dus elke keer dezelfde mensen en hetzelfde patroon; alleen de datums schuiven mee met vandaag. Tests zetten de klok vast met Symfony Clock.
 - **CI laadt elke set** en doet een korte rooktest; zo merkt niemand pas bij een demo dat de voorbeelddata stuk zijn.
-- **Eén commando:** `bin/console app:fixtures:load demo`, ook onderdeel van het startcommando uit `docs/getting-started.md`.
+- **Eén commando:** `symfony console app:fixtures:load demo`, ook onderdeel van het startcommando uit `docs/getting-started.md`.
 - **Nooit in productie:** fixtures zitten niet in de release-zip. Alleen een proefinstallatie kan in de web-installer kiezen voor "voorbeelddata laden", met een knop "voorbeelddata wissen" in Onderhoud.
 - **Gebruik `doctrine/data-fixtures`** (de bibliotheek onder de bundle uit v3) met een eigen commando en kleine factories per module, alleen als dev-afhankelijkheid; de bundle voegt alleen toe wat dit project niet gebruikt.
 
@@ -538,7 +538,7 @@ De MCP-server is een dunne laag op `/mcp` die dezelfde use cases en Voters aanro
 - DNS-rebinding-bescherming van de bundle met de eigen hostnaam als enige toegestane host.
 - Elke schrijfactie via MCP komt in het auditlog met kanaal `mcp`.
 
-**Transport.** Streamable HTTP, JSON-antwoorden zonder SSE-stream, sessieloos; het `2026-07-28`-tijdperk wordt standaard bediend, het handshake-tijdperk zonder sessies. Daarnaast `bin/console mcp:server` over STDIO voor lokaal gebruik door de ontwikkelaar.
+**Transport.** Streamable HTTP, JSON-antwoorden zonder SSE-stream, sessieloos; het `2026-07-28`-tijdperk wordt standaard bediend, het handshake-tijdperk zonder sessies. Daarnaast `symfony console mcp:server` over STDIO voor lokaal gebruik door de ontwikkelaar.
 
 ## Auditlog
 
