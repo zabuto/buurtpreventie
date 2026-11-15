@@ -43,15 +43,15 @@ final class RunAsTest extends TestCase
     }
 
     #[Test]
-    public function it_runs_a_system_operation_without_a_member_through_cron(): void
+    public function it_runs_a_system_operation_without_a_member_through_the_channel(): void
     {
-        $seen = $this->runAs->system(fn(): array => [
+        $seen = $this->runAs->system(Channel::Console, fn(): array => [
             $this->context->actor(),
             $this->context->channel(),
             $this->tokenStorage->getToken()?->getRoleNames(),
         ]);
 
-        $this->assertSame([null, Channel::Cron, ['ROLE_SYSTEM']], $seen);
+        $this->assertSame([null, Channel::Console, ['ROLE_SYSTEM']], $seen);
     }
 
     #[Test]
@@ -60,7 +60,7 @@ final class RunAsTest extends TestCase
         $previous = new UsernamePasswordToken(new MemberUser(Uuid::v7(), []), 'api');
         $this->tokenStorage->setToken($previous);
 
-        $this->runAs->system(static fn(): null => null);
+        $this->runAs->system(Channel::Cron, static fn(): null => null);
 
         $this->assertSame($previous, $this->tokenStorage->getToken());
     }

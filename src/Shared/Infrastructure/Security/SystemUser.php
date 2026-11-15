@@ -9,8 +9,9 @@ use Override;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
- * The scheduler acting on its own. It is no member, so it counts nowhere as a person and never gets member rights;
- * a voter allows a system action only to ROLE_SYSTEM, which no request without a token has.
+ * The app acting on its own, such as the scheduler or the installer. It is no member, so it counts nowhere as a
+ * person and never gets member rights; a voter allows a system action only to ROLE_SYSTEM, which no request without a
+ * token has.
  */
 final readonly class SystemUser implements UserInterface
 {

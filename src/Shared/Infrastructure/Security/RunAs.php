@@ -37,7 +37,8 @@ final readonly class RunAs
     }
 
     /**
-     * The scheduler, through the cron channel whether a cron job or the tick endpoint started it.
+     * The app acting on its own: the scheduler through cron, whether a cron job or the tick endpoint started it; the
+     * fixtures through console; the installer through web.
      *
      * @template T
      *
@@ -45,9 +46,9 @@ final readonly class RunAs
      *
      * @return T
      */
-    public function system(callable $operation): mixed
+    public function system(Channel $channel, callable $operation): mixed
     {
-        return $this->as(new SystemUser(), Channel::Cron, $operation);
+        return $this->as(new SystemUser(), $channel, $operation);
     }
 
     /**
