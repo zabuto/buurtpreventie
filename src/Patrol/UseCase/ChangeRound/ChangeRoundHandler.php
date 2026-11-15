@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Patrol\UseCase\ChangeRound;
 
 use App\Patrol\Domain\MeetingPoint;
-use App\Patrol\Domain\MeetingPointArchived;
 use App\Patrol\Domain\MeetingPointRepository;
 use App\Patrol\Domain\Round;
 use App\Patrol\Domain\RoundRepository;
@@ -40,7 +39,7 @@ final readonly class ChangeRoundHandler
 
             $before = self::fields($round);
             $round->change(
-                new RoundStart(new DateTimeImmutable($input->startsAt), $this->meetingPoint($round, $input->meetingPointId), $input->startNote),
+                new RoundStart(new DateTimeImmutable($input->startsAt), $this->meetingPoint($input->meetingPointId), $input->startNote),
                 $this->clock->now(),
             );
 
@@ -57,21 +56,13 @@ final readonly class ChangeRoundHandler
         });
     }
 
-    /**
-     * An archived meeting point is not offered for a new start, but a round keeps the one it has.
-     */
-    private function meetingPoint(Round $round, ?string $id): ?MeetingPoint
+    private function meetingPoint(?string $id): ?MeetingPoint
     {
         if (null === $id) {
             return null;
         }
 
-        $meetingPoint = $this->meetingPoints->get(Uuid::fromString($id));
-        if ($meetingPoint->isArchived() && $meetingPoint !== $round->meetingPoint()) {
-            throw MeetingPointArchived::forItem($meetingPoint->id());
-        }
-
-        return $meetingPoint;
+        return $this->meetingPoints->get(Uuid::fromString($id));
     }
 
     /**

@@ -76,6 +76,7 @@ final class Round
      * @param Uuid|null $onBehalfOf the coordinator creating the round for the first walker
      *
      * @throws StartInPast
+     * @throws MeetingPointArchived
      */
     public static function plan(
         RoundStart $start,
@@ -85,6 +86,7 @@ final class Round
         ?Uuid $onBehalfOf = null,
     ): self {
         $start->refuseUnlessAfter($now);
+        $start->meetingPoint?->ensureSelectable();
         $round = new self($start, $staffingRule, $now);
         $round->participations->add(new Participation($round, $firstWalker, $now, $onBehalfOf));
 
@@ -266,11 +268,13 @@ final class Round
      * Records the one report of a walked round. A second report is refused rather than replacing the first, so
      * nobody overwrites the report of someone else unnoticed; deleting the report makes room for a new one.
      *
+     * @throws OutcomeArchived
      * @throws RoundNotWalked
      * @throws RoundAlreadyReported
      */
     public function submitReport(Uuid $authorId, Outcome $outcome, ?string $note, DateTimeImmutable $now): RoundReport
     {
+        $outcome->ensureSelectable();
         $status = $this->status($now);
         if (RoundStatus::Walked !== $status) {
             throw RoundNotWalked::forRound($this->id, $status);
@@ -338,10 +342,12 @@ final class Round
     }
 
     /**
-     * Changes when and where the round starts. The round keeps the staffing rule it was created with.
+     * Changes when and where the round starts. The round keeps the staffing rule it was created with, and the
+     * meeting point it has, even once that is archived.
      *
      * @throws RoundHasStarted
      * @throws StartInPast
+     * @throws MeetingPointArchived
      */
     public function change(RoundStart $start, DateTimeImmutable $now): void
     {
@@ -350,6 +356,9 @@ final class Round
         }
 
         $start->refuseUnlessAfter($now);
+        if ($start->meetingPoint !== $this->meetingPoint) {
+            $start->meetingPoint?->ensureSelectable();
+        }
         $this->moveTo($start);
     }
 

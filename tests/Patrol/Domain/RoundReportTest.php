@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Patrol\Domain;
 
 use App\Patrol\Domain\Outcome;
+use App\Patrol\Domain\OutcomeArchived;
 use App\Patrol\Domain\OutcomeKind;
 use App\Patrol\Domain\RoundAlreadyReported;
 use App\Patrol\Domain\RoundNotWalked;
@@ -115,6 +116,18 @@ final class RoundReportTest extends TestCase
         $report = $round->submitReport($this->firstWalker, $incident, 'Inbraak gezien', $this->afterTheRound());
 
         $this->assertSame([$report, $incident], [$round->report(), $report->outcome()]);
+    }
+
+    #[Test]
+    public function it_refuses_a_report_with_an_archived_outcome(): void
+    {
+        $round = RoundFixture::withWalkers($this->firstWalker, 2);
+        $outcome = Outcome::create('Niets te melden', OutcomeKind::NothingToReport);
+        $outcome->archive();
+
+        $this->expectException(OutcomeArchived::class);
+
+        $round->submitReport($this->firstWalker, $outcome, null, $this->afterTheRound());
     }
 
     private function afterTheRound(): DateTimeImmutable

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Patrol\UseCase\ReportRoundResult;
 
-use App\Patrol\Domain\OutcomeArchived;
 use App\Patrol\Domain\OutcomeRepository;
 use App\Patrol\Domain\RoundRepository;
 use App\Shared\Domain\AccessDenied;
@@ -44,10 +43,6 @@ final readonly class ReportRoundResultHandler
             $this->authorization->denyUnlessGranted('report.submit', $round);
 
             $outcome = $this->outcomes->get(Uuid::fromString($input->outcomeId));
-            if ($outcome->isArchived()) {
-                throw OutcomeArchived::forItem($outcome->id());
-            }
-
             $report = $round->submitReport($authorId, $outcome, $input->note, $this->clock->now());
             $this->auditTrail->record(new AuditedAction('report.submitted', 'round', $round->id(), [
                 'report' => ['old' => null, 'new' => $report->id()->toRfc4122()],

@@ -74,6 +74,16 @@ final class Outcome
         $this->name = \trim($name);
     }
 
+    /**
+     * @throws OutcomeArchived as an archived outcome is not offered for a new report
+     */
+    public function ensureSelectable(): void
+    {
+        if ($this->archived) {
+            throw OutcomeArchived::forItem($this->id);
+        }
+    }
+
     public function archive(): void
     {
         $this->archived = true;

@@ -6,7 +6,6 @@ namespace App\Patrol\UseCase\CreateRound;
 
 use App\Patrol\Domain\BuddyCaller;
 use App\Patrol\Domain\MeetingPoint;
-use App\Patrol\Domain\MeetingPointArchived;
 use App\Patrol\Domain\MeetingPointRepository;
 use App\Patrol\Domain\MemberInactive;
 use App\Patrol\Domain\Round;
@@ -111,12 +110,7 @@ final readonly class CreateRoundHandler
             return null;
         }
 
-        $meetingPoint = $this->meetingPoints->get(Uuid::fromString($id));
-        if ($meetingPoint->isArchived()) {
-            throw MeetingPointArchived::forItem($meetingPoint->id());
-        }
-
-        return $meetingPoint;
+        return $this->meetingPoints->get(Uuid::fromString($id));
     }
 
     private function comment(Round $round, Uuid $authorId, string $text, DateTimeImmutable $now): void

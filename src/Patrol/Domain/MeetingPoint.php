@@ -89,6 +89,16 @@ final class MeetingPoint
         $this->longitude = null === $coordinates ? null : \number_format($coordinates->longitude, 6, '.', '');
     }
 
+    /**
+     * @throws MeetingPointArchived as an archived meeting point is not offered for a new start
+     */
+    public function ensureSelectable(): void
+    {
+        if ($this->archived) {
+            throw MeetingPointArchived::forItem($this->id);
+        }
+    }
+
     public function archive(): void
     {
         $this->archived = true;
