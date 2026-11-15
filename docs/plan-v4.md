@@ -666,11 +666,11 @@ Alleen als CI rood blijft, moet de ontwikkelaar zelf iets doen; de beheerder mer
 **Kant ontwikkelaar: eenmalig inrichten, daarna bijna vanzelf.**
 
 - Dependabot-beveiligingsupdates voor Composer en GitHub Actions; patch- en minor-updates worden automatisch samengevoegd als CI groen is, behalve minor-updates van pakketten onder 1.0.
-- **Cooldown tegen gekaapte releases:** Dependabot stelt een nieuwe Composer-versie pas voor na 3 dagen (patch), 7 dagen (minor) of 14 dagen (major), en een nieuwe action na 7 dagen (Dependabot kent voor actions geen dagen per soort update), zonder uitzonderingen: ook een vertrouwd project kan een gekaapt account van een maintainer hebben. Beveiligingsupdates vallen niet onder de cooldown en komen meteen.
+- **Cooldown tegen gekaapte releases:** Dependabot stelt een nieuwe Composer-versie pas voor na 7 dagen (patch of minor) of 14 dagen (major), en een nieuwe action na 7 dagen (Dependabot kent voor actions geen dagen per soort update), zonder uitzonderingen: ook een vertrouwd project kan een gekaapt account van een maintainer hebben. Beveiligingsupdates vallen niet onder die cooldown. Composer zelf (2.11 of nieuwer) houdt elke release van minder dan 24 uur oud tegen bij `composer update` en `composer require`, ook op de machine van de ontwikkelaar en ook voor een beveiligingsupdate; daarom blijft die periode kort.
 - CI faalt op `composer audit`, dat `composer.lock` toetst aan de beveiligingsadviezen van Packagist ([Composer audit](https://github.com/composer/composer/pull/10798)); een wekelijkse geplande run opent een issue als er iets nieuws is.
 - **Een kwetsbaarheid in PHP zelf** (zoals PHP2Shell) ziet Dependabot niet. De ontwikkelaar verhoogt dan de ondergrens in `composer.json` (`require` en `config.platform.php`) en brengt een patchrelease uit; de installer en Onderhoud controleren dezelfde ondergrens.
 - **Codescan (SAST) in CI** met Opengrep (LGPL-2.1) en een eigen regelset in de repo, elke regel met een regeltest; een bevinding laat CI falen. De binary komt uit de releases van `opengrep/opengrep`, nooit via `install.sh` of PyPI. CI controleert de Cosign-handtekening tegen de release-workflow van Opengrep als vaste certificaatidentiteit en issuer, en zet de gekozen versie en de SHA-256 in de log.
-- **Cooldown voor Opengrep:** er is geen Composer-pakket of image, dus Dependabot kan Opengrep niet bijwerken. CI kiest daarom bij elke run zelf de nieuwste release binnen de huidige major, met dezelfde cooldown als Dependabot: een patch na 3 dagen, een minor na 7. Een nieuwe major gaat nooit automatisch. Zodra die 14 dagen oud is, waarschuwt `composer update` de ontwikkelaar en opent de wekelijkse workflow een issue; overstappen gaat via een pull request. De waarschuwing laat `composer update` nooit falen, ook niet zonder internet.
+- **Cooldown voor Opengrep:** er is geen Composer-pakket of image, dus Dependabot kan Opengrep niet bijwerken. CI kiest daarom bij elke run zelf de nieuwste release binnen de huidige major, met dezelfde cooldown als Dependabot: een patch of minor na 7 dagen. Een nieuwe major gaat nooit automatisch. Zodra die 14 dagen oud is, waarschuwt `composer update` de ontwikkelaar en opent de wekelijkse workflow een issue; overstappen gaat via een pull request. De waarschuwing laat `composer update` nooit falen, ook niet zonder internet.
 - **Geen regels of scanners met een licentie die dit project uitsluit.** Semgrep-regels komen niet in de repo: hun licentie verbiedt verspreiden. CodeQL valt af: de licentie staat analyse alleen toe op code onder een OSI-licentie, en PolyForm Noncommercial is dat niet.
 - Symfony 7.4 LTS krijgt alleen bug- en securityfixes, dus patch-updates zijn klein en weinig riskant. De overstap naar 8.4 LTS volgt in 2028 en komt bij de webbeheerder als gewone release via de knop Bijwerken.
 - Elke samengevoegde fix levert automatisch een patchversie (4.0.x): zip, SHA-256 en een handtekening (libsodium) waarvan de publieke sleutel in de app zit.
@@ -735,8 +735,8 @@ Fase 3, 4 en 5 hangen alleen van de API af; wie het frontend het eerst nodig hee
 - [x] Symfony 7.4 LTS-skelet, PHP 8.4, modulaire mapindeling uit Codestructuur, PHPat-regels in PHPStan, docs/glossary.md, docs/architecture.md met voorbeeld, ADR 0001 over de structuur, en de generator app:make:use-case.
 - [x] CI (GitHub Actions): PHPStan level max, Mago (opmaak, lint en analyse), PHPUnit, `composer audit`, controle op deprecations, wekelijkse vooruitkijk-job met de nieuwste Symfony 8 en PHP 8.5, Rector met Symfony-regels; Dependabot met automatisch samenvoegen van groene patch- en minor-updates (minor niet onder 1.0), wekelijkse audit-run, SECURITY.md en privé melden van kwetsbaarheden aan.
 - [x] `AGENTS.md` + `CLAUDE.md`, en `docs/` met `getting-started`, `configuration`, `architecture`, `operations`, `testing`, `gotchas`, `writing`, `code-style`.
-- [ ] Dependabot-cooldown van 3, 7 en 14 dagen voor patch-, minor- en major-updates van Composer en 7 dagen voor actions, zonder uitzonderingen (zie Beveiligingsupdates en zelf bijwerken).
-- [ ] Codescan in CI met Opengrep en een eigen regelset met regeltests, als verplichte check op `develop`; CI kiest de Opengrep-versie zelf binnen de huidige major, met cooldown, en `composer update` en de wekelijkse workflow melden een nieuwe major (zie Beveiligingsupdates en zelf bijwerken).
+- [x] Dependabot-cooldown van 7, 7 en 14 dagen voor patch-, minor- en major-updates van Composer en 7 dagen voor actions, zonder uitzonderingen, en een Composer-cooldown van 24 uur (zie Beveiligingsupdates en zelf bijwerken).
+- [x] Codescan in CI met Opengrep en een eigen regelset met regeltests, als verplichte check op `develop`; CI kiest de Opengrep-versie zelf binnen de huidige major, met cooldown, en `composer update` en de wekelijkse workflow melden een nieuwe major (zie Beveiligingsupdates en zelf bijwerken).
 
 **Klaar als:** CI groen op een lege app; `docs/getting-started.md` brengt een nieuwe dev in één keer tot een draaiende lokale omgeving.
 
@@ -776,6 +776,8 @@ Fase 3, 4 en 5 hangen alleen van de API af; wie het frontend het eerst nodig hee
 - [ ] Mobiel eerst en WCAG 2.2 AA (zie Frontend); PWA met manifest, service worker en offline lezen; axe-core in CI.
 
 **Klaar als:** elk scherm van de oude app een tegenhanger heeft en een loper op een telefoon in drie tikken kan aanmelden, ook op een iPhone met iOS 15, en de minst ervaren testloper dat zonder hulp doet. De evaluatie van Lit staat in een ADR.
+
+**Ter goedkeuring in het taakplan:** Renovate om de versies van gevendorde bibliotheken (Lit, later Leaflet) te volgen, met dezelfde cooldown; Dependabot ziet gevendorde bestanden niet. Alleen zelf gedraaid in GitHub Actions, nooit de gehoste app van Mend, omdat die schrijfrechten op de repo krijgt (ADR 0004).
 
 ### Fase 5 — MCP-server
 
@@ -1121,7 +1123,7 @@ Alleen rapporteren, niets wijzigen.
 | Hosting zonder SSH | Geen `bin/console` voor installatie en migraties | Release-zip + web-installer; herinneringen via cron in het hostingpaneel, of een externe tick |
 | Host stript `Authorization`-header | Tokens en MCP werken niet | Regel in `.htaccess` + een diagnosepagina in de installer die het controleert |
 | Persoonsgegevens via AI-clients | AVG-vraag voor de vereniging | Dataminimalisatie in MCP-uitvoer, MCP standaard uit, per vereniging aan te zetten |
-| Gekaapte release van een afhankelijkheid | Kwaadaardige code via een automatisch samengevoegde update | Dependabot-cooldown (Composer 3, 7 en 14 dagen, actions 7); actions vastgepind op commit-SHA; Opengrep alleen met een geldige handtekening van zijn release-workflow, na dezelfde cooldown en binnen de huidige major; CI zonder geheimen in pull requests |
+| Gekaapte release van een afhankelijkheid | Kwaadaardige code via een automatisch samengevoegde update | Dependabot-cooldown (Composer 7, 7 en 14 dagen, actions 7) en een Composer-cooldown van 24 uur; actions vastgepind op commit-SHA; Opengrep alleen met een geldige handtekening van zijn release-workflow, na dezelfde cooldown en binnen de huidige major; CI zonder geheimen in pull requests |
 | Eén onderhouder | Kennis zit bij één persoon | `docs/`, `AGENTS.md`, weinig afhankelijkheden, geen buildstap; webbeheerder werkt zelf bij via het scherm Onderhoud |
 | Overstap 7.4 → 8.4 LTS blijft liggen | Na november 2029 geen security-fixes meer | Geen deprecations (CI faalt erop); overstap gepland in 2028 en vastgelegd in docs/operations.md |
 

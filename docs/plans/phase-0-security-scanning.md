@@ -1,6 +1,6 @@
 # Fase 0, aanvulling: beveiligingsscan en cooldown
 
-Status: ter goedkeuring.
+Status: uitgevoerd op `feature/security-scanning`.
 
 Bron: `docs/plan-v4.md` (Fase 0, de twee open punten; Beveiligingsupdates en zelf bijwerken, Kant
 ontwikkelaar; Risico's), ADR 0002 en 0003, en `AGENTS.md`.
@@ -12,8 +12,9 @@ gevaarlijke patronen met een open-source scanner en een eigen regelset.
 
 Klaar als:
 
-- Dependabot een nieuwe Composer-versie pas voorstelt na 3 dagen (patch), 7 (minor) of 14 (major) en
-  een nieuwe action na 7 dagen, zonder uitzonderingen, en een test dat bewaakt;
+- Dependabot een nieuwe Composer-versie pas voorstelt na 7 dagen (patch of minor) of 14 (major) en
+  een nieuwe action na 7 dagen, zonder uitzonderingen, Composer zelf elke release van minder dan
+  24 uur tegenhoudt, en tests dat bewaken;
 - de CI-job "Security scan" groen is op `develop`: Opengrep, gekozen binnen de huidige major met
   cooldown, gecontroleerd met Cosign, draait de regeltests en scant de code;
 - `composer update` en de wekelijkse workflow een nieuwe Opengrep-major melden zodra die 14 dagen oud
@@ -36,13 +37,15 @@ Klaar als:
 ## Voorgestelde beslissingen
 
 1. **Cooldown zonder uitzonderingen**, dus zonder `include` of `exclude`:
-   - Composer: `semver-patch-days: 3`, `semver-minor-days: 7`, `semver-major-days: 14`, en
+   - Composer: `semver-patch-days: 7`, `semver-minor-days: 7`, `semver-major-days: 14`, en
      `default-days: 7` voor updates zonder semver-informatie;
    - GitHub Actions: `default-days: 7`, omdat Dependabot daar geen dagen per soort update kent.
+   - Composer zelf: `config.policy.cooldown.period: 24 hours` (Composer 2.11), ook lokaal; kort,
+     omdat een beveiligingsupdate er ook op wacht.
    Beveiligingsupdates vallen er volgens GitHub niet onder.
 2. **Versiekeuze en majorcontrole in één PHP-klasse**, met PHPUnit in memory te testen:
    - kiezen: de nieuwste release binnen de major die niet als prerelease gemarkeerd is, waarbij een
-     patch (`vX.Y.Z` met Z > 0) minstens 3 dagen oud is en een minor (`vX.Y.0`) minstens 7;
+     patch (`vX.Y.Z` met Z > 0) en een minor (`vX.Y.0`) elk minstens 7 dagen oud zijn;
    - melden: een release in een hogere major die minstens 14 dagen oud is.
 3. **Die klasse staat in `tools/`** (namespace `App\Tools\`, alleen in `autoload-dev`), zodat hij niet
    in de release-zip komt. PHPStan, Mago en Rector krijgen `tools/` erbij. Eén script,
@@ -57,6 +60,8 @@ Klaar als:
 6. **CI-job "Security scan"** in `ci.yml`, naast "Checks (PHP 8.4)":
    - `permissions: contents: read`, `persist-credentials: false`, geen geheimen behalve het
      standaard-`GITHUB_TOKEN` voor de GitHub-API;
+   - alleen `composer dump-autoload --dev`, geen pakketten: het script heeft alleen de autoloader
+     nodig;
    - versie kiezen, dan `opengrep_manylinux_x86` met `.sig` en `.cert` downloaden uit de release van
      `opengrep/opengrep`;
    - Cosign via `sigstore/cosign-installer` (vastgepind op SHA), dan `cosign verify-blob` met
@@ -100,7 +105,7 @@ beslissing 1 en geen `include` of `exclude`. Daarna de configuratie.
 
 Unit-tests met vaste releaselijsten en een vaste klok:
 
-- kiest de nieuwste patch van minstens 3 dagen, en slaat een jongere over;
+- kiest de nieuwste patch van minstens 7 dagen, en slaat een jongere over;
 - een minor telt pas na 7 dagen;
 - negeert prereleases en andere majors;
 - geeft een fout als er binnen de major geen release in aanmerking komt;

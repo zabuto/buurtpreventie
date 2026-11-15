@@ -6,7 +6,7 @@ From a clean machine to a running local environment and a first change.
 
 - PHP 8.4.27 or later, or PHP 8.5. Earlier 8.4 releases have a critical vulnerability (PHP2Shell);
   Composer refuses to start the app on them. See [gotchas.md](gotchas.md).
-- Composer 2.
+- Composer 2.11 or later, which applies the 24-hour cooldown in `composer.json` to every update.
 - Git.
 - Docker with Compose, for the development database.
 - The [Symfony CLI](https://symfony.com/download) as a local web server; it hands the database
@@ -76,7 +76,7 @@ After `symfony server:start`, the health check answers on `https://buurtpreventi
 | --- | --- |
 | `composer test` | All tests |
 | `composer test:unit` | Only the in-memory unit tests |
-| `composer check` | Everything CI checks: Composer, security advisories, container, deprecations, code style, Rector, PHPStan with the architecture rules, tests |
+| `composer check` | Everything CI checks except the security scan: Composer, security advisories, container, deprecations, code style, Rector, PHPStan with the architecture rules, tests |
 | `composer fix` | Applies Rector, Mago lint fixes and Mago formatting |
 
 What each check does: [testing.md](testing.md).

@@ -18,7 +18,7 @@ These are not stored in files and must be set again on a fork or a recreated rep
 
 | Setting | Where | Why |
 | --- | --- | --- |
-| Branch protection on `develop`: pull request required, check "Checks (PHP 8.4)" required | Settings → Branches | Auto-merge would not wait for green CI otherwise |
+| Branch protection on `develop`: pull request required, checks "Checks (PHP 8.4)" and "Security scan" required | Settings → Branches | Auto-merge would not wait for green CI otherwise |
 | Allow auto-merge | Settings → General | Needed to merge Dependabot updates automatically |
 | Automatically delete head branches | Settings → General | A branch disappears from GitHub once its pull request is merged |
 | Private vulnerability reporting | Settings → Code security | Reports as described in `SECURITY.md` |
@@ -28,9 +28,11 @@ These are not stored in files and must be set again on a fork or a recreated rep
 
 | Workflow | When | What |
 | --- | --- | --- |
-| `ci.yml` | Every pull request, every push to `develop` and `main` | `composer check` on PHP 8.4; see [testing.md](testing.md) |
+| `ci.yml`, checks job | Every pull request, every push to `develop` and `main` | `composer check` on PHP 8.4; see [testing.md](testing.md) |
+| `ci.yml`, security scan job | Same | Opengrep with the rules in `.opengrep/rules/`; see [testing.md](testing.md#security-scan) |
 | `weekly.yml`, audit job | Monday 05:00 UTC and by hand | `composer audit` on `develop`; opens an issue on an advisory |
 | `weekly.yml`, look-ahead job | Same | Newest Symfony 8 on PHP 8.5, all checks; opens an issue on failure. Blocks nothing |
+| `weekly.yml`, Opengrep major job | Same | Opens an issue once a new Opengrep major is 14 days old, or when the check fails |
 | `dependabot-automerge.yml` | Dependabot pull requests | Merges patch and minor updates once CI is green, except minor updates of packages below 1.0 |
 
 The weekly jobs open one issue per kind and add a comment to that issue on a later failure. Actions
@@ -40,6 +42,13 @@ are pinned to a commit SHA; Dependabot keeps them up to date.
 
 `.github/dependabot.yml`: weekly for Composer and GitHub Actions, targeting `develop`. Security
 updates target the default branch.
+
+**Cooldown.** Dependabot proposes a Composer patch or minor only after 7 days and a major after 14;
+actions wait 7 days. No dependency is exempt; `DependabotCooldownTest` keeps it that way. Security
+updates are not subject to it. Composer itself withholds every release younger than 24 hours
+(`config.policy.cooldown`), also for a security update and on a developer machine;
+`ComposerCooldownTest` guards that. The reasons are in
+[ADR 0004](adr/0004-supply-chain-protection.md).
 
 | Update | Pull request | Merge |
 | --- | --- | --- |
@@ -82,3 +91,17 @@ the reasons in [ADR 0002](adr/0002-symfony-lts-and-php-minimum.md). The move to 
 for early 2028, together with PHP 8.5; the steps are in
 [plan-v4.md](plan-v4.md#overstap-naar-symfony-84-lts). The look-ahead job shows every week what
 breaks on Symfony 8.
+
+## Opengrep
+
+The security scan downloads Opengrep from the releases of `opengrep/opengrep` and runs it only after
+`cosign verify-blob` accepts the signature of the release workflow for that exact version.
+`tools/opengrep-release.php select` picks the newest release within the major in
+`tools/opengrep-major` that is at least 7 days old.
+
+A new major (for example 2.x) never arrives by itself. Once it is 14 days old, the weekly job opens
+an issue and `composer update` prints a warning. To move to it:
+
+1. Read its release notes for changes in rule syntax and results.
+2. On a branch, change `tools/opengrep-major` and let the security scan run.
+3. Fix rules or findings, and merge through a pull request.
