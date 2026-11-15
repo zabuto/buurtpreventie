@@ -588,6 +588,28 @@ de rondes zonder loopmaatje en een paar volle rondes; de set `edge` bevat elk ge
 op het maximum, een ronde met één plek over, en twee leden met dezelfde volledige naam, elk met een eigen
 weergavenaam.
 
+- Uitgevoerd op 15 november 2026, met deze keuzes:
+  - `AddFirstAdmin` (Membership) voegt de eerste beheerder toe, alleen door het systeem (`member.add_first_admin`,
+    `ROLE_SYSTEM`) en alleen zolang er geen actief lid met de rol beheerder is (`AdminExists`); de auditregel is
+    `member.added`. De installer van fase 6a gebruikt dezelfde use case;
+  - `RunAs::system()` krijgt het kanaal mee: `console` voor de voorbeelddata, later `web` voor de installer en
+    `cron` voor de scheduler;
+  - `notifyOpenRounds` krijgt een eigen use case, `ChangeOpenRoundNotifications`: alleen het lid zelf, net als de
+    toestemming voor contactgegevens (besloten op 15 november 2026);
+  - het commando staat in een eigen module `SampleData`, omdat `Shared` van geen module mag afhangen en modules
+    elkaar alleen via use cases gebruiken. Elke stap draait als wie hem zou zetten, op zijn eigen moment
+    (`Timeline` zet de klok), zodat ook rondes in het verleden via de use cases ontstaan en de auditregels dat
+    moment dragen. Geen stap ligt na het begin van het laden;
+  - een weergavenaam is de voornaam, met een initiaal alleen waar twee dezelfde voornaam hebben; de namen zijn
+    internationaal, met letters die de zoeksleutel laat staan (`ı`, `ł`);
+  - de rooktest in CI laadt elke set buiten de testtransactie en controleert dat er leden en auditregels zijn; de
+    databasetest controleert wat elke set bevat;
+  - `ListRounds` weigert een periode langer dan 93 dagen: een kwartaal in lokale tijd, met het uur van de
+    wintertijd (besloten op 15 november 2026);
+  - de keuzes van een invoer met een enum komen uit dat enum (`Assert\Choice(callback: ...)`);
+  - de gelijktijdigheidstest haalt de handlers uit de container, die ze nu houdt omdat de voorbeelddata ze
+    gebruiken.
+
 ### T13. Conversie `app:import-v3`: naar fase 5b
 
 De tests hieronder zijn het uitgangspunt voor het taakplan van fase 5b. Integratietests op de set `v3`, op
