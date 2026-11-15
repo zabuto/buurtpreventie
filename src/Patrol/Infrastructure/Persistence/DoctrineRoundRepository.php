@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Patrol\Infrastructure\Persistence;
 
+use App\Patrol\Domain\MeetingPoint;
 use App\Patrol\Domain\Participation;
 use App\Patrol\Domain\Round;
 use App\Patrol\Domain\RoundRepository;
@@ -66,6 +67,17 @@ final readonly class DoctrineRoundRepository implements RoundRepository
             ->createQuery(\sprintf('SELECT r FROM %s r WHERE r.startsAt > :now ORDER BY r.startsAt', Round::class))
             ->setParameter('now', $now, 'utc_datetime_immutable')
             ->getResult()
+        ;
+    }
+
+    #[Override]
+    public function countUpcomingAt(MeetingPoint $meetingPoint, DateTimeImmutable $now): int
+    {
+        return (int) $this->entityManager
+            ->createQuery(\sprintf('SELECT COUNT(r.id) FROM %s r WHERE r.meetingPoint = :meetingPoint AND r.startsAt > :now', Round::class))
+            ->setParameter('meetingPoint', $meetingPoint->id(), 'uuid')
+            ->setParameter('now', $now, 'utc_datetime_immutable')
+            ->getSingleScalarResult()
         ;
     }
 

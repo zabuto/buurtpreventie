@@ -449,6 +449,7 @@ Regels die daaruit volgen:
 
 - Terugmelden kan alleen bij `walked`.
 - Een loper van de ronde of de coördinator annuleert een begonnen ronde, met een optionele reden; vóór de start meldt een loper zich af of wordt de ronde verwijderd. Een ronde met een terugmelding wordt niet geannuleerd.
+- Een gearchiveerd startpunt of een gearchiveerde uitkomst wordt niet aangeboden voor een nieuwe keuze of een nieuwe ronde; een ronde houdt het startpunt dat ze al had. Een startpunt waar nog een ronde start die niet begonnen is, kan niet gearchiveerd worden.
 - Minimum en maximum (maximum ≥ minimum) komen bij aanmaken uit de instellingen en gelden voor die ronde; een gewijzigde instelling geldt alleen voor nieuwe rondes.
 - Aanmelden bij een volle ronde wordt geweigerd, ook namens; wie al aangemeld is, krijgt geen fout.
 - Meldt de laatste loper zich af, dan vervalt de ronde (zoals in v3).

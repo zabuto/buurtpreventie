@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Patrol\Fake;
 
+use App\Patrol\Domain\MeetingPoint;
 use App\Patrol\Domain\Round;
 use App\Patrol\Domain\RoundRepository;
 use App\Shared\Domain\NotFound;
@@ -41,6 +42,12 @@ final class InMemoryRoundRepository implements RoundRepository
     public function upcoming(DateTimeImmutable $now): array
     {
         return $this->sortedWhere(static fn(Round $round): bool => !$round->hasStarted($now));
+    }
+
+    #[Override]
+    public function countUpcomingAt(MeetingPoint $meetingPoint, DateTimeImmutable $now): int
+    {
+        return \count($this->sortedWhere(static fn(Round $round): bool => !$round->hasStarted($now) && $round->meetingPoint() === $meetingPoint));
     }
 
     #[Override]

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Patrol\Infrastructure\Persistence;
 
+use App\Patrol\Domain\MeetingPoint;
 use App\Patrol\Domain\Round;
 use App\Patrol\Domain\RoundStart;
 use App\Patrol\Domain\StaffingRule;
@@ -142,6 +143,34 @@ final class DoctrineRoundRepositoryTest extends KernelTestCase
             ['2026-11-20T21:30:00+00:00', 'Loopmaatje kwam niet'],
             [$read->cancellation()->at()?->format(\DATE_ATOM), $read->cancellation()->reason()],
         );
+    }
+
+    #[Test]
+    public function it_counts_the_rounds_that_have_not_started_at_a_meeting_point(): void
+    {
+        $speeltuin = MeetingPoint::create('Speeltuin ' . Uuid::v7()->toRfc4122());
+        $kerkplein = MeetingPoint::create('Kerkplein ' . Uuid::v7()->toRfc4122());
+        $this->entityManager->persist($speeltuin);
+        $this->entityManager->persist($kerkplein);
+        foreach ([
+            '2026-11-15T12:00:00+00:00' => $speeltuin,
+            '2026-11-15T12:00:01+00:00' => $speeltuin,
+            '2026-11-22T21:00:00+00:00' => $speeltuin,
+            '2026-11-16T21:00:00+00:00' => $kerkplein,
+        ] as $startsAt => $meetingPoint) {
+            $this->repository->add(Round::plan(
+                new RoundStart(new DateTimeImmutable($startsAt), $meetingPoint),
+                Uuid::v7(),
+                new StaffingRule(minimumWalkers: 2, maximumWalkers: 7),
+                new DateTimeImmutable('2026-01-01T12:00:00+00:00'),
+            ));
+        }
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+
+        $count = $this->repository->countUpcomingAt($speeltuin, new DateTimeImmutable('2026-11-15T12:00:00+00:00'));
+
+        $this->assertSame(2, $count);
     }
 
     #[Test]

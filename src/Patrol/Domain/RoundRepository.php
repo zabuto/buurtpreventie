@@ -34,6 +34,8 @@ interface RoundRepository
      */
     public function upcoming(DateTimeImmutable $now): array;
 
+    public function countUpcomingAt(MeetingPoint $meetingPoint, DateTimeImmutable $now): int;
+
     /**
      * Stores the round when the running transaction commits.
      */

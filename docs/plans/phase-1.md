@@ -492,6 +492,9 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
   - een tweede terugmelding wordt geweigerd ("deze ronde heeft al een terugmelding"), zodat niemand ongemerkt de
     melding van een ander overschrijft. De auteur of de coördinator verwijdert de bestaande; daarna kan er een
     nieuwe komen. Er is geen use case om een terugmelding te wijzigen;
+  - een startpunt waar een ronde start die nog niet begonnen is, wordt niet gearchiveerd (`MeetingPointInUse`); een
+    gearchiveerd startpunt of gearchiveerde uitkomst wordt niet aangeboden voor een nieuwe keuze of nieuwe ronde
+    (besloten op 15 november 2026);
   - een begonnen ronde kan geannuleerd worden (no-show, overmacht) met `CancelRound`: status `cancelled`, een
     vijfde status naast de vier, met `cancelledAt` en een optionele reden. Alleen vanaf de start, niet bij een
     ronde met terugmelding; een tweede annulering verandert niets. Een loper van die ronde of de coördinator
