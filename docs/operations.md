@@ -77,7 +77,8 @@ PHP vulnerability raises this minimum in `require.php` and `config.platform.php`
 
 ## Symfony 8.4 LTS
 
-v4 runs on Symfony 7.4 LTS (bug fixes until November 2028, security fixes until November 2029). The
-move to 8.4 LTS is planned for early 2028, together with PHP 8.5; the steps are in
+v4 runs on Symfony 7.4 LTS (bug fixes until November 2028, security fixes until November 2029), for
+the reasons in [ADR 0002](adr/0002-symfony-lts-and-php-minimum.md). The move to 8.4 LTS is planned
+for early 2028, together with PHP 8.5; the steps are in
 [plan-v4.md](plan-v4.md#overstap-naar-symfony-84-lts). The look-ahead job shows every week what
 breaks on Symfony 8.
