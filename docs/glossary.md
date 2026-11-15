@@ -23,7 +23,7 @@ dezelfde naam.
 | Loopmaatje | buddy | Tweede loper bij een ronde; een ronde gaat alleen door met loopmaatje |
 | Aanmelding | `Participation` | Een loper bij een ronde; ronde en lid samen zijn uniek |
 | Namens | `onBehalfOf` | Aanmelding door de coördinator voor een loper |
-| Terugmelding | `RoundReport` | Uitkomst en notitie van een loper na een gelopen ronde |
+| Terugmelding | `RoundReport` | Uitkomst en notitie van een gelopen ronde, één per ronde, door een loper of de coördinator |
 | Uitkomst | `Outcome` | Soort terugmelding: `nothing_to_report`, `remarks`, `incident` |
 | Startpunt | `MeetingPoint` | Optionele plek om te verzamelen |
 | Startnotitie | `startNote` | Vrije tekst bij de start van een ronde, zoals waar je precies verzamelt |

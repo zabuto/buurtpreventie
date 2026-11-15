@@ -38,6 +38,7 @@ Buurtpreventie v4 wordt een Symfony 7.4 LTS-backend met een echte REST-API (`/ap
 | 13 | OAuth voor MCP-clients | later |
 | 14 | Vaste export voor politie en gemeente | later, nog uit te werken |
 | 15 | Terugmelden met spraak | later |
+| 16 | Reageren op de terugmelding | later |
 
 **Klaar-afspraak voor elke taak** (naast het "Klaar als" per fase):
 
@@ -420,7 +421,7 @@ Het domeinmodel wordt verbeterd waar dat de app helderder en eenvoudiger maakt; 
 | `Member` | Membership | deel van `User` | E-mailadres (voor mails én inloggen), naam, unieke weergavenaam (`displayName`, zoals "Jan H."), telefoon, adres, rollen, `consentContactShare` (was `permitted`), `certified` (was `credited`), `active`, `notifyOpenRounds` |
 | `Round` | Patrol | `Round` | `startsAt`, aangemaakt door een loper, optioneel `meetingPoint` en vrije tekst `startNote`; `minimumWalkers` en `maximumWalkers` vastgelegd bij aanmaken; status, open plekken en dagdeel afgeleid |
 | `Participation` | Patrol | `RoundWalker` | Aanmelding: lid, `joinedAt`, `remindedAt`, `onBehalfOf` (als de coördinator aanmeldde); ronde + lid is uniek |
-| `RoundReport` | Patrol | `RoundResult` | Terugmelding per loper: uitkomst + notitie; alleen bij een gelopen ronde |
+| `RoundReport` | Patrol | `RoundResult` | Terugmelding per ronde: één uitkomst + notitie, door een loper van die ronde of de coördinator; alleen bij een gelopen ronde |
 | `Outcome` | Patrol | `Result` | Eén veld `kind` (`nothing_to_report`, `remarks`, `incident`) in plaats van twee vinkjes die elkaar konden tegenspreken; `archived` in plaats van soft delete |
 | `MeetingPoint` | Patrol | `MeetingPoint` | Optionele lijst met suggesties, coördinaat optioneel (breedte- en lengtegraad in WGS84); `archived` in plaats van soft delete |
 | `RoundComment` | Patrol | `Comment` | Opmerking met auteur |
@@ -870,6 +871,7 @@ Na fase 6 draait de kern. De uitbreidingen staan in de volgorde waarin ze het me
 | 13 | OAuth voor MCP-clients | laag | groot | Later: maakt MCP bruikbaar voor lopers vanuit web- en telefoonapps, met inloggen in plaats van een token; per vereniging aan of uit |
 | 14 | Vaste export voor politie en gemeente | nog te bepalen | klein tot middel | Eerst met de coördinator uitwerken welke cijfers, in welke vorm en hoe vaak |
 | 15 | Terugmelden met spraak | middel | klein tot middel | Makkelijker terugmelden onderweg; dicteren via het toetsenbord kan al in fase 4, de route via MCP pas na OAuth (fase 13) |
+| 16 | Reageren op de terugmelding | laag tot middel | klein | Eén terugmelding per ronde; de andere lopers laten zien of ze het ermee eens zijn |
 
 ### Fase 7 — iCal-feed met eigen rondes
 
@@ -972,6 +974,15 @@ Een loper zegt na de ronde wat er was, in plaats van te typen. Dat helpt onderwe
 - [ ] **Geen opnames:** de server krijgt alleen tekst, nooit audio.
 
 **Klaar als:** een loper zonder typen een terugmelding plaatst, in de app of via een AI-app, en een kenteken in de notitie een waarschuwing geeft.
+
+### Fase 16 — Reageren op de terugmelding (later)
+
+Een ronde heeft één terugmelding, van één loper of de coördinator. De andere lopers van die ronde geven er een duim omhoog of omlaag bij, zodat zichtbaar is of ze het eens zijn zonder een tweede terugmelding.
+
+- [ ] Per loper van de ronde één reactie (eens of oneens) op de terugmelding, te wijzigen of in te trekken; in het auditlog.
+- [ ] Coördinator en analist zien de reacties bij de ronde; een terugmelding met een "oneens" valt op in het overzicht.
+
+**Klaar als:** een loper die meeliep met één tik laat zien of hij het met de terugmelding eens is.
 
 ## Overstap van bestaande v3-installaties
 

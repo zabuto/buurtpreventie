@@ -463,11 +463,11 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
 
   | Actie | Wie |
   | --- | --- |
-  | Ronde aanmaken | loper |
+  | Ronde aanmaken | loper; coördinator namens een actief lid |
   | Ronde wijzigen of verwijderen | coördinator; maker zolang alleen |
   | Zelf aan- of afmelden | loper |
   | Namens aan- of afmelden, loper verwijderen | coördinator |
-  | Terugmelden | loper van die ronde |
+  | Terugmelden (één per ronde) | loper van die ronde, coördinator |
   | Terugmelding of opmerking verwijderen | auteur, coördinator |
   | Opmerking plaatsen | loper van die ronde, ook vóór de start; coördinator (besloten op 15 november 2026) |
   | Startpunten en uitkomsten | beheerder |
@@ -479,10 +479,13 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
 
 - De bewakingstest uit beslissing 14.
 - Rechten en use cases (besloten op 15 november 2026):
-  - namens aanmelden kan alleen voor een actief lid met de rol loper; Patrol vraagt dat via een interface in
+  - namens aanmelden kan voor elk actief lid, ook zonder de rol loper; Patrol vraagt dat via een interface in
     `Shared\Domain`, zoals `MemberNames`;
-  - een ronde aanmaken vraagt de rol loper, ook voor een coördinator, want de maker wordt meteen loper;
-  - terugmelden alleen door lopers van die ronde, niet namens;
+  - zelf een ronde aanmaken vraagt de rol loper; de coördinator maakt ook een ronde aan namens een actief lid. Dat
+    is namens aanmelden: de eerste loper is de eigenaar, niet de coördinator;
+  - één terugmelding per ronde, niet één per loper: een loper van die ronde of de coördinator meldt terug, en dat
+    is genoeg. De eigenaar hoeft het niet te zijn. Reageren door de andere lopers volgt later (fase 16 in
+    `docs/plan-v4.md`);
   - `GetRound` toont het telefoonnummer van een loper met toestemming alleen aan de andere lopers van die ronde en
     aan de coördinator;
   - de laatste beheerder kan zijn rol niet kwijtraken en niet gedeactiveerd of gewist worden; `ChangeMemberRoles`,
