@@ -13,6 +13,7 @@ dezelfde naam.
 | Auditlog | `Audit` | Wie deed wat, wanneer en via welk kanaal |
 | Instellingen | `Settings` | Branding, teksten en het minimum- en maximumaantal lopers per vereniging |
 | Onderhoud | `Maintenance` | Gezondheidscheck, herinneringen, updates, installer, legacy-import |
+| Voorbeelddata | `SampleData` | Verzonnen leden, rondes en terugmeldingen: `app:fixtures:load demo`, `test` of `edge` |
 
 ## Domein
 
@@ -31,19 +32,23 @@ dezelfde naam.
 | Herinnering | `Reminder` | Eén bericht per loper per dag, over al zijn rondes van die dag |
 | Opmerking | `RoundComment` | Opmerking bij een ronde, met auteur |
 | Lid | `Member` | Profiel: naam, contactgegevens, rollen |
+| Eerste beheerder | `AddFirstAdmin` | Het systeem voegt de eerste beheerder toe, alleen zolang er geen actieve beheerder is |
+| Verwijderd lid | `erasedAt` | Gewist lid: geen naam, weergavenaam of contactgegevens; staat in historie en auditlog in beeld als "verwijderd lid" |
 | Volledige naam | `name` | Naam van een lid; doorzoekbaar, niet uniek |
 | Weergavenaam | `displayName` | Unieke naam in rondes, lijsten en auditlog, zoals "Jan H." |
 | Zoeksleutel | `LookupKey` | Naam zonder hoofdletters, accenten, leestekens en dubbele spaties; zoeken en uniek zijn gaan hierop |
 | Account | `Account` | Inloggegevens van een lid: wachtwoord en laatste login; het e-mailadres staat op het lid |
 | Toestemming contactgegevens | `consentContactShare` | Andere leden zien telefoon en adres alleen hiermee |
 | Certificaat | `certified` | Lid heeft een certificaat (in de legacy-app: `credited`) |
-| Melding bij open ronde | `notifyOpenRounds` | Lid wil mail bij een nieuwe ronde die een loopmaatje zoekt |
+| Melding bij open ronde | `notifyOpenRounds`, `ChangeOpenRoundNotifications` | Lid wil bericht over een ronde die een loopmaatje zoekt; alleen het lid zelf zet dit aan of uit |
+| Oproep loopmaatje | `BuddyCall`, `NotifyBuddyNeeded` | Eén bericht per ronde die nog een loopmaatje zoekt, 5, 3 of 1 dag vóór de start |
 | Coördinator | `coordinator` | Rol: wijzigt rondes, handelt namens lopers |
 | Analist | `analyst` | Rol: ziet terugmeldingen en statistieken |
 | Beheerder | `admin` | Rol: leden, instellingen, onderhoud |
 | Dagdeel | `Daypart` | `morning` (voor 12:00), `afternoon` (tot 18:00), `evening` (vanaf 18:00) |
 | Minimumaantal lopers | `StaffingRule`, `minimumWalkers` | Standaard 2, vastgelegd per ronde |
 | Maximumaantal lopers | `StaffingRule`, `maximumWalkers` | Standaard 7, vastgelegd per ronde; nooit lager dan het minimum |
+| Lopers nodig | `walkersNeeded` | Hoeveel lopers een ronde nog nodig heeft voor het minimum; bij `FindStaffingGaps` |
 | Open plekken | `openSpots` | Hoeveel lopers zich nog kunnen aanmelden; 0 als de ronde vol is of begonnen |
 | Vol | `openSpots` is 0 | Geen status: een volle ronde is `staffed` |
 | Zoekt loopmaatje | `seeking_buddy` | Status: minder lopers dan het minimum |
@@ -52,7 +57,8 @@ dezelfde naam.
 | Niet gelopen | `not_walked` | Status: voorbij zonder loopmaatje |
 | Geannuleerd | `cancelled` | Status: begonnen maar niet gelopen, zoals bij een no-show of overmacht |
 | Auditregel | `AuditEntry` | Eén regel in het auditlog |
-| Kanaal | channel: `web`, `api`, `mcp`, `cron`, `console` | Hoe een actie binnenkwam; `console` voor conversie en voorbeelddata |
+| Kanaal | channel: `web`, `api`, `mcp`, `cron`, `console` | Hoe een actie binnenkwam; `console` voor console-commando's en voorbeelddata |
+| Systeem | `ROLE_SYSTEM`, `RunAs::system()` | Uitvoerder zonder lid, voor geplande taken, de eerste beheerder en voorbeelddata; een auditregel zonder lid |
 | Instelling | `Setting` | Waarde die een vereniging zelf instelt |
 | API-token | `ApiToken` | Persoonlijke sleutel voor scripts en MCP, met scopes `read`, `write` en `admin`; alleen de hash wordt bewaard |
 | Tijdtrigger, tick | `app:scheduler:run`, `POST /api/v1/system/tick` | Start taken op een vast moment |

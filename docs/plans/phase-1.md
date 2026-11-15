@@ -669,6 +669,16 @@ Per regel eerst het testbestand, dan de regel (beslissing 32).
   Domeinmodel van `docs/plans/plan.md`.
 - `docs/gotchas.md`: de momentopname van InnoDB bij `REPEATABLE READ` (beslissing 24).
 - `AGENTS.md` (Commands) en `CHANGELOG.md`; in `docs/plans/plan.md` de punten van Fase 1 afvinken.
+- Uitgevoerd op 15 november 2026, met deze keuzes:
+  - ADR 0005 legt ook vast dat `add()` en `update()` van de leden- en catalogusrepositories meteen schrijven,
+    dat `activeAdminsForUpdate()` elke ledenrij vergrendelt die hij leest (rollen hebben geen index), en hoe de
+    gelijktijdigheidstest het wachten ziet (`information_schema.PROCESSLIST`, zonder het recht `PROCESS`);
+  - afwijking van beslissing 19: zoeken escapet met `!` in plaats van `\`, en `LookupKey` maakt van leestekens
+    een spatie, dus een `%` of `_` bereikt de query nooit als jokerteken;
+  - `docs/architecture.md` krijgt "Handler and domain" (orkestratie tegenover regels, guards en policies,
+    repositories per module, ORM-attributen in `Domain`, submappen per aggregate, de modulegrens in de database)
+    en "Sample data"; `docs/configuration.md` een overzicht van de vaste grenzen, afgeleid uit de code;
+  - `docs/operations.md` noemt de twee database-jobs in CI.
 
 ### T16. Verifiëren en opleveren
 

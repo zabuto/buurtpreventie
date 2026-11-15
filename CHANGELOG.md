@@ -39,7 +39,13 @@ versions follow [Semantic Versioning](https://semver.org/).
   daypart; signing up (idempotent, refused when full or started), withdrawing, round reports, outcomes,
   meeting points with coordinates, comments, reminders once per walker per day, and who may change a
   round or delete a report or comment.
-- The first migration, with the Patrol tables, and storage of rounds through Doctrine.
+- Migrations and Doctrine repositories for every module, each query with an integration test on MariaDB and MySQL;
+  no foreign key between modules, and an index on every member reference.
+- Signing up and withdrawing lock the round and count its walkers with a locking read: two walkers on the last spot
+  leave one signed up and the other refused, and a sign-up never vanishes with a deleted round. A test races two
+  real connections.
+- A clash on a unique e-mail address, display name or catalogue name between two requests gives the same error as
+  the check before it.
 - Membership: members with one e-mail address for mail and login, a unique display name and an
   erasure that keeps the member; adding, changing, roles, consent, (de)activating, erasing and a
   member list that shows full names only to coordinators and admins.
@@ -50,7 +56,7 @@ versions follow [Semantic Versioning](https://semver.org/).
   system, channel and changed fields, never a field holding a password, token or other secret.
   Erasing a member wipes its name from the log and keeps its actions.
 - Who acts comes from Symfony's token storage, for handlers and voters alike: `RunAs` sets a member or
-  the system identity (`ROLE_SYSTEM`, channel `cron`) for entry points without HTTP authentication. A
+  the system identity (`ROLE_SYSTEM`) with the channel it acts through, for entry points without HTTP authentication. A
   failed transaction resets the entity manager, so the next use case in the same process works.
 - `MemberDirectory` lets other modules ask whether a member is active, who wants to hear about open
   rounds, and a member's names and phone number (only with consent).
@@ -71,3 +77,13 @@ versions follow [Semantic Versioning](https://semver.org/).
 - Responses do not name the PHP version: the app and `public/.htaccess` set `X-Powered-By` to `PHP Symfony`.
 - API responses carry a Content-Security-Policy that allows nothing, `nosniff`, `Referrer-Policy: no-referrer`
   and `Cross-Origin-Opener-Policy: same-origin`.
+- `AddFirstAdmin`: the system adds the first admin, only while no active admin exists.
+- A member chooses to hear about rounds that seek a buddy (`ChangeOpenRoundNotifications`), only for themselves.
+- A round list covers at most 93 days.
+- Sample data: `app:fixtures:load demo|test|edge` in `dev` and `test`, built through the use cases with a fixed seed
+  and dates from today.
+- CI jobs on MariaDB 10.11 and MySQL 8.4: migrations from an empty database, schema validation, every `down()`,
+  the database tests and every sample data set.
+- Opengrep rules against queries outside a repository, query builder parts built from strings, predictable random
+  functions and broken hashes, and byte-wise case changes.
+- ADR 0005 on the database approach; fixed limits in `docs/configuration.md`.
