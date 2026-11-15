@@ -1,0 +1,154 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Tests\Patrol\Domain;
+
+use App\Patrol\Domain\Daypart;
+use App\Patrol\Domain\Round;
+use App\Patrol\Domain\RoundStatus;
+use App\Patrol\Domain\StaffingRule;
+use DateTimeImmutable;
+use DateTimeZone;
+use Override;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\Uid\Uuid;
+
+/**
+ * Status, start and staffing of a round. Every round starts on 20 November 2026 at 22:00 in Europe/Amsterdam, 21:00 in UTC.
+ */
+final class RoundTest extends TestCase
+{
+    private Uuid $creator;
+
+    #[Override]
+    protected function setUp(): void
+    {
+        $this->creator = Uuid::v7();
+    }
+
+    #[Test]
+    public function it_signs_up_the_creator_of_a_new_round(): void
+    {
+        $round = RoundFixture::withWalkers($this->creator, 1);
+
+        $participation = $round->participationOf($this->creator);
+
+        $this->assertSame(1, $round->walkerCount());
+        $this->assertNotNull($participation);
+        $this->assertEquals(new DateTimeImmutable(RoundFixture::CREATED_AT), $participation->joinedAt());
+        $this->assertNull($participation->onBehalfOf());
+    }
+
+    /**
+     * @return iterable<string, array{int, RoundStatus}>
+     */
+    public static function walkerCountsBeforeTheStart(): iterable
+    {
+        yield 'one below the minimum' => [1, RoundStatus::SeekingBuddy];
+        yield 'at the minimum' => [2, RoundStatus::Staffed];
+    }
+
+    #[DataProvider('walkerCountsBeforeTheStart')]
+    #[Test]
+    public function it_is_staffed_once_the_minimum_is_reached(int $walkers, RoundStatus $expected): void
+    {
+        $round = RoundFixture::withWalkers($this->creator, $walkers);
+
+        $this->assertSame($expected, $round->status(new DateTimeImmutable(RoundFixture::BEFORE_START)));
+    }
+
+    /**
+     * @return iterable<string, array{string, RoundStatus}>
+     */
+    public static function momentsAroundTheStart(): iterable
+    {
+        yield 'a minute before the start' => [RoundFixture::BEFORE_START, RoundStatus::Staffed];
+        yield 'at the start' => [RoundFixture::AT_START, RoundStatus::Walked];
+    }
+
+    #[DataProvider('momentsAroundTheStart')]
+    #[Test]
+    public function it_counts_as_walked_only_when_past_with_the_minimum(string $now, RoundStatus $expected): void
+    {
+        $round = RoundFixture::withWalkers($this->creator, 2);
+
+        $this->assertSame($expected, $round->status(new DateTimeImmutable($now)));
+    }
+
+    #[Test]
+    public function it_counts_a_past_round_below_the_minimum_as_not_walked(): void
+    {
+        $round = RoundFixture::withWalkers($this->creator, 1);
+
+        $this->assertSame(RoundStatus::NotWalked, $round->status(new DateTimeImmutable(RoundFixture::AT_START)));
+    }
+
+    /**
+     * @return iterable<string, array{string, bool}>
+     */
+    public static function momentsInTokyo(): iterable
+    {
+        yield 'a minute before the start' => ['2026-11-21T05:59:00', false];
+        yield 'at the start' => ['2026-11-21T06:00:00', true];
+    }
+
+    #[DataProvider('momentsInTokyo')]
+    #[Test]
+    public function it_starts_at_the_same_instant_in_every_time_zone(string $tokyoTime, bool $expected): void
+    {
+        $round = Round::plan(
+            startsAt: new DateTimeImmutable('2026-11-20T22:00:00', new DateTimeZone('Europe/Amsterdam')),
+            createdBy: $this->creator,
+            staffingRule: new StaffingRule(minimumWalkers: 2, maximumWalkers: 7),
+            now: new DateTimeImmutable(RoundFixture::CREATED_AT),
+        );
+
+        $started = $round->hasStarted(new DateTimeImmutable($tokyoTime, new DateTimeZone('Asia/Tokyo')));
+
+        $this->assertSame($expected, $started);
+    }
+
+    #[Test]
+    public function it_holds_the_start_in_utc(): void
+    {
+        $round = Round::plan(
+            startsAt: new DateTimeImmutable('2026-11-20T22:00:00', new DateTimeZone('Europe/Amsterdam')),
+            createdBy: $this->creator,
+            staffingRule: new StaffingRule(minimumWalkers: 2, maximumWalkers: 7),
+            now: new DateTimeImmutable(RoundFixture::CREATED_AT),
+        );
+
+        $this->assertSame(RoundFixture::STARTS_AT, $round->startsAt()->format(\DATE_ATOM));
+    }
+
+    #[Test]
+    public function it_takes_its_daypart_from_the_local_start(): void
+    {
+        $round = RoundFixture::withWalkers($this->creator, 1);
+
+        $this->assertSame(Daypart::Evening, $round->daypart());
+    }
+
+    #[Test]
+    public function it_keeps_the_staffing_rule_it_was_created_with(): void
+    {
+        $round = RoundFixture::withWalkers($this->creator, 1, maximum: 3);
+
+        $round->reschedule(new DateTimeImmutable('2026-11-21T21:00:00+00:00'));
+
+        $this->assertEquals(new StaffingRule(minimumWalkers: 2, maximumWalkers: 3), $round->staffingRule());
+    }
+
+    #[Test]
+    public function it_moves_to_a_new_start(): void
+    {
+        $round = RoundFixture::withWalkers($this->creator, 1);
+
+        $round->reschedule(new DateTimeImmutable('2026-11-21T22:00:00', new DateTimeZone('Europe/Amsterdam')));
+
+        $this->assertSame('2026-11-21T21:00:00+00:00', $round->startsAt()->format(\DATE_ATOM));
+    }
+}
