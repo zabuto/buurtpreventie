@@ -16,7 +16,7 @@ Buurtpreventie v4 wordt een Symfony 7.4 LTS-backend met een echte REST-API (`/ap
 - Licentie PolyForm Noncommercial 1.0.0; README in het Engels met een korte Nederlandse samenvatting; docs in het Engels, behalve de woordenlijst en de plannen; code, API, AGENTS.md, CLAUDE.md en alle map- en bestandsnamen in het Engels.
 - Weinig afhankelijkheden, geen deprecations, tests vóór code, en overdraagbaar aan een andere ontwikkelaar (zie Overdraagbaarheid). Een beter domeinmodel gaat voor compatibiliteit met v3; data gaat over via conversie.
 
-**Fasen en stand** (bijgewerkt op 15 november 2026; details in Implementatieplan):
+**Fasen en stand van de MVP** (bijgewerkt op 15 november 2026; details in Implementatieplan):
 
 | Fase | Inhoud | Stand |
 | --- | --- | --- |
@@ -28,17 +28,22 @@ Buurtpreventie v4 wordt een Symfony 7.4 LTS-backend met een echte REST-API (`/ap
 | 5 | Frontend (Lit, PWA, WCAG 2.2 AA) | open |
 | 5b | Conversie v3 → v4 | open |
 | 6a | Installeren en releasen | open |
-| 6b | Bijwerken, onderhoud en overdracht | open |
-| 7 | iCal-feed met eigen rondes | open |
-| 8 | Statistieken voor analist | open |
-| 9 | Vast loopmaatje uitnodigen | open |
-| 10 | Pushmeldingen | open |
-| 11 | Offline terugmelden | open |
-| 12 | Route en incidentkaart | open, losse uitbreiding |
-| 13 | OAuth voor MCP-clients | later |
-| 14 | Vaste export voor politie en gemeente | later, nog uit te werken |
-| 15 | Terugmelden met spraak | later |
-| 16 | Reageren op de terugmelding | later |
+| 6b | Bijwerken, onderhoud en overdracht; daarmee is de MVP klaar en begint de uitrol | open |
+
+**Uitbreidingen na de MVP** (extra functies, elk los aan of uit; volgorde en afweging in Uitbreidingen na de MVP):
+
+| Uitbreiding | Inhoud | Stand |
+| --- | --- | --- |
+| U1 | Vast loopmaatje uitnodigen | open |
+| U2 | iCal-feed met eigen rondes | open |
+| U3 | Reageren op de terugmelding | open |
+| U4 | Pushmeldingen | open |
+| U5 | Statistieken voor analist | open |
+| U6 | Offline terugmelden | open |
+| U7 | Terugmelden met spraak | later |
+| U8 | Vaste export voor politie en gemeente | later, nog uit te werken |
+| U9 | Route en incidentkaart | open, na DPIA en afstemming met het bestuur |
+| U10 | OAuth voor MCP-clients | later |
 
 **Klaar-afspraak voor elke taak** (naast het "Klaar als" per fase):
 
@@ -75,14 +80,14 @@ Conclusie: de domeinregels uit WalkService zijn de moeite waard om mee te nemen;
 
 Een buurtpreventie-loopgroep bestaat uit tientallen vrijwillige lopers met een of enkele coördinatoren, vaak in samenwerking met politie en gemeente. Lopers roosteren zichzelf in via de app. Een loper loopt nooit alleen; een ronde gaat pas door als er een loopmaatje bij is. Route en startpunt spreken de lopers onderling af.
 
-**Wat de praktijk met v3 laat zien.** Het vinden van een loopmaatje is het knelpunt: een flink deel van de geplande rondes gaat niet door omdat er geen tweede loper is. Daarom krijgen open rondes in de app de meeste aandacht, en komen er later statistieken voor de analist in de app (fase 8).
+**Wat de praktijk met v3 laat zien.** Het vinden van een loopmaatje is het knelpunt: een flink deel van de geplande rondes gaat niet door omdat er geen tweede loper is. Daarom krijgen open rondes in de app de meeste aandacht, en komen er later statistieken voor de analist in de app (uitbreiding U5).
 
 Wat dat vraagt van de software:
 
 - **Kleine schaal, weinig beheer.** Tientallen gebruikers, één of twee beheerders. Simpel installeren en bijwerken weegt zwaarder dan schaalbaarheid. Lopers verschillen sterk in digitale vaardigheid en gebruiken niet altijd een nieuw toestel; de app moet werken voor de minst ervaren loper.
 - **Zelf inroosteren, altijd met loopmaatje.** Elke loper kan een ronde aanmaken. Die staat op "zoekt loopmaatje" tot een tweede loper zich aanmeldt. Het minimum (standaard 2) is instelbaar, net als een maximum (standaard 7), zodat een groep niet te groot wordt. Een ronde zonder loopmaatje wordt niet gelopen en krijgt geen terugmelding.
-- **Loopmaatjes vinden is de kern.** Rondes die een loopmaatje zoeken staan bovenaan. Lopers kunnen zich laten mailen bij een nieuwe open ronde (later ook pushmelding). Wie zich afmeldt waardoor een ander alleen komt te staan, krijgt een waarschuwing, en de achterblijver krijgt bericht. Meldt de laatste loper zich af, dan vervalt de ronde (zoals in v3). Later kan een loper een vast loopmaatje gericht uitnodigen, als die dat zelf heeft toegestaan (fase 9).
-- **Route en startpunt vrij.** Die spreken lopers onderling af. De app biedt een optioneel startpunt en opmerkingen bij de ronde, maar legt in de basis geen routes vast. Route opnemen en een pin bij een incident kan later als losse uitbreiding (fase 12), alleen met toestemming van de loper.
+- **Loopmaatjes vinden is de kern.** Rondes die een loopmaatje zoeken staan bovenaan. Lopers kunnen zich laten mailen bij een nieuwe open ronde (later ook pushmelding). Wie zich afmeldt waardoor een ander alleen komt te staan, krijgt een waarschuwing, en de achterblijver krijgt bericht. Meldt de laatste loper zich af, dan vervalt de ronde (zoals in v3). Later kan een loper een vast loopmaatje gericht uitnodigen, als die dat zelf heeft toegestaan (uitbreiding U1).
+- **Route en startpunt vrij.** Die spreken lopers onderling af. De app biedt een optioneel startpunt en opmerkingen bij de ronde, maar legt in de basis geen routes vast. Route opnemen en een pin bij een incident kan later als uitbreiding U9, alleen met toestemming van de loper.
 - **Terugkoppeling na de ronde.** Uitkomst kiezen (geen bijzonderheden / bijzonderheden / incident) plus vrije notitie; dit is wat de coördinator doorgeeft aan politie en gemeente.
 - **Spoedmeldingen horen niet in de app.** Acuut: 112. Openbare ruimte: 14040 of BuitenBeter. Buurtsignalen: de WhatsApp-groep. De app moet dit tonen (instelbare teksten), niet vervangen.
 - **Altijd los van andere sites.** De app staat altijd in een eigen map of op een eigen subdomein, los van een eventuele website van de vereniging, zoals WordPress. Die mag op dezelfde hosting draaien, maar de twee delen geen map, database-tabellen of cookies. Voorkeur: een eigen subdomein (bijvoorbeeld `buurtpreventie.example.nl`); een pad zonder `/public` in de URL blijft ondersteund. Oude v3-URL's verwijzen door naar de nieuwe.
@@ -131,8 +136,8 @@ Taken meeliften op gewone verzoeken van lopers gebeurt bewust niet: dat zou de a
 | Opruimen volgens bewaartermijnen (auditlog, routes) | ja | — | — | Beheerder ruimt op met de knop Nu opruimen; anders blijven gegevens langer staan dan de privacyverklaring belooft |
 | Dagelijkse controle op updates en beveiligingsadviezen | ja | ja (melding) | GitHub, Packagist | Geen melding; Onderhoud controleert wel als de beheerder het scherm opent |
 | Update installeren | — | — | GitHub (download) | Handmatig via FTP volgens `docs/admin-guide/` |
-| Pushmelding (fase 10) | ja | — | Pushdiensten van Apple, Google, Mozilla | Alleen e-mail |
-| Kaart (fase 12) | — | — | PDOK of OpenStreetMap, vanuit de browser | Geen kaart; terugmelden werkt gewoon |
+| Pushmelding (uitbreiding U4) | ja | — | Pushdiensten van Apple, Google, Mozilla | Alleen e-mail |
+| Kaart (uitbreiding U9) | — | — | PDOK of OpenStreetMap, vanuit de browser | Geen kaart; terugmelden werkt gewoon |
 
 Aanmelden, afmelden, terugmelden, kalender, auditlog, API en MCP hangen van geen van deze af.
 
@@ -154,10 +159,10 @@ Het `@` in de gebruikersnaam wordt `%40`; bij poort 465 begint de regel met `smt
 | E-mail (SMTP) | E-mailadressen, namen, datum en tijd van rondes in de mailtekst | Persoonsgegevens bij een derde partij | Bij voorkeur de mailserver van de eigen hosting (valt onder de afspraken met de hoster); een externe maildienst alleen met verwerkersovereenkomst en servers in de EU; mails zonder telefoonnummers en zonder notities van terugmeldingen |
 | GitHub (releases) | IP-adres van de server en de versie van de app | Verwaarloosbaar; geen gegevens van leden | Geen |
 | Packagist (beveiligingsadviezen) | IP-adres van de server en de lijst met geïnstalleerde pakketten | Verwaarloosbaar; geen gegevens van leden | Geen |
-| Pushdiensten van Apple, Google, Mozilla (fase 10) | Apparaatadres en tijdstip; de inhoud is versleuteld | De dienst ziet dát iemand een melding krijgt, en wanneer | Alleen als het lid het aanzet; korte tekst zonder namen ("Je loopt morgen om 20:00") |
-| Kaartondergrond PDOK of OpenStreetMap (fase 12) | IP-adres van de browser en welk kaartgebied wordt bekeken | Laat zien welk gebied iemand bekijkt | PDOK (Nederlandse overheid) als standaard; nooit lopergegevens in de kaartverzoeken |
+| Pushdiensten van Apple, Google, Mozilla (uitbreiding U4) | Apparaatadres en tijdstip; de inhoud is versleuteld | De dienst ziet dát iemand een melding krijgt, en wanneer | Alleen als het lid het aanzet; korte tekst zonder namen ("Je loopt morgen om 20:00") |
+| Kaartondergrond PDOK of OpenStreetMap (uitbreiding U9) | IP-adres van de browser en welk kaartgebied wordt bekeken | Laat zien welk gebied iemand bekijkt | PDOK (Nederlandse overheid) als standaard; nooit lopergegevens in de kaartverzoeken |
 | AI-client via MCP | Wat de tools teruggeven: rondes, namen van lopers, notities | Gegevens bij de AI-aanbieder die het lid zelf kiest | MCP standaard uit, dataminimalisatie (zie MCP-server), token per lid in te trekken |
-| Spraakherkenning in de browser (fase 15) | De gesproken tekst van de terugmelding | De browsermaker (bij Chrome Google, bij Safari Apple) verwerkt de spraak | Opt-in per vereniging en per lid, melding vooraf, geen opnames op de server; dicteren via het toetsenbord als alternatief |
+| Spraakherkenning in de browser (uitbreiding U7) | De gesproken tekst van de terugmelding | De browsermaker (bij Chrome Google, bij Safari Apple) verwerkt de spraak | Opt-in per vereniging en per lid, melding vooraf, geen opnames op de server; dicteren via het toetsenbord als alternatief |
 
 ## Licentie
 
@@ -184,7 +189,7 @@ Keuze: **Symfony 7.4 LTS op PHP 8.4, gewone controllers met invoerklassen, en de
 **Autorisatie.** De SDK is alleen *resource server*: hij valideert bearer-tokens, publiceert Protected Resource Metadata (RFC 9728) en dwingt scopes af. Tokens uitgeven (OAuth-autorisatieserver, client-registratie) doet hij bewust niet ([autorisatie](https://github.com/modelcontextprotocol/php-sdk/blob/main/docs/run/authorization.md)). Gevolg voor dit project:
 
 - **Vanaf fase 2:** persoonlijke API-tokens die een lid of beheerder zelf aanmaakt, gecontroleerd door de Symfony-firewall vóór de MCP-route. Werkt met clients die een eigen `Authorization`-header toestaan (bv. Claude Code, Claude Desktop-config, de MCP Inspector).
-- **Later, optioneel (fase 13):** een eigen OAuth 2.1-autorisatieserver (authorization code + PKCE) voor clients die alleen OAuth doen. Dat is extra code en extra beveiligingsrisico; komt als latere uitbreiding, per vereniging aan of uit te zetten.
+- **Later, optioneel (uitbreiding U10):** een eigen OAuth 2.1-autorisatieserver (authorization code + PKCE) voor clients die alleen OAuth doen. Dat is extra code en extra beveiligingsrisico; komt als latere uitbreiding, per vereniging aan of uit te zetten.
 
 ## Architectuur
 
@@ -356,7 +361,7 @@ De frontend ís de PWA: dezelfde app krijgt een manifest en een service worker, 
 - **Na afloop**: "Gelopen, geen bijzonderheden", "Incident gemeld" of "Nog geen terugmelding"; "Niet gelopen (geen loopmaatje)" voor rondes die niet doorgingen.
 - **Eigen rondes** krijgen "Je loopt mee" en vallen op zonder geel als enige signaal.
 - **Telefoon**: lijst per dag met alleen dagen waarop iets gepland staat, en een knop "Ronde toevoegen" per dag. **Breed scherm**: maandraster met de dagdelen als gelabelde regels in elke dag.
-- **Ronde toevoegen**: dag, tijd, en optioneel startpunt en opmerking ("start bij de school, route via het park"); een routekaart volgt eventueel in fase 12.
+- **Ronde toevoegen**: dag, tijd, en optioneel startpunt en opmerking ("start bij de school, route via het park"); een routekaart volgt eventueel in uitbreiding U9.
 
 **Voor elke loper, ook met een oudere telefoon.** Lopers verschillen sterk in digitale vaardigheid, en niet iedereen heeft het nieuwste toestel. De app wordt ontworpen voor de minst ervaren loper.
 
@@ -603,8 +608,8 @@ De vereniging is verwerkingsverantwoordelijke: zij stelt de privacyverklaring, b
 | Terugmeldingen en opmerkingen | Doorgeven aan politie en gemeente | Gerechtvaardigd belang | Lopers van die ronde, coördinator, analist | 12 maanden, daarna zonder tekst (uitkomst blijft) |
 | Auditlog | Verantwoording, beveiliging | Gerechtvaardigd belang | Lid: eigen; coördinator: rondes; beheerder: alles | 24 maanden; inlogregels 90 dagen |
 | Meldingsvoorkeuren, push-abonnement | Herinneringen, uitnodigingen | Toestemming | Alleen de app | Tot intrekken |
-| Toestemmingen en uitnodigingen vast loopmaatje (fase 9) | Gericht uitnodigen | Toestemming | De twee betrokkenen | Tot intrekken; uitnodigingen 12 maanden |
-| Routes en pins (fase 12) | Dekking, plek van een incident | Toestemming | Coördinator, analist, lopers van de ronde | Routes 3 maanden; pins zo lang als de terugmelding |
+| Toestemmingen en uitnodigingen vast loopmaatje (uitbreiding U1) | Gericht uitnodigen | Toestemming | De twee betrokkenen | Tot intrekken; uitnodigingen 12 maanden |
+| Routes en pins (uitbreiding U9) | Dekking, plek van een incident | Toestemming | Coördinator, analist, lopers van de ronde | Routes 3 maanden; pins zo lang als de terugmelding |
 | API-tokens | Toegang voor scripts en MCP | Gerechtvaardigd belang | Het lid zelf (naam, laatst gebruikt) | Tot intrekken of verlopen |
 | Back-ups | Herstel na een fout | Gerechtvaardigd belang | Beheerder | Laatste 5, niet via het web bereikbaar |
 | Serverlogs | Fouten opsporen | Gerechtvaardigd belang | Beheerder | 30 dagen |
@@ -648,7 +653,7 @@ De vereniging is verwerkingsverantwoordelijke: zij stelt de privacyverklaring, b
 
 - Standaard privacyverklaring in de app, met alle bovenstaande punten en de externe diensten. De vereniging past hem aan in de instellingen.
 - Sjabloon voor een verwerkingsregister in `docs/privacy/`.
-- Vóór het aanzetten van routes en kaart (fase 12): een korte risicoafweging (DPIA) en afstemming met het bestuur.
+- Vóór het aanzetten van routes en kaart (uitbreiding U9): een korte risicoafweging (DPIA) en afstemming met het bestuur.
 
 ## Branding en configuratie
 
@@ -755,7 +760,7 @@ v4 start op 7.4 LTS en stapt in 2028 over naar 8.4 LTS (verwacht november 2027),
 
 ## Implementatieplan
 
-Fase 0 t/m 6 zijn de kern, fase 7 tot en met 15 optionele uitbreidingen, in volgorde van aanpak; na fase 2 is de API bruikbaar, na fase 6 is de MVP klaar; de overstap van bestaande installaties is daarna een apart project. Elke fase levert iets testbaars op en krijgt bij de start een eigen gedetailleerd taakplan (test eerst, kleine commits).
+Fase 0 tot en met 6b vormen de MVP: na fase 2 is de API bruikbaar, na fase 6b is de MVP klaar en kan de uitrol beginnen. Daarna volgen de uitbreidingen U1 tot en met U10: extra functies, elk los aan of uit te zetten, in volgorde van aanpak (zie Uitbreidingen na de MVP). De overstap van bestaande installaties is een apart project. Elke fase levert iets testbaars op en krijgt bij de start een eigen gedetailleerd taakplan (test eerst, kleine commits).
 
 Fase 3, 4 en 5 hangen alleen van de API af; MCP (fase 4) gaat vóór de frontend (fase 5).
 
@@ -808,7 +813,7 @@ Fase 3, 4 en 5 hangen alleen van de API af; MCP (fase 4) gaat vóór de frontend
 ### Fase 4 — MCP-server
 
 - [ ] `symfony/mcp-bundle` + `mcp/sdk` (minor vastgepind), tools als `…Tool`-klasse in de map van de use case: dunne wrappers om de handler, met een pariteitstest tegen de REST-controller.
-- [ ] Use case `RoundStatistics` met de tool `round_statistics` (het scherm volgt in fase 8); token-scopes, rate limit, audit `via: mcp`, DNS-rebinding-instelling.
+- [ ] Use case `RoundStatistics` met de tool `round_statistics` (het scherm volgt in uitbreiding U5); token-scopes, rate limit, audit `via: mcp`, DNS-rebinding-instelling.
 - [ ] Tests met de SDK-client in PHPUnit: elke tool, en elke tool geweigerd zonder juiste scope of rol.
 
 **Klaar als:** de MCP Inspector alle tools ziet en Claude Code met een token `staffing_gaps` en `sign_up_for_round` kan gebruiken.
@@ -856,47 +861,32 @@ Na fase 2 tot en met 5 staat het model dat uitgebracht wordt; de conversie volgt
 
 **Klaar als:** een webbeheerder zonder dev-achtergrond met alleen `docs/admin-guide/` een update én een terugzetting uitvoert op de proefinstallatie, een overdrachtsrelease naar een proef-fork werkt, en de overdrachtstoets uit Overdraagbaarheid is gedaan. Daarmee is de MVP klaar.
 
-### Uitbreidingen na livegang (fase 7–15)
+### Uitbreidingen na de MVP (U1–U10)
 
-Na fase 6 draait de kern. De uitbreidingen staan in de volgorde waarin ze het meest opleveren voor de minste moeite: eerst twee snelle winsten, dan de uitbreiding met de meeste waarde voor het kernprobleem (rondes zonder loopmaatje), als laatste de zware en de alleen-op-verzoek-onderdelen. Elke uitbreiding is los aan of uit te zetten.
+Extra functies, geen onderdeel van de MVP. Ze komen pas na de uitrol van fase 6b, elk met een eigen taakplan, en elke uitbreiding is per vereniging los aan of uit te zetten.
 
-| Fase | Uitbreiding | Waarde | Moeite | Waarom op deze plek |
-| --- | --- | --- | --- | --- |
-| 7 | iCal-feed met eigen rondes | middel | klein | Snelle winst: rondes in de eigen agenda, met de herinnering van de telefoon, ook zonder cron |
-| 8 | Statistieken voor analist | middel tot hoog | klein | Snelle winst: de use case bestaat al sinds fase 4 (MCP); alleen het scherm komt erbij |
-| 9 | Vast loopmaatje uitnodigen | hoog | middel | Pakt het kernprobleem aan: ruim een kwart van de rondes vindt geen loopmaatje |
-| 10 | Pushmeldingen | middel | middel | Maakt herinneringen en uitnodigingen sneller; daarom na fase 9 |
-| 11 | Offline terugmelden | laag tot middel | middel | Handig bij slecht bereik; terugmelden kan ook thuis |
-| 12 | Route en incidentkaart | middel | groot | Veel werk en privacy-afwegingen; alleen met toestemming en na afstemming met het bestuur |
-| 13 | OAuth voor MCP-clients | laag | groot | Later: maakt MCP bruikbaar voor lopers vanuit web- en telefoonapps, met inloggen in plaats van een token; per vereniging aan of uit |
-| 14 | Vaste export voor politie en gemeente | nog te bepalen | klein tot middel | Eerst met de coördinator uitwerken welke cijfers, in welke vorm en hoe vaak |
-| 15 | Terugmelden met spraak | middel | klein tot middel | Makkelijker terugmelden onderweg; dicteren via het toetsenbord kan al in fase 5, de route via MCP pas na OAuth (fase 13) |
-| 16 | Reageren op de terugmelding | laag tot middel | klein | Eén terugmelding per ronde; de andere lopers laten zien of ze het ermee eens zijn |
+Geen enkele uitbreiding is nodig voor de beveiliging: de MVP is zonder ze compleet. De volgorde:
 
-### Fase 7 — iCal-feed met eigen rondes
+1. **Eerst wat lopers snel helpt**, want zij gebruiken de app het meest, en een loopmaatje vinden is het kernprobleem.
+2. **Dan wat coördinator en analist helpt.**
+3. **Als laatste wat zwaar is of nog uitgewerkt moet worden**, en wat nieuwe risico's voor beveiliging of privacy meebrengt.
 
-- [ ] Persoonlijke, alleen-lezen agenda-URL per lid (`/ical/{token}.ics`) met de eigen komende rondes, wie meeloopt en of er nog een loopmaatje nodig is.
-- [ ] Eigen token, los van de API-tokens: alleen lezen, in te trekken en te vernieuwen onder Account.
-- [ ] Geen contactgegevens in de feed, alleen namen van loopmaatjes.
-- [ ] Uitleg in `docs/user-guide/` voor de agenda op iPhone, Android en in Outlook.
+Binnen elke groep gaat waarde vóór moeite.
 
-**Klaar als:** een loper zijn rondes in de agenda van zijn telefoon ziet, en wijzigingen doorkomen bij de volgende verversing van die agenda (dat bepaalt de agenda-app zelf).
+| Uitbreiding | Inhoud | Voor | Waarde | Moeite | Beveiliging en privacy | Waarom op deze plek |
+| --- | --- | --- | --- | --- | --- | --- |
+| U1 | Vast loopmaatje uitnodigen | lopers | hoog | middel | Alleen met toestemming per persoon; geen uitnodigingen via MCP | Pakt het kernprobleem aan: ruim een kwart van de rondes vindt geen loopmaatje |
+| U2 | iCal-feed met eigen rondes | lopers | middel | klein | Een geheime agenda-URL, in te trekken; de agenda-app haalt de feed op, dus alleen weergavenamen, geen contactgegevens | Snelle winst: rondes in de eigen agenda, met de herinnering van de telefoon, ook zonder cron |
+| U3 | Reageren op de terugmelding | lopers | laag tot middel | klein | Geen nieuwe risico's | Snelle winst: de andere lopers laten zien of ze het met de ene terugmelding eens zijn |
+| U4 | Pushmeldingen | lopers | middel | middel | Nieuwe afhankelijkheid en pushdiensten van derden; alleen als het lid het aanzet | Maakt uitnodigingen (U1) en herinneringen sneller |
+| U5 | Statistieken voor analist | analist, coördinator | middel tot hoog | klein | Alleen totalen, geen cijfers per loper | De use case bestaat al sinds fase 4 (MCP); alleen het scherm komt erbij |
+| U6 | Offline terugmelden | lopers | laag tot middel | middel | Geen nieuwe risico's | Handig bij slecht bereik; terugmelden kan ook thuis |
+| U7 | Terugmelden met spraak | lopers | middel | klein tot middel | De browser stuurt spraak naar zijn maker; opt-in, de server krijgt alleen tekst | Dicteren via het toetsenbord kan al in fase 5; de route via MCP volgt na OAuth (U10) |
+| U8 | Vaste export voor politie en gemeente | coördinator | nog te bepalen | klein tot middel | Geen persoonsgegevens in de export | Eerst met de coördinator uitwerken welke cijfers, in welke vorm en hoe vaak |
+| U9 | Route en incidentkaart | coördinator, analist | middel | groot | Locatie is gevoelig: toestemming per loper, DPIA en afstemming met het bestuur vooraf | Veel werk en privacy-afwegingen |
+| U10 | OAuth voor MCP-clients | lopers via een AI-app | laag | groot | Een eigen autorisatieserver is het grootste nieuwe aanvalsoppervlak; per vereniging aan of uit | Maakt MCP bruikbaar met inloggen in plaats van een token; tot dan werkt MCP met tokens |
 
-### Fase 8 — Statistieken voor analist
-
-Er komt een scherm Statistieken voor analist en coördinator, met exacte cijfers uit de database in plaats van tellingen uit schermafbeeldingen. Er zijn geen externe diensten voor nodig.
-
-- [ ] **Grafieken:** per maand gelopen tegenover niet gelopen (geen loopmaatje), met percentage; per weekdag; per dagdeel; uitkomsten en incidenten per maand; de komende weken met rondes die nog een loopmaatje zoeken.
-- [ ] **Filters:** periode, dagdeel en startpunt, en vergelijken met de vorige periode.
-- [ ] **API en MCP:** `GET /api/v1/stats/rounds?from=&to=&groupBy=month|weekday|daypart` en `GET /api/v1/stats/outcomes`, gebouwd op de use case `RoundStatistics` uit fase 4, die ook de MCP-tool `round_statistics` voedt.
-- [ ] **Getekend als eigen SVG-componenten in Lit**, zonder grafiekbibliotheek. Elke grafiek heeft een titel die de conclusie zegt, een tabelweergave voor schermlezers, en kleur is nooit de enige drager (WCAG).
-- [ ] **Privacy:** alleen totalen, geen ranglijsten of cijfers per loper. Een loper ziet alleen zijn eigen aantallen onder Mijn rondes.
-- [ ] **Export:** de getoonde cijfers als CSV; een vaste rapportage voor politie en gemeente volgt eventueel in fase 14.
-- [ ] **Snel op shared hosting:** tellingen als SQL-aggregaties, een dag gecachet in de bestandscache.
-
-**Klaar als:** de analist de grafieken voor elke periode zelf maakt, de cijfers kloppen met een handtelling op de voorbeelddata, en een schermlezer de conclusie en de tabel voorleest.
-
-### Fase 9 — Vast loopmaatje uitnodigen
+### Uitbreiding U1 — Vast loopmaatje uitnodigen
 
 Een loper kan iemand met wie hij vaak loopt vragen of die weer meeloopt, maar alleen als die ander dat uitdrukkelijk heeft toegestaan. Standaard kan niemand een ander uitnodigen; de vereniging kan de functie in de instellingen uitzetten.
 
@@ -911,7 +901,25 @@ Een loper kan iemand met wie hij vaak loopt vragen of die weer meeloopt, maar al
 
 **Klaar als:** een loper een vast loopmaatje met toestemming in twee tikken uitnodigt, het maatje met één tik meeloopt, en een lid zonder toestemming nooit een uitnodiging krijgt.
 
-### Fase 10 — Pushmeldingen
+### Uitbreiding U2 — iCal-feed met eigen rondes
+
+- [ ] Persoonlijke, alleen-lezen agenda-URL per lid (`/ical/{token}.ics`) met de eigen komende rondes, wie meeloopt en of er nog een loopmaatje nodig is.
+- [ ] Eigen token, los van de API-tokens: alleen lezen, in te trekken en te vernieuwen onder Account.
+- [ ] Geen contactgegevens in de feed, alleen namen van loopmaatjes.
+- [ ] Uitleg in `docs/user-guide/` voor de agenda op iPhone, Android en in Outlook.
+
+**Klaar als:** een loper zijn rondes in de agenda van zijn telefoon ziet, en wijzigingen doorkomen bij de volgende verversing van die agenda (dat bepaalt de agenda-app zelf).
+
+### Uitbreiding U3 — Reageren op de terugmelding
+
+Een ronde heeft één terugmelding, van één loper of de coördinator. De andere lopers van die ronde geven er een duim omhoog of omlaag bij, zodat zichtbaar is of ze het eens zijn zonder een tweede terugmelding.
+
+- [ ] Per loper van de ronde één reactie (eens of oneens) op de terugmelding, te wijzigen of in te trekken; in het auditlog.
+- [ ] Coördinator en analist zien de reacties bij de ronde; een terugmelding met een "oneens" valt op in het overzicht.
+
+**Klaar als:** een loper die meeliep met één tik laat zien of hij het met de terugmelding eens is.
+
+### Uitbreiding U4 — Pushmeldingen
 
 - [ ] Web Push via de service worker, alleen als het lid het aanzet, per soort: herinnering, nieuwe open ronde, uitnodiging van een loopmaatje.
 - [ ] Werkt op Android en desktop; op een iPhone pas vanaf iOS 16.4 en alleen als de app op het beginscherm staat. E-mail blijft daarom altijd het hoofdkanaal.
@@ -921,7 +929,21 @@ Een loper kan iemand met wie hij vaak loopt vragen of die weer meeloopt, maar al
 
 **Klaar als:** een loper met meldingen aan een uitnodiging en een herinnering op zijn telefoon krijgt, en een lid zonder toestemming niets.
 
-### Fase 11 — Offline terugmelden
+### Uitbreiding U5 — Statistieken voor analist
+
+Er komt een scherm Statistieken voor analist en coördinator, met exacte cijfers uit de database in plaats van tellingen uit schermafbeeldingen. Er zijn geen externe diensten voor nodig.
+
+- [ ] **Grafieken:** per maand gelopen tegenover niet gelopen (geen loopmaatje), met percentage; per weekdag; per dagdeel; uitkomsten en incidenten per maand; de komende weken met rondes die nog een loopmaatje zoeken.
+- [ ] **Filters:** periode, dagdeel en startpunt, en vergelijken met de vorige periode.
+- [ ] **API en MCP:** `GET /api/v1/stats/rounds?from=&to=&groupBy=month|weekday|daypart` en `GET /api/v1/stats/outcomes`, gebouwd op de use case `RoundStatistics` uit fase 4, die ook de MCP-tool `round_statistics` voedt.
+- [ ] **Getekend als eigen SVG-componenten in Lit**, zonder grafiekbibliotheek. Elke grafiek heeft een titel die de conclusie zegt, een tabelweergave voor schermlezers, en kleur is nooit de enige drager (WCAG).
+- [ ] **Privacy:** alleen totalen, geen ranglijsten of cijfers per loper. Een loper ziet alleen zijn eigen aantallen onder Mijn rondes.
+- [ ] **Export:** de getoonde cijfers als CSV; een vaste rapportage voor politie en gemeente volgt eventueel in uitbreiding U8.
+- [ ] **Snel op shared hosting:** tellingen als SQL-aggregaties, een dag gecachet in de bestandscache.
+
+**Klaar als:** de analist de grafieken voor elke periode zelf maakt, de cijfers kloppen met een handtelling op de voorbeelddata, en een schermlezer de conclusie en de tabel voorleest.
+
+### Uitbreiding U6 — Offline terugmelden
 
 - [ ] Een terugmelding zonder bereik gaat in een wachtrij in de browser en wordt verstuurd zodra er weer verbinding is; de loper ziet "Wordt verstuurd zodra je weer bereik hebt".
 - [ ] Elke terugmelding heeft een eigen ID, zodat dubbel versturen nooit dubbele meldingen geeft.
@@ -929,7 +951,29 @@ Een loper kan iemand met wie hij vaak loopt vragen of die weer meeloopt, maar al
 
 **Klaar als:** een terugmelding die in vliegtuigmodus is gedaan, na het uitzetten daarvan precies één keer aankomt.
 
-### Fase 12 — Route en incidentkaart
+### Uitbreiding U7 — Terugmelden met spraak (later)
+
+Een loper zegt na de ronde wat er was, in plaats van te typen. Dat helpt onderweg, met koude handen, en voor lopers die moeilijk typen. Opt-in per vereniging, en de browserroute ook per lid.
+
+- [ ] **Dicteren via het toetsenbord:** het notitieveld is groot genoeg en de uitleg wijst op de microfoonknop van het telefoontoetsenbord (iPhone en Android). Dat vraagt geen code en werkt ook op iOS 15; de tip kan al in fase 5 mee.
+- [ ] **Microfoonknop in de app:** spraakherkenning van de browser, alleen waar de browser dat ondersteunt; anders is de knop er niet. De tekst komt eerst in het veld, de loper controleert en verstuurt zelf. Vooraf een melding dat de browser de spraak verwerkt, bij Chrome via Google.
+- [ ] **Via MCP:** de loper spreekt in een AI-app, bijvoorbeeld "Ronde van vanavond gelopen, niets bijzonders, lantaarnpaal kapot bij de school". De AI-app maakt daar een uitkomst en notitie van en roept `report_round_result` aan, na bevestiging door de loper. Voor lopers op de telefoon is OAuth nodig (uitbreiding U10). De terugmelding is daarna in de app aan te passen of te verwijderen; het auditlog noteert kanaal `mcp`.
+- [ ] **Bescherming in de notitie:** lijkt iets op een kenteken, telefoonnummer of e-mailadres, dan waarschuwt de app ("Geef dit liever direct door aan de politie"), in het scherm én in de uitvoer van de MCP-tool.
+- [ ] **Geen opnames:** de server krijgt alleen tekst, nooit audio.
+
+**Klaar als:** een loper zonder typen een terugmelding plaatst, in de app of via een AI-app, en een kenteken in de notitie een waarschuwing geeft.
+
+### Uitbreiding U8 — Vaste export voor politie en gemeente (later, nog uit te werken)
+
+Nog open: of de coördinator een vaste rapportage wil, en zo ja welke. Vóór het bouwen eerst met de coördinator vastleggen:
+
+- [ ] Welke cijfers en welke periode (bijvoorbeeld per maand: gelopen rondes, uitkomsten, incidenten).
+- [ ] In welke vorm: CSV, een afdrukbare pagina of PDF.
+- [ ] Hoe vaak, en of de export automatisch per mail moet (dat vraagt dan een tijdtrigger).
+
+De bouwstenen zijn er dan al: de use case `RoundStatistics` (fase 4), het statistiekenscherm (uitbreiding U5) en de MCP-prompt `monthly_report`. Uitgangspunt: geen persoonsgegevens in de export.
+
+### Uitbreiding U9 — Route en incidentkaart
 
 Een losse uitbreiding die pas start als fase 0 t/m 6 draaien. Standaard staat hij uit; een vereniging zet hem aan in de instellingen, en daarna kiest elke loper zelf of hij meedoet.
 
@@ -946,43 +990,12 @@ Een losse uitbreiding die pas start als fase 0 t/m 6 draaien. Standaard staat hi
 
 **Klaar als:** een loper met toestemming een route opneemt of intekent en een pin bij een melding zet, de coördinator dat op de kaart ziet, en alles uit staat voor wie geen toestemming gaf.
 
-### Fase 13 — OAuth voor MCP-clients (later)
+### Uitbreiding U10 — OAuth voor MCP-clients (later)
 
 - [ ] OAuth 2.1-autorisatieserver (authorization code + PKCE) naast de bestaande tokens, voor MCP-clients die alleen OAuth ondersteunen. Opt-in per vereniging: standaard uit, de beheerder zet het aan in de instellingen, dus elke vereniging beslist zelf. Uitzetten trekt alle OAuth-koppelingen meteen in.
 - [ ] Een latere uitbreiding: tot die tijd werkt MCP met de tokens uit fase 4, vooral voor ontwikkelaar en coördinator vanuit bijvoorbeeld Claude Code of Claude Desktop. Met OAuth kunnen ook lopers MCP gebruiken vanuit een web- of telefoonapp, door in te loggen in plaats van een token in te vullen. De MCP SDK controleert tokens maar geeft ze niet uit, dus dit is extra code en extra beveiligingsrisico.
 
 **Klaar als:** de gewenste client via OAuth inlogt, met dezelfde scopes en rollen als een token.
-
-### Fase 14 — Vaste export voor politie en gemeente (later, nog uit te werken)
-
-Nog open: of de coördinator een vaste rapportage wil, en zo ja welke. Vóór het bouwen eerst met de coördinator vastleggen:
-
-- [ ] Welke cijfers en welke periode (bijvoorbeeld per maand: gelopen rondes, uitkomsten, incidenten).
-- [ ] In welke vorm: CSV, een afdrukbare pagina of PDF.
-- [ ] Hoe vaak, en of de export automatisch per mail moet (dat vraagt dan een tijdtrigger).
-
-De bouwstenen zijn er dan al: de use case `RoundStatistics` (fase 4), het statistiekenscherm (fase 8) en de MCP-prompt `monthly_report`. Uitgangspunt: geen persoonsgegevens in de export.
-
-### Fase 15 — Terugmelden met spraak (later)
-
-Een loper zegt na de ronde wat er was, in plaats van te typen. Dat helpt onderweg, met koude handen, en voor lopers die moeilijk typen. Opt-in per vereniging, en de browserroute ook per lid.
-
-- [ ] **Dicteren via het toetsenbord:** het notitieveld is groot genoeg en de uitleg wijst op de microfoonknop van het telefoontoetsenbord (iPhone en Android). Dat vraagt geen code en werkt ook op iOS 15; de tip kan al in fase 5 mee.
-- [ ] **Microfoonknop in de app:** spraakherkenning van de browser, alleen waar de browser dat ondersteunt; anders is de knop er niet. De tekst komt eerst in het veld, de loper controleert en verstuurt zelf. Vooraf een melding dat de browser de spraak verwerkt, bij Chrome via Google.
-- [ ] **Via MCP:** de loper spreekt in een AI-app, bijvoorbeeld "Ronde van vanavond gelopen, niets bijzonders, lantaarnpaal kapot bij de school". De AI-app maakt daar een uitkomst en notitie van en roept `report_round_result` aan, na bevestiging door de loper. Voor lopers op de telefoon is OAuth nodig (fase 13). De terugmelding is daarna in de app aan te passen of te verwijderen; het auditlog noteert kanaal `mcp`.
-- [ ] **Bescherming in de notitie:** lijkt iets op een kenteken, telefoonnummer of e-mailadres, dan waarschuwt de app ("Geef dit liever direct door aan de politie"), in het scherm én in de uitvoer van de MCP-tool.
-- [ ] **Geen opnames:** de server krijgt alleen tekst, nooit audio.
-
-**Klaar als:** een loper zonder typen een terugmelding plaatst, in de app of via een AI-app, en een kenteken in de notitie een waarschuwing geeft.
-
-### Fase 16 — Reageren op de terugmelding (later)
-
-Een ronde heeft één terugmelding, van één loper of de coördinator. De andere lopers van die ronde geven er een duim omhoog of omlaag bij, zodat zichtbaar is of ze het eens zijn zonder een tweede terugmelding.
-
-- [ ] Per loper van de ronde één reactie (eens of oneens) op de terugmelding, te wijzigen of in te trekken; in het auditlog.
-- [ ] Coördinator en analist zien de reacties bij de ronde; een terugmelding met een "oneens" valt op in het overzicht.
-
-**Klaar als:** een loper die meeliep met één tik laat zien of hij het met de terugmelding eens is.
 
 ## Overstap van bestaande v3-installaties
 
@@ -1144,30 +1157,30 @@ terugzetten (releases/ + shared/), .htaccess voor submap en Authorization-header
 Schrijf docs/admin-guide/ in gewone taal voor een webbeheerder zonder dev-achtergrond.
 ```
 
-Fase 8 — statistieken voor analist:
+Uitbreiding U1 — vast loopmaatje uitnodigen:
 
 ```text
-Fase 8 uit docs/plan-v4.md. Taakplan eerst, wacht op akkoord.
-Use cases en endpoints voor statistieken per maand, weekdag, dagdeel en uitkomst, met
-SQL-aggregaties en een dagcache. Scherm Statistieken in de frontend met eigen SVG-
-componenten in Lit, elk met conclusie-titel en tabelweergave. Geen cijfers per loper.
-Controleer de uitkomsten tegen een handtelling op de demo-fixtures.
-```
-
-Fase 9 — vast loopmaatje uitnodigen:
-
-```text
-Fase 9 uit docs/plan-v4.md. Taakplan eerst, wacht op akkoord.
+Uitbreiding U1 uit docs/plan-v4.md. Taakplan eerst, wacht op akkoord.
 BuddyPermission en BuddyInvite in Patrol, opt-in per persoon, intrekken en pauzeren zonder
 bericht aan de ander, suggesties uit gezamenlijke rondes, limieten (1 per ronde, 2 per week),
 mail met "Ik loop mee"/"Kan deze keer niet". Test vooral: zonder toestemming nooit een
 uitnodiging, en de uitnodiger ziet nooit een weigering van toestemming. Niet via MCP.
 ```
 
-Fase 12 — route en incidentkaart:
+Uitbreiding U5 — statistieken voor analist:
 
 ```text
-Fase 12 uit docs/plan-v4.md. Taakplan eerst, wacht op akkoord.
+Uitbreiding U5 uit docs/plan-v4.md. Taakplan eerst, wacht op akkoord.
+Use cases en endpoints voor statistieken per maand, weekdag, dagdeel en uitkomst, met
+SQL-aggregaties en een dagcache. Scherm Statistieken in de frontend met eigen SVG-
+componenten in Lit, elk met conclusie-titel en tabelweergave. Geen cijfers per loper.
+Controleer de uitkomsten tegen een handtelling op de demo-fixtures.
+```
+
+Uitbreiding U9 — route en incidentkaart:
+
+```text
+Uitbreiding U9 uit docs/plan-v4.md. Taakplan eerst, wacht op akkoord.
 Module Tracking, standaard uit via een instelling. Toestemming per loper, route opnemen
 alleen met app open, route achteraf intekenen als alternatief, pin bij terugmelding.
 Leaflet gevendord, kaartondergrond instelbaar (PDOK BRT-Achtergrondkaart als standaard).

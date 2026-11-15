@@ -57,7 +57,7 @@ Klaar als:
 
 1. **Het minimum wordt per ronde vastgelegd** (`Round.minimumWalkers`, gezet bij aanmaken uit de instelling). In
    v3 verandert het verleden mee als het minimum in `.env` wijzigt: een gelopen ronde wordt dan achteraf "niet
-   gelopen", en de statistiek (fase 8) klopt niet meer. De conversie zet minimum en maximum met
+   gelopen", en de statistiek (uitbreiding U5) klopt niet meer. De conversie zet minimum en maximum met
    `--minimum-walkers=<n>` (standaard 2) en `--maximum-walkers=<n>` (standaard 7), en vult de instellingen ermee.
 2. **Ook een maximum, net zo per ronde vastgelegd** (`Round.maximumWalkers`, instelling standaard 7); anders wordt
    een groep te groot. `StaffingRule` houdt minimum en maximum samen:
@@ -484,7 +484,7 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
   - zelf een ronde aanmaken vraagt de rol loper; de coördinator maakt ook een ronde aan namens een actief lid. Dat
     is namens aanmelden: de eerste loper is de eigenaar, niet de coördinator;
   - één terugmelding per ronde, niet één per loper: een loper van die ronde of de coördinator meldt terug, en dat
-    is genoeg. De eigenaar hoeft het niet te zijn. Reageren door de andere lopers volgt later (fase 16 in
+    is genoeg. De eigenaar hoeft het niet te zijn. Reageren door de andere lopers volgt later (uitbreiding U3 in
     `docs/plan-v4.md`);
   - een tweede terugmelding wordt geweigerd ("deze ronde heeft al een terugmelding"), zodat niemand ongemerkt de
     melding van een ander overschrijft. De auteur of de coördinator verwijdert de bestaande; daarna kan er een
