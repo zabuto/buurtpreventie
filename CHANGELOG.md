@@ -27,3 +27,5 @@ versions follow [Semantic Versioning](https://semver.org/).
 - Security scan in CI: Opengrep, verified with Cosign, with rules and rule tests in
   `.opengrep/rules/`. A new Opengrep major is reported weekly and after `composer update`.
 - ADRs on Symfony 7.4 LTS and the PHP minimum, the licence, and supply-chain protection.
+- Doctrine ORM and Migrations on MariaDB and MySQL, with a second connection to the v3 database for
+  the conversion; the PHP extensions `intl` and `mbstring` are required.

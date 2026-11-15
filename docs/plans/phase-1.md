@@ -1,7 +1,6 @@
 # Fase 1: taakplan
 
-Status: ter goedkeuring. Akkoord: beslissingen 1, 4, 10, 11 en 26 tot en met 31, en de tabel met
-afhankelijkheden. Aangevuld en opnieuw ter goedkeuring: beslissingen 1, 2, 4, 19, 24, 29 en 31.
+Status: goedgekeurd op 15 november 2026.
 
 Bron: `docs/plan-v4.md` (Domeinmodel en API-ontwerp, Voorbeelddata, Auditlog, Privacy en AVG, Conversie
 v3 → v4, Fase 1, Risico's en review-focus), `docs/plans/phase-0.md`, `docs/plans/phase-0-security-scanning.md`,
@@ -163,8 +162,8 @@ Klaar als:
       meerdere `NULL`'s toe, op beide databases) en staan in beeld als "verwijderd lid";
     - bij een tweede gelijk e-mailadres of gelijke weergavenaam weigert de handler met een eigen fout; de unieke
       index vangt de gelijktijdige variant, en de repository vertaalt die naar dezelfde fout;
-    - wie de volledige naam ziet en wie alleen de weergavenaam, bepaalt de uitvoer in fase 2. Voorstel: lopers
-      zien alleen de weergavenaam, coördinator en beheerder ook de volledige naam;
+    - lopers zien alleen de weergavenaam, coördinator en beheerder ook de volledige naam. De uitvoer van fase 1
+      (`GetMemberSummaries`, `GetRound`) volgt dat al, met een test per rol; fase 2 toont het via de API;
     - **startpunten en uitkomsten houden een unieke naam, met dezelfde sleutel.** Ze staan in een keuzelijst:
       "Café" en "cafe" naast elkaar zijn voor een loper niet uit elkaar te houden. De unieke index geldt ook voor
       gearchiveerde items, omdat MariaDB en MySQL geen gedeeltelijke index kennen. Een naam die al gearchiveerd
@@ -265,11 +264,11 @@ Klaar als:
 ## Nieuwe afhankelijkheden (ter goedkeuring)
 
 Alle MIT. Versies en datums van Packagist op 15 november 2026. De Composer-cooldown van 24 uur houdt releases
-van 14 en 15 november tegen; `composer require` kiest dan de vorige versie.
+tegen die jonger zijn dan 24 uur; `composer require` kiest dan de vorige versie.
 
 | Pakket | Waarvoor | Soort | Releaseritme | Nu |
 | --- | --- | --- | --- | --- |
-| `doctrine/orm` | Entiteiten, mapping, unit of work | runtime | Patch elke 1 tot 3 weken, minor een paar keer per jaar | 3.8.0 en 3.7.7 (14 nov, cooldown), 3.7.6 (30 okt) |
+| `doctrine/orm` | Entiteiten, mapping, unit of work | runtime | Patch elke 1 tot 3 weken, minor een paar keer per jaar | 3.8.0 (14 nov, 11:18 UTC; buiten de cooldown sinds 15 nov, 11:18 UTC) |
 | `doctrine/dbal` (via ORM) | Verbinding, platforms, schema | runtime | Patch maandelijks, minor een paar keer per jaar | 4.6.0 (14 nov, cooldown), 4.5.1 (10 nov) |
 | `doctrine/doctrine-bundle` | Koppeling met Symfony, `doctrine.yaml` | runtime | Patch elke paar weken; 3.x vraagt PHP 8.4 | 3.4.2 (15 nov, cooldown), 3.4.1 (12 nov) |
 | `doctrine/doctrine-migrations-bundle` + `doctrine/migrations` | Migraties, ook voor de updater in fase 6b | runtime | Een paar releases per jaar | 4.0.1 (aug 2026); migrations 3.9.8 (okt 2026) |
@@ -305,7 +304,11 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
   `weekly.yml`; `docs/getting-started.md` en `docs/operations.md` noemen de twee extensies.
 - `config/packages/doctrine.yaml`: tabelopties (beslissing 18), eigen types, mapping per module uit
   `src/<Module>/Domain`, verbinding `legacy`; `doctrine_migrations.yaml` met migraties in `migrations/`.
-- `phpunit.dist.xml`: DAMA-extensie en de schema-extensie (beslissing 25).
+- `phpunit.dist.xml`: de DAMA-extensie. De schema-extensie (beslissing 25) komt in T3, met de eerste
+  databasetest die haar nodig heeft.
+- `compose.yaml`: een init-script geeft de databasegebruiker alle databases met het voorvoegsel
+  `buurtpreventie_` (`_test`, `_legacy`, `_legacy_test`); in `dev` en `test` gebruikt de `legacy`-verbinding
+  `DATABASE_URL` met een eigen achtervoegsel.
 - Test eerst: `SymfonyReleaseLineTest` dekt de nieuwe Symfony-pakketten; `composer deprecations` blijft schoon.
 
 ### T3. Gedeelde bouwstenen (test eerst)
@@ -319,7 +322,7 @@ de Symfony-autorisatie. Unit-tests voor de value objects:
   "Soren" blijven verschillend (de grens uit beslissing 19); ongeldige UTF-8 wordt geweigerd.
 
 Een integratietest dat `utc_datetime_immutable` een tijd ongewijzigd heen en terug brengt, en welk kolomtype een
-UUID op MariaDB krijgt (beslissing 23).
+UUID op MariaDB krijgt (beslissing 23). Daarvoor eerst de schema-extensie voor PHPUnit uit beslissing 25.
 
 PHPat: regel 1 en 2 uitbreiden (beslissingen 10 en 11), met een overtreding per uitbreiding in de fixtures en
 een sectie in `docs/architecture.md`.
