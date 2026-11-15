@@ -35,12 +35,13 @@ final class LoadFixturesCommandTest extends KernelTestCase
     #[Override]
     protected function setUp(): void
     {
+        // Before the database check, so tearDown() can restore the clock after a skip.
+        $this->realClock = Clock::get();
         TestDatabase::require();
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
         // @phpstan-ignore method.alreadyNarrowedType (PHPStan reads the type from the container, Mago does not)
         $this->assertInstanceOf(EntityManagerInterface::class, $entityManager);
         $this->connection = $entityManager->getConnection();
-        $this->realClock = Clock::get();
     }
 
     #[Override]
