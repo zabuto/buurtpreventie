@@ -140,8 +140,8 @@ Gekozen: de nieuwe versie verschijnt onder **PolyForm Noncommercial 1.0.0**, net
 - **Wat de licentie doet.** Gebruiken, wijzigen en delen mag voor elk niet-commercieel doel, ook door goede doelen, onderwijs, overheid en vergelijkbare organisaties; commercieel gebruik niet. Wie het doorgeeft, geeft de voorwaarden en de `Required Notice:`-regel mee ([licentietekst](https://polyformproject.org/licenses/noncommercial/1.0.0)).
 - **Overgang van MIT.** De huidige repo is MIT, met dezelfde auteur als rechthebbende. Die mag nieuwe versies onder een andere licentie uitbrengen; bestaande MIT-versies blijven MIT. Leg dit vast met een tag (`v3-mit-final`) en een regel in de README.
 - **Afhankelijkheden.** Symfony en Doctrine zijn MIT, de MCP SDK MIT/Apache 2.0; dat combineert met PolyForm NC voor de eigen code, mits hun licentieteksten in `vendor/` meekomen.
-- **Let op de term "open source".** PolyForm NC is source-available, geen OSI-licentie. Spreek in de README van "vrij te gebruiken voor niet-commerciële doelen".
-- **Bewonersverenigingen.** Een vereniging zonder winstoogmerk die het voor haar leden inzet, valt naar de geest onder niet-commercieel gebruik. Een expliciete zin in de README ("bedoeld voor buurt- en bewonersverenigingen") voorkomt twijfel. Dit is geen juridisch advies.
+- **Let op de term "open source".** PolyForm NC is source-available, geen OSI-licentie. Spreek in de README van "free to use for non-commercial purposes", in de Nederlandse samenvatting "vrij te gebruiken voor niet-commerciële doelen".
+- **Bewonersverenigingen.** Een vereniging zonder winstoogmerk die het voor haar leden inzet, valt naar de geest onder niet-commercieel gebruik. Een expliciete zin in de README ("intended for neighbourhood and residents' associations", in de samenvatting "bedoeld voor buurt- en bewonersverenigingen") voorkomt twijfel. Dit is geen juridisch advies.
 
 ## API en MCP in Symfony
 
