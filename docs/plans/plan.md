@@ -42,7 +42,7 @@ Buurtpreventie v4 wordt een Symfony 7.4 LTS-backend met een echte REST-API (`/ap
 | U6 | Offline terugmelden | open |
 | U7 | Terugmelden met spraak | later |
 | U8 | Vaste export voor politie en gemeente | later, nog uit te werken |
-| U9 | Route en incidentkaart | open, na DPIA en afstemming met het bestuur |
+| U9 | Route en incidentkaart | open, opt-in per vereniging, na DPIA |
 | U10 | OAuth voor MCP-clients | later |
 | U11 | No-shows bijhouden | open, opt-in per vereniging |
 
@@ -979,7 +979,7 @@ De bouwstenen zijn er dan al: de use case `RoundStatistics` (fase 4), het statis
 
 ### Uitbreiding U9 — Route en incidentkaart
 
-Een losse uitbreiding die pas start als fase 0 t/m 6 draaien. Standaard staat hij uit; een vereniging zet hem aan in de instellingen, en daarna kiest elke loper zelf of hij meedoet.
+Een opt-in-functie achter een feature flag, die pas start als fase 0 t/m 6 draaien: standaard uit, de beheerder zet hem per vereniging aan in de instellingen, en daarna kiest elke loper zelf of hij meedoet.
 
 - [ ] **Toestemming per loper:** apart vinkje "mijn route mag worden vastgelegd", standaard uit en altijd in te trekken. Pas na toestemming verschijnt de knop "Route opnemen".
 - [ ] **Locatie in `Permissions-Policy`:** `geolocation=(self)` alleen als de uitbreiding aan staat; uit fase 5 staat locatie uit.
