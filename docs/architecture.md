@@ -145,25 +145,29 @@ automatically: the rules read the folders under `src/`.
 ### Rule 1: domain
 
 Classes in `<Module>\Domain` depend only on their own `Domain`, on `Shared\Domain`, on Doctrine
-mapping attributes and on Doctrine Collections. The same holds for `Shared\Domain`.
+mapping attributes, on Doctrine Collections and on Symfony Uid. The same holds for `Shared\Domain`.
 
 **Why.** Domain rules can then be tested in milliseconds with in-memory repositories, without HTTP,
 MCP or a database. A domain class that knows a repository implementation or another module makes
-every test heavy and every change risky.
+every test heavy and every change risky. Identifiers are UUIDv7 values from Symfony Uid: a class of
+its own per entity would only wrap the same value. The rest of Doctrine ORM, such as the entity
+manager, stays out.
 
 **Fix.** Put an interface in `Domain` and the implementation in `Infrastructure`. If you need
 something from another module, call its use case from the handler.
 
 ### Rule 2: input and handler
 
-Input and handler classes do not depend on HttpFoundation, HttpKernel, Routing, the MCP SDK or any
-`Infrastructure`.
+Input and handler classes do not depend on HttpFoundation, HttpKernel, Routing, the MCP SDK,
+Doctrine ORM, Doctrine DBAL or any `Infrastructure`.
 
 **Why.** REST and MCP call the same handler with the same input. A handler that knows which entry
-point called it lets the two drift apart, so that a rule holds for only one of them.
+point called it lets the two drift apart, so that a rule holds for only one of them. A handler that
+talks to Doctrine needs a database in every test; through interfaces its rules run in memory.
 
 **Fix.** Put what the entry point provides (user, channel) in the input, or let the handler fetch it
-through an interface in `Domain`.
+through an interface in `Domain`, such as `ExecutionContext`. Load and save through a repository
+interface in the module's `Domain`, and wrap a change and its audit entry in `Transaction`.
 
 ### Rule 3: controller, tool and output
 

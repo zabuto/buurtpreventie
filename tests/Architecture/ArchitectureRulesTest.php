@@ -26,7 +26,17 @@ final class ArchitectureRulesTest extends TestCase
     {
         yield 'domain depending on infrastructure' => ['Alpha/Domain/Thing.php', ['domainDependsOnlyOnItsOwnDomainAndSharedDomain']];
         yield 'domain using its own domain and Shared\Domain' => ['Alpha/Domain/Name.php', []];
+        yield 'domain using Symfony Uid' => ['Alpha/Domain/ThingId.php', []];
+        yield 'domain using the Doctrine entity manager' => ['Alpha/Domain/ThingFinder.php', ['domainDependsOnlyOnItsOwnDomainAndSharedDomain']];
         yield 'handler depending on HTTP' => ['Alpha/UseCase/DoThing/DoThingHandler.php', ['inputAndHandlerStayFreeOfTransportAndInfrastructure']];
+        yield 'handler depending on Doctrine ORM' => [
+            'Alpha/UseCase/StoreThing/StoreThingHandler.php',
+            ['inputAndHandlerStayFreeOfTransportAndInfrastructure'],
+        ];
+        yield 'handler depending on Doctrine DBAL' => [
+            'Alpha/UseCase/CountThings/CountThingsHandler.php',
+            ['inputAndHandlerStayFreeOfTransportAndInfrastructure'],
+        ];
         yield 'controller calling another use case' => ['Alpha/UseCase/DoThing/DoThingController.php', ['controllerUsesOnlyItsOwnUseCaseAndHttp']];
         yield 'tool depending on HTTP' => ['Alpha/UseCase/DoThing/DoThingTool.php', ['toolUsesOnlyItsOwnUseCaseAndMcp']];
         yield 'output exposing a domain object' => ['Alpha/UseCase/DoThing/DoThingOutput.php', ['outputExposesNoDomainObjects']];
