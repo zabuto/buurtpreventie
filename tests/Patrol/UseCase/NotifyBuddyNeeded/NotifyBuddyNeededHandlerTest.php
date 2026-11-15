@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\Patrol\UseCase\NotifyBuddyNeeded;
 
-use App\Patrol\Domain\BuddyCaller;
-use App\Patrol\Domain\Round;
+use App\Patrol\Domain\Round\BuddyCaller;
+use App\Patrol\Domain\Round\Round;
 use App\Patrol\UseCase\NotifyBuddyNeeded\NotifyBuddyNeeded;
 use App\Patrol\UseCase\NotifyBuddyNeeded\NotifyBuddyNeededHandler;
 use App\Shared\Domain\AccessDenied;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\Notification;
-use App\Tests\Patrol\Domain\RoundFixture;
+use App\Tests\Patrol\Domain\Round\RoundFixture;
 use App\Tests\Patrol\Fake\InMemoryRoundRepository;
 use App\Tests\Shared\Fake\FakeAuthorization;
 use App\Tests\Shared\Fake\FixedMemberDirectory;

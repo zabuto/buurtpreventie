@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\Tests\Patrol\UseCase\ReportRoundResult;
 
-use App\Patrol\Domain\Outcome;
-use App\Patrol\Domain\OutcomeArchived;
-use App\Patrol\Domain\OutcomeKind;
-use App\Patrol\Domain\Round;
-use App\Patrol\Domain\RoundAlreadyReported;
+use App\Patrol\Domain\Catalogue\Outcome;
+use App\Patrol\Domain\Catalogue\OutcomeArchived;
+use App\Patrol\Domain\Catalogue\OutcomeKind;
+use App\Patrol\Domain\Round\Round;
+use App\Patrol\Domain\Round\RoundAlreadyReported;
 use App\Patrol\UseCase\ReportRoundResult\ReportRoundResult;
 use App\Patrol\UseCase\ReportRoundResult\ReportRoundResultHandler;
 use App\Shared\Domain\AccessDenied;
 use App\Shared\Domain\Actor;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\Role;
-use App\Tests\Patrol\Domain\RoundFixture;
+use App\Tests\Patrol\Domain\Round\RoundFixture;
 use App\Tests\Patrol\Fake\InMemoryOutcomeRepository;
 use App\Tests\Patrol\Fake\InMemoryRoundRepository;
 use App\Tests\Shared\Fake\FakeAuthorization;

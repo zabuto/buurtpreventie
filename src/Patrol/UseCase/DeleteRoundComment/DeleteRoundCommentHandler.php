@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Patrol\UseCase\DeleteRoundComment;
 
-use App\Patrol\Domain\RoundCommentRepository;
+use App\Patrol\Domain\Round\RoundCommentRepository;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\AuditTrail;
 use App\Shared\Domain\Authorization;

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Patrol\UseCase\AddRoundComment;
 
-use App\Patrol\Domain\RoundComment;
-use App\Patrol\Domain\RoundCommentRepository;
-use App\Patrol\Domain\RoundRepository;
+use App\Patrol\Domain\Round\RoundComment;
+use App\Patrol\Domain\Round\RoundCommentRepository;
+use App\Patrol\Domain\Round\RoundRepository;
 use App\Shared\Domain\AccessDenied;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\AuditTrail;

@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Tests\Patrol\UseCase\GetRound;
 
-use App\Patrol\Domain\Coordinates;
-use App\Patrol\Domain\MeetingPoint;
-use App\Patrol\Domain\Outcome;
-use App\Patrol\Domain\OutcomeKind;
-use App\Patrol\Domain\Round;
-use App\Patrol\Domain\RoundComment;
-use App\Patrol\Domain\RoundPolicy;
-use App\Patrol\Domain\RoundStart;
-use App\Patrol\Domain\StaffingRule;
+use App\Patrol\Domain\Catalogue\Coordinates;
+use App\Patrol\Domain\Catalogue\MeetingPoint;
+use App\Patrol\Domain\Catalogue\Outcome;
+use App\Patrol\Domain\Catalogue\OutcomeKind;
+use App\Patrol\Domain\Round\Round;
+use App\Patrol\Domain\Round\RoundComment;
+use App\Patrol\Domain\Round\RoundPolicy;
+use App\Patrol\Domain\Round\RoundStart;
+use App\Patrol\Domain\Round\StaffingRule;
 use App\Patrol\UseCase\GetRound\GetRound;
 use App\Patrol\UseCase\GetRound\GetRoundHandler;
 use App\Patrol\UseCase\GetRound\GetRoundOutput;

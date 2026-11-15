@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Patrol\UseCase\SignUpForRound;
 
-use App\Patrol\Domain\MemberInactive;
-use App\Patrol\Domain\Round;
-use App\Patrol\Domain\RoundIsFull;
+use App\Patrol\Domain\Round\MemberInactive;
+use App\Patrol\Domain\Round\Round;
+use App\Patrol\Domain\Round\RoundIsFull;
 use App\Patrol\UseCase\SignUpForRound\SignUpForRound;
 use App\Patrol\UseCase\SignUpForRound\SignUpForRoundHandler;
 use App\Shared\Domain\AccessDenied;
@@ -14,7 +14,7 @@ use App\Shared\Domain\Actor;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\MemberProfile;
 use App\Shared\Domain\Role;
-use App\Tests\Patrol\Domain\RoundFixture;
+use App\Tests\Patrol\Domain\Round\RoundFixture;
 use App\Tests\Patrol\Fake\InMemoryRoundRepository;
 use App\Tests\Shared\Fake\FakeAuthorization;
 use App\Tests\Shared\Fake\FixedExecutionContext;

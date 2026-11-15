@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Patrol\UseCase\ChangeMeetingPoint;
 
-use App\Patrol\Domain\Coordinates;
-use App\Patrol\Domain\MeetingPoint;
-use App\Patrol\Domain\MeetingPointNameTaken;
-use App\Patrol\Domain\UniqueCatalogueName;
+use App\Patrol\Domain\Catalogue\Coordinates;
+use App\Patrol\Domain\Catalogue\MeetingPoint;
+use App\Patrol\Domain\Catalogue\MeetingPointNameTaken;
+use App\Patrol\Domain\Catalogue\UniqueCatalogueName;
 use App\Patrol\UseCase\ChangeMeetingPoint\ChangeMeetingPoint;
 use App\Patrol\UseCase\ChangeMeetingPoint\ChangeMeetingPointHandler;
 use App\Shared\Domain\AccessDenied;

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Patrol\Fake;
 
-use App\Patrol\Domain\MeetingPoint;
-use App\Patrol\Domain\MeetingPointRepository;
+use App\Patrol\Domain\Catalogue\MeetingPoint;
+use App\Patrol\Domain\Catalogue\MeetingPointRepository;
 use App\Shared\Domain\LookupKey;
 use App\Shared\Domain\NotFound;
 use Override;

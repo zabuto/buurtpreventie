@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Patrol\UseCase\DeleteRoundReport;
 
-use App\Patrol\Domain\RoundReportRepository;
+use App\Patrol\Domain\Round\RoundReportRepository;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\AuditTrail;
 use App\Shared\Domain\Authorization;

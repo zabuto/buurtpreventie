@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Patrol\UseCase\CreateOutcome;
 
-use App\Patrol\Domain\Outcome;
-use App\Patrol\Domain\OutcomeKind;
-use App\Patrol\Domain\OutcomeNameTaken;
-use App\Patrol\Domain\OutcomeRepository;
-use App\Patrol\Domain\UniqueCatalogueName;
+use App\Patrol\Domain\Catalogue\Outcome;
+use App\Patrol\Domain\Catalogue\OutcomeKind;
+use App\Patrol\Domain\Catalogue\OutcomeNameTaken;
+use App\Patrol\Domain\Catalogue\OutcomeRepository;
+use App\Patrol\Domain\Catalogue\UniqueCatalogueName;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\AuditTrail;
 use App\Shared\Domain\Authorization;

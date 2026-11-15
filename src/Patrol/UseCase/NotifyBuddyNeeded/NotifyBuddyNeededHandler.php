@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Patrol\UseCase\NotifyBuddyNeeded;
 
-use App\Patrol\Domain\BuddyCaller;
-use App\Patrol\Domain\RoundRepository;
+use App\Patrol\Domain\Round\BuddyCaller;
+use App\Patrol\Domain\Round\RoundRepository;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\AuditTrail;
 use App\Shared\Domain\Authorization;

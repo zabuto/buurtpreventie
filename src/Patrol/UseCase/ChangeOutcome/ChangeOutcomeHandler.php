@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Patrol\UseCase\ChangeOutcome;
 
-use App\Patrol\Domain\OutcomeNameTaken;
-use App\Patrol\Domain\OutcomeRepository;
-use App\Patrol\Domain\UniqueCatalogueName;
+use App\Patrol\Domain\Catalogue\OutcomeNameTaken;
+use App\Patrol\Domain\Catalogue\OutcomeRepository;
+use App\Patrol\Domain\Catalogue\UniqueCatalogueName;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\AuditTrail;
 use App\Shared\Domain\Authorization;

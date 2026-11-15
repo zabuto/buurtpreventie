@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Patrol\UseCase\RestoreOutcome;
 
-use App\Patrol\Domain\OutcomeRepository;
+use App\Patrol\Domain\Catalogue\OutcomeRepository;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\AuditTrail;
 use App\Shared\Domain\Authorization;

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Tests\Patrol\UseCase\ArchiveMeetingPoint;
 
-use App\Patrol\Domain\MeetingPoint;
-use App\Patrol\Domain\MeetingPointInUse;
-use App\Patrol\Domain\MeetingPointInUseGuard;
-use App\Patrol\Domain\Round;
-use App\Patrol\Domain\RoundStart;
-use App\Patrol\Domain\StaffingRule;
+use App\Patrol\Domain\Catalogue\MeetingPoint;
+use App\Patrol\Domain\Catalogue\MeetingPointInUse;
+use App\Patrol\Domain\Catalogue\MeetingPointInUseGuard;
+use App\Patrol\Domain\Round\Round;
+use App\Patrol\Domain\Round\RoundStart;
+use App\Patrol\Domain\Round\StaffingRule;
 use App\Patrol\UseCase\ArchiveMeetingPoint\ArchiveMeetingPoint;
 use App\Patrol\UseCase\ArchiveMeetingPoint\ArchiveMeetingPointHandler;
 use App\Shared\Domain\AccessDenied;

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Patrol\UseCase\SendReminders;
 
-use App\Patrol\Domain\Reminders;
-use App\Patrol\Domain\Round;
-use App\Patrol\Domain\RoundStart;
-use App\Patrol\Domain\StaffingRule;
+use App\Patrol\Domain\Round\Reminders;
+use App\Patrol\Domain\Round\Round;
+use App\Patrol\Domain\Round\RoundStart;
+use App\Patrol\Domain\Round\StaffingRule;
 use App\Patrol\UseCase\SendReminders\SendReminders;
 use App\Patrol\UseCase\SendReminders\SendRemindersHandler;
 use App\Shared\Domain\AccessDenied;

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Tests\Patrol\UseCase\DeleteRoundComment;
 
-use App\Patrol\Domain\Round;
-use App\Patrol\Domain\RoundComment;
+use App\Patrol\Domain\Round\Round;
+use App\Patrol\Domain\Round\RoundComment;
 use App\Patrol\UseCase\DeleteRoundComment\DeleteRoundComment;
 use App\Patrol\UseCase\DeleteRoundComment\DeleteRoundCommentHandler;
 use App\Shared\Domain\AccessDenied;
 use App\Shared\Domain\AuditedAction;
-use App\Tests\Patrol\Domain\RoundFixture;
+use App\Tests\Patrol\Domain\Round\RoundFixture;
 use App\Tests\Patrol\Fake\InMemoryRoundCommentRepository;
 use App\Tests\Shared\Fake\FakeAuthorization;
 use App\Tests\Shared\Fake\ImmediateTransaction;

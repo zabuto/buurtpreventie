@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Patrol\Infrastructure\Persistence;
 
-use App\Patrol\Domain\Outcome;
-use App\Patrol\Domain\OutcomeNameTaken;
-use App\Patrol\Domain\OutcomeRepository;
+use App\Patrol\Domain\Catalogue\Outcome;
+use App\Patrol\Domain\Catalogue\OutcomeNameTaken;
+use App\Patrol\Domain\Catalogue\OutcomeRepository;
 use App\Shared\Domain\LookupKey;
 use App\Shared\Domain\NotFound;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;

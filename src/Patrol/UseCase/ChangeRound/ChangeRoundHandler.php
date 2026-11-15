@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Patrol\UseCase\ChangeRound;
 
-use App\Patrol\Domain\MeetingPoint;
-use App\Patrol\Domain\MeetingPointRepository;
-use App\Patrol\Domain\Round;
-use App\Patrol\Domain\RoundRepository;
-use App\Patrol\Domain\RoundStart;
+use App\Patrol\Domain\Catalogue\MeetingPoint;
+use App\Patrol\Domain\Catalogue\MeetingPointRepository;
+use App\Patrol\Domain\Round\Round;
+use App\Patrol\Domain\Round\RoundRepository;
+use App\Patrol\Domain\Round\RoundStart;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\AuditTrail;
 use App\Shared\Domain\Authorization;

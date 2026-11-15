@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Patrol\Infrastructure\Persistence;
 
-use App\Patrol\Domain\MeetingPoint;
-use App\Patrol\Domain\MeetingPointNameTaken;
+use App\Patrol\Domain\Catalogue\MeetingPoint;
+use App\Patrol\Domain\Catalogue\MeetingPointNameTaken;
 use App\Patrol\Infrastructure\Persistence\DoctrineMeetingPointRepository;
 use App\Shared\Domain\LookupKey;
 use App\Shared\Domain\NotFound;

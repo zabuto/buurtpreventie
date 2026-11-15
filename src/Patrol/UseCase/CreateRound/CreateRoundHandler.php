@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Patrol\UseCase\CreateRound;
 
-use App\Patrol\Domain\BuddyCaller;
-use App\Patrol\Domain\MeetingPoint;
-use App\Patrol\Domain\MeetingPointRepository;
-use App\Patrol\Domain\MemberInactive;
-use App\Patrol\Domain\Round;
-use App\Patrol\Domain\RoundComment;
-use App\Patrol\Domain\RoundCommentRepository;
-use App\Patrol\Domain\RoundRepository;
-use App\Patrol\Domain\RoundStart;
-use App\Patrol\Domain\StaffingRule;
+use App\Patrol\Domain\Catalogue\MeetingPoint;
+use App\Patrol\Domain\Catalogue\MeetingPointRepository;
+use App\Patrol\Domain\Round\BuddyCaller;
+use App\Patrol\Domain\Round\MemberInactive;
+use App\Patrol\Domain\Round\Round;
+use App\Patrol\Domain\Round\RoundComment;
+use App\Patrol\Domain\Round\RoundCommentRepository;
+use App\Patrol\Domain\Round\RoundRepository;
+use App\Patrol\Domain\Round\RoundStart;
+use App\Patrol\Domain\Round\StaffingRule;
 use App\Settings\UseCase\GetStaffingDefaults\GetStaffingDefaults;
 use App\Settings\UseCase\GetStaffingDefaults\GetStaffingDefaultsHandler;
 use App\Shared\Domain\AccessDenied;

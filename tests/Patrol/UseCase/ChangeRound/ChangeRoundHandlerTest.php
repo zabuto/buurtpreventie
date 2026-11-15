@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\Patrol\UseCase\ChangeRound;
 
-use App\Patrol\Domain\MeetingPoint;
-use App\Patrol\Domain\MeetingPointArchived;
-use App\Patrol\Domain\Round;
+use App\Patrol\Domain\Catalogue\MeetingPoint;
+use App\Patrol\Domain\Catalogue\MeetingPointArchived;
+use App\Patrol\Domain\Round\Round;
 use App\Patrol\UseCase\ChangeRound\ChangeRound;
 use App\Patrol\UseCase\ChangeRound\ChangeRoundHandler;
 use App\Shared\Domain\AccessDenied;
 use App\Shared\Domain\AuditedAction;
-use App\Tests\Patrol\Domain\RoundFixture;
+use App\Tests\Patrol\Domain\Round\RoundFixture;
 use App\Tests\Patrol\Fake\InMemoryMeetingPointRepository;
 use App\Tests\Patrol\Fake\InMemoryRoundRepository;
 use App\Tests\Shared\Fake\FakeAuthorization;

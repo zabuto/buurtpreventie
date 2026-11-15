@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Patrol\UseCase\SendReminders;
 
-use App\Patrol\Domain\Reminder;
-use App\Patrol\Domain\Reminders;
-use App\Patrol\Domain\Round;
-use App\Patrol\Domain\RoundRepository;
-use App\Patrol\Domain\RoundStatus;
+use App\Patrol\Domain\Round\Reminder;
+use App\Patrol\Domain\Round\Reminders;
+use App\Patrol\Domain\Round\Round;
+use App\Patrol\Domain\Round\RoundRepository;
+use App\Patrol\Domain\Round\RoundStatus;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\AuditTrail;
 use App\Shared\Domain\Authorization;

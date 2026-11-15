@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Patrol\UseCase\RestoreMeetingPoint;
 
-use App\Patrol\Domain\MeetingPoint;
+use App\Patrol\Domain\Catalogue\MeetingPoint;
 use App\Patrol\UseCase\RestoreMeetingPoint\RestoreMeetingPoint;
 use App\Patrol\UseCase\RestoreMeetingPoint\RestoreMeetingPointHandler;
 use App\Shared\Domain\AccessDenied;

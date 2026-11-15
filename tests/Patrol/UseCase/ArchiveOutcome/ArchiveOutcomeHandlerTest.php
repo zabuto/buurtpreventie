@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Patrol\UseCase\ArchiveOutcome;
 
-use App\Patrol\Domain\Outcome;
-use App\Patrol\Domain\OutcomeKind;
+use App\Patrol\Domain\Catalogue\Outcome;
+use App\Patrol\Domain\Catalogue\OutcomeKind;
 use App\Patrol\UseCase\ArchiveOutcome\ArchiveOutcome;
 use App\Patrol\UseCase\ArchiveOutcome\ArchiveOutcomeHandler;
 use App\Shared\Domain\AccessDenied;

@@ -10,7 +10,7 @@ $connection->executeStatement("DELETE FROM round WHERE id = {$id}");
 $connection->fetchAssociative(\sprintf('SELECT * FROM round WHERE starts_at > %s', $from));
 
 // ruleid: sql-built-from-strings
-$entityManager->createQuery('SELECT r FROM App\Patrol\Domain\Round r WHERE r.id = ' . $id);
+$entityManager->createQuery('SELECT r FROM App\Patrol\Domain\Round\Round r WHERE r.id = ' . $id);
 
 // ruleid: sql-built-from-strings
 $queryBuilder->andWhere("r.status = '$status'");

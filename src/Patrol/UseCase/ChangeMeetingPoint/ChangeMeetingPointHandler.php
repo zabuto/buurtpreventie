@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Patrol\UseCase\ChangeMeetingPoint;
 
-use App\Patrol\Domain\Coordinates;
-use App\Patrol\Domain\MeetingPointNameTaken;
-use App\Patrol\Domain\MeetingPointRepository;
-use App\Patrol\Domain\UniqueCatalogueName;
+use App\Patrol\Domain\Catalogue\Coordinates;
+use App\Patrol\Domain\Catalogue\MeetingPointNameTaken;
+use App\Patrol\Domain\Catalogue\MeetingPointRepository;
+use App\Patrol\Domain\Catalogue\UniqueCatalogueName;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\AuditTrail;
 use App\Shared\Domain\Authorization;

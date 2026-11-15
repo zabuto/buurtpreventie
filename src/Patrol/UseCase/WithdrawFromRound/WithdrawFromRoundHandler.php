@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Patrol\UseCase\WithdrawFromRound;
 
-use App\Patrol\Domain\Round;
-use App\Patrol\Domain\RoundRepository;
-use App\Patrol\Domain\Withdrawal;
+use App\Patrol\Domain\Round\Round;
+use App\Patrol\Domain\Round\RoundRepository;
+use App\Patrol\Domain\Round\Withdrawal;
 use App\Shared\Domain\AccessDenied;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\AuditTrail;

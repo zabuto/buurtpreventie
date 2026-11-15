@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Patrol\UseCase\ArchiveMeetingPoint;
 
-use App\Patrol\Domain\MeetingPointInUse;
-use App\Patrol\Domain\MeetingPointInUseGuard;
-use App\Patrol\Domain\MeetingPointRepository;
+use App\Patrol\Domain\Catalogue\MeetingPointInUse;
+use App\Patrol\Domain\Catalogue\MeetingPointInUseGuard;
+use App\Patrol\Domain\Catalogue\MeetingPointRepository;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\AuditTrail;
 use App\Shared\Domain\Authorization;

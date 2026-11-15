@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Patrol\UseCase\ChangeOutcome;
 
-use App\Patrol\Domain\Outcome;
-use App\Patrol\Domain\OutcomeKind;
-use App\Patrol\Domain\OutcomeNameTaken;
-use App\Patrol\Domain\UniqueCatalogueName;
+use App\Patrol\Domain\Catalogue\Outcome;
+use App\Patrol\Domain\Catalogue\OutcomeKind;
+use App\Patrol\Domain\Catalogue\OutcomeNameTaken;
+use App\Patrol\Domain\Catalogue\UniqueCatalogueName;
 use App\Patrol\UseCase\ChangeOutcome\ChangeOutcome;
 use App\Patrol\UseCase\ChangeOutcome\ChangeOutcomeHandler;
 use App\Shared\Domain\AccessDenied;

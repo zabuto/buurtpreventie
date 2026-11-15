@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Patrol\UseCase\RestoreOutcome;
 
-use App\Patrol\Domain\Outcome;
-use App\Patrol\Domain\OutcomeKind;
+use App\Patrol\Domain\Catalogue\Outcome;
+use App\Patrol\Domain\Catalogue\OutcomeKind;
 use App\Patrol\UseCase\RestoreOutcome\RestoreOutcome;
 use App\Patrol\UseCase\RestoreOutcome\RestoreOutcomeHandler;
 use App\Shared\Domain\AccessDenied;

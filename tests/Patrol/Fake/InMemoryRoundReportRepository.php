@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Patrol\Fake;
 
-use App\Patrol\Domain\RoundReport;
-use App\Patrol\Domain\RoundReportRepository;
+use App\Patrol\Domain\Round\RoundReport;
+use App\Patrol\Domain\Round\RoundReportRepository;
 use App\Shared\Domain\NotFound;
 use Override;
 use Symfony\Component\Uid\Uuid;

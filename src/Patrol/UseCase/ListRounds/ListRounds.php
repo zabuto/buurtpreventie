@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Patrol\UseCase\ListRounds;
 
-use App\Patrol\Domain\RoundStatus;
+use App\Patrol\Domain\Round\RoundStatus;
 use Symfony\Component\Validator\Constraints as Assert;
 
 final readonly class ListRounds

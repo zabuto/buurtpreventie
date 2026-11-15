@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Tests\Patrol\UseCase\DeleteRoundReport;
 
-use App\Patrol\Domain\Outcome;
-use App\Patrol\Domain\OutcomeKind;
-use App\Patrol\Domain\Round;
-use App\Patrol\Domain\RoundReport;
+use App\Patrol\Domain\Catalogue\Outcome;
+use App\Patrol\Domain\Catalogue\OutcomeKind;
+use App\Patrol\Domain\Round\Round;
+use App\Patrol\Domain\Round\RoundReport;
 use App\Patrol\UseCase\DeleteRoundReport\DeleteRoundReport;
 use App\Patrol\UseCase\DeleteRoundReport\DeleteRoundReportHandler;
 use App\Shared\Domain\AccessDenied;
 use App\Shared\Domain\AuditedAction;
-use App\Tests\Patrol\Domain\RoundFixture;
+use App\Tests\Patrol\Domain\Round\RoundFixture;
 use App\Tests\Patrol\Fake\InMemoryRoundReportRepository;
 use App\Tests\Patrol\Fake\InMemoryRoundRepository;
 use App\Tests\Shared\Fake\FakeAuthorization;

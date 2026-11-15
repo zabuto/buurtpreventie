@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Patrol\Infrastructure\Persistence;
 
-use App\Patrol\Domain\Round;
-use App\Patrol\Domain\RoundComment;
-use App\Patrol\Domain\RoundCommentRepository;
+use App\Patrol\Domain\Round\Round;
+use App\Patrol\Domain\Round\RoundComment;
+use App\Patrol\Domain\Round\RoundCommentRepository;
 use App\Shared\Domain\NotFound;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Patrol\UseCase\ListRounds;
 
-use App\Patrol\Domain\Round;
-use App\Patrol\Domain\RoundRepository;
-use App\Patrol\Domain\RoundStatus;
+use App\Patrol\Domain\Round\Round;
+use App\Patrol\Domain\Round\RoundRepository;
+use App\Patrol\Domain\Round\RoundStatus;
 use App\Shared\Domain\Authorization;
 use App\Shared\Domain\LocalTime;
 use App\Shared\Domain\ReadAction;

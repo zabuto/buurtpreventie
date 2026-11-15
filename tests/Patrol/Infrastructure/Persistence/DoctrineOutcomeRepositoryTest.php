@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Patrol\Infrastructure\Persistence;
 
-use App\Patrol\Domain\Outcome;
-use App\Patrol\Domain\OutcomeKind;
-use App\Patrol\Domain\OutcomeNameTaken;
+use App\Patrol\Domain\Catalogue\Outcome;
+use App\Patrol\Domain\Catalogue\OutcomeKind;
+use App\Patrol\Domain\Catalogue\OutcomeNameTaken;
 use App\Patrol\Infrastructure\Persistence\DoctrineOutcomeRepository;
 use App\Shared\Domain\LookupKey;
 use App\Shared\Domain\NotFound;

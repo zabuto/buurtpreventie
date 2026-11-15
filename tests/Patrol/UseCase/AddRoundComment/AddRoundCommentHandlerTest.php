@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Tests\Patrol\UseCase\AddRoundComment;
 
-use App\Patrol\Domain\Round;
-use App\Patrol\Domain\RoundComment;
+use App\Patrol\Domain\Round\Round;
+use App\Patrol\Domain\Round\RoundComment;
 use App\Patrol\UseCase\AddRoundComment\AddRoundComment;
 use App\Patrol\UseCase\AddRoundComment\AddRoundCommentHandler;
 use App\Shared\Domain\AccessDenied;
 use App\Shared\Domain\Actor;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\Role;
-use App\Tests\Patrol\Domain\RoundFixture;
+use App\Tests\Patrol\Domain\Round\RoundFixture;
 use App\Tests\Patrol\Fake\InMemoryRoundCommentRepository;
 use App\Tests\Patrol\Fake\InMemoryRoundRepository;
 use App\Tests\Shared\Fake\FakeAuthorization;

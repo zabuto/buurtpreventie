@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\Patrol\UseCase\CancelRound;
 
-use App\Patrol\Domain\Round;
-use App\Patrol\Domain\RoundNotStarted;
-use App\Patrol\Domain\RoundStatus;
+use App\Patrol\Domain\Round\Round;
+use App\Patrol\Domain\Round\RoundNotStarted;
+use App\Patrol\Domain\Round\RoundStatus;
 use App\Patrol\UseCase\CancelRound\CancelRound;
 use App\Patrol\UseCase\CancelRound\CancelRoundHandler;
 use App\Shared\Domain\AccessDenied;
 use App\Shared\Domain\AuditedAction;
-use App\Tests\Patrol\Domain\RoundFixture;
+use App\Tests\Patrol\Domain\Round\RoundFixture;
 use App\Tests\Patrol\Fake\InMemoryRoundRepository;
 use App\Tests\Shared\Fake\FakeAuthorization;
 use App\Tests\Shared\Fake\ImmediateTransaction;

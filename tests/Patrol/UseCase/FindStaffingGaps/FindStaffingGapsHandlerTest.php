@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Patrol\UseCase\FindStaffingGaps;
 
-use App\Patrol\Domain\MeetingPoint;
-use App\Patrol\Domain\Round;
-use App\Patrol\Domain\RoundStart;
-use App\Patrol\Domain\StaffingRule;
+use App\Patrol\Domain\Catalogue\MeetingPoint;
+use App\Patrol\Domain\Round\Round;
+use App\Patrol\Domain\Round\RoundStart;
+use App\Patrol\Domain\Round\StaffingRule;
 use App\Patrol\UseCase\FindStaffingGaps\FindStaffingGaps;
 use App\Patrol\UseCase\FindStaffingGaps\FindStaffingGapsHandler;
 use App\Shared\Domain\AccessDenied;

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Patrol\Infrastructure\Persistence;
 
-use App\Patrol\Domain\MeetingPoint;
-use App\Patrol\Domain\MeetingPointNameTaken;
-use App\Patrol\Domain\MeetingPointRepository;
+use App\Patrol\Domain\Catalogue\MeetingPoint;
+use App\Patrol\Domain\Catalogue\MeetingPointNameTaken;
+use App\Patrol\Domain\Catalogue\MeetingPointRepository;
 use App\Shared\Domain\LookupKey;
 use App\Shared\Domain\NotFound;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;

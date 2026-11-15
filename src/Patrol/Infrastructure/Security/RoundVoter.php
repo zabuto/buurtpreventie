@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Patrol\Infrastructure\Security;
 
-use App\Patrol\Domain\Round;
-use App\Patrol\Domain\RoundPolicy;
+use App\Patrol\Domain\Round\Round;
+use App\Patrol\Domain\Round\RoundPolicy;
 use App\Shared\Infrastructure\Security\TokenActor;
 use Override;
 use SensitiveParameter;

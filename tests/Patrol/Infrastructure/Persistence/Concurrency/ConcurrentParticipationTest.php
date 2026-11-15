@@ -6,9 +6,9 @@ namespace App\Tests\Patrol\Infrastructure\Persistence\Concurrency;
 
 use App\Membership\Domain\Member;
 use App\Membership\Domain\MemberDetails;
-use App\Patrol\Domain\Round;
-use App\Patrol\Domain\RoundStart;
-use App\Patrol\Domain\StaffingRule;
+use App\Patrol\Domain\Round\Round;
+use App\Patrol\Domain\Round\RoundStart;
+use App\Patrol\Domain\Round\StaffingRule;
 use App\Patrol\UseCase\SignUpForRound\SignUpForRound;
 use App\Patrol\UseCase\WithdrawFromRound\WithdrawFromRound;
 use App\Shared\Domain\Actor;

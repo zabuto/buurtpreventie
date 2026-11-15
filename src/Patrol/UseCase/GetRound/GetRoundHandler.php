@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Patrol\UseCase\GetRound;
 
-use App\Patrol\Domain\MeetingPoint;
-use App\Patrol\Domain\Participation;
-use App\Patrol\Domain\Round;
-use App\Patrol\Domain\RoundComment;
-use App\Patrol\Domain\RoundCommentRepository;
-use App\Patrol\Domain\RoundPolicy;
-use App\Patrol\Domain\RoundReport;
-use App\Patrol\Domain\RoundRepository;
+use App\Patrol\Domain\Catalogue\MeetingPoint;
+use App\Patrol\Domain\Round\Participation;
+use App\Patrol\Domain\Round\Round;
+use App\Patrol\Domain\Round\RoundComment;
+use App\Patrol\Domain\Round\RoundCommentRepository;
+use App\Patrol\Domain\Round\RoundPolicy;
+use App\Patrol\Domain\Round\RoundReport;
+use App\Patrol\Domain\Round\RoundRepository;
 use App\Shared\Domain\Authorization;
 use App\Shared\Domain\ExecutionContext;
 use App\Shared\Domain\LocalTime;

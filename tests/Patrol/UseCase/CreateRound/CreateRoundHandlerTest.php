@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Patrol\UseCase\CreateRound;
 
-use App\Patrol\Domain\BuddyCaller;
-use App\Patrol\Domain\MeetingPoint;
-use App\Patrol\Domain\MeetingPointArchived;
-use App\Patrol\Domain\MemberInactive;
-use App\Patrol\Domain\StaffingRule;
+use App\Patrol\Domain\Catalogue\MeetingPoint;
+use App\Patrol\Domain\Catalogue\MeetingPointArchived;
+use App\Patrol\Domain\Round\BuddyCaller;
+use App\Patrol\Domain\Round\MemberInactive;
+use App\Patrol\Domain\Round\StaffingRule;
 use App\Patrol\UseCase\CreateRound\CreateRound;
 use App\Patrol\UseCase\CreateRound\CreateRoundHandler;
 use App\Settings\UseCase\GetStaffingDefaults\GetStaffingDefaultsHandler;
@@ -162,7 +162,7 @@ final class CreateRoundHandlerTest extends TestCase
 
         $comments = $this->comments->forRound($this->rounds->get(Uuid::fromString($output->id)));
         $this->assertSame([[$this->jan->toRfc4122(), 'Wie loopt er mee?']], \array_map(
-            static fn(\App\Patrol\Domain\RoundComment $comment): array => [$comment->authorId()->toRfc4122(), $comment->text()],
+            static fn(\App\Patrol\Domain\Round\RoundComment $comment): array => [$comment->authorId()->toRfc4122(), $comment->text()],
             $comments,
         ));
         $this->assertSame(

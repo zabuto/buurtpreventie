@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Patrol\UseCase\SignUpForRound;
 
-use App\Patrol\Domain\MemberInactive;
-use App\Patrol\Domain\RoundRepository;
+use App\Patrol\Domain\Round\MemberInactive;
+use App\Patrol\Domain\Round\RoundRepository;
 use App\Shared\Domain\AccessDenied;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\AuditTrail;
