@@ -1,6 +1,6 @@
 # Fase 2: taakplan
 
-Status: ter goedkeuring.
+Status: goedgekeurd op 15 november 2026.
 
 Bron: `docs/plans/plan.md` (Samenvatting, API en MCP in Symfony, Domeinmodel en API-ontwerp, Auditlog, Privacy en
 AVG, Overdraagbaarheid, Fase 2, Risico's en review-focus), `docs/plans/phase-1.md` (T7 tot en met T16 en alles wat
@@ -9,7 +9,7 @@ op `develop`.
 
 ## Doel en klaar-criterium
 
-De REST-API `/api/v1` staat: inloggen in de browser (wachtwoord, inloglink, ingelogd blijven) en met een persoonlijk
+De REST-API `/api/v1` staat: inloggen in de browser (wachtwoord, code per mail, uitnodiging, ingelogd blijven) en met een persoonlijk
 API-token, en een controller per use case voor elk endpoint uit het API-ontwerp dat bij deze fase hoort, met
 `problem+json`-fouten en een OpenAPI-spec.
 
@@ -52,7 +52,7 @@ Klaar als:
 10. **Regel 3 laat in een controller alleen HttpFoundation, `HttpKernel\Attribute` en `Routing\Attribute` toe.**
     OpenAPI-attributen vallen daarbuiten.
 11. **Er zijn geen vertalingen**: geen `symfony/translation`, geen `translations/`. Validatorfouten zijn Engels.
-12. **De `LoggingNotifier` logt alle parameters.** Een inloglink of reset-geheim in de parameters komt zo in het log.
+12. **De `LoggingNotifier` logt alle parameters.** Een code of uitnodigingsgeheim in de parameters komt zo in het log.
 13. **Lezen ontbreekt voor**: eigen rondes, startpunten en uitkomsten voor een lid, terugmeldingen voor de analist,
     tokens van een lid, het eigen profiel, en het auditlog (`AuditEntryRepository` kent alleen `eraseActorName()`).
 14. **Auditregels van aanmelden en terugmelden hebben de ronde als onderwerp** (`'round'`, ronde-id), dus de
@@ -97,31 +97,65 @@ Klaar als:
    nieuw veld `Account.credentialsChangedAt`, dat wachtwoord wijzigen en resetten zet: dan vervalt elk onthouden
    apparaat. Een gedeactiveerd lid valt via beslissing 5 af. Alternatief: tokens in de database (meer tabellen en
    opruimwerk) of geen "onthouden" (tegen het plan).
-10. **Inloglink en wachtwoord-reset volgen het hash-patroon van `ApiToken`** (beslissing 20 van fase 1): entiteit
-    `OneTimeLink` (lid, doel `log_in` of `reset_password`, SHA-256 als `BINARY(32)`, `expiresAt`, `usedAt`). Geheim
-    `bpl_` of `bpr_` plus 64 hex-tekens, zodat een reset-geheim nooit als inloglink werkt. Eén keer bruikbaar; een
-    inloglink 15 minuten geldig, een reset 60 minuten; een nieuwe aanvraag maakt eerdere ongebruikte links van
-    hetzelfde doel ongeldig. Geen Symfony `login_link`: die is ondertekend, niet opgeslagen, en volgt dus niet
-    beslissing 20.
-11. **Inloglink inwisselen met `POST`, niet `GET`.** Afwijking van het API-ontwerp (`GET /auth/login-link/{token}`):
-    een `GET` die inlogt is een muterende `GET`, en virusscanners van maildiensten openen links vooraf en zouden de
-    eenmalige link verbruiken. De link in de mail wijst naar een pagina van de frontend met een knop, die
-    `POST /auth/login-link/{token}` doet.
-12. **Aanvragen verraden niets.** `POST /auth/login-link` en `POST /auth/password-reset` antwoorden altijd 202, ook
-    bij een onbekend of inactief adres.
+10. **Inloggen per mail met een cijfercode, niet met een link.** Een code van 6 cijfers die het lid overneemt in
+    het scherm waar het hem aanvroeg. Dat is de extra controle: de code werkt alleen samen met de aanvraag uit die
+    browser, dus een doorgestuurde mail, een vooraf geopende link van een virusscanner of iemand die alleen de mail
+    ziet, logt niet in. Afwijking van het API-ontwerp (`POST /auth/login-link`, `GET /auth/login-link/{token}`):
+    - `POST /auth/login-code` met `{email}` geeft altijd 202 met een `challengeId` (128 willekeurige bits), ook bij een
+      onbekend of inactief adres, zodat het antwoord niet verraadt of een adres bestaat; de frontend bewaart het id in de browser;
+    - `POST /auth/login-code/verify` met `{challengeId, code}` logt in;
+    - de wachtwoord-reset werkt net zo: `POST /auth/password-reset` met `{email}` geeft een `challengeId`, en
+      `POST /auth/password-reset/confirm` met `{challengeId, code, password}` zet het nieuwe wachtwoord. Wie al een
+      wachtwoord heeft, kan ook alleen een code gebruiken; een wachtwoord is nooit verplicht.
+11. **Bruikbaar voor elke loper.** De code volgt WCAG 2.2 succescriterium 3.3.8 (toegankelijk inloggen): overnemen
+    met plakken en automatisch invullen mag, er is geen puzzel.
+    - Zes cijfers, geen letters: geen verwarring tussen `0` en `O` of `1` en `l`, en op een telefoon het
+      cijfertoetsenbord (`inputmode="numeric"`, `autocomplete="one-time-code"`).
+    - Eén invoerveld, geen zes losse vakjes: die breken plakken, schermlezers en vergroting. Spaties en streepjes in
+      wat het lid typt of plakt, tellen niet mee.
+    - In de mail groot en in twee groepen (`482 913`), bovenaan, met in gewone taal waar hij in te vullen is; de code
+      niet in het onderwerp, want dat staat in meldingen op een vergrendeld scherm.
+    - Het scherm noemt het adres waar de code heen ging, met "Code niet ontvangen? Stuur een nieuwe" (na 60 seconden)
+      en "Kijk ook in je spam".
+    - Een foute code: "Deze code klopt niet. Je kunt het nog 4 keer proberen." Een verlopen of opgebruikte code: een
+      melding in gewone taal met de knop "Stuur een nieuwe code".
+    - De frontend bewaart de aanvraag in `localStorage`, zodat de code ook werkt na het sluiten van de browser of de
+      volgende dag, op hetzelfde toestel.
+12. **Opslag en geldigheid.** Entiteit `LoginChallenge` (id, lid of geen, doel `log_in` of `reset_password`,
+    codehash, `expiresAt`, `attempts`, `usedAt`).
+    - Een code van 6 cijfers heeft maar een miljoen mogelijkheden: een gewone SHA-256 (beslissing 20 van fase 1) is
+      met een kopie van de database in een seconde terug te rekenen. Daarom HMAC-SHA-256 met `APP_SECRET` over
+      `challengeId` en code, vergeleken met `hash_equals()`. De code komt uit `random_int()`.
+    - Hooguit 5 pogingen per aanvraag; daarna is de aanvraag ongeldig. De kans om te raden: 5 op een miljoen per aanvraag, en
+      aanvragen zijn begrensd (beslissing 13).
+    - Eén keer bruikbaar; een nieuwe aanvraag maakt eerdere van hetzelfde lid en doel ongeldig.
+    - Een inlogcode is 24 uur geldig, een reset-code 12 uur, voor wie de mail pas later leest of er hulp bij nodig
+      heeft; een reset zet een nieuw wachtwoord en krijgt daarom de kortere termijn. Het risico van die termijn blijft
+      klein door de koppeling aan de aanvraag, de 5 pogingen, één keer gebruik, en de sessie die maar 15 minuten
+      recent is (beslissing 15). Elke aanvraag en elk gebruik staat in het auditlog.
+    - **De uitnodiging blijft een link**, 48 uur geldig: een nieuw lid heeft nog geen scherm waarin het een code kan
+      aanvragen. Entiteit `Invitation` met het hash-patroon van `ApiToken` (geheim `bpi_` plus 64 hex-tekens,
+      SHA-256). De link wijst naar de frontend met het geheim achter een `#` (`…/app/#/welcome/bpi_…`): dat deel
+      stuurt de browser nooit naar de server, dus het komt niet in toegangslogs of een `Referer`. De pagina toont een
+      knop "Inloggen" en doet `POST /auth/invitation` met het geheim in de body; een `GET` zou door virusscanners
+      verbruikt worden.
+    - Geen Symfony `login_link`: die is ondertekend en niet opgeslagen, dus niet één keer bruikbaar zonder extra
+      opslag. API-scripts en MCP gebruiken altijd het persoonlijke token, nooit een code of sessie.
 13. **Beperkt aantal pogingen met `symfony/rate-limiter`** (cache in bestanden): inloggen 5 mislukte pogingen per
-    15 minuten per adres en IP (`login_throttling`); link- en reset-aanvragen 3 per uur per adres en 10 per uur per
-    IP; daarna 429 met `Retry-After`. Het plan zette de rate limiter bij MCP (fase 4); inloggen heeft hem nu nodig.
+    15 minuten per adres en IP (`login_throttling`), en daarnaast 30 mislukte pogingen per uur per IP over alle
+    adressen, tegen het proberen van één wachtwoord op veel adressen; code- en reset-aanvragen 3 per uur per adres en
+    10 per uur per IP; daarna 429 met `Retry-After` en een melding in gewone taal. Een geslaagde inlog telt niet mee. Het plan zette
+    de rate limiter bij MCP (fase 4); inloggen heeft hem nu nodig.
 14. **Auditregels voor inloggen**: `account.logged_in` en `account.login_failed` met een ingekort IP-adres
     (`IpUtils::anonymize()`: laatste byte van IPv4, laatste 80 bits van IPv6) in de gewijzigde velden. Een mislukte
     poging op een onbekend adres heeft geen onderwerp en gaat alleen naar het applicatielog, zonder het getypte
     adres. De bewaartermijn van 90 dagen voor deze regels hoort bij het opruimen in fase 6a.
 15. **Opnieuw bevestigen bij gevoelige acties**, achter een kleine interface `Shared\Domain\RecentAuthentication`
-    (`@upgrade-8.4`, sudo mode). Een sessie die in de laatste 15 minuten met wachtwoord of inloglink inlogde of
+    (`@upgrade-8.4`, sudo mode). Een sessie die in de laatste 15 minuten met wachtwoord, code of uitnodiging inlogde of
     bevestigde, telt als recent; ingelogd blijven telt nooit. `POST /auth/confirm` met het wachtwoord maakt een sessie
     recent. Nodig voor: token aanmaken, rollen wijzigen, lid wissen. Een API-token is nooit recent, dus die acties
     kunnen alleen in de browser.
-16. **Wachtwoord wijzigen vraagt het huidige wachtwoord**; een lid zonder wachtwoord (alleen inloglinks) zet het eerste
+16. **Wachtwoord wijzigen vraagt het huidige wachtwoord**; een lid zonder wachtwoord (alleen codes) zet het eerste
     wachtwoord in een recente sessie.
 
 ### Tokens en scopes
@@ -175,12 +209,14 @@ Klaar als:
 27. **Wat een lid zelf wijzigt** (`PATCH /me`): telefoon, adres, toestemming en meldingen over open rondes. Naam,
     weergavenaam en e-mailadres wijzigt alleen de beheerder: een gekaapte sessie kan zo het adres voor een reset niet
     omzetten.
-28. **Uitnodigen door de beheerder** (`POST /admin/members/{id}/invitation`) maakt een inloglink en stuurt hem via de
+28. **Uitnodigen door de beheerder** (`POST /admin/members/{id}/invitation`) maakt een uitnodiging (48 uur geldig,
+    beslissing 12) en stuurt hem via de
     `Notifier`. De link staat alleen in het antwoord voor een lid dat nog nooit inlogde, zodat de beheerder hem zelf
     kan doorgeven als er geen mail is (plan, Afhankelijkheden). Voor elk ander lid zou dat de beheerder laten inloggen
-    als dat lid. De coördinator kan een inloglink laten sturen ("inloglink opnieuw sturen"), maar ziet hem nooit.
+    als dat lid. De coördinator kan een nieuwe uitnodiging laten sturen, maar ziet de link nooit; een lid dat al inlogde, vraagt
+    zelf een code aan.
 29. **De `LoggingNotifier` logt type en ontvanger, geen parameters** (vastgesteld 12). In `dev` schrijft een aparte
-    `DevLinkNotifier` de link naar het log, zodat inloggen met een link lokaal te testen is; nooit in `prod`.
+    `DevCodeNotifier` code en uitnodigingslink naar het log, zodat inloggen lokaal te testen is; nooit in `prod`.
 30. **Inloggen met de demo** (vastgesteld 15): de sets `demo` en `edge` geven elk voorbeeldlid hetzelfde verzonnen
     wachtwoord, dat alleen in de fixture-code staat en dat het commando toont, net als het geheim van het token van het
     demolid. Alleen `dev` en `test`.
@@ -268,16 +304,21 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
   geldige CSRF-controle geeft 403; `POST /auth/logout` wist sessie en cookie.
 - Authenticator, user provider, CSRF-listener, entry point; auditregels uit beslissing 14.
 
-### T6. Ingelogd blijven, inloglink en wachtwoord-reset (test eerst)
+### T6. Ingelogd blijven, code per mail, uitnodiging en wachtwoord-reset (test eerst)
 
-- `OneTimeLink` met migratie (alleen toevoegen) en `Account.credentialsChangedAt` (beslissingen 9 en 10).
-- Use cases (Identity): `RequestLoginLink`, `LogInWithLink`, `RequestPasswordReset`, `ResetPassword`,
-  `ConfirmPassword`.
-- Tests: elke link één keer bruikbaar; verlopen na 15 of 60 minuten; een reset-geheim werkt niet als inloglink; een
-  nieuwe aanvraag maakt de vorige ongeldig; 202 bij een onbekend adres zonder verschil in antwoord; na een reset en na
+- `LoginChallenge` en `Invitation` met migratie (alleen toevoegen) en `Account.credentialsChangedAt` (beslissingen 9,
+  10 en 12).
+- Use cases (Identity): `RequestLoginCode`, `LogInWithCode`, `RequestPasswordReset`, `ResetPassword`,
+  `AcceptInvitation`, `ConfirmPassword`; `InviteMember` in Membership roept de uitnodiging aan.
+- Tests: elke code en uitnodiging één keer bruikbaar; een inlogcode verloopt na 24 uur, een reset-code na 12 uur, een uitnodiging
+  na 48 uur; een
+  code werkt alleen met zijn eigen `challengeId`; na 5 foute pogingen werkt ook de goede code niet meer; een
+  reset-code werkt niet om in te loggen; een nieuwe aanvraag maakt de vorige ongeldig; spaties en een streepje in de
+  code tellen niet mee; 202 met een `challengeId` bij een onbekend adres, zonder verschil in antwoord; in de database
+  staat geen code die met SHA-256 alleen terug te rekenen is; na een reset en na
   wachtwoord wijzigen werkt een onthouden apparaat niet meer; `remember_me` houdt een sessie 90 dagen vast maar telt
   niet als recent (beslissing 15).
-- `LoggingNotifier` zonder parameters, `DevLinkNotifier` in `dev` (beslissing 29).
+- `LoggingNotifier` zonder parameters, `DevCodeNotifier` in `dev` (beslissing 29).
 
 ### T7. Eigen account (test eerst)
 
@@ -359,9 +400,9 @@ Per regel eerst het testbestand, dan de regel (beslissing 34). Lokaal gedraaid z
   hash-patroon voor elk geheim, CSRF met terugval voor iOS 15, recent ingelogd, scopes per verzoek).
 - `docs/architecture.md`: `RuleViolation`, `RecentAuthentication`, de uitbreiding van `MemberDirectory`, regel 3,
   de firewalls; `docs/testing.md`: `InMemoryKernel`, HTTP- en scopematrix, de nieuwe Opengrep-regels;
-  `docs/configuration.md`: sessie, rate limits, geldigheid van links en tokens; `docs/glossary.md`: inloglink,
-  wachtwoord-reset, `OneTimeLink`, scope, kanaal `web`; `docs/gotchas.md`: wat opvalt.
-- `docs/plans/plan.md`: Fase 2 afvinken, de endpointtabel bijwerken (beslissingen 11, 25), de afwijkingen van
+  `docs/configuration.md`: sessie, rate limits, geldigheid van links en tokens; `docs/glossary.md`: inlogcode,
+  uitnodiging, wachtwoord-reset, `LoginChallenge`, `Invitation`, scope, kanaal `web`; `docs/gotchas.md`: wat opvalt.
+- `docs/plans/plan.md`: Fase 2 afvinken, de endpointtabel bijwerken (beslissingen 10, 12, 25), de afwijkingen van
   beslissingen 4 en 17 in Fase 2; `CHANGELOG.md`; `AGENTS.md` (Commands) als er een commando bijkomt.
 
 ### T18. Verifiëren en opleveren
@@ -393,7 +434,7 @@ Per regel eerst het testbestand, dan de regel (beslissing 34). Lokaal gedraaid z
 Gemeld, niet in deze fase opgelost:
 
 - **Berichten gaan binnen de transactie uit**; versturen na de commit staat in fase 3. In deze fase komen er
-  berichten bij (inloglink, reset, uitnodiging), die zo ook binnen de transactie vertrekken.
+  berichten bij (inlogcode, reset, uitnodiging), die zo ook binnen de transactie vertrekken.
 - **`anonymisedAt` uit beslissing 8 van fase 1** volgt in fase 5b of 6a.
 - **Het slot op alle ledenrijen in `activeAdminsForUpdate()`** is een geaccepteerd risico (ADR 0005).
 - **De hashketen in het auditlog** (beslissing 16 van fase 1) staat nog open.
