@@ -46,6 +46,7 @@ final readonly class ChangeMeetingPointHandler
             $old = ['name' => $meetingPoint->name(), ...$this->position($meetingPoint->coordinates())];
             $meetingPoint->rename($input->name);
             $meetingPoint->placeAt($coordinates);
+            $this->meetingPoints->update($meetingPoint);
             $new = ['name' => $meetingPoint->name(), ...$this->position($meetingPoint->coordinates())];
 
             $changes = [];

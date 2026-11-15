@@ -21,7 +21,16 @@ interface OutcomeRepository
     public function findByNameKey(LookupKey $nameKey): ?Outcome;
 
     /**
-     * Stores the outcome when the running transaction commits.
+     * Writes the new outcome within the running transaction, so a clash with another outcome surfaces here.
+     *
+     * @throws OutcomeNameTaken when another outcome committed the same name in the meantime
      */
     public function add(Outcome $outcome): void;
+
+    /**
+     * Writes the changes to the outcome within the running transaction, so a clash with another outcome surfaces here.
+     *
+     * @throws OutcomeNameTaken when another outcome committed the same name in the meantime
+     */
+    public function update(Outcome $outcome): void;
 }

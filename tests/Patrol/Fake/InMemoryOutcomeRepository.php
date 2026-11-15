@@ -35,6 +35,12 @@ final class InMemoryOutcomeRepository implements OutcomeRepository
     }
 
     #[Override]
+    public function update(Outcome $outcome): void
+    {
+        $this->items[$outcome->id()->toRfc4122()] = $outcome;
+    }
+
+    #[Override]
     public function add(Outcome $outcome): void
     {
         $this->items[$outcome->id()->toRfc4122()] = $outcome;

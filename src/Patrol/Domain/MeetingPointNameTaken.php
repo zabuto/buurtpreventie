@@ -23,16 +23,22 @@ final class MeetingPointNameTaken extends DomainException
 
     public static function by(MeetingPoint $existing): self
     {
+        return self::existing($existing->id(), $existing->name(), $existing->isArchived());
+    }
+
+    /**
+     * For the meeting point another request committed, which this entity manager never loaded.
+     */
+    public static function existing(Uuid $id, string $name, bool $archived): self
+    {
         return new self(
             \sprintf(
-                $existing->isArchived()
-                    ? 'The archived meeting point "%s" (%s) has this name; restore it instead.'
-                    : 'The meeting point "%s" (%s) has this name.',
-                $existing->name(),
-                $existing->id()->toRfc4122(),
+                $archived ? 'The archived meeting point "%s" (%s) has this name; restore it instead.' : 'The meeting point "%s" (%s) has this name.',
+                $name,
+                $id->toRfc4122(),
             ),
-            $existing->id(),
-            $existing->isArchived(),
+            $id,
+            $archived,
         );
     }
 }

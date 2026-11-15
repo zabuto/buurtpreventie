@@ -21,7 +21,16 @@ interface MeetingPointRepository
     public function findByNameKey(LookupKey $nameKey): ?MeetingPoint;
 
     /**
-     * Stores the meeting point when the running transaction commits.
+     * Writes the new meeting point within the running transaction, so a clash with another meeting point surfaces here.
+     *
+     * @throws MeetingPointNameTaken when another meeting point committed the same name in the meantime
      */
     public function add(MeetingPoint $meetingPoint): void;
+
+    /**
+     * Writes the changes to the meeting point within the running transaction, so a clash with another meeting point surfaces here.
+     *
+     * @throws MeetingPointNameTaken when another meeting point committed the same name in the meantime
+     */
+    public function update(MeetingPoint $meetingPoint): void;
 }

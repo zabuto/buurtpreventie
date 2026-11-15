@@ -45,6 +45,7 @@ final readonly class ChangeOutcomeHandler
 
             $oldName = $outcome->name();
             $outcome->rename($input->name);
+            $this->outcomes->update($outcome);
             if ($oldName === $outcome->name()) {
                 return;
             }

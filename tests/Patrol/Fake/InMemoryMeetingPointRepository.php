@@ -35,6 +35,12 @@ final class InMemoryMeetingPointRepository implements MeetingPointRepository
     }
 
     #[Override]
+    public function update(MeetingPoint $meetingPoint): void
+    {
+        $this->items[$meetingPoint->id()->toRfc4122()] = $meetingPoint;
+    }
+
+    #[Override]
     public function add(MeetingPoint $meetingPoint): void
     {
         $this->items[$meetingPoint->id()->toRfc4122()] = $meetingPoint;
