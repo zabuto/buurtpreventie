@@ -156,6 +156,7 @@ A handler reaches storage, rights, the audit log and messages only through inter
 | `Notifier`, `Notification` | Sends a member a message by type and parameters; the domain holds no texts | `Shared\Infrastructure\Notification\LoggingNotifier`, which only logs |
 | `Role`, `Actor` | The fixed roles `walker`, `coordinator`, `analyst` and `admin`, without inheritance, and a member with their roles, as the policies of every module decide on them | |
 | `NotFound` | No item of a kind has a given id; entry points turn it into their own answer, such as HTTP 404 | |
+| `RuleViolation`, `StateConflict`, `InvalidValue` | A domain rule refused the action: the state forbids it (`RoundIsFull`) or a value breaks a rule (`StartInPast`). Every domain exception is one of these or `NotFound`; its code is the short class name in snake case | |
 | `LocalTime` | Converts an instant to `Europe/Amsterdam`, the clock of dayparts, calendar days and everything a walker reads | |
 | `LocalDay` | A calendar day on that clock, from midnight to midnight: 23 or 25 hours on the days the clock changes | |
 | `WriteAction`, `ReadAction` | Mark a handler as changing something, with its voter attribute and audit action, or as only reading | |
@@ -176,6 +177,14 @@ outermost run resets it, so the next unit of work in the same process gets a wor
 reads the actor from the token with `TokenActor` and asks the policy, so handler and voters always see
 the same actor. Scheduled actions are granted only to `ROLE_SYSTEM`, the identity `RunAs::system()`
 sets; an action no voter decides on is refused.
+
+**Errors.** Under `/api/`, `Shared\Infrastructure\Http\ProblemResponder` turns every failure into
+`application/problem+json` (RFC 9457): a `StateConflict` is 409, an `InvalidValue` 422, `NotFound` 404,
+`AccessDenied` 403, invalid input 422 with a `violations` list per field, and anything unexpected 500. The `type`
+is `urn:buurtpreventie:problem:<code>`, the `title` comes from `translations/problems.<locale>.yaml` in the language
+of `Accept-Language` (Dutch by default). The exception message never reaches the client: it holds ids and
+internals, and goes to the log only. A new domain exception therefore implements `StateConflict` or `InvalidValue`
+and gets a title in both files; `RuleViolationCoverageTest` fails otherwise.
 
 A handler that calls the handler of another module, such as `DeactivateMember` calling
 `WithdrawMemberFromUpcomingRounds`, `RevokeMemberApiTokens` and `EraseActorName`, runs that handler's transaction inside

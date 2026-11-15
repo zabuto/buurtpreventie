@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Patrol\UseCase\ListRounds;
 
+use App\Patrol\Domain\Round\InvalidPeriod;
 use App\Patrol\Domain\Round\Round;
 use App\Patrol\Domain\Round\RoundRepository;
 use App\Patrol\Domain\Round\RoundStatus;
@@ -11,7 +12,6 @@ use App\Shared\Domain\Authorization;
 use App\Shared\Domain\LocalTime;
 use App\Shared\Domain\ReadAction;
 use DateTimeImmutable;
-use InvalidArgumentException;
 use Psr\Clock\ClockInterface;
 
 /**
@@ -33,7 +33,7 @@ final readonly class ListRoundsHandler
     }
 
     /**
-     * @throws InvalidArgumentException for a period that does not end after its start or lasts longer than the maximum
+     * @throws InvalidPeriod for a period that does not end after its start or lasts longer than the maximum
      */
     public function __invoke(ListRounds $input): ListRoundsOutput
     {
@@ -42,10 +42,10 @@ final readonly class ListRoundsHandler
         $from = new DateTimeImmutable($input->from);
         $to = new DateTimeImmutable($input->to);
         if ($to <= $from) {
-            throw new InvalidArgumentException(\sprintf('The period from %s does not end after its start.', $input->from));
+            throw new InvalidPeriod(\sprintf('The period from %s does not end after its start.', $input->from));
         }
         if (($to->getTimestamp() - $from->getTimestamp()) > (self::MAXIMUM_PERIOD_IN_DAYS * 86_400)) {
-            throw new InvalidArgumentException(\sprintf('The period from %s lasts longer than %d days.', $input->from, self::MAXIMUM_PERIOD_IN_DAYS));
+            throw new InvalidPeriod(\sprintf('The period from %s lasts longer than %d days.', $input->from, self::MAXIMUM_PERIOD_IN_DAYS));
         }
 
         $now = $this->clock->now();

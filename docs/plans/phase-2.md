@@ -294,6 +294,25 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
 - Tests: elke rij van de tabel in beslissing 20 als functionele test op een testroute; de dekkingstest voor
   vertalingen en domeinfouten; een 500 bevat geen exceptietekst.
 - `InMemoryKernel` en een basisklasse voor endpointtests met `actingAs(rol)` en `withToken(scopes)` (beslissing 31).
+- Uitgevoerd op 15 november 2026, met deze keuzes:
+  - `RuleViolation` heeft twee markeringen in plaats van de methodes `code()` en `kind()`: `StateConflict` (409)
+    en `InvalidValue` (422). De code is de korte klassenaam in snake case (`ProblemCode`), zodat geen enkele fout
+    een methode met een vaste tekst nodig heeft;
+  - waardeobjecten die invoer weigeren, gooien een eigen `InvalidValue` in plaats van `InvalidArgumentException`
+    (`InvalidPhoneNumber`, `InvalidCoordinates`, `EmptyComment`, `InvalidStaffingRule`, `InvalidPeriod`,
+    `InvalidStaffingDefaults`, `InvalidEmailAddress`, `InvalidName`); anders werd verkeerde invoer een 500. Ze
+    breiden `InvalidArgumentException` uit, dus bestaande tests blijven gelden. Een `InvalidArgumentException` die
+    een programmeerfout meldt (een geheim veld in het auditlog, een token-geheim in het verkeerde formaat) blijft
+    een 500;
+  - de taal komt uit `Accept-Language` (`set_locale_from_accept_language`), met `nl` voor een onbekende taal of
+    geen header; validatorfouten komen uit de vertalingen van Symfony;
+  - de rij "niet ingelogd" (401) test T5, als de browserfirewall er is; `actingAs` en `withToken` komen in T4 en
+    T5 met de firewalls die ze nodig hebben;
+  - `InMemoryKernel` vervangt alle repositories, de transactie, het auditlog en de notifier; de probe-controller
+    met zijn routes bestaat alleen in die kernel;
+  - Mago sluit `src/Kernel.php` alleen nog uit van opmaak en lint: de analyzer heeft hem nodig voor de testkernel;
+  - opgemerkt voor T8: `#[MapQueryString]` geeft bij een validatiefout standaard 404; elke controller zet
+    `validationFailedStatusCode: 422`.
 
 ### T4. Tokens: authenticator en scopes (test eerst)
 

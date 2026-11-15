@@ -1,0 +1,37 @@
+# Titles of API problems (RFC 9457) by code; B1 Dutch, as members read them.
+admin_exists: Er is al een beheerder. Een beheerder voegt de volgende toe.
+display_name_taken: Een ander lid heeft al deze weergavenaam.
+email_address_taken: Een ander lid heeft al dit e-mailadres.
+last_admin: Dit is de laatste beheerder. Maak eerst iemand anders beheerder.
+member_erased: Dit lid is gewist.
+meeting_point_archived: Dit startpunt wordt niet meer gebruikt.
+meeting_point_in_use: Er starten nog rondes bij dit startpunt.
+meeting_point_name_taken: Er is al een startpunt met deze naam.
+outcome_archived: Deze uitkomst wordt niet meer gebruikt.
+outcome_name_taken: Er is al een uitkomst met deze naam.
+member_inactive: Dit lid is niet actief.
+round_already_reported: Er is al een terugmelding voor deze ronde.
+round_has_started: Deze ronde is al begonnen.
+round_is_full: Deze ronde is vol.
+round_not_started: Deze ronde is nog niet begonnen.
+round_not_walked: Deze ronde is niet gelopen.
+start_in_past: Een ronde kan niet in het verleden beginnen.
+invalid_phone_number: Dit telefoonnummer klopt niet.
+invalid_coordinates: Deze plek op de kaart klopt niet.
+empty_comment: Schrijf iets in de opmerking.
+invalid_staffing_rule: Het aantal lopers klopt niet. Het maximum moet minstens zo groot zijn als het minimum.
+invalid_period: Kies een periode van hooguit drie maanden, met het einde na het begin.
+invalid_staffing_defaults: Het aantal lopers klopt niet. Het maximum moet minstens zo groot zijn als het minimum.
+invalid_email_address: Dit e-mailadres klopt niet.
+invalid_name: Deze naam klopt niet. Gebruik minstens één letter of cijfer.
+invalid_input: Niet alle gegevens kloppen.
+bad_request: Dit verzoek kan de app niet lezen.
+unauthorized: Je bent niet ingelogd.
+access_denied: Dit mag je niet doen.
+not_found: Dit bestaat niet (meer).
+method_not_allowed: Dit kan op dit adres niet.
+not_acceptable: De app kan dit antwoord niet in die vorm geven.
+unsupported_media_type: De app kan dit soort gegevens niet lezen.
+too_many_requests: Te veel pogingen. Probeer het later opnieuw.
+request_failed: Dit verzoek lukte niet.
+internal_error: Er ging iets mis. Probeer het later opnieuw.

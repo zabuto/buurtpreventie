@@ -1,0 +1,37 @@
+# Titles of API problems (RFC 9457) by code.
+admin_exists: An admin exists. An admin adds the next one.
+display_name_taken: Another member has this display name.
+email_address_taken: Another member has this e-mail address.
+last_admin: This is the last admin. Make someone else an admin first.
+member_erased: This member is erased.
+meeting_point_archived: This meeting point is no longer in use.
+meeting_point_in_use: Rounds still start at this meeting point.
+meeting_point_name_taken: A meeting point with this name exists.
+outcome_archived: This outcome is no longer in use.
+outcome_name_taken: An outcome with this name exists.
+member_inactive: This member is not active.
+round_already_reported: This round already has a report.
+round_has_started: This round has started.
+round_is_full: This round is full.
+round_not_started: This round has not started.
+round_not_walked: This round was not walked.
+start_in_past: A round cannot start in the past.
+invalid_phone_number: This phone number is not valid.
+invalid_coordinates: This position on the map is not valid.
+empty_comment: Write something in the comment.
+invalid_staffing_rule: The number of walkers is not valid. The maximum must be at least the minimum.
+invalid_period: Choose a period of at most three months that ends after it starts.
+invalid_staffing_defaults: The number of walkers is not valid. The maximum must be at least the minimum.
+invalid_email_address: This e-mail address is not valid.
+invalid_name: This name is not valid. Use at least one letter or digit.
+invalid_input: Not all details are valid.
+bad_request: The app cannot read this request.
+unauthorized: You are not logged in.
+access_denied: You may not do this.
+not_found: This does not exist (any more).
+method_not_allowed: This cannot be done at this address.
+not_acceptable: The app cannot answer in that form.
+unsupported_media_type: The app cannot read this kind of data.
+too_many_requests: Too many attempts. Try again later.
+request_failed: This request did not succeed.
+internal_error: Something went wrong. Try again later.

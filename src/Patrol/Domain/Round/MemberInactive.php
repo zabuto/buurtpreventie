@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Patrol\Domain\Round;
 
+use App\Shared\Domain\StateConflict;
 use DomainException;
 use Symfony\Component\Uid\Uuid;
 
 /**
  * Only an active member walks: a deactivated or erased one gets no reminders and cannot be reached.
  */
-final class MemberInactive extends DomainException
+final class MemberInactive extends DomainException implements StateConflict
 {
     public static function forMember(Uuid $memberId): self
     {

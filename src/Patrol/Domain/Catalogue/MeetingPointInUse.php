@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Patrol\Domain\Catalogue;
 
+use App\Shared\Domain\StateConflict;
 use DomainException;
 use Symfony\Component\Uid\Uuid;
 
@@ -11,7 +12,7 @@ use Symfony\Component\Uid\Uuid;
  * Walkers of an upcoming round must know where to meet, so its meeting point stays available until the round
  * starts or moves elsewhere.
  */
-final class MeetingPointInUse extends DomainException
+final class MeetingPointInUse extends DomainException implements StateConflict
 {
     public static function byUpcomingRounds(Uuid $meetingPointId, int $rounds): self
     {

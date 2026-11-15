@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Patrol\Domain\Catalogue;
 
+use App\Shared\Domain\StateConflict;
 use DomainException;
 use Symfony\Component\Uid\Uuid;
 
 /**
  * An archived outcome stays on what used it, but is not offered for anything new.
  */
-final class OutcomeArchived extends DomainException
+final class OutcomeArchived extends DomainException implements StateConflict
 {
     public static function forItem(Uuid $id): self
     {

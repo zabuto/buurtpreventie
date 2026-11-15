@@ -11,6 +11,7 @@
 | `tests/Architecture/Fixtures/` | Deliberate violations; outside the regular PHPStan run and the autoloader |
 | `tests/<Module>/Fake/` | In-memory repositories and other small fakes of the interfaces in `Domain`, for the handler tests |
 | `tests/Shared/Fake/` | Fakes of the interfaces in `Shared\Domain`: transaction, execution context, authorization, audit trail, notifier, member directory |
+| `tests/Support/` | `ApiTestCase` and `InMemoryKernel` for endpoint tests without a database, and a probe controller that raises each kind of failure for the problem responses |
 | `tests/Database/` | The PHPUnit extension that builds the test database before the database tests |
 | `tests/Dependencies/` | Every Symfony component in `composer.json` and `composer.lock` is on the release line in `extra.symfony.require` (7.4 LTS); the Dependabot and Composer cooldowns stay at their minimums without exemptions |
 | `tests/Tools/` | The development tools in `tools/`, such as the Opengrep version choice |
@@ -21,12 +22,24 @@
 | --- | --- | --- | --- |
 | Unit | none | `PHPUnit\Framework\TestCase` | Handlers, domain rules, templates: in memory only, no files, network, database or real clock |
 | Integration | `integration` | `PHPUnit\Framework\TestCase` | Code that needs files or a process: the generator, the architecture rules, the dependency checks |
-| Functional | `functional` | `Symfony\Bundle\FrameworkBundle\Test\WebTestCase` | Endpoints through the kernel: route, status, JSON |
+| Functional | `functional` | `App\Tests\Support\ApiTestCase` (or `WebTestCase`) | Endpoints through the kernel: route, status, JSON; on the in-memory kernel, so without a database |
 | Database | `database` | `Symfony\Bundle\FrameworkBundle\Test\KernelTestCase` | Doctrine types, transactions, repository queries, the schema, concurrency and the sample data against MariaDB or MySQL |
 
 `composer test` runs all of them; `composer test:unit` runs only the unit tests, in about a second.
 A test class that leaves memory carries `#[Group('integration')]`, `#[Group('functional')]` or
 `#[Group('database')]`.
+
+## Endpoint tests
+
+`ApiTestCase` boots `InMemoryKernel`: the app with every repository, the transaction, the audit trail and the
+notifier replaced by the fakes from `tests/<Module>/Fake/` and `tests/Shared/Fake/`, and everything else real,
+security and voters included. Endpoint tests therefore run without a database, also in `composer test` when none is
+reachable. The kernel keeps its container in `var/cache/test_in_memory/`. A test arranges its data in the fakes it
+takes from the container, then makes one request; the client boots a fresh kernel per request, so state does not
+leak between tests.
+
+The test client sends `Accept-Language: en-us` unless told otherwise (`Request::create()`). A test that expects
+Dutch says so with its own header.
 
 ## Database tests
 
