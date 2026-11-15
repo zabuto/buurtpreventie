@@ -9,9 +9,8 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Symfony components only work together on the same release line, and v4 follows the line in
- * extra.symfony.require (7.4 LTS). These checks stop a dependency update that would mix lines, such as one component
- * on 8.1 next to the rest on 7.4, from passing CI.
+ * Symfony components only work together on one release line, the one in extra.symfony.require. These checks keep a
+ * dependency update that mixes lines, such as one component on 8.1 next to the rest on 7.4, from passing CI.
  */
 #[Group('integration')]
 final class SymfonyReleaseLineTest extends TestCase

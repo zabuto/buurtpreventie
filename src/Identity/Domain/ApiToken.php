@@ -131,7 +131,7 @@ final class ApiToken
     }
 
     /**
-     * The token authenticated a request; it shows the member which tokens are still in use.
+     * The token authenticated a request, which shows the member which tokens are in use.
      */
     public function markUsed(DateTimeImmutable $now): void
     {
@@ -149,7 +149,7 @@ final class ApiToken
     }
 
     /**
-     * @return bool false when the token was revoked before
+     * @return bool false when the token was already revoked
      */
     public function revoke(DateTimeImmutable $now): bool
     {

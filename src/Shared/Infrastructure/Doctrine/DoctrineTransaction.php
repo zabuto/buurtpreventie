@@ -14,10 +14,9 @@ use Throwable;
  * Runs the operation in a database transaction and flushes the entity manager before the commit, so repositories
  * only persist and the transaction decides when it is written.
  *
- * When the operation throws, Doctrine rolls back and closes the entity manager: its unit of work no longer matches
- * the database. The outermost run then resets it, so the next use case in the same process, such as the next
- * fixture or scheduled job, gets a working one. A nested run leaves that to the outermost, which still has to roll
- * back its own part.
+ * When the operation throws, Doctrine rolls back and closes the entity manager, as its unit of work differs from the
+ * database. The outermost run resets it, so the next use case in the same process (the next fixture or scheduled
+ * job) gets a working one; a nested run leaves the reset to the outermost run, which must roll back its own part.
  */
 final class DoctrineTransaction implements Transaction
 {

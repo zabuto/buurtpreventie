@@ -25,7 +25,7 @@ final readonly class TokenExecutionContext implements ExecutionContext
     }
 
     /**
-     * @throws LogicException when the entry point set no channel, which would otherwise end up wrong in the audit log
+     * @throws LogicException when the entry point set no channel, which the audit log would otherwise record wrongly
      */
     #[Override]
     public function channel(): Channel

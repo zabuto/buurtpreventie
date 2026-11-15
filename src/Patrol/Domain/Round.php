@@ -97,8 +97,8 @@ final class Round
     }
 
     /**
-     * The walker who joined first and is still signed up. Owning is not stored: when the owner withdraws, the next
-     * walker owns the round.
+     * The signed-up walker who joined first. Owning is not stored: when the owner withdraws, the next walker owns the
+     * round.
      *
      * @return Uuid|null null only for a round without walkers, which the handler deletes
      */
@@ -295,7 +295,7 @@ final class Round
 
     /**
      * Whether the buddy call goes out at this moment: once per round, only when due, before the start, and while
-     * the round seeks a buddy. A buddy who signs up and withdraws again causes no second call.
+     * the round seeks a buddy. A buddy who signs up and then withdraws causes no second call.
      */
     public function needsBuddyCall(DateTimeImmutable $now): bool
     {
@@ -317,7 +317,7 @@ final class Round
     }
 
     /**
-     * Changes when and where the round starts. The staffing rule stays as it was when the round was created.
+     * Changes when and where the round starts. The round keeps the staffing rule it was created with.
      */
     public function change(RoundStart $start): void
     {

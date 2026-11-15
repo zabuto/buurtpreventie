@@ -110,7 +110,7 @@ final class MemberTest extends TestCase
     }
 
     /**
-     * An erased member gets no mail at all; a notification setting would make it a recipient again.
+     * An erased member gets no mail at all; a notification setting would make it a recipient.
      */
     #[Test]
     public function it_refuses_open_round_notifications_once_erased(): void

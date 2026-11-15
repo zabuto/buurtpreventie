@@ -17,7 +17,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 /**
  * Every test runs inside the rolled-back transaction of the test bundle, so "committed" means: the nesting level is
- * back where it started and the row is there.
+ * at its starting value and the row is there.
  */
 #[Group('database')]
 final class DoctrineTransactionTest extends KernelTestCase

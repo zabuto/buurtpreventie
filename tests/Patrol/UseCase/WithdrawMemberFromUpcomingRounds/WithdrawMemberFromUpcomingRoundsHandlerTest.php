@@ -55,7 +55,7 @@ final class WithdrawMemberFromUpcomingRoundsHandlerTest extends TestCase
     }
 
     /**
-     * Who walked is part of the round's history, also for a round still under way.
+     * Who walked is part of the round's history, also for a round under way.
      */
     #[Test]
     public function it_keeps_the_member_in_a_round_that_has_started(): void

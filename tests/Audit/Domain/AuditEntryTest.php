@@ -56,7 +56,7 @@ final class AuditEntryTest extends TestCase
     }
 
     /**
-     * An erased member keeps the id, so the entry still says a member acted, shown as "removed member".
+     * An erased member keeps the id, so the entry shows that a member acted, as "removed member".
      */
     #[Test]
     public function it_keeps_the_actor_without_a_name_once_the_name_is_erased(): void

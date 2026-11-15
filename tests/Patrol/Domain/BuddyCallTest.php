@@ -41,7 +41,7 @@ final class BuddyCallTest extends TestCase
     }
 
     /**
-     * Five days before 22:00 on 27 October 2026 is 22:00 on 22 October, still summer time: 20:00 in UTC, not 21:00.
+     * Five days before 22:00 on 27 October 2026 is 22:00 on 22 October, in summer time: 20:00 in UTC, not 21:00.
      */
     #[Test]
     public function it_keeps_the_local_time_of_day_across_a_clock_change(): void

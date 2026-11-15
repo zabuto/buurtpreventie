@@ -24,10 +24,10 @@ return RectorConfig::configure()
         __DIR__.'/src/Kernel.php',
         __DIR__.'/tests/bootstrap.php',
         __DIR__.'/tests/Architecture/Fixtures',
-        // Every handler takes its input, also while the input is still empty: REST and MCP pass the same object.
+        // Every handler takes its input, even an empty one: REST and MCP pass the same object.
         RemoveUnusedPublicMethodParameterRector::class => [__DIR__.'/src/*/UseCase/*'],
-        // The test converts through the Type contract, as Doctrine does; with the narrow type PHPStan would deem the
-        // checks on null and on the class of the result always true.
+        // The test converts through the Type contract, as Doctrine does; the narrow type would make PHPStan deem the
+        // null and class checks on the result always true.
         NarrowObjectReturnTypeRector::class => [__DIR__.'/tests/Shared/Infrastructure/Doctrine/UtcDateTimeImmutableTypeTest.php'],
     ])
     ->withPhpSets(php84: true)

@@ -12,7 +12,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * Sets who acts for an entry point without HTTP authentication, such as a console command, the fixtures or the
- * scheduler. The previous token comes back afterwards, also when the operation fails, so an action never runs under
+ * scheduler. The previous token is restored afterwards, also when the operation fails, so an action never runs under
  * an identity left behind by another.
  */
 final readonly class RunAs

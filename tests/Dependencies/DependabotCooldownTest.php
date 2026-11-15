@@ -12,7 +12,7 @@ use Symfony\Component\Yaml\Yaml;
 /**
  * A hijacked release is usually withdrawn within days, so Dependabot waits before it proposes a new version, and
  * automatic merging never pulls one in on its first day. The cooldown holds for every ecosystem without exceptions:
- * a trusted project can still have a hijacked maintainer account. Security updates are not subject to it.
+ * even a trusted project can have a hijacked maintainer account. Security updates are not subject to it.
  */
 #[Group('integration')]
 final class DependabotCooldownTest extends TestCase

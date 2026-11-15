@@ -8,7 +8,7 @@ use DomainException;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * Who walked a round is history from its start on: nobody signs up or withdraws any more.
+ * Who walked a round is history from its start: nobody signs up or withdraws after it.
  */
 final class RoundHasStarted extends DomainException
 {
