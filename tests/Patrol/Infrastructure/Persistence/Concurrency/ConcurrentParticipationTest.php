@@ -67,6 +67,12 @@ final class ConcurrentParticipationTest extends KernelTestCase
     #[Override]
     protected function tearDown(): void
     {
+        // Without a database setUp skips before it connects, and there is nothing to remove.
+        if (!isset($this->connection)) {
+            parent::tearDown();
+
+            return;
+        }
         if ($this->connection->isTransactionActive()) {
             $this->connection->rollBack();
         }
