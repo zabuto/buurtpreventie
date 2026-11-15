@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Patrol\Domain;
 
 use DateTimeImmutable;
-use DateTimeZone;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -29,6 +28,12 @@ final class Round
     #[ORM\Column(type: 'utc_datetime_immutable')]
     private DateTimeImmutable $startsAt;
 
+    #[ORM\ManyToOne(targetEntity: MeetingPoint::class)]
+    private ?MeetingPoint $meetingPoint;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $startNote;
+
     /** @var Collection<int, Participation> */
     #[ORM\OneToMany(targetEntity: Participation::class, mappedBy: 'round', cascade: ['persist'], orphanRemoval: true)]
     private Collection $participations;
@@ -38,14 +43,14 @@ final class Round
     private Collection $reports;
 
     private function __construct(
-        DateTimeImmutable $startsAt,
+        RoundStart $start,
         #[ORM\Column(type: 'uuid')]
         private Uuid $createdBy,
         #[ORM\Embedded(class: StaffingRule::class, columnPrefix: false)]
         private StaffingRule $staffingRule,
     ) {
         $this->id = Uuid::v7();
-        $this->startsAt = self::utc($startsAt);
+        $this->change($start);
         $this->participations = new ArrayCollection();
         $this->reports = new ArrayCollection();
     }
@@ -55,13 +60,9 @@ final class Round
      *
      * @param StaffingRule $staffingRule from the settings at this moment; it stays with the round
      */
-    public static function plan(
-        DateTimeImmutable $startsAt,
-        Uuid $createdBy,
-        StaffingRule $staffingRule,
-        DateTimeImmutable $now,
-    ): self {
-        $round = new self($startsAt, $createdBy, $staffingRule);
+    public static function plan(RoundStart $start, Uuid $createdBy, StaffingRule $staffingRule, DateTimeImmutable $now): self
+    {
+        $round = new self($start, $createdBy, $staffingRule);
         $round->participations->add(new Participation($round, $createdBy, $now));
 
         return $round;
@@ -85,6 +86,19 @@ final class Round
     public function staffingRule(): StaffingRule
     {
         return $this->staffingRule;
+    }
+
+    public function meetingPoint(): ?MeetingPoint
+    {
+        return $this->meetingPoint;
+    }
+
+    /**
+     * Free text about the start, such as where exactly to meet.
+     */
+    public function startNote(): ?string
+    {
+        return $this->startNote;
     }
 
     public function hasStarted(DateTimeImmutable $now): bool
@@ -247,15 +261,12 @@ final class Round
     }
 
     /**
-     * Moves the round. The staffing rule stays as it was when the round was created.
+     * Changes when and where the round starts. The staffing rule stays as it was when the round was created.
      */
-    public function reschedule(DateTimeImmutable $startsAt): void
+    public function change(RoundStart $start): void
     {
-        $this->startsAt = self::utc($startsAt);
-    }
-
-    private static function utc(DateTimeImmutable $instant): DateTimeImmutable
-    {
-        return $instant->setTimezone(new DateTimeZone('UTC'));
+        $this->startsAt = $start->startsAt;
+        $this->meetingPoint = $start->meetingPoint;
+        $this->startNote = $start->note;
     }
 }

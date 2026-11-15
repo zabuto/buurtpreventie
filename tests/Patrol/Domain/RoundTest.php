@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Tests\Patrol\Domain;
 
 use App\Patrol\Domain\Daypart;
+use App\Patrol\Domain\MeetingPoint;
 use App\Patrol\Domain\Round;
+use App\Patrol\Domain\RoundStart;
 use App\Patrol\Domain\RoundStatus;
 use App\Patrol\Domain\StaffingRule;
 use DateTimeImmutable;
@@ -100,7 +102,7 @@ final class RoundTest extends TestCase
     public function it_starts_at_the_same_instant_in_every_time_zone(string $tokyoTime, bool $expected): void
     {
         $round = Round::plan(
-            startsAt: new DateTimeImmutable('2026-11-20T22:00:00', new DateTimeZone('Europe/Amsterdam')),
+            start: new RoundStart(new DateTimeImmutable('2026-11-20T22:00:00', new DateTimeZone('Europe/Amsterdam'))),
             createdBy: $this->creator,
             staffingRule: new StaffingRule(minimumWalkers: 2, maximumWalkers: 7),
             now: new DateTimeImmutable(RoundFixture::CREATED_AT),
@@ -115,7 +117,7 @@ final class RoundTest extends TestCase
     public function it_holds_the_start_in_utc(): void
     {
         $round = Round::plan(
-            startsAt: new DateTimeImmutable('2026-11-20T22:00:00', new DateTimeZone('Europe/Amsterdam')),
+            start: new RoundStart(new DateTimeImmutable('2026-11-20T22:00:00', new DateTimeZone('Europe/Amsterdam'))),
             createdBy: $this->creator,
             staffingRule: new StaffingRule(minimumWalkers: 2, maximumWalkers: 7),
             now: new DateTimeImmutable(RoundFixture::CREATED_AT),
@@ -137,7 +139,7 @@ final class RoundTest extends TestCase
     {
         $round = RoundFixture::withWalkers($this->creator, 1, maximum: 3);
 
-        $round->reschedule(new DateTimeImmutable('2026-11-21T21:00:00+00:00'));
+        $round->change(new RoundStart(new DateTimeImmutable('2026-11-21T21:00:00+00:00')));
 
         $this->assertEquals(new StaffingRule(minimumWalkers: 2, maximumWalkers: 3), $round->staffingRule());
     }
@@ -147,8 +149,29 @@ final class RoundTest extends TestCase
     {
         $round = RoundFixture::withWalkers($this->creator, 1);
 
-        $round->reschedule(new DateTimeImmutable('2026-11-21T22:00:00', new DateTimeZone('Europe/Amsterdam')));
+        $round->change(new RoundStart(new DateTimeImmutable('2026-11-21T22:00:00', new DateTimeZone('Europe/Amsterdam'))));
 
         $this->assertSame('2026-11-21T21:00:00+00:00', $round->startsAt()->format(\DATE_ATOM));
+    }
+
+    #[Test]
+    public function it_changes_its_meeting_point_and_start_note(): void
+    {
+        $round = RoundFixture::withWalkers($this->creator, 1);
+        $meetingPoint = MeetingPoint::create('Speeltuin');
+
+        $round->change(new RoundStart($round->startsAt(), $meetingPoint, ' Bij het hek '));
+
+        $this->assertSame([$meetingPoint, 'Bij het hek'], [$round->meetingPoint(), $round->startNote()]);
+    }
+
+    #[Test]
+    public function it_stores_no_start_note_when_it_is_blank(): void
+    {
+        $round = RoundFixture::withWalkers($this->creator, 1);
+
+        $round->change(new RoundStart($round->startsAt(), note: '   '));
+
+        $this->assertNull($round->startNote());
     }
 }

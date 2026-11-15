@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Patrol\Domain;
 
 use App\Patrol\Domain\Round;
+use App\Patrol\Domain\RoundStart;
 use App\Patrol\Domain\StaffingRule;
 use DateTimeImmutable;
 use Symfony\Component\Uid\Uuid;
@@ -25,7 +26,7 @@ final readonly class RoundFixture
     public static function withWalkers(Uuid $creator, int $walkers, int $maximum = 7): Round
     {
         $round = Round::plan(
-            startsAt: new DateTimeImmutable(self::STARTS_AT),
+            start: new RoundStart(new DateTimeImmutable(self::STARTS_AT)),
             createdBy: $creator,
             staffingRule: new StaffingRule(minimumWalkers: 2, maximumWalkers: $maximum),
             now: new DateTimeImmutable(self::CREATED_AT),
