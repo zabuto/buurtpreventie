@@ -28,7 +28,7 @@ Local settings and secrets go in `.env.local`, which stays out of Git. See
 
 ## Database
 
-MariaDB runs in a container; the app uses it from phase 1 on.
+MariaDB runs in a container.
 
 ```bash
 docker compose up -d --wait
@@ -53,6 +53,20 @@ symfony console doctrine:migrations:migrate
 Tests use `buurtpreventie_test` on the same server. On an empty data volume,
 `docker/database/grant-prefixed-databases.sh` gives the database user every database starting with
 `buurtpreventie_`. A volume created before that script lacks the grant; `docker compose down --volumes` and starting again adds it.
+
+## Sample data
+
+Fill the development database with made-up members, rounds and reports:
+
+```bash
+symfony console app:fixtures:load demo
+```
+
+The command empties the database first and asks before it does; `--no-interaction` skips the
+question. Besides `demo` there are `test` (the least an installation needs) and `edge` (the hard
+cases); see [Sample data](architecture.md#sample-data). Every date follows today, so the calendar is
+never empty. The command exists only in `dev` and `test`. Sample members have no password: logging in
+arrives in phase 2.
 
 ## Start
 

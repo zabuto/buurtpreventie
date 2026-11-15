@@ -35,6 +35,10 @@ Things that are not obvious and cost time when you do not know them.
 - **A handler keeps its input parameter, even while the input is empty.** Rector would remove an
   unused parameter; `rector.php` skips that rule for `src/*/UseCase/*`, because REST and MCP pass the
   same input.
+- **The Rector cache can hide a finding.** Rector caches its result per file and only throws the cache
+  away when that file, its configuration or the Symfony container XML (`var/cache/dev/...Container.xml`)
+  changes. A rule that newly applies because of a change elsewhere stays silent until then. When a
+  result looks too clean, run `vendor/bin/rector process --dry-run --clear-cache`.
 
 ## Doctrine
 
@@ -43,6 +47,9 @@ Things that are not obvious and cost time when you do not know them.
   another object, so the refresh fails with "Attempting to change readonly property". A query with
   `Query::HINT_REFRESH`, such as `RoundRepository::getForUpdate()`, refreshes the round and its
   walkers, so `Round` and `Participation` keep writable properties.
+- **A failed flush closes the entity manager.** After a unique index refuses a row, the entity manager
+  accepts no further query; a repository that needs to know which row holds the value reads it through
+  the connection. `DoctrineTransaction` resets the manager for the next use case.
 
 ## Database
 
@@ -51,10 +58,22 @@ Things that are not obvious and cost time when you do not know them.
   `DATABASE_URL` in `.env.local` breaks when the container gets a new port after a restart.
 - **Docker Compose reads `.env`, not `.env.local`,** for the variables in `compose.yaml`. Override
   them in the shell, never in the committed `.env`.
+- **InnoDB fixes the snapshot at the first plain read.** In `REPEATABLE READ`, the default, every plain
+  `SELECT` in a transaction sees the data as it was at the first one. A count after an earlier read
+  misses a row another transaction committed in the meantime, even after taking a lock. Count with a
+  locking read (`FOR UPDATE`), which always sees the latest commit; see
+  [ADR 0005](adr/0005-database-approach.md).
+- **A locking read without an index locks every row it reads.** `FOR UPDATE` locks the rows InnoDB
+  scans, not only the rows that match. The member roles have no index, so
+  `MemberRepository::activeAdminsForUpdate()` locks every member row until the transaction ends.
 
 ## Symfony
 
 - **`DEFAULT_URI`** has a default in `config/services.yaml` (`http://localhost`). Without it,
   `cache:clear` fails with "Environment variable not found". Set the real base URL in `.env.local`.
+- **A kernel without debug does not check its cache.** With `APP_DEBUG=0` the kernel keeps using the
+  container in `var/cache/<env>/`, however much the code changed since. An outdated container in
+  `var/cache/test/` refused every voter attribute, so every handler threw `AccessDenied`. Clear it with
+  `symfony console cache:clear --env=test` after pulling changes to services or voters.
 - **`bin/console debug:container --deprecations` always exits with code 0.** `composer deprecations`
   therefore checks the text of its output.

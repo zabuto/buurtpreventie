@@ -25,5 +25,49 @@ Symfony reads them in this order; a later value wins. Real secrets live only in 
 | --- | --- | --- |
 | `APP_ENV` | Environment: `dev`, `test` or `prod` | `dev` |
 | `APP_SECRET` | Key for signed values such as CSRF tokens. Unique and secret per installation, and always generated, never typed: the installer writes it; locally `php -r 'echo bin2hex(random_bytes(32)), PHP_EOL;'` makes one for `.env.local` | required in production, in `shared/.env.local` |
-| `DATABASE_URL` | Database connection, from phase 1 on. Locally the Symfony CLI sets it from the `database` container in `compose.yaml`; on a server it goes in `shared/.env.local`, such as `mysql://db_user:db_password@localhost:3306/db_name?charset=utf8mb4` for MariaDB and MySQL alike. URL-encode special characters in the password (`@` becomes `%40`, `:` `%3A`, `/` `%2F`, `#` `%23`, `%` `%25`), or the connection fails with a misleading error. Leave out `serverVersion`: hosts upgrade without notice, and a stale version makes Doctrine generate SQL for the wrong platform; without it, DBAL reads the version when it connects. Tests add `_test` to the database name | none; in `test`, an unreachable address in `.env.test`, so the kernel boots and the database tests skip |
+| `DATABASE_URL` | Database connection. Locally the Symfony CLI sets it from the `database` container in `compose.yaml`; on a server it goes in `shared/.env.local`, such as `mysql://db_user:db_password@localhost:3306/db_name?charset=utf8mb4` for MariaDB and MySQL alike. URL-encode special characters in the password (`@` becomes `%40`, `:` `%3A`, `/` `%2F`, `#` `%23`, `%` `%25`), or the connection fails with a misleading error. Leave out `serverVersion`: hosts upgrade without notice, and a stale version makes Doctrine generate SQL for the wrong platform; without it, DBAL reads the version when it connects. Tests add `_test` to the database name | none; in `test`, an unreachable address in `.env.test`, so the kernel boots and the database tests skip |
 | `DEFAULT_URI` | Base URL of the app for links outside a web request, such as in e-mails and from the console. A subdomain (`https://buurtpreventie.example.org`) or a path (`https://example.org/buurtpreventie`), without `/public` | `http://localhost` (in `config/services.yaml`) |
+
+## Fixed limits
+
+Values in the code that no setting changes. A new limit gets a row here.
+
+### Rounds and messages
+
+| Limit | Value | Where |
+| --- | --- | --- |
+| Local clock | `Europe/Amsterdam` for dayparts, calendar days, reminders and buddy calls; stored instants are UTC | `LocalTime::ZONE` |
+| Default walkers of a new round | Minimum 2, maximum 7, until an admin changes the settings `patrol.minimum_walkers` and `patrol.maximum_walkers` (screens in phase 3) | `StaffingDefaults` |
+| Walkers of one round | Minimum at least 1, maximum at least the minimum; fixed when the round is created | `StaffingRule` |
+| Dayparts | `morning` before 12:00, `afternoon` before 18:00, `evening` from 18:00 | `Daypart` |
+| Start of a round | After the moment it is created or moved; no change once started | `RoundStart`, `Round::change()` |
+| Round list | A period that ends after its start and lasts at most 93 days: a quarter in local time, the hour the clocks go back included | `ListRoundsHandler::MAXIMUM_PERIOD_IN_DAYS` |
+| Buddy call | Once per round, at the first of 5, 3 or 1 days before the start (local clock) that falls after the round was created; at once for a round created less than a day ahead | `BuddyCall::LEAD_DAYS` |
+| Reminder | One message per active walker per local calendar day, for all their rounds of that day | `Reminders` |
+
+### Field lengths
+
+The input of a use case refuses a longer value; the column holds at least as much.
+
+| Field | Maximum (characters) |
+| --- | --- |
+| E-mail address | 180 |
+| Full name, display name | 100 |
+| Phone number | 30, with at least 6 digits; digits, spaces, brackets, hyphens and a leading `+` only |
+| Address | 255 |
+| Search term for members | 100 |
+| Name of a meeting point or outcome | 100 |
+| Start note of a round, reason for a cancellation | 500 |
+| Comment | 2,000 |
+| Note of a round report | 5,000 |
+| Name of an API token | 100 |
+| Password | at least 12, at most 4,096 |
+
+### Other values
+
+| Limit | Value | Where |
+| --- | --- | --- |
+| Coordinates | Latitude −90 to 90, longitude −180 to 180, six decimals (about 10 cm) | `Coordinates`, `DECIMAL(9,6)` |
+| API token secret | `bpt_` and 64 hexadecimal characters from 32 random bytes, stored as SHA-256; any other value is refused | `ApiToken`, `RandomSecretGenerator` |
+| API token scopes | At least one of `read`, `write` and `admin`; an optional expiry | `CreateApiToken`, `TokenScope` |
+| Audit fields | A field name containing `password`, `secret`, `token` or `hash` is refused | `AuditEntry` |

@@ -81,4 +81,5 @@ The plan lives in docs/plans/plan.md and is leading. Read it before every phase.
 - Single tools: vendor/bin/phpstan analyse, vendor/bin/mago format --dry-run, vendor/bin/mago lint,
   vendor/bin/mago analyze,
   vendor/bin/rector process --dry-run. PHPStan reads var/cache/dev: run symfony console cache:warmup first.
-- Load fixtures: symfony console app:fixtures:load demo (from phase 1).
+- Load fixtures: symfony console app:fixtures:load demo|test|edge (empties the database first; dev and test only).
+- Database tests only: symfony php vendor/bin/phpunit --group database.

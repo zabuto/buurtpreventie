@@ -13,15 +13,18 @@ Dutch domain terms and their code names are in [glossary.md](glossary.md).
 ```text
 src/
   <Module>/
-    Domain/           entities, value objects, rules, repository interfaces
+    Domain/           entities with their mapping, value objects, rules, guards, policies, repository interfaces
     UseCase/
       <Name>/         one folder per use case, see below
-    Infrastructure/   Doctrine repositories, e-mail, Symfony integrations, console commands
+    Infrastructure/
+      Persistence/    Doctrine repositories: the only place for queries
+      Security/       voters
+                      and other integrations: console commands, sample data, e-mail
   Shared/
     Domain/           building blocks for every module: value objects and interfaces such as AuditTrail
     Infrastructure/   shared technical code: Doctrine types and transaction, Symfony authorization, the generator
   Kernel.php
-tests/                the same folders as src/, plus Architecture/
+tests/                the same folders as src/, plus Architecture/, Database/, Dependencies/ and Tools/
 ```
 
 | Module | Covers |
@@ -30,8 +33,9 @@ tests/                the same folders as src/, plus Architecture/
 | `Membership` | Members, roles, consent, certificate |
 | `Identity` | Login, login links, passwords, API tokens |
 | `Audit` | Recording and showing the audit log |
-| `Settings` | Branding and texts |
-| `Maintenance` | Health check, reminders, updates, installer, legacy import |
+| `Settings` | The default minimum and maximum walkers of a new round; branding and texts from phase 3 |
+| `Maintenance` | Health check, updates, installer, legacy import |
+| `SampleData` | Made-up sample data, loaded through the use cases of the other modules; see [Sample data](#sample-data) |
 
 Every module has exactly `Domain/`, `UseCase/` and `Infrastructure/`. `Shared` is not a module: it
 has no use cases. `tests/Architecture/ModuleStructureTest.php` guards this; PHPat sees classes only,
@@ -44,7 +48,7 @@ A `UseCase/<Name>/` folder holds only these files, all `final readonly`:
 | File | Role | Required |
 | --- | --- | --- |
 | `<Name>.php` | Input: the contract, with Validator constraints | yes |
-| `<Name>Handler.php` | Permissions, domain rules and audit log; returns the output | yes |
+| `<Name>Handler.php` | Orchestration: permission, transaction, domain calls, audit entry, notifications; returns the output | yes |
 | `<Name>Output.php` | Output: scalars and arrays only, no entities | when there is output |
 | `<Name>Controller.php` | REST adapter: request to input, call the handler, return JSON | when there is a REST entry |
 | `<Name>Tool.php` | MCP adapter: tool call to input, call the handler | when there is an MCP entry |
@@ -153,6 +157,9 @@ A handler reaches storage, rights, the audit log and messages only through inter
 | `Role`, `Actor` | The fixed roles `walker`, `coordinator`, `analyst` and `admin`, without inheritance, and a member with their roles, as the policies of every module decide on them | |
 | `NotFound` | No item of a kind has a given id; entry points turn it into their own answer, such as HTTP 404 | |
 | `LocalTime` | Converts an instant to `Europe/Amsterdam`, the clock of dayparts, calendar days and everything a walker reads | |
+| `LocalDay` | A calendar day on that clock, from midnight to midnight: 23 or 25 hours on the days the clock changes | |
+| `WriteAction`, `ReadAction` | Mark a handler as changing something, with its voter attribute and audit action, or as only reading | |
+| `BackedEnumValues` | Gives an enum `values()`, so an input constraint takes its choices from the enum (`Assert\Choice(callback: ...)`) | |
 | `EmailAddress` | An address trimmed and in lower case, with accents kept | |
 | `LookupKey` | The search and uniqueness key of a name: no case, accents or extra whitespace | |
 
@@ -173,6 +180,92 @@ sets; an action no voter decides on is refused.
 A handler that calls the handler of another module, such as `DeactivateMember` calling
 `WithdrawMemberFromUpcomingRounds`, `RevokeMemberApiTokens` and `EraseActorName`, runs that handler's transaction inside
 its own. Doctrine nests it with a savepoint, so a failure in either undoes both.
+
+## Handler and domain
+
+A handler orchestrates: it builds value objects from the input, asks `Authorization`, runs the change
+in `Transaction`, loads and saves through repositories, records the audit entry, calls the handlers
+of other modules and sends notifications. Whether a member of another module is active is asked
+there too, through `MemberDirectory`. Every rule lives in the domain, so it holds for every handler
+that calls it and its test needs no handler:
+
+| Kind | Holds | Examples |
+| --- | --- | --- |
+| Entity method | A rule about the state of one aggregate | `Round::signUp()` refuses a full or started round, `Round::ensureDeletable()`, `Round::withdraw()` reports a drop below the minimum |
+| Value object | A rule about one value | `StaffingRule` (maximum at least the minimum), `Coordinates::fromOptional()` (both or neither), `LookupKey` |
+| Guard | A rule that needs a repository to answer | `UniqueCatalogueName`, `UniqueMemberDetails`, `MeetingPointInUseGuard`, `LastAdminGuard`, `FirstAdminGuard` |
+| Policy | Who may do what; the voters ask it | `RoundPolicy` (also who sees full names), `MemberPolicy`, `CredentialPolicy`, `AuditPolicy` |
+
+A handler with an `if` that decides something about the domain is a rule in the wrong place: move it
+into one of these, with a test in `tests/<Module>/Domain/`.
+
+### Repositories per module
+
+Each module owns its tables. Its repository interfaces sit in its `Domain`, one per aggregate
+(`RoundRepository`), with only the methods its use cases need; the Doctrine implementations sit in
+`Infrastructure/Persistence/` (`DoctrineRoundRepository`). That way:
+
+- handler tests run on small in-memory repositories in `tests/<Module>/Fake/`;
+- every query of a module is in one folder, with an integration test on MariaDB and MySQL, and the
+  Opengrep rule `sql-outside-repository` refuses a query anywhere else;
+- another module reaches the data only through a use case or an interface in `Shared\Domain`, never
+  through a repository.
+
+A repository that guards a unique index (members, meeting points, outcomes) writes at once in `add()`
+and `update()`, so a clash with another request surfaces inside the handler as the same error its
+check gives. See [ADR 0005](adr/0005-database-approach.md).
+
+### Mapping in the domain
+
+Entities carry their Doctrine mapping as attributes (`#[ORM\Entity]`, `#[ORM\Column]`) in `Domain`, on
+purpose: rule 1 allows `Doctrine\ORM\Mapping` and nothing else of Doctrine ORM. The type, length and
+collation of a column stand next to the field they store, so a change to a field and to its column
+is one change in one file. XML mapping in `Infrastructure` would keep the attributes out of the domain
+at the cost of a second file per entity that has to follow every field by hand. The attributes do
+nothing without Doctrine, so domain tests stay in memory. `config/packages/doctrine.yaml` maps
+`src/<Module>/Domain` per module, subfolders included.
+
+### Subfolders per aggregate
+
+A `Domain` stays flat until it holds several aggregates; then each gets a subfolder, and the tests
+follow the same layout. `Patrol/Domain` has `Round/` (rounds, participations, reports, comments,
+staffing, reminders, buddy calls and `RoundPolicy`) and `Catalogue/` (meeting points and outcomes).
+The other modules are flat. The Doctrine mapping and the PHPat rules read the subfolders: PHPat
+compares on the start of the namespace.
+
+### The module boundary in the database
+
+There is no foreign key between the tables of two modules. A reference to a member from another
+module is the member's UUID with an index of its own (`Participation.memberId`,
+`RoundReport.authorId`, `AuditEntry.actorId`, ...), never a Doctrine relation, which would let one
+module load the entities of another. A member is never deleted: erasing anonymises it, so every
+reference keeps pointing at an existing row. Within a module, relations and foreign keys stay. See
+[ADR 0005](adr/0005-database-approach.md).
+
+## Sample data
+
+The module `SampleData` holds `app:fixtures:load <set>`, which exists only in `dev` and `test`
+(`#[When]`). It is a module and not part of `Shared`, because it calls the use cases of every module
+and `Shared` depends on no module ([rule 4](#rule-4-modules-and-shared)). It has no use cases and no
+domain of its own; everything sits in `Infrastructure`.
+
+The command empties the database with Doctrine's `ORMPurger` and builds the set through the handlers,
+each step run by whoever would take it: the system adds the first admin (`RunAs::system()`, channel
+`console`), the admin adds members, members sign up and report (`RunAs::member()`). `Timeline` sets
+the clock for each step, so a round in the past is created, joined and reported as it would have been
+then, and its audit entries carry that moment; a step after the start of the load is refused. A
+change to a rule or the model therefore breaks the sample data at once, instead of leaving rows that
+no use case could have written.
+
+| Set | Contents |
+| --- | --- |
+| `demo` | Twenty members with every role, rounds from three months back to six weeks ahead, mostly in the evening, more than a quarter without a buddy, a few full ones, reports with now and then an incident |
+| `test` | An admin, a meeting point and the standard outcomes; each test builds the rest |
+| `edge` | One of each hard case: rounds around the last clock change, a last walker who withdraws, an erased member in the history, a member without consent, rounds just under the minimum, at the maximum and with one spot left, two members who share their full name |
+
+A fixed seed gives the same people and pattern on every load; only the dates follow today. Names are
+made up and international, with letters the lookup key keeps (`ı`, `ł`); a display name is the first
+name, with an initial only where two members share it. Addresses are on `example.org`.
 
 ## Rules
 
