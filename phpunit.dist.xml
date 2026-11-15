@@ -12,6 +12,8 @@
          failOnRisky="true"
          failOnEmptyTestSuite="true"
          displayDetailsOnTestsThatTriggerDeprecations="true"
+         displayDetailsOnTestsThatTriggerNotices="true"
+         displayDetailsOnTestsThatTriggerWarnings="true"
          displayDetailsOnPhpunitDeprecations="true"
          beStrictAboutOutputDuringTests="true"
          bootstrap="tests/bootstrap.php"

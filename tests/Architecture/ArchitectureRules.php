@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Architecture;
 
 use PHPat\Selector\Selector;
+use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 use PHPat\Test\PHPat;
 
@@ -17,19 +18,22 @@ final readonly class ArchitectureRules
 {
     private const string DOCS = 'See docs/architecture.md#';
 
-    public function __construct(private string $sourceRoot)
-    {
+    public function __construct(
+        private string $sourceRoot,
+    ) {
     }
 
     /**
      * @return iterable<string, BuildStep>
      */
-    public function testDomainDependsOnlyOnItsOwnDomainAndSharedDomain(): iterable
+    #[TestRule]
+    public function domainDependsOnlyOnItsOwnDomainAndSharedDomain(): iterable
     {
         foreach ([...$this->modules(), 'Shared'] as $module) {
             yield $module => PHPat::rule()
                 ->classes(Selector::inNamespace(\sprintf('App\%s\Domain', $module)))
-                ->canOnly()->dependOn()
+                ->canOnly()
+                ->dependOn()
                 ->classes(
                     Selector::inNamespace(\sprintf('App\%s\Domain', $module)),
                     Selector::inNamespace('App\Shared\Domain'),
@@ -38,16 +42,20 @@ final readonly class ArchitectureRules
                 )
                 ->because(
                     'Domain code knows nothing about HTTP, MCP, storage or other modules, so domain rules can be tested'
-                    .' in isolation. '.self::DOCS.'rule-1-domain',
+                        . ' in isolation. '
+                        . self::DOCS
+                        . 'rule-1-domain',
                 );
         }
     }
 
-    public function testInputAndHandlerStayFreeOfTransportAndInfrastructure(): BuildStep
+    #[TestRule]
+    public function inputAndHandlerStayFreeOfTransportAndInfrastructure(): BuildStep
     {
         return PHPat::rule()
             ->classes(Selector::classname('/^App\\\\\w+\\\\UseCase\\\\(\w+)\\\\\1(Handler)?$/', regex: true))
-            ->shouldNot()->dependOn()
+            ->shouldNot()
+            ->dependOn()
             ->classes(
                 Selector::inNamespace('Symfony\Component\HttpFoundation'),
                 Selector::inNamespace('Symfony\Component\HttpKernel'),
@@ -58,19 +66,24 @@ final readonly class ArchitectureRules
             )
             ->because(
                 'REST and MCP call the same handler with the same input, so neither may know which transport called'
-                .' it. '.self::DOCS.'rule-2-input-and-handler',
-            );
+                    . ' it. '
+                    . self::DOCS
+                    . 'rule-2-input-and-handler',
+            )
+        ;
     }
 
     /**
      * @return iterable<string, BuildStep>
      */
-    public function testControllerUsesOnlyItsOwnUseCaseAndHttp(): iterable
+    #[TestRule]
+    public function controllerUsesOnlyItsOwnUseCaseAndHttp(): iterable
     {
         foreach ($this->useCases() as $namespace => $useCase) {
             yield $namespace => PHPat::rule()
                 ->classes(Selector::classname(\sprintf('%s\%sController', $namespace, $useCase)))
-                ->canOnly()->dependOn()
+                ->canOnly()
+                ->dependOn()
                 ->classes(
                     Selector::inNamespace($namespace),
                     Selector::inNamespace('Symfony\Component\HttpFoundation'),
@@ -79,7 +92,9 @@ final readonly class ArchitectureRules
                 )
                 ->because(
                     'A controller is a thin adapter: it maps the request onto the input and calls the handler in its'
-                    .' own folder. '.self::DOCS.'rule-3-controller-tool-and-output',
+                        . ' own folder. '
+                        . self::DOCS
+                        . 'rule-3-controller-tool-and-output',
                 );
         }
     }
@@ -87,12 +102,14 @@ final readonly class ArchitectureRules
     /**
      * @return iterable<string, BuildStep>
      */
-    public function testToolUsesOnlyItsOwnUseCaseAndMcp(): iterable
+    #[TestRule]
+    public function toolUsesOnlyItsOwnUseCaseAndMcp(): iterable
     {
         foreach ($this->useCases() as $namespace => $useCase) {
             yield $namespace => PHPat::rule()
                 ->classes(Selector::classname(\sprintf('%s\%sTool', $namespace, $useCase)))
-                ->canOnly()->dependOn()
+                ->canOnly()
+                ->dependOn()
                 ->classes(
                     Selector::inNamespace($namespace),
                     Selector::inNamespace('Mcp'),
@@ -100,54 +117,71 @@ final readonly class ArchitectureRules
                 )
                 ->because(
                     'An MCP tool is a thin adapter: it maps the tool call onto the input and calls the handler in its'
-                    .' own folder. '.self::DOCS.'rule-3-controller-tool-and-output',
+                        . ' own folder. '
+                        . self::DOCS
+                        . 'rule-3-controller-tool-and-output',
                 );
         }
     }
 
-    public function testOutputExposesNoDomainObjects(): BuildStep
+    #[TestRule]
+    public function outputExposesNoDomainObjects(): BuildStep
     {
         return PHPat::rule()
             ->classes(Selector::classname('/^App\\\\\w+\\\\UseCase\\\\(\w+)\\\\\1Output$/', regex: true))
-            ->shouldNot()->dependOn()
+            ->shouldNot()
+            ->dependOn()
             ->classes(Selector::classname('/^App\\\\\w+\\\\Domain\\\\/', regex: true))
             ->because(
                 'Output is the public contract of REST and MCP; exposing entities would leak fields such as contact'
-                .' details that need consent. '.self::DOCS.'rule-3-controller-tool-and-output',
-            );
+                    . ' details that need consent. '
+                    . self::DOCS
+                    . 'rule-3-controller-tool-and-output',
+            )
+        ;
     }
 
     /**
      * @return iterable<string, BuildStep>
      */
-    public function testModulesMeetOnlyThroughUseCasesAndSharedDomain(): iterable
+    #[TestRule]
+    public function modulesMeetOnlyThroughUseCasesAndSharedDomain(): iterable
     {
         foreach ($this->modules() as $module) {
             yield $module => PHPat::rule()
                 ->classes(Selector::inNamespace(\sprintf('App\%s', $module)))
-                ->shouldNot()->dependOn()
+                ->shouldNot()
+                ->dependOn()
                 ->classes(Selector::classname(\sprintf('/^App\\\\(?!%s\\\\|Shared\\\\)\w+\\\\/', $module), regex: true))
                 ->excluding(Selector::classname('/^App\\\\\w+\\\\UseCase\\\\(\w+)\\\\\1(Handler|Output)?$/', regex: true))
                 ->because(
                     'Modules meet only through use cases or interfaces in Shared\Domain, so each module can change'
-                    .' its internals freely. '.self::DOCS.'rule-4-modules-and-shared',
+                        . ' its internals freely. '
+                        . self::DOCS
+                        . 'rule-4-modules-and-shared',
                 );
         }
     }
 
-    public function testSharedDependsOnNoModule(): BuildStep
+    #[TestRule]
+    public function sharedDependsOnNoModule(): BuildStep
     {
         return PHPat::rule()
             ->classes(Selector::inNamespace('App\Shared'))
-            ->shouldNot()->dependOn()
+            ->shouldNot()
+            ->dependOn()
             ->classes(Selector::classname('/^App\\\\(?!Shared\\\\)\w+\\\\/', regex: true))
             ->because(
                 'Shared holds building blocks every module may use; depending on a module would create a cycle.'
-                .' '.self::DOCS.'rule-4-modules-and-shared',
-            );
+                    . ' '
+                    . self::DOCS
+                    . 'rule-4-modules-and-shared',
+            )
+        ;
     }
 
-    public function testTwigOnlyRendersEmailsAndTheInstaller(): BuildStep
+    #[TestRule]
+    public function twigOnlyRendersEmailsAndTheInstaller(): BuildStep
     {
         return PHPat::rule()
             ->classes(Selector::classname('/^App\\\\(?!Tests\\\\)/', regex: true))
@@ -155,7 +189,8 @@ final readonly class ArchitectureRules
                 Selector::classname('/^App\\\\\w+\\\\Infrastructure\\\\Mail\\\\/', regex: true),
                 Selector::inNamespace('App\Maintenance\Infrastructure\Installer'),
             )
-            ->shouldNot()->dependOn()
+            ->shouldNot()
+            ->dependOn()
             ->classes(
                 Selector::inNamespace('Twig'),
                 Selector::inNamespace('Symfony\Bridge\Twig'),
@@ -163,8 +198,11 @@ final readonly class ArchitectureRules
             )
             ->because(
                 'Screens live in frontend/ and talk to /api/v1 only; the backend renders e-mails and the installer.'
-                .' '.self::DOCS.'rule-5-twig',
-            );
+                    . ' '
+                    . self::DOCS
+                    . 'rule-5-twig',
+            )
+        ;
     }
 
     /**
@@ -174,7 +212,7 @@ final readonly class ArchitectureRules
     {
         return array_values(array_filter(
             $this->folders($this->sourceRoot),
-            static fn (string $folder): bool => 'Shared' !== $folder,
+            static fn(string $folder): bool => 'Shared' !== $folder,
         ));
     }
 
@@ -185,7 +223,7 @@ final readonly class ArchitectureRules
     {
         $useCases = [];
         foreach ($this->modules() as $module) {
-            foreach ($this->folders($this->sourceRoot.'/'.$module.'/UseCase') as $useCase) {
+            foreach ($this->folders($this->sourceRoot . '/' . $module . '/UseCase') as $useCase) {
                 $useCases[\sprintf('App\%s\UseCase\%s', $module, $useCase)] = $useCase;
             }
         }
@@ -205,7 +243,7 @@ final readonly class ArchitectureRules
 
         return array_values(array_filter(
             $entries,
-            static fn (string $entry): bool => !str_starts_with($entry, '.') && is_dir($path.'/'.$entry),
+            static fn(string $entry): bool => !str_starts_with($entry, '.') && is_dir($path . '/' . $entry),
         ));
     }
 }

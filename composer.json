@@ -80,14 +80,17 @@
             "@php bin/console lint:container",
             "@php bin/console lint:yaml config",
             "@deprecations",
-            "@php vendor/bin/php-cs-fixer check --diff",
+            "vendor/bin/mago format --dry-run",
+            "vendor/bin/mago lint --minimum-fail-level warning",
+            "vendor/bin/mago analyze --minimum-fail-level error",
             "@php vendor/bin/rector process --dry-run",
             "@php vendor/bin/phpstan analyse --no-progress",
             "@test"
         ],
         "fix": [
             "@php vendor/bin/rector process",
-            "@php vendor/bin/php-cs-fixer fix"
+            "vendor/bin/mago lint --fix",
+            "vendor/bin/mago format"
         ],
         "deprecations": [
             "@php bin/console debug:container --deprecations | tee /dev/stderr | grep -q 'There are no deprecations'"
@@ -103,7 +106,7 @@
         }
     },
     "require-dev": {
-        "friendsofphp/php-cs-fixer": "*",
+        "carthage-software/mago": "^1.60",
         "phpat/phpat": "*",
         "phpstan/phpstan": "*",
         "phpstan/phpstan-deprecation-rules": "*",
@@ -117,7 +120,7 @@
         "test": "Runs the test suite",
         "test:unit": "Runs the in-memory unit tests only",
         "check": "Runs every check CI runs",
-        "fix": "Applies Rector and PHP-CS-Fixer changes",
+        "fix": "Applies Rector, Mago lint fixes and Mago formatting",
         "deprecations": "Fails when building the container triggered a deprecation"
     }
 }

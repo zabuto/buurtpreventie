@@ -6,8 +6,9 @@ namespace App\Maintenance\UseCase\CheckHealth;
 
 final readonly class CheckHealthTool
 {
-    public function __construct(private CheckHealthHandler $handler)
-    {
+    public function __construct(
+        private CheckHealthHandler $handler,
+    ) {
     }
 
     public function __invoke(CheckHealth $input): CheckHealthOutput

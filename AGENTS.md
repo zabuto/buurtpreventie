@@ -11,6 +11,11 @@ The plan lives in docs/plan-v4.md and is leading. Read it before every phase.
   except docs/glossary.md (Dutch terms and their code names) and the Dutch plans
   (docs/plan-v4.md, docs/plans/). UI texts: nl and en, through translation files.
 - Domain terms follow docs/glossary.md (loopronde = Round, loopmaatje = buddy, ...).
+- Every text (comments, test names, messages, docs, UI texts) follows docs/writing.md: UK English
+  with US spelling for code vocabulary, no narrative, Dutch user texts at B1.
+- Code follows docs/code-style.md: final (readonly) classes, native types, named arguments for
+  literal flags, early return; composer check enforces the rest. Symfony recipe files
+  (src/Kernel.php, public/index.php, config/preload.php, tests/bootstrap.php) stay as shipped.
 
 ## Structure
 
@@ -28,9 +33,11 @@ The plan lives in docs/plan-v4.md and is leading. Read it before every phase.
 
 ## Definition of done for every task
 
-- Tests first, all green; PHPStan, PHPat and PHP-CS-Fixer clean; no new deprecations.
-  Tests follow Arrange-Act-Assert, check one behaviour each, are named test_<behaviour> in
-  snake_case, and stay in memory unless grouped integration or functional (docs/testing.md).
+- Tests first, all green; PHPStan, PHPat and Mago clean; no new deprecations.
+  Tests follow Arrange-Act-Assert, check one behaviour each, carry #[Test] with a snake_case
+  sentence (it_… for the class under test), never depend on another test, and stay in memory
+  unless grouped integration or functional (docs/testing.md).
+- Run every check before calling a task done, and report any check that did not run.
 - Every write action = audit entry + Voter + a row in the matrix test.
 - New texts in nl and en; screens checked with keyboard only and on a narrow screen.
 - Fixtures and glossary updated when the model changed.
@@ -59,9 +66,10 @@ The plan lives in docs/plan-v4.md and is leading. Read it before every phase.
 - Install: composer install
 - Start: symfony server:start, or php -S localhost:8000 -t public; check /api/v1/health.
 - Test: composer test (all), composer test:unit (in-memory unit tests only)
-- All CI checks: composer check (validate, audit, container lint, deprecations, PHP-CS-Fixer,
-  Rector dry run, PHPStan level max with PHPat, PHPUnit).
-- Fix style: composer fix (Rector, then PHP-CS-Fixer).
-- Single tools: vendor/bin/phpstan analyse, vendor/bin/php-cs-fixer check --diff,
+- All CI checks: composer check (validate, audit, container lint, deprecations, Mago format,
+  lint and analyze, Rector dry run, PHPStan level max with PHPat, PHPUnit).
+- Fix style: composer fix (Rector, then Mago lint fixes and Mago format).
+- Single tools: vendor/bin/phpstan analyse, vendor/bin/mago format --dry-run, vendor/bin/mago lint,
+  vendor/bin/mago analyze,
   vendor/bin/rector process --dry-run. PHPStan reads var/cache/dev: run bin/console cache:warmup first.
 - Load fixtures: bin/console app:fixtures:load demo (from phase 1).

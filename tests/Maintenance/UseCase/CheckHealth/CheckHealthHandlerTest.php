@@ -6,13 +6,15 @@ namespace App\Tests\Maintenance\UseCase\CheckHealth;
 
 use App\Maintenance\UseCase\CheckHealth\CheckHealth;
 use App\Maintenance\UseCase\CheckHealth\CheckHealthHandler;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 final class CheckHealthHandlerTest extends TestCase
 {
-    public function test_reports_ok_while_the_application_runs(): void
+    #[Test]
+    public function it_reports_ok_while_the_application_runs(): void
     {
-        $output = (new CheckHealthHandler())(new CheckHealth());
+        $output = new CheckHealthHandler()(new CheckHealth());
 
         self::assertSame('ok', $output->status);
     }

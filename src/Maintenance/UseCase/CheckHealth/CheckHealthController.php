@@ -11,8 +11,9 @@ use Symfony\Component\Routing\Attribute\Route;
 #[AsController]
 final readonly class CheckHealthController
 {
-    public function __construct(private CheckHealthHandler $handler)
-    {
+    public function __construct(
+        private CheckHealthHandler $handler,
+    ) {
     }
 
     #[Route('/health', name: 'maintenance_check_health', methods: ['GET'])]

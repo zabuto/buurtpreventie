@@ -22,8 +22,8 @@
 `composer test` runs all of them; `composer test:unit` runs only the unit tests, in about a second.
 A test class that leaves memory carries `#[Group('integration')]` or `#[Group('functional')]`.
 
-`MakeUseCaseCommandTest` lets the generator create a use case in a temporary folder and runs PHPStan
-at level max with the architecture rules on it. A mistake in the templates thus breaks a test, not
+`MakeUseCaseCommandTest` lets the generator create a use case in a temporary folder, checks that
+`mago format` would not change it, and runs PHPStan at level max with the architecture rules on it. A mistake in the templates thus breaks a test, not
 the next use case. What the templates contain is unit-tested in memory in `UseCaseTemplatesTest`.
 
 ## Writing tests
@@ -32,8 +32,14 @@ the next use case. What the templates contain is unit-tested in memory in `UseCa
   in that order, with a blank line between the three parts.
 - **One behaviour per test.** A test checks a single scenario, so its name says what broke when it
   fails. Several assertions are fine when together they describe that one outcome.
-- **Names are sentences in snake_case** with the `test_` prefix, stating the expected behaviour:
-  `test_refuses_writes_because_the_check_changes_nothing`. PHP-CS-Fixer enforces the casing.
+- **`#[Test]` and a sentence in snake_case**, stating the expected behaviour, without a `test` prefix.
+  When the subject is the class under test, the sentence starts with `it_`:
+  `it_refuses_writes_because_the_check_changes_nothing`; otherwise it names its subject:
+  `every_module_has_exactly_domain_use_case_and_infrastructure`. Mago enforces the attribute.
+- **Independent tests.** A test builds everything it needs in its own Arrange step or in `setUp()`,
+  and cleans up in `tearDown()`. No static properties, no cache filled by an earlier test, no
+  `#[Depends]`: every test passes when it runs alone and in any order.
+- **`$this->assert…()`** for assertions; Mago enforces the style.
 - **Real objects over test doubles.** Use the real class wherever it runs in memory. A mock or stub
   belongs only at a boundary the test cannot run, such as a third-party service.
 - **Descriptive over DRY.** A test may repeat a line of setup so it reads on its own; a helper is for
@@ -64,13 +70,14 @@ A test passes or fails for one reason only, every time:
 | `lint:container` | Services that do not match the types of their constructor |
 | `lint:yaml config` | Invalid YAML |
 | `composer deprecations` | A deprecation while building the container |
-| PHP-CS-Fixer | Deviating code style (`@PER-CS`, `@Symfony`, strict types) |
+| Mago format, lint, analyze | Deviating layout, lint warnings, analyzer errors; see [code-style.md](code-style.md) |
 | Rector (dry run) | Code a PHP 8.4, Symfony or PHPUnit rule of Rector would change |
 | PHPStan | Errors at level max, deprecations, PHPUnit and Symfony rules, architecture rules |
 | PHPUnit | A failing test, and also any deprecation, notice, warning or risky test |
 
 Locally you can also run them one by one: `composer test`, `vendor/bin/phpstan analyse`,
-`vendor/bin/php-cs-fixer check --diff`, `vendor/bin/rector process --dry-run`.
+`vendor/bin/mago format --dry-run`, `vendor/bin/mago lint`, `vendor/bin/mago analyze`,
+`vendor/bin/rector process --dry-run`.
 
 ## No deprecations
 

@@ -6,7 +6,8 @@ namespace App\Maintenance\UseCase\CheckHealth;
 
 final readonly class CheckHealthOutput
 {
-    public function __construct(public string $status)
-    {
+    public function __construct(
+        public string $status,
+    ) {
     }
 }

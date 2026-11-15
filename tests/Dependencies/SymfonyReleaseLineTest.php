@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Dependencies;
 
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -15,81 +16,54 @@ use PHPUnit\Framework\TestCase;
 #[Group('integration')]
 final class SymfonyReleaseLineTest extends TestCase
 {
-    private const string PROJECT_ROOT = __DIR__.'/../..';
-
     /** Symfony packages with a release line of their own. */
     private const array OWN_RELEASE_LINE = ['/^symfony\/flex$/', '/^symfony\/polyfill-/', '/-contracts$/'];
 
-    public function test_every_required_symfony_component_uses_the_release_line(): void
+    #[Test]
+    public function every_required_symfony_component_uses_the_release_line(): void
     {
-        $line = self::releaseLine();
-        $composer = self::json('composer.json');
+        $composer = new ComposerFiles(__DIR__ . '/../..');
+        $line = $composer->symfonyReleaseLine();
+        $this->assertNotNull($line, 'composer.json lacks extra.symfony.require.');
 
-        foreach (['require', 'require-dev'] as $section) {
-            $requirements = $composer[$section] ?? [];
-            self::assertIsArray($requirements);
-            foreach ($requirements as $package => $constraint) {
-                if (self::isComponent((string) $package)) {
-                    self::assertSame($line, $constraint, \sprintf('%s requires "%s"; the Symfony release line is "%s".', $package, (string) (\is_scalar($constraint) ? $constraint : ''), $line));
-                }
-            }
+        $requirements = array_filter($composer->requirements(), $this->isComponent(...), \ARRAY_FILTER_USE_KEY);
+
+        foreach ($requirements as $package => $constraint) {
+            $this->assertSame($line, $constraint, \sprintf('%s requires "%s"; the Symfony release line is "%s".', $package, $constraint, $line));
         }
     }
 
-    public function test_every_locked_symfony_component_is_on_the_release_line(): void
+    #[Test]
+    public function every_locked_symfony_component_is_on_the_release_line(): void
     {
-        $line = self::releaseLine();
-        $pattern = '/^v?'.str_replace(['.', '*'], ['\.', '\d+(?:\.\d+)*'], $line).'$/';
-        $lock = self::json('composer.lock');
-        $packages = [...(\is_array($lock['packages'] ?? null) ? $lock['packages'] : []), ...(\is_array($lock['packages-dev'] ?? null) ? $lock['packages-dev'] : [])];
+        $composer = new ComposerFiles(__DIR__ . '/../..');
+        $line = $composer->symfonyReleaseLine();
+        $this->assertNotNull($line, 'composer.json lacks extra.symfony.require.');
+        $pattern = '/^v?' . str_replace(['.', '*'], ['\.', '\d+(?:\.\d+)*'], $line) . '$/';
 
-        $checked = 0;
-        foreach ($packages as $package) {
-            self::assertIsArray($package);
-            $name = \is_string($package['name'] ?? null) ? $package['name'] : '';
-            $version = \is_string($package['version'] ?? null) ? $package['version'] : '';
-            if (!self::isComponent($name)) {
-                continue;
-            }
-            ++$checked;
-            self::assertMatchesRegularExpression($pattern, $version, \sprintf(
-                '%s is locked at %s, outside the Symfony release line "%s". If it has a release line of its own, add it to OWN_RELEASE_LINE.',
-                $name,
+        $versions = array_filter($composer->lockedVersions(), $this->isComponent(...), \ARRAY_FILTER_USE_KEY);
+
+        $this->assertNotEmpty($versions, 'composer.lock lists no Symfony components.');
+        foreach ($versions as $package => $version) {
+            $this->assertMatchesRegularExpression(
+                $pattern,
                 $version,
-                $line,
-            ));
+                \sprintf(
+                    '%s is locked at %s, outside the Symfony release line "%s". If it has a release line of its own, add it to OWN_RELEASE_LINE.',
+                    $package,
+                    $version,
+                    $line,
+                ),
+            );
         }
-
-        self::assertGreaterThan(0, $checked, 'composer.lock lists no Symfony components.');
     }
 
-    private static function releaseLine(): string
-    {
-        $extra = self::json('composer.json')['extra'] ?? null;
-        $symfony = \is_array($extra) ? ($extra['symfony'] ?? null) : null;
-        $line = \is_array($symfony) ? ($symfony['require'] ?? null) : null;
-        self::assertIsString($line, 'composer.json lacks extra.symfony.require.');
-
-        return $line;
-    }
-
-    private static function isComponent(string $package): bool
+    private function isComponent(string $package): bool
     {
         if (!str_starts_with($package, 'symfony/')) {
             return false;
         }
 
-        return array_all(self::OWN_RELEASE_LINE, static fn (string $pattern): bool => 1 !== preg_match($pattern, $package));
-    }
-
-    /**
-     * @return array<mixed>
-     */
-    private static function json(string $file): array
-    {
-        $data = json_decode((string) file_get_contents(self::PROJECT_ROOT.'/'.$file), true);
-        self::assertIsArray($data, $file.' is not valid JSON.');
-
-        return $data;
+        return array_all(self::OWN_RELEASE_LINE, static fn(string $pattern): bool => 1 !== preg_match($pattern, $package));
     }
 }

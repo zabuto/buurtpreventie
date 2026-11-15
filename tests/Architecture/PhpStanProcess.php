@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Architecture;
 
+use FilesystemIterator;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
+
 /**
  * Runs PHPStan in a separate process for tests that judge its output.
  *
@@ -13,7 +18,7 @@ namespace App\Tests\Architecture;
  */
 final readonly class PhpStanProcess
 {
-    private const string PROJECT_ROOT = __DIR__.'/../..';
+    private const string PROJECT_ROOT = __DIR__ . '/../..';
 
     private function __construct(
         public int $exitCode,
@@ -22,12 +27,15 @@ final readonly class PhpStanProcess
     ) {
     }
 
-    public static function analyse(string $configuration): self
+    /**
+     * @param string ...$paths files to analyse instead of the paths in the configuration
+     */
+    public static function analyse(string $configuration, string ...$paths): self
     {
-        $workDir = sys_get_temp_dir().'/phpstan-run-'.bin2hex(random_bytes(6));
-        mkdir($workDir.'/cache', 0o777, recursive: true);
+        $workDir = sys_get_temp_dir() . '/phpstan-run-' . bin2hex(random_bytes(6));
+        mkdir($workDir . '/cache', 0o777, recursive: true);
 
-        $wrapper = $workDir.'/phpstan.neon';
+        $wrapper = $workDir . '/phpstan.neon';
         file_put_contents($wrapper, \sprintf(
             "includes:\n    - %s\nparameters:\n    tmpDir: %s/cache\n",
             (string) realpath($configuration),
@@ -39,11 +47,12 @@ final readonly class PhpStanProcess
                 \PHP_BINARY,
                 'vendor/bin/phpstan',
                 'analyse',
-                '--configuration='.$wrapper,
+                '--configuration=' . $wrapper,
                 '--error-format=json',
                 '--no-progress',
                 '--memory-limit=512M',
-            ], $workDir.'/stderr.txt');
+                ...array_values($paths),
+            ], $workDir . '/stderr.txt');
         } finally {
             self::remove($workDir);
         }
@@ -66,6 +75,7 @@ final readonly class PhpStanProcess
 
     /**
      * @param list<string> $command
+     * @param non-empty-string $stderrFile
      */
     private static function run(array $command, string $stderrFile): self
     {
@@ -75,8 +85,11 @@ final readonly class PhpStanProcess
             return new self(-1, '', 'Could not start PHPStan.');
         }
 
-        $stdout = (string) stream_get_contents($pipes[1]);
-        fclose($pipes[1]);
+        $stdoutPipe = $pipes[1] ?? null;
+        $stdout = \is_resource($stdoutPipe) ? (string) stream_get_contents($stdoutPipe) : '';
+        if (\is_resource($stdoutPipe)) {
+            fclose($stdoutPipe);
+        }
         $exitCode = proc_close($process);
 
         return new self($exitCode, $stdout, (string) file_get_contents($stderrFile));
@@ -84,12 +97,12 @@ final readonly class PhpStanProcess
 
     private static function remove(string $path): void
     {
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
         foreach ($iterator as $entry) {
-            \assert($entry instanceof \SplFileInfo);
+            \assert($entry instanceof SplFileInfo, 'RecursiveDirectoryIterator yields SplFileInfo by default.');
             $entry->isDir() ? rmdir($entry->getPathname()) : unlink($entry->getPathname());
         }
         rmdir($path);

@@ -6,6 +6,7 @@ namespace App\Tests\Architecture;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -14,7 +15,7 @@ use PHPUnit\Framework\TestCase;
 #[Group('integration')]
 final class ModuleStructureTest extends TestCase
 {
-    private const string SOURCE_ROOT = __DIR__.'/../../src';
+    private const string SOURCE_ROOT = __DIR__ . '/../../src';
     private const string EXPLANATION = 'See docs/architecture.md#folder-layout.';
     private const array MODULE_FOLDERS = ['Domain', 'Infrastructure', 'UseCase'];
     private const array SHARED_FOLDERS = ['Domain', 'Infrastructure'];
@@ -25,9 +26,11 @@ final class ModuleStructureTest extends TestCase
     public static function modules(): iterable
     {
         foreach (self::entries(self::SOURCE_ROOT) as $entry) {
-            if ('Shared' !== $entry && is_dir(self::SOURCE_ROOT.'/'.$entry)) {
-                yield $entry => [$entry];
+            if ('Shared' === $entry || !is_dir(self::SOURCE_ROOT . '/' . $entry)) {
+                continue;
             }
+
+            yield $entry => [$entry];
         }
     }
 
@@ -37,62 +40,70 @@ final class ModuleStructureTest extends TestCase
     public static function useCases(): iterable
     {
         foreach (self::modules() as [$module]) {
-            foreach (self::entries(self::SOURCE_ROOT.'/'.$module.'/UseCase') as $useCase) {
-                yield $module.'/'.$useCase => [$module, $useCase];
+            foreach (self::entries(self::SOURCE_ROOT . '/' . $module . '/UseCase') as $useCase) {
+                yield $module . '/' . $useCase => [$module, $useCase];
             }
         }
     }
 
-    public function test_source_root_holds_only_modules_shared_and_the_kernel(): void
+    #[Test]
+    public function source_root_holds_only_modules_shared_and_the_kernel(): void
     {
         foreach (self::entries(self::SOURCE_ROOT) as $entry) {
             self::assertTrue(
-                is_dir(self::SOURCE_ROOT.'/'.$entry) || 'Kernel.php' === $entry,
+                is_dir(self::SOURCE_ROOT . '/' . $entry) || 'Kernel.php' === $entry,
                 \sprintf('src/%s is neither a module folder nor Kernel.php. %s', $entry, self::EXPLANATION),
             );
         }
     }
 
     #[DataProvider('modules')]
-    public function test_every_module_has_exactly_domain_use_case_and_infrastructure(string $module): void
+    #[Test]
+    public function every_module_has_exactly_domain_use_case_and_infrastructure(string $module): void
     {
         self::assertSame(
             self::MODULE_FOLDERS,
-            self::folders(self::SOURCE_ROOT.'/'.$module),
+            self::folders(self::SOURCE_ROOT . '/' . $module),
             \sprintf('Module %s must contain exactly Domain/, UseCase/ and Infrastructure/. %s', $module, self::EXPLANATION),
         );
     }
 
-    public function test_shared_has_only_domain_and_infrastructure(): void
+    #[Test]
+    public function shared_has_only_domain_and_infrastructure(): void
     {
         self::assertSame(
             self::SHARED_FOLDERS,
-            self::folders(self::SOURCE_ROOT.'/Shared'),
-            'Shared is not a module: it holds Domain/ and Infrastructure/ only, no use cases. '.self::EXPLANATION,
+            self::folders(self::SOURCE_ROOT . '/Shared'),
+            'Shared is not a module: it holds Domain/ and Infrastructure/ only, no use cases. ' . self::EXPLANATION,
         );
     }
 
     #[DataProvider('useCases')]
-    public function test_every_use_case_folder_holds_only_its_fixed_files(string $module, string $useCase): void
+    #[Test]
+    public function every_use_case_folder_holds_only_its_fixed_files(string $module, string $useCase): void
     {
-        $folder = self::SOURCE_ROOT.'/'.$module.'/UseCase/'.$useCase;
+        $folder = self::SOURCE_ROOT . '/' . $module . '/UseCase/' . $useCase;
         self::assertDirectoryExists($folder, \sprintf('%s/UseCase/%s must be a folder. %s', $module, $useCase, self::EXPLANATION));
 
         $allowed = array_map(
-            static fn (string $suffix): string => $useCase.$suffix.'.php',
+            static fn(string $suffix): string => $useCase . $suffix . '.php',
             ['', 'Handler', 'Controller', 'Tool', 'Output'],
         );
         $files = self::entries($folder);
 
-        self::assertSame([], array_values(array_diff($files, $allowed)), \sprintf(
-            '%s/UseCase/%s may only hold %s. %s',
-            $module,
-            $useCase,
-            implode(', ', $allowed),
-            self::EXPLANATION,
-        ));
-        self::assertContains($useCase.'.php', $files, \sprintf('Use case %s lacks its input class. %s', $useCase, self::EXPLANATION));
-        self::assertContains($useCase.'Handler.php', $files, \sprintf('Use case %s lacks its handler. %s', $useCase, self::EXPLANATION));
+        self::assertSame(
+            [],
+            array_values(array_diff($files, $allowed)),
+            \sprintf(
+                '%s/UseCase/%s may only hold %s. %s',
+                $module,
+                $useCase,
+                implode(', ', $allowed),
+                self::EXPLANATION,
+            ),
+        );
+        self::assertContains($useCase . '.php', $files, \sprintf('Use case %s lacks its input class. %s', $useCase, self::EXPLANATION));
+        self::assertContains($useCase . 'Handler.php', $files, \sprintf('Use case %s lacks its handler. %s', $useCase, self::EXPLANATION));
     }
 
     /**
@@ -102,7 +113,7 @@ final class ModuleStructureTest extends TestCase
     {
         return array_values(array_filter(
             self::entries($path),
-            static fn (string $entry): bool => is_dir($path.'/'.$entry),
+            static fn(string $entry): bool => is_dir($path . '/' . $entry),
         ));
     }
 
@@ -118,7 +129,7 @@ final class ModuleStructureTest extends TestCase
             return [];
         }
 
-        $visible = array_values(array_filter($entries, static fn (string $entry): bool => !str_starts_with($entry, '.')));
+        $visible = array_values(array_filter($entries, static fn(string $entry): bool => !str_starts_with($entry, '.')));
         sort($visible);
 
         return $visible;

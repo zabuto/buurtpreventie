@@ -6,6 +6,8 @@ parameters:
     level: 0
     paths:
         - src
+    # Every fixture class stays known when a test analyses a single file.
     scanDirectories:
+        - src
         - stubs
     architectureSourceRoot: %currentWorkingDirectory%/tests/Architecture/Fixtures/src
