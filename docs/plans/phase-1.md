@@ -230,8 +230,8 @@ Beslissingen 26 tot en met 29 en 31 gelden voor fase 5b; beslissing 30 voor T12.
 29. **Wat de conversie doet met v3-gegevens:**
     - soft-deleted rondes en catalogusitems gaan niet mee, behalve een catalogusitem waar een meegenomen
       terugmelding of ronde naar verwijst: dat wordt gearchiveerd;
-    - een afgemelde `round_walker` wordt geen aanmelding, wel een auditregel "afgemeld" (gemarkeerd "uit v3") als
-      hij binnen de bewaartermijn valt;
+    - een afgemelde `round_walker` wordt geen aanmelding, wel een auditregel "afgemeld" met kanaal `import` als hij
+      binnen de bewaartermijn valt;
     - een terugmelding bij een niet-gelopen ronde gaat niet mee, met een waarschuwing in het rapport; meerdere
       terugmeldingen van één lid bij één ronde worden de laatste, ook met waarschuwing;
     - een `result` met `incident` wordt `incident`, anders met `remarks` wordt `remarks`, anders
@@ -429,8 +429,8 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
 ### T8. Audit (test eerst)
 
 - `AuditEntry`: tijdstip (UTC), lid-id en weergavenaam op dat moment of "systeem", actie (`round.created`, ...),
-  onderwerp (soort en id), kanaal, gewijzigde velden oud → nieuw, `importedFromV3`. Nooit wachtwoorden,
-  tokens of volledige IP-adressen.
+  onderwerp (soort en id), kanaal, gewijzigde velden oud → nieuw. Nooit wachtwoorden, tokens of
+  volledige IP-adressen.
 - `DoctrineAuditTrail` schrijft in de lopende transactie; `EraseActorName` vervangt de naam van een gewist lid.
 - Geen use case om regels te wijzigen of te verwijderen. Lezen via API volgt in fase 2.
 - Uitgevoerd op 15 november 2026, met deze keuzes:
@@ -439,6 +439,8 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
   - geen actor is "systeem", een actor zonder naam is "verwijderd lid"; `EraseMember` roept `EraseActorName`
     aan in dezelfde transactie, en die wist de naam met één bulk-update;
   - een veldnaam met `password`, `secret`, `token` of `hash` wordt geweigerd; een IP-adres heeft geen veld;
+  - geen veld dat na de conversie zijn betekenis verliest: een regel die de conversie schrijft, krijgt kanaal
+    `import`, dat met de conversie in fase 5b komt (besloten op 15 november 2026);
   - de migratie voor `audit_entry` komt nu, omdat de databasetests de tabel nodig hebben; de andere modules volgen
     in T10.
 
@@ -565,7 +567,8 @@ beide databases:
 
 - dry-run: rapport met aantallen per soort en elke waarschuwing uit beslissing 29, en daarna een lege
   v4-database;
-- echte run: dezelfde aantallen, auditregels "uit v3", bewaartermijnen toegepast, `--since` neemt minder mee;
+- echte run: dezelfde aantallen, auditregels met kanaal `import`, bewaartermijnen toegepast, `--since` neemt
+  minder mee;
 - de ronde met acht lopers krijgt `maximumWalkers` 8, met een waarschuwing in de dry-run; de andere rondes krijgen
   minimum en maximum uit de opties, en de instellingen ook;
 - `--maximum-walkers` kleiner dan `--minimum-walkers` geeft een fout zonder wijzigingen;

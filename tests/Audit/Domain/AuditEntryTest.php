@@ -33,7 +33,7 @@ final class AuditEntryTest extends TestCase
         );
 
         $this->assertEquals(
-            [new DateTimeImmutable(self::NOW), $actor, 'Jan B.', 'round.changed', 'round', $round, Channel::Api, false],
+            [new DateTimeImmutable(self::NOW), $actor, 'Jan B.', 'round.changed', 'round', $round, Channel::Api],
             [
                 $entry->occurredAt(),
                 $entry->actorId(),
@@ -42,7 +42,6 @@ final class AuditEntryTest extends TestCase
                 $entry->subjectType(),
                 $entry->subjectId(),
                 $entry->channel(),
-                $entry->isImportedFromV3(),
             ],
         );
         $this->assertSame(['startsAt' => ['old' => '2026-11-20 22:00', 'new' => '2026-11-20 23:00']], $entry->changes());

@@ -490,7 +490,7 @@ Regels die daaruit volgen:
 - Eerst `--dry-run`: rapport met aantallen per soort en waarschuwingen, zoals een lid zonder e-mail, dubbele e-mailadressen, een ronde zonder lopers, een ronde met meer lopers dan het maximum (die krijgt het aantal lopers als maximum) of een terugmelding bij een niet-gelopen ronde.
 - Wachtwoorden gaan mee: v3 bewaart hashes via Symfony's `auto`-hasher, die v4 ook kan controleren. Lopers loggen in met hun bestaande wachtwoord; de hash wordt bij inloggen zo nodig vernieuwd.
 - Verwijderde rondes en catalogusitems uit v3 gaan niet mee. Verwijderde leden die nog in de historie voorkomen, worden "verwijderd lid".
-- De v3-blamevelden worden startregels in het auditlog, gemarkeerd "uit v3".
+- De v3-blamevelden worden startregels in het auditlog, met kanaal `import`. Het model krijgt geen velden die alleen voor de conversie bestaan.
 - **Standaard gaat alle historie mee.** Rondes en terugmeldingen ouder dan de bewaartermijn worden tijdens de conversie meteen geanonimiseerd: geen leden en geen notitietekst, wel datum, dagdeel, startpunt, aantal lopers, status en uitkomst. Zo kloppen de statistieken over de hele historie zonder oude persoonsgegevens. Auditregels uit v3 gaan alleen mee binnen de bewaartermijn van het auditlog. Met `--since=<datum>` neemt een vereniging minder mee.
 - v3 wordt nooit gewijzigd. Tot de overstap definitief is, kan een vereniging dus altijd terug, en de conversie opnieuw draaien op een lege v4-database geeft hetzelfde resultaat.
 

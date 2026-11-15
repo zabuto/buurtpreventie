@@ -33,9 +33,6 @@ final class AuditEntry
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $changes;
 
-    #[ORM\Column]
-    private bool $importedFromV3 = false;
-
     private function __construct(
         #[ORM\Column(type: 'utc_datetime_immutable')]
         private DateTimeImmutable $occurredAt,
@@ -144,11 +141,6 @@ final class AuditEntry
 
         /** @var array<string, array{old: scalar|null, new: scalar|null}> */
         return \json_decode($this->changes, associative: true, flags: \JSON_THROW_ON_ERROR);
-    }
-
-    public function isImportedFromV3(): bool
-    {
-        return $this->importedFromV3;
     }
 
     public function eraseActorName(): void
