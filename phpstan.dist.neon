@@ -1,0 +1,24 @@
+includes:
+    - vendor/phpat/phpat/extension.neon
+    - vendor/phpstan/phpstan-symfony/extension.neon
+    - vendor/phpstan/phpstan-symfony/rules.neon
+    - vendor/phpstan/phpstan-deprecation-rules/rules.neon
+    - vendor/phpstan/phpstan-phpunit/extension.neon
+    - vendor/phpstan/phpstan-phpunit/rules.neon
+    - tests/Architecture/architecture.neon
+
+parameters:
+    level: max
+    # Lowest supported PHP: syntax that only exists in a newer version fails here, even on a newer local PHP.
+    phpVersion: 80400
+    paths:
+        - bin
+        - config
+        - public
+        - src
+        - tests
+    excludePaths:
+        - config/reference.php
+        - tests/Architecture/Fixtures
+    symfony:
+        containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml

@@ -1,0 +1,119 @@
+{
+    "name": "zabuto/buurtpreventie",
+    "type": "project",
+    "license": "PolyForm-Noncommercial-1.0.0",
+    "description": "Buurtpreventie: rondes plannen, een loopmaatje vinden en terugmelden",
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "require": {
+        "php": ">=8.4.27",
+        "ext-ctype": "*",
+        "ext-iconv": "*",
+        "symfony/console": "7.4.*",
+        "symfony/dotenv": "7.4.*",
+        "symfony/flex": "^2",
+        "symfony/framework-bundle": "7.4.*",
+        "symfony/property-access": "7.4.*",
+        "symfony/property-info": "7.4.*",
+        "symfony/runtime": "7.4.*",
+        "symfony/serializer": "7.4.*",
+        "symfony/validator": "7.4.*",
+        "symfony/yaml": "7.4.*"
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true,
+            "symfony/flex": true,
+            "symfony/runtime": true
+        },
+        "bump-after-update": true,
+        "sort-packages": true,
+        "platform": {
+            "php": "8.4.27"
+        },
+        "process-timeout": 0
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "App\\Tests\\": "tests/"
+        },
+        "exclude-from-classmap": [
+            "tests/Architecture/Fixtures/"
+        ]
+    },
+    "replace": {
+        "symfony/polyfill-ctype": "*",
+        "symfony/polyfill-iconv": "*",
+        "symfony/polyfill-php72": "*",
+        "symfony/polyfill-php73": "*",
+        "symfony/polyfill-php74": "*",
+        "symfony/polyfill-php80": "*",
+        "symfony/polyfill-php81": "*",
+        "symfony/polyfill-php82": "*"
+    },
+    "scripts": {
+        "auto-scripts": {
+            "cache:clear": "symfony-cmd",
+            "assets:install %PUBLIC_DIR%": "symfony-cmd"
+        },
+        "post-install-cmd": [
+            "@auto-scripts"
+        ],
+        "post-update-cmd": [
+            "@auto-scripts"
+        ],
+        "test": [
+            "@php vendor/bin/phpunit"
+        ],
+        "check": [
+            "@composer validate --strict",
+            "@composer audit",
+            "@php bin/console cache:warmup --env=dev",
+            "@php bin/console lint:container",
+            "@php bin/console lint:yaml config",
+            "@deprecations",
+            "@php vendor/bin/php-cs-fixer check --diff",
+            "@php vendor/bin/rector process --dry-run",
+            "@php vendor/bin/phpstan analyse --no-progress",
+            "@test"
+        ],
+        "fix": [
+            "@php vendor/bin/rector process",
+            "@php vendor/bin/php-cs-fixer fix"
+        ],
+        "deprecations": [
+            "@php bin/console debug:container --deprecations | tee /dev/stderr | grep -q 'There are no deprecations'"
+        ]
+    },
+    "conflict": {
+        "symfony/symfony": "*"
+    },
+    "extra": {
+        "symfony": {
+            "allow-contrib": false,
+            "require": "7.4.*"
+        }
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "*",
+        "phpat/phpat": "*",
+        "phpstan/phpstan": "*",
+        "phpstan/phpstan-deprecation-rules": "*",
+        "phpstan/phpstan-phpunit": "*",
+        "phpstan/phpstan-symfony": "*",
+        "phpunit/phpunit": "^13",
+        "rector/rector": "*",
+        "symfony/browser-kit": "7.4.*"
+    },
+    "scripts-descriptions": {
+        "test": "Runs the test suite",
+        "check": "Runs every check CI runs",
+        "fix": "Applies Rector and PHP-CS-Fixer changes",
+        "deprecations": "Fails when building the container triggered a deprecation"
+    }
+}
