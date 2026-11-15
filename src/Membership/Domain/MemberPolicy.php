@@ -1,0 +1,30 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Membership\Domain;
+
+use App\Shared\Domain\Actor;
+use App\Shared\Domain\Role;
+
+/**
+ * Who may manage members. The voter asks this class, so the rules run in memory.
+ */
+final readonly class MemberPolicy
+{
+    /**
+     * Adding, changing, roles, (de)activating and erasing.
+     */
+    public function mayManage(Actor $actor): bool
+    {
+        return $actor->hasRole(Role::Admin);
+    }
+
+    /**
+     * Consent to share contact details is the member's own choice; nobody gives it for them.
+     */
+    public function mayChangeConsent(Actor $actor, Member $member): bool
+    {
+        return $actor->is($member->id());
+    }
+}

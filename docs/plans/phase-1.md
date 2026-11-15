@@ -531,6 +531,22 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
   - `DoctrineTransaction` zet de EntityManager terug (`ManagerRegistry::resetManager()`) als de operatie faalt,
     zodat de volgende use case in hetzelfde proces werkt.
 
+- Uitgevoerd op 15 november 2026, met deze keuzes:
+  - de regels staan per module in een policy: `RoundPolicy`, `MemberPolicy`, `CredentialPolicy` (tokens en
+    wachtwoord) en `AuditPolicy`; naast de genoemde Voters komen `AccountVoter` en `AuditVoter`;
+  - lezen (`round.list`, `round.view`, `member.list`) mag elk lid en het systeem; `round.send_reminders` en
+    `round.notify_buddy_needed` alleen `ROLE_SYSTEM`;
+  - eigen toestemming, eigen tokens en eigen wachtwoord: alleen het lid zelf, ook geen beheerder. Alle tokens van
+    een lid intrekken mag het lid of de beheerder, omdat `DeactivateMember` en `EraseMember` het aanroepen;
+  - een ronde start na het moment van aanmaken of verplaatsen, en verandert niet meer na de start;
+  - `DeleteRound` weigert een begonnen ronde en meldt het de andere lopers (`round.cancelled`);
+  - aanmaken en aanmelden namens weigeren een lid dat niet actief is (`MemberInactive`);
+  - aanmelden en afmelden lezen de ronde met `RoundRepository::getForUpdate()`, één vergrendelende query met de
+    lopers erbij (beslissing 24); de gelijktijdigheidstest volgt in T10;
+  - de bewakingstest (`tests/Shared/HandlerGuardTest.php`) eist ook dat de matrix elke Voter uit `src/` vraagt;
+  - berichten gaan binnen de transactie uit; met de `LoggingNotifier` geeft dat niets, maar e-mail (fase 3) hoort
+    pas na de commit te gaan.
+
 ### T10. Database en review-focus 1 (test eerst)
 
 - Doctrine-repositories per module in `Infrastructure/Persistence/`, elke query met een integratietest.

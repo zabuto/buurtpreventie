@@ -50,6 +50,15 @@ tests through the Symfony CLI, which sets `DATABASE_URL`: `symfony composer test
 `mago format` would not change it, and runs PHPStan at level max with the architecture rules on it. A mistake in the templates thus breaks a test, not
 the next use case. What the templates contain is unit-tested in memory in `UseCaseTemplatesTest`.
 
+## Rights and write actions
+
+- `tests/Shared/AuthorizationMatrixTest.php` runs every voter attribute against nobody signed in, the
+  system, and a member with no role or exactly one role, with a row per relation where a right depends
+  on one (oneself, the author, a walker of the round).
+- `tests/Shared/HandlerGuardTest.php` reads every handler: it carries exactly one of `#[WriteAction]`
+  and `#[ReadAction]`, the attribute of every write action has rows in the matrix, the test of every
+  write handler has a test starting with `it_records_`, and the matrix asks every voter in `src/`.
+
 ## Writing tests
 
 - **Arrange, Act, Assert.** Every test sets up its inputs, performs one action, and checks the result,

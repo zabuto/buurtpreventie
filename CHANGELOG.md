@@ -61,6 +61,9 @@ versions follow [Semantic Versioning](https://semver.org/).
   and buddy calls as the system. A round starts after it is planned and cannot change once started.
 - A started round that was not walked, such as after a no-show, can be cancelled with a reason by a
   walker of the round or a coordinator; its status is `cancelled` and it takes no report.
+- Rights: a voter per subject on the policy of its module (rounds, participations, reports, comments,
+  catalogues, members, API tokens, accounts, audit log), an authorization matrix over every attribute,
+  and a guard test that holds every handler to its voter, matrix rows and audit test.
 - A meeting point where an upcoming round starts cannot be archived; archived meeting points and outcomes
   are not offered for a new choice.
 - Identity: accounts with a password that accepts v3 hashes, and API tokens stored as a hash with

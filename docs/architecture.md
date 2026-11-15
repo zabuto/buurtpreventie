@@ -127,8 +127,10 @@ that `POST` is refused).
 2. Create the folder: `symfony console app:make:use-case <Module> <Name>`, with a PascalCase name that
    says what happens, such as `SignUpForRound`.
 3. Write the handler test first in `tests/<Module>/UseCase/<Name>/` and watch it fail.
-4. Fill in input and output, then the handler. A write action gets a Voter, an audit entry and a row
-   in the matrix test (from phases 1 and 2).
+4. Fill in input and output, then the handler. A write handler carries `#[WriteAction]` with its voter
+   attribute and audit action, a rule in the policy of its module, and rows in
+   `tests/Shared/AuthorizationMatrixTest.php`; a read handler carries `#[ReadAction]`.
+   `tests/Shared/HandlerGuardTest.php` fails when one of these is missing.
 5. Set the route and method in the controller. Delete the controller or tool when the use case has
    no such entry point.
 6. Run `composer check`. An architecture error names the rule and links to the section below.
@@ -142,11 +144,12 @@ A handler reaches storage, rights, the audit log and messages only through inter
 | `Shared\Domain` | What it does | Implementation |
 | --- | --- | --- |
 | `Transaction` | Runs an operation as one unit: a change and its audit entry are stored together or not at all | `Shared\Infrastructure\Doctrine\DoctrineTransaction` |
-| `ExecutionContext`, `Channel` | The member performing the action with their roles (an `Actor`), or none for the system, and the channel (`web`, `api`, `mcp`, `cron`, `console`) | the entry point: console commands and tests in phase 1, HTTP and MCP in phases 2 and 5 |
+| `ExecutionContext`, `Channel` | The member performing the action with their roles (an `Actor`), or none for the system, and the channel (`web`, `api`, `mcp`, `cron`, `console`) | `Shared\Infrastructure\Security\TokenExecutionContext`, which reads Symfony's token storage; `RunAs` fills it for console commands, fixtures and the scheduler, an authenticator for HTTP and MCP |
 | `AuditTrail`, `AuditedAction` | Records an action; time, actor and channel come from the clock and the execution context | `Audit\Infrastructure\Persistence\DoctrineAuditTrail` |
 | `MemberNames` | The display name of a member, or none for an erased one, so another module can record or show who acted | `Membership\Infrastructure\RepositoryMemberNames` |
+| `MemberDirectory`, `MemberProfile` | Whether a member is active, who wants to hear about open rounds, and a member's names and phone number (only with consent) | `Membership\Infrastructure\RepositoryMemberDirectory` |
 | `Authorization`, `AccessDenied` | `denyUnlessGranted()` asks the voters of every module and throws `AccessDenied` on a refusal | `Shared\Infrastructure\Security\SymfonyAuthorization` |
-| `Notifier`, `Notification` | Sends a member a message by type and parameters; the domain holds no texts | `Shared\Infrastructure\Notification\LoggingNotifier` in phase 1, e-mail in phase 3 |
+| `Notifier`, `Notification` | Sends a member a message by type and parameters; the domain holds no texts | `Shared\Infrastructure\Notification\LoggingNotifier`, which only logs |
 | `Role`, `Actor` | The fixed roles `walker`, `coordinator`, `analyst` and `admin`, without inheritance, and a member with their roles, as the policies of every module decide on them | |
 | `NotFound` | No item of a kind has a given id; entry points turn it into their own answer, such as HTTP 404 | |
 | `LocalTime` | Converts an instant to `Europe/Amsterdam`, the clock of dayparts, calendar days and everything a walker reads | |
@@ -158,8 +161,14 @@ domain methods. Instants are stored with the Doctrine type `utc_datetime_immutab
 (`Shared\Infrastructure\Doctrine\UtcDateTimeImmutableType`), which writes and reads UTC whatever the
 time zone of PHP.
 
-When an operation in `Transaction` throws, Doctrine rolls back and closes the entity manager. A
-process that handles more than one unit of work, such as a worker, resets it in between.
+When an operation in `Transaction` throws, Doctrine rolls back and closes the entity manager; the
+outermost run resets it, so the next unit of work in the same process gets a working one.
+
+**Rights.** The rules of each module live in a policy in its `Domain`: `RoundPolicy`, `MemberPolicy`,
+`CredentialPolicy` and `AuditPolicy`. A voter per subject in `<Module>\Infrastructure\Security`
+reads the actor from the token with `TokenActor` and asks the policy, so handler and voters always see
+the same actor. Scheduled actions are granted only to `ROLE_SYSTEM`, the identity `RunAs::system()`
+sets; an action no voter decides on is refused.
 
 A handler that calls the handler of another module, such as `DeactivateMember` calling
 `WithdrawMemberFromUpcomingRounds`, `RevokeMemberApiTokens` and `EraseActorName`, runs that handler's transaction inside
