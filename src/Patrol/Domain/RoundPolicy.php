@@ -68,6 +68,14 @@ final readonly class RoundPolicy
     }
 
     /**
+     * Records that a started round was not walked, such as after a no-show.
+     */
+    public function mayCancel(Actor $actor, Round $round): bool
+    {
+        return $round->isSignedUp($actor->memberId) || $actor->hasRole(Role::Coordinator);
+    }
+
+    /**
      * Also before the start, so walkers can agree on details.
      */
     public function mayComment(Actor $actor, Round $round): bool

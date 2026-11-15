@@ -86,6 +86,18 @@ final class ListRoundsHandlerTest extends TestCase
     }
 
     #[Test]
+    public function it_lists_a_cancelled_round_as_cancelled_and_not_as_walked(): void
+    {
+        $cancelled = $this->round(new RoundStart(new DateTimeImmutable('2026-11-14T22:00:00+00:00')), walkers: 2);
+        $cancelled->cancel(null, new DateTimeImmutable('2026-11-14T22:30:00+00:00'));
+
+        $walked = $this->handler()(new ListRounds('2026-11-14T00:00:00+01:00', '2026-11-17T00:00:00+01:00', status: 'walked'));
+        $found = $this->handler()(new ListRounds('2026-11-14T00:00:00+01:00', '2026-11-17T00:00:00+01:00', status: 'cancelled'));
+
+        $this->assertSame([[], [$cancelled->id()->toRfc4122()]], [\array_column($walked->rounds, 'id'), \array_column($found->rounds, 'id')]);
+    }
+
+    #[Test]
     public function it_refuses_a_period_that_does_not_end_after_its_start(): void
     {
         $this->expectException(InvalidArgumentException::class);

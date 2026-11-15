@@ -446,7 +446,7 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
 
 ### T9. Patrol-use cases, Voters en matrixtest (test eerst)
 
-- Use cases: `CreateRound`, `ChangeRound`, `DeleteRound`, `SignUpForRound` (ook namens), `WithdrawFromRound`
+- Use cases: `CreateRound`, `ChangeRound`, `DeleteRound`, `CancelRound`, `SignUpForRound` (ook namens), `WithdrawFromRound`
   (ook namens en verwijderen door de coördinator), `WithdrawMemberFromUpcomingRounds`, `ReportRoundResult`,
   `DeleteRoundReport`, `AddRoundComment`, `DeleteRoundComment`, `CreateMeetingPoint`, `ChangeMeetingPoint`,
   `ArchiveMeetingPoint`, `RestoreMeetingPoint`, `CreateOutcome`, `ChangeOutcome`, `ArchiveOutcome`,
@@ -466,6 +466,7 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
   | Actie | Wie |
   | --- | --- |
   | Ronde aanmaken | loper; coördinator namens een actief lid |
+  | Begonnen ronde annuleren | loper van die ronde, coördinator |
   | Ronde wijzigen of verwijderen | coördinator; eigenaar zolang hij de enige loper is |
   | Zelf aan- of afmelden | loper |
   | Namens aan- of afmelden, loper verwijderen | coördinator |
@@ -491,6 +492,10 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
   - een tweede terugmelding wordt geweigerd ("deze ronde heeft al een terugmelding"), zodat niemand ongemerkt de
     melding van een ander overschrijft. De auteur of de coördinator verwijdert de bestaande; daarna kan er een
     nieuwe komen. Er is geen use case om een terugmelding te wijzigen;
+  - een begonnen ronde kan geannuleerd worden (no-show, overmacht) met `CancelRound`: status `cancelled`, een
+    vijfde status naast de vier, met `cancelledAt` en een optionele reden. Alleen vanaf de start, niet bij een
+    ronde met terugmelding; een tweede annulering verandert niets. Een loper van die ronde of de coördinator
+    annuleert. Een begonnen ronde verwijderen kan niet (besloten op 15 november 2026);
   - de eigenaar wordt afgeleid, niet opgeslagen: de loper die zich het eerst aanmeldde en nog in de ronde zit.
     Meldt die zich af, dan is de volgende de eigenaar. Beslissing 7 wordt daarmee: de coördinator altijd, de
     eigenaar zolang hij de enige loper is. `Round.createdBy` en de kolom `created_by` vervallen; wie de ronde

@@ -50,6 +50,7 @@ dezelfde naam.
 | Bezet | `staffed` | Status: minimum gehaald |
 | Gelopen | `walked` | Status: voorbij en minimum gehaald |
 | Niet gelopen | `not_walked` | Status: voorbij zonder loopmaatje |
+| Geannuleerd | `cancelled` | Status: begonnen maar niet gelopen, zoals bij een no-show of overmacht |
 | Auditregel | `AuditEntry` | Eén regel in het auditlog |
 | Kanaal | channel: `web`, `api`, `mcp`, `cron`, `console` | Hoe een actie binnenkwam; `console` voor conversie en voorbeelddata |
 | Instelling | `Setting` | Waarde die een vereniging zelf instelt |

@@ -157,6 +157,21 @@ final class RoundPolicyTest extends TestCase
     }
 
     /**
+     * The walker left alone after a no-show records it straight away.
+     *
+     * @param list<Role> $roles
+     */
+    #[DataProvider('reporters')]
+    #[Test]
+    public function it_lets_a_walker_of_the_round_or_a_coordinator_cancel(bool $walked, array $roles, bool $expected): void
+    {
+        $actor = new Actor(Uuid::v7(), $roles);
+        $round = RoundFixture::withWalkers($walked ? $actor->memberId : Uuid::v7(), 2);
+
+        $this->assertSame($expected, new RoundPolicy()->mayCancel($actor, $round));
+    }
+
+    /**
      * @param list<Role> $roles
      */
     #[DataProvider('reporters')]

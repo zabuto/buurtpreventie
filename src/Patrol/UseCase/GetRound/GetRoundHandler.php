@@ -70,6 +70,7 @@ final readonly class GetRoundHandler
             openSpots: $round->openSpots($now),
             meetingPoint: self::meetingPoint($round->meetingPoint()),
             startNote: $round->startNote(),
+            cancelReason: $round->cancellation()->reason(),
             ownerId: $round->ownerId()?->toRfc4122(),
             walkers: $walkers,
             inactiveWalkerCount: $round->walkerCount() - \count($walkers),

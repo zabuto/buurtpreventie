@@ -59,6 +59,8 @@ versions follow [Semantic Versioning](https://semver.org/).
   withdraw, also on behalf; report a walked round and delete the report; comment and delete a comment;
   manage meeting points and outcomes; list rounds, show a round and find staffing gaps; send reminders
   and buddy calls as the system. A round starts after it is planned and cannot change once started.
+- A started round that was not walked, such as after a no-show, can be cancelled with a reason by a
+  walker of the round or a coordinator; its status is `cancelled` and it takes no report.
 - Identity: accounts with a password that accepts v3 hashes, and API tokens stored as a hash with
   scopes, expiry and revocation; a token secret is always generated, and any other value is refused. Settings: the default minimum and maximum walkers of a new round.
 - Responses do not name the PHP version: the app and `public/.htaccess` set `X-Powered-By` to `PHP Symfony`.

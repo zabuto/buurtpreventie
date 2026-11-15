@@ -10,6 +10,7 @@ final readonly class GetRoundOutput
      * @param array{id: string, name: string, latitude: float|null, longitude: float|null}|null $meetingPoint
      * @param list<array{id: string, displayName: string|null, name?: string|null, phone?: string|null}> $walkers
      *     active walkers only, earliest joined first
+     * @param string|null $cancelReason why a cancelled round was not walked, when given
      * @param int $inactiveWalkerCount walkers who are deactivated, erased or unknown
      * @param array{
      *     id: string,
@@ -34,6 +35,7 @@ final readonly class GetRoundOutput
         public int $openSpots,
         public ?array $meetingPoint,
         public ?string $startNote,
+        public ?string $cancelReason,
         public ?string $ownerId,
         public array $walkers,
         public int $inactiveWalkerCount,

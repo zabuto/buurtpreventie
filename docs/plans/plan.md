@@ -442,11 +442,12 @@ Verbeteringen ten opzichte van v3:
 - **Tijd zonder verrassingen:** `startsAt` in UTC opgeslagen, getoond in Europe/Amsterdam, met Symfony Clock zodat tests de tijd vastzetten.
 - **Value objects** voor wat regels heeft: `EmailAddress`, `PhoneNumber`, `Daypart`, `RoundStatus`, `StaffingRule`.
 
-**Status van een ronde** wordt afgeleid, niet opgeslagen: `seeking_buddy` (minder lopers dan het minimum), `staffed` (minimum gehaald), `walked` (voorbij en gehaald) en `not_walked` (voorbij zonder loopmaatje). "Vol" is geen status maar een veld: `openSpots` is het maximum min het aantal lopers zolang de ronde niet begonnen is, en 0 vanaf de start; een volle ronde is `staffed`. Elke ronde in API en MCP bevat `status`, `walkerCount`, `minimumWalkers`, `maximumWalkers`, `openSpots` en `daypart`: `morning` vóór 12:00, `afternoon` tot 18:00, `evening` vanaf 18:00, zoals de v3-kalender ze al indeelt.
+**Status van een ronde** wordt afgeleid, niet opgeslagen: `seeking_buddy` (minder lopers dan het minimum), `staffed` (minimum gehaald), `walked` (voorbij en gehaald), `not_walked` (voorbij zonder loopmaatje) en `cancelled` (begonnen maar niet gelopen, zoals bij een no-show of overmacht). "Vol" is geen status maar een veld: `openSpots` is het maximum min het aantal lopers zolang de ronde niet begonnen is, en 0 vanaf de start; een volle ronde is `staffed`. Elke ronde in API en MCP bevat `status`, `walkerCount`, `minimumWalkers`, `maximumWalkers`, `openSpots` en `daypart`: `morning` vóór 12:00, `afternoon` tot 18:00, `evening` vanaf 18:00, zoals de v3-kalender ze al indeelt.
 
 Regels die daaruit volgen:
 
 - Terugmelden kan alleen bij `walked`.
+- Een loper van de ronde of de coördinator annuleert een begonnen ronde, met een optionele reden; vóór de start meldt een loper zich af of wordt de ronde verwijderd. Een ronde met een terugmelding wordt niet geannuleerd.
 - Minimum en maximum (maximum ≥ minimum) komen bij aanmaken uit de instellingen en gelden voor die ronde; een gewijzigde instelling geldt alleen voor nieuwe rondes.
 - Aanmelden bij een volle ronde wordt geweigerd, ook namens; wie al aangemeld is, krijgt geen fout.
 - Meldt de laatste loper zich af, dan vervalt de ronde (zoals in v3).

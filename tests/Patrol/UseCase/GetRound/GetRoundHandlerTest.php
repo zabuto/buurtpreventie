@@ -88,6 +88,7 @@ final class GetRoundHandlerTest extends TestCase
                 openSpots: 2,
                 meetingPoint: ['id' => $speeltuin->id()->toRfc4122(), 'name' => 'Speeltuin', 'latitude' => 52.1, 'longitude' => 5.1],
                 startNote: 'Bij het hek',
+                cancelReason: null,
                 ownerId: $this->jan->toRfc4122(),
                 walkers: [['id' => $this->jan->toRfc4122(), 'displayName' => 'Jan B.', 'name' => 'Jan B. Bakker']],
                 inactiveWalkerCount: 0,
@@ -96,6 +97,17 @@ final class GetRoundHandlerTest extends TestCase
             ),
             $output,
         );
+    }
+
+    #[Test]
+    public function it_shows_why_a_cancelled_round_was_not_walked(): void
+    {
+        $round = $this->round(new RoundStart(new DateTimeImmutable(self::PAST)), $this->jan, $this->piet);
+        $round->cancel('Loopmaatje kwam niet', new DateTimeImmutable(self::NOW));
+
+        $output = $this->handler()(new GetRound($round->id()->toRfc4122()));
+
+        $this->assertSame(['cancelled', 'Loopmaatje kwam niet'], [$output->status, $output->cancelReason]);
     }
 
     #[Test]

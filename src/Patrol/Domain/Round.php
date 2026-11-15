@@ -48,6 +48,9 @@ final class Round
     #[ORM\Column(type: 'utc_datetime_immutable', nullable: true)]
     private ?DateTimeImmutable $buddyCallSentAt = null;
 
+    #[ORM\Embedded(class: RoundCancellation::class, columnPrefix: false)]
+    private RoundCancellation $cancellation;
+
     private function __construct(
         RoundStart $start,
         #[ORM\Embedded(class: StaffingRule::class, columnPrefix: false)]
@@ -59,6 +62,7 @@ final class Round
         $this->moveTo($start);
         $this->participations = new ArrayCollection();
         $this->reports = new ArrayCollection();
+        $this->cancellation = new RoundCancellation();
     }
 
     /**
@@ -135,13 +139,11 @@ final class Round
 
     public function status(DateTimeImmutable $now): RoundStatus
     {
-        $staffed = $this->staffingRule->isStaffedBy($this->walkerCount());
-
-        if ($this->hasStarted($now)) {
-            return $staffed ? RoundStatus::Walked : RoundStatus::NotWalked;
-        }
-
-        return $staffed ? RoundStatus::Staffed : RoundStatus::SeekingBuddy;
+        return RoundStatus::of(
+            cancelled: $this->cancellation->isCancelled(),
+            started: $this->hasStarted($now),
+            staffed: $this->staffingRule->isStaffedBy($this->walkerCount()),
+        );
     }
 
     public function openSpots(DateTimeImmutable $now): int
@@ -289,6 +291,32 @@ final class Round
     public function removeReport(): void
     {
         $this->reports->clear();
+    }
+
+    /**
+     * Records that the round was not walked after all. The first cancellation stands.
+     *
+     * @throws RoundNotStarted
+     * @throws RoundAlreadyReported because a report says the round was walked
+     *
+     * @return bool false when the round was cancelled already
+     */
+    public function cancel(?string $reason, DateTimeImmutable $now): bool
+    {
+        if (!$this->hasStarted($now)) {
+            throw RoundNotStarted::forRound($this->id);
+        }
+
+        if (null !== $this->report()) {
+            throw RoundAlreadyReported::forRound($this->id);
+        }
+
+        return $this->cancellation->record($reason, $now);
+    }
+
+    public function cancellation(): RoundCancellation
+    {
+        return $this->cancellation;
     }
 
     public function buddyCallDueAt(): DateTimeImmutable

@@ -15,7 +15,7 @@ final readonly class ListRounds
         #[Assert\NotBlank]
         #[Assert\DateTime(format: \DATE_ATOM)]
         public string $to,
-        #[Assert\Choice(choices: ['seeking_buddy', 'staffed', 'walked', 'not_walked'])]
+        #[Assert\Choice(choices: ['seeking_buddy', 'staffed', 'walked', 'not_walked', 'cancelled'])]
         public ?string $status = null,
     ) {
     }

@@ -131,6 +131,20 @@ final class DoctrineRoundRepositoryTest extends KernelTestCase
     }
 
     #[Test]
+    public function it_stores_the_cancellation_with_the_round(): void
+    {
+        $round = $this->round(new DateTimeImmutable('2026-11-20T21:00:00+00:00'));
+        $round->cancel('Loopmaatje kwam niet', new DateTimeImmutable('2026-11-20T21:30:00+00:00'));
+
+        $read = $this->storeAndReadBack($round);
+
+        $this->assertSame(
+            ['2026-11-20T21:30:00+00:00', 'Loopmaatje kwam niet'],
+            [$read->cancellation()->at()?->format(\DATE_ATOM), $read->cancellation()->reason()],
+        );
+    }
+
+    #[Test]
     public function it_finds_the_rounds_from_the_first_instant_up_to_the_last_by_start(): void
     {
         $justBefore = $this->stored('2026-11-19T22:59:59+00:00');
