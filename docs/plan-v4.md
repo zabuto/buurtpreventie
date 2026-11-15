@@ -47,6 +47,8 @@ Conclusie: de domeinregels uit WalkService zijn de moeite waard om mee te nemen;
 
 ## Uitgangssituatie: hoe een loopgroep werkt
 
+**Twee vormen van buurtpreventie.** Actieve buurtpreventie is de verzamelnaam voor bewoners die samen met gemeente en politie werken aan een veilige en leefbare wijk. Er zijn twee vormen. In een buurtpreventieteam, in dit plan loopgroep, lopen bewoners regelmatig door de wijk, meestal met z'n tweeën, 's avonds en herkenbaar aan een reflecterend hesje; ze letten op verdachte situaties, geven gebreken door zoals kapotte straatverlichting, en zijn ogen en oren voor de politie. Gemeente (wijkregisseur) en wijkagent zijn er vanaf de start bij betrokken. In WhatsApp-buurtpreventie (WABP) waarschuwen buren elkaar via een groep, vaak volgens de SAAR-methode. Deze app is alleen voor buurtpreventieteams; buurtsignalen blijven in de WhatsApp-groep (zie Spoedmeldingen hieronder).
+
 Een buurtpreventie-loopgroep bestaat uit tientallen vrijwillige lopers met een of enkele coördinatoren, vaak in samenwerking met politie en gemeente. Lopers roosteren zichzelf in via de app. Een loper loopt nooit alleen; een ronde gaat pas door als er een loopmaatje bij is. Route en startpunt spreken de lopers onderling af.
 
 **Wat de praktijk met v3 laat zien.** Het vinden van een loopmaatje is het knelpunt: een flink deel van de geplande rondes gaat niet door omdat er geen tweede loper is. Daarom krijgen open rondes in de app de meeste aandacht, en komen er later statistieken voor de analist in de app (fase 8).
