@@ -56,10 +56,14 @@ jobs:
         database:
           - name: MariaDB 10.11
             image: mariadb:10.11
+            server-version: 10.11.0-MariaDB
           - name: MySQL 8.4
             image: mysql:8.4
+            server-version: 8.4.0
     env:
-      DATABASE_URL: mysql://root:root@127.0.0.1:3306/buurtpreventie
+      # Without serverVersion, doctrine:database:create and drop connect to the named database to read the version, and
+      # fail while the test database does not exist yet. The image fixes the version, as the Symfony CLI does locally.
+      DATABASE_URL: mysql://root:root@127.0.0.1:3306/buurtpreventie?serverVersion=${{ matrix.database.server-version }}
       # A database test that cannot reach the database fails instead of skipping.
       REQUIRE_DATABASE: '1'
     steps:

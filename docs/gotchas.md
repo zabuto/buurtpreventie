@@ -56,6 +56,11 @@ Things that are not obvious and cost time when you do not know them.
 - **`bin/console` does not see the database container.** Only the Symfony CLI reads the port
   Docker picked and sets `DATABASE_URL`, so run console commands as `symfony console`. A fixed
   `DATABASE_URL` in `.env.local` breaks when the container gets a new port after a restart.
+- **Creating or dropping a database needs `serverVersion`.** `doctrine:database:create` and `drop` ask for
+  the platform first; without `serverVersion` in `DATABASE_URL`, DBAL connects to the named database to
+  read the version, and fails with "Unknown database" while it does not exist. The Symfony CLI adds
+  the version locally and CI sets it per image. On a server, leave it out, as
+  [configuration.md](configuration.md) explains.
 - **Docker Compose reads `.env`, not `.env.local`,** for the variables in `compose.yaml`. Override
   them in the shell, never in the committed `.env`.
 - **InnoDB fixes the snapshot at the first plain read.** In `REPEATABLE READ`, the default, every plain
