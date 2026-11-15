@@ -31,7 +31,7 @@ tests/                the same folders as src/, plus Architecture/
 | `Identity` | Login, login links, passwords, API tokens |
 | `Audit` | Recording and showing the audit log |
 | `Settings` | Branding and texts |
-| `Maintenance` | Health check, reminders, updates, installer, legacy (v3) import |
+| `Maintenance` | Health check, reminders, updates, installer, legacy import |
 
 Every module has exactly `Domain/`, `UseCase/` and `Infrastructure/`. `Shared` is not a module: it
 has no use cases. `tests/Architecture/ModuleStructureTest.php` guards this; PHPat sees classes only,

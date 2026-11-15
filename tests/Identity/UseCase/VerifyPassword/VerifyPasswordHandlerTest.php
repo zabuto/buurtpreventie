@@ -47,14 +47,14 @@ final class VerifyPasswordHandlerTest extends TestCase
     }
 
     /**
-     * v3 hashed passwords with bcrypt through the same "auto" hasher, so walkers keep their password.
+     * The legacy app hashed passwords with bcrypt through the same "auto" hasher, so walkers keep their password.
      */
     #[Test]
-    public function it_accepts_a_bcrypt_hash_as_v3_made_it(): void
+    public function it_accepts_a_bcrypt_hash_as_the_legacy_app_made_it(): void
     {
-        $this->accountWithHash('$2y$04$RJvz4cvDWKQMNoAJqcjc2OQ.Gm4epW9K4hek7PAXUbjTCecavlGHq');
+        $this->accountWithHash('$2y$04$yqT6O03mkO0R6pdy1YQDF./fvud.hxzYZLg7Yl0gGg1x3HwLXL15q');
 
-        $output = $this->handler()(new VerifyPassword($this->memberId->toRfc4122(), 'v3-voorbeeldwachtwoord'));
+        $output = $this->handler()(new VerifyPassword($this->memberId->toRfc4122(), 'legacy-voorbeeldwachtwoord'));
 
         $this->assertTrue($output->valid);
     }

@@ -66,7 +66,7 @@ versions follow [Semantic Versioning](https://semver.org/).
   and a guard test that holds every handler to its voter, matrix rows and audit test.
 - A meeting point where an upcoming round starts cannot be archived; archived meeting points and outcomes
   are not offered for a new choice.
-- Identity: accounts with a password that accepts v3 hashes, and API tokens stored as a hash with
+- Identity: accounts with a password that accepts the hashes of the legacy app, and API tokens stored as a hash with
   scopes, expiry and revocation; a token secret is always generated, and any other value is refused. Settings: the default minimum and maximum walkers of a new round.
 - Responses do not name the PHP version: the app and `public/.htaccess` set `X-Powered-By` to `PHP Symfony`.
 - API responses carry a Content-Security-Policy that allows nothing, `nosniff`, `Referrer-Policy: no-referrer`

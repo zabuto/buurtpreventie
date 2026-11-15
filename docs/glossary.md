@@ -12,7 +12,7 @@ dezelfde naam.
 | Inloggen | `Identity` | Accounts, inloglinks, wachtwoorden, API-tokens |
 | Auditlog | `Audit` | Wie deed wat, wanneer en via welk kanaal |
 | Instellingen | `Settings` | Branding, teksten en het minimum- en maximumaantal lopers per vereniging |
-| Onderhoud | `Maintenance` | Gezondheidscheck, herinneringen, updates, installer, conversie uit v3 |
+| Onderhoud | `Maintenance` | Gezondheidscheck, herinneringen, updates, installer, legacy-import |
 
 ## Domein
 
@@ -36,7 +36,7 @@ dezelfde naam.
 | Zoeksleutel | `LookupKey` | Naam zonder hoofdletters, accenten, leestekens en dubbele spaties; zoeken en uniek zijn gaan hierop |
 | Account | `Account` | Inloggegevens van een lid: wachtwoord en laatste login; het e-mailadres staat op het lid |
 | Toestemming contactgegevens | `consentContactShare` | Andere leden zien telefoon en adres alleen hiermee |
-| Certificaat | `certified` | Lid heeft een certificaat (in v3: `credited`) |
+| Certificaat | `certified` | Lid heeft een certificaat (in de legacy-app: `credited`) |
 | Melding bij open ronde | `notifyOpenRounds` | Lid wil mail bij een nieuwe ronde die een loopmaatje zoekt |
 | Coördinator | `coordinator` | Rol: wijzigt rondes, handelt namens lopers |
 | Analist | `analyst` | Rol: ziet terugmeldingen en statistieken |

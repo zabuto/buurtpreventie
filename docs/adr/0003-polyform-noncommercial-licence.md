@@ -14,7 +14,7 @@ holder.
 
 - **This repository is released under PolyForm Noncommercial 1.0.0**, with the `Required Notice:`
   line at the top of `LICENSE`, from its first commit.
-- **The legacy repository stays MIT.** Its last commit carries the tag `v3-mit-final` and a README
+- **The legacy repository stays MIT.** Its last commit carries a final MIT tag and a README
   pointing to this repository; MIT versions keep their licence.
 - **The README speaks of "free to use for non-commercial purposes"**, says the software is meant for
   neighbourhood and residents' associations, and says the code is public but not open source, because

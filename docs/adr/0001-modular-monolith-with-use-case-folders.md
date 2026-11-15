@@ -11,7 +11,7 @@ report" must hold for all three in exactly the same way. The project has one mai
 shared hosting without workers, and must be transferable to another developer who finds their way
 within an hour.
 
-The predecessor (v3) mixes controllers, forms, Twig pages and one service with domain rules, with
+The legacy app mixes controllers, forms, Twig pages and one service with domain rules, with
 permissions spread over controllers and templates.
 
 ## Decision

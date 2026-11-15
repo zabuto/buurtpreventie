@@ -12,7 +12,7 @@ use Symfony\Component\PasswordHasher\PasswordHasherInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 /**
- * The "auto" hasher from security.yaml. It verifies the bcrypt hashes v3 made, so walkers keep their password.
+ * The "auto" hasher from security.yaml. It verifies the bcrypt hashes the legacy app made, so walkers keep their password.
  */
 final readonly class SymfonyPasswordHasher implements PasswordHasher
 {
