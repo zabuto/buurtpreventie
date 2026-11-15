@@ -33,6 +33,10 @@ final class Round
     #[ORM\OneToMany(targetEntity: Participation::class, mappedBy: 'round', cascade: ['persist'], orphanRemoval: true)]
     private Collection $participations;
 
+    /** @var Collection<int, RoundReport> */
+    #[ORM\OneToMany(targetEntity: RoundReport::class, mappedBy: 'round', cascade: ['persist'], orphanRemoval: true)]
+    private Collection $reports;
+
     private function __construct(
         DateTimeImmutable $startsAt,
         #[ORM\Column(type: 'uuid')]
@@ -43,6 +47,7 @@ final class Round
         $this->id = Uuid::v7();
         $this->startsAt = self::utc($startsAt);
         $this->participations = new ArrayCollection();
+        $this->reports = new ArrayCollection();
     }
 
     /**
@@ -196,6 +201,49 @@ final class Round
         }
 
         return $this->withdraw($memberId, $now);
+    }
+
+    /**
+     * Records what a walker reports after the round. A second report of the same walker replaces the first.
+     *
+     * @throws RoundNotWalked
+     * @throws NotAWalkerOfThisRound
+     */
+    public function report(Uuid $memberId, Outcome $outcome, ?string $note, DateTimeImmutable $now): RoundReport
+    {
+        $status = $this->status($now);
+        if (RoundStatus::Walked !== $status) {
+            throw RoundNotWalked::forRound($this->id, $status);
+        }
+
+        if (!$this->isSignedUp($memberId)) {
+            throw NotAWalkerOfThisRound::forMember($this->id, $memberId);
+        }
+
+        $report = $this->reportOf($memberId);
+        if (null !== $report) {
+            $report->revise($outcome, $note, $now);
+
+            return $report;
+        }
+
+        $report = new RoundReport($this, $memberId, $outcome, $note, $now);
+        $this->reports->add($report);
+
+        return $report;
+    }
+
+    public function reportOf(Uuid $memberId): ?RoundReport
+    {
+        return $this->reports->findFirst(static fn(int $key, RoundReport $report): bool => $report->memberId()->equals($memberId));
+    }
+
+    /**
+     * @return list<RoundReport>
+     */
+    public function reports(): array
+    {
+        return \array_values($this->reports->toArray());
     }
 
     /**
