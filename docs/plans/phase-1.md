@@ -478,6 +478,18 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
   nodig heeft, krijgt ook de rol coördinator (besloten op 15 november 2026).
 
 - De bewakingstest uit beslissing 14.
+- Wie de actie uitvoert (besloten op 15 november 2026):
+  - één bron: de token-opslag van Symfony. `ExecutionContext` leest het token; `SymfonyAuthorization` leest via de
+    `AuthorizationChecker` hetzelfde token, dus handler en Voters zien altijd dezelfde uitvoerder;
+  - `RunAs` zet dat token voor elke ingang zonder HTTP-authenticatie: console en fixtures (kanaal `console`), later
+    de web-installer (`web`) en de scheduler. De authenticator van fase 2 zet het voor `api` en `mcp`;
+  - de scheduler krijgt een expliciete systeemidentiteit: `RunAs::system()` zet een token met een `SystemUser`
+    (rol `ROLE_SYSTEM`, geen lid). Cron en tick krijgen allebei kanaal `cron`. Een verzoek zonder token is nooit
+    "systeem": een Voter staat een systeemactie alleen toe bij `ROLE_SYSTEM`;
+  - geen automation-account als lid: dat telt overal mee als persoon en kan rollen of tokens krijgen. Een script
+    werkt met het persoonlijke API-token van een lid;
+  - `DoctrineTransaction` zet de EntityManager terug (`ManagerRegistry::resetManager()`) als de operatie faalt,
+    zodat de volgende use case in hetzelfde proces werkt.
 
 ### T10. Database en review-focus 1 (test eerst)
 
