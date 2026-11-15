@@ -1,0 +1,419 @@
+# Fase 1: taakplan
+
+Status: ter goedkeuring.
+
+Bron: `docs/plan-v4.md` (Domeinmodel en API-ontwerp, Voorbeelddata, Auditlog, Privacy en AVG, Conversie
+v3 → v4, Fase 1, Risico's en review-focus), `docs/plans/phase-0.md`, `docs/plans/phase-0-security-scanning.md`,
+ADR 0001 tot en met 0004, `AGENTS.md`, en uit `../buurtpreventie-legacy` (alleen gelezen): `src/Entity`,
+`src/Service/WalkService.php`, `migrations/`, met de plekken die `WalkService` aanroepen.
+
+## Doel en klaar-criterium
+
+Het domein van v4 staat: de modules `Patrol`, `Membership`, `Identity` en `Audit` met entiteiten,
+use cases (invoer en handler), Voters en auditlog, opgeslagen in MariaDB en MySQL, met voorbeelddata en een
+conversie uit v3. Controllers en tools volgen in fase 2 en 5.
+
+Klaar als:
+
+- elke domeinregel uit v3 een test heeft, met per regel de keuze "blijft" of "verbeterd" (tabel bij T4);
+- elke schrijvende handler een auditregel achterlaat, een Voter raadpleegt en een rij in de matrixtest heeft,
+  en een bewakingstest faalt als een nieuwe schrijvende handler dat mist;
+- review-focus 1, 2 en 4 elk een test hebben die groen is (T10, T5, T7);
+- de migraties vanaf een lege database draaien en `doctrine:schema:validate` schoon is op MariaDB 10.11 én
+  MySQL 8.4, en de databasetests op beide groen zijn;
+- `app:fixtures:load` de sets `demo`, `test`, `edge` en `v3` laadt, en CI elke set laadt met een rooktest;
+- `app:import-v3 --dry-run` en `app:import-v3` foutloos draaien op de verzonnen v3-set, de aantallen kloppen en
+  voorbeeldlopers hun v3-wachtwoord gebruiken (gecontroleerd met de wachtwoord-hasher; inloggen zelf is fase 2);
+- ADR 0005 de database-aanpak vastlegt;
+- `composer check` lokaal groen is en de pull request naar `develop` groen en gemergd is.
+
+## Vastgesteld in v3
+
+1. **v3 heeft geen schemamigraties.** De enige migratie (`Version20000101000000`) is leeg; het schema kwam uit
+   de Doctrine-mapping met `underscore_number_aware`-naamgeving. De conversie leest dus de tabellen die die mapping
+   oplevert (`user`, `round`, `round_walker`, `round_result`, `result`, `meeting_point`, `comment`) en controleert
+   vooraf of de verwachte kolommen er zijn.
+2. **Soft delete overal.** Alle entiteiten behalve `User` hebben `deleted_at` en `deleted_by`, `User` alleen
+   `deleted_at`. Afmelden zet `round_walker.deleted_at` (zo telt v3 "N lopers afgemeld"); uitschrijven van een
+   inactief lid verwijdert de regel echt (`doHardDelete`); de laatste loper die zich afmeldt laat de ronde
+   soft-deleted achter.
+3. **Tijd zonder tijdzone.** `round.datetime` is een `DATETIME` in lokale tijd zonder zone; `inPast()` vergelijkt
+   datum en `H:i` als tekst met de klok van de server.
+4. **Telefoon en mobiel.** `User` heeft `phone` én `mobile` (libphonenumber), v4 noemt één telefoonnummer.
+5. **Startpunt als `POINT`.** `meeting_point.location` is een spatial `POINT(lengtegraad breedtegraad)`.
+6. **Rollen met hiërarchie.** `ROLE_SUPER_ADMIN` erft alle rollen; `ROLE_WALK` en `ROLE_COORDINATE` erven
+   `ROLE_MEMBER`. Aanmelden via de v3-API vraagt alleen `ROLE_USER`; een ronde aanmaken vraagt `ROLE_WALK`; een
+   ronde wijzigen of verwijderen mag de coördinator of de maker.
+7. **Het minimum staat in `.env`** (`APPLICATION_WALKER_MINIMUM`), niet in de database. De conversie kan het dus
+   niet lezen.
+
+## Voorgestelde beslissingen
+
+### Model
+
+1. **Het minimum wordt per ronde vastgelegd** (`Round.minimumWalkers`, gezet bij aanmaken uit de instelling). In
+   v3 verandert het verleden mee als het minimum in `.env` wijzigt: een gelopen ronde wordt dan achteraf "niet
+   gelopen", en de statistiek (fase 8) klopt niet meer. De conversie zet het v3-minimum met
+   `--minimum-walkers=<n>` (standaard 2).
+2. **Alleen een minimum, geen maximum.** Er is dus geen "laatste plek"; review-focus 1 gaat over dubbel aanmelden
+   door één lid en over aanmelden terwijl de laatste loper zich afmeldt (T10).
+3. **`startsAt` als UTC** via een eigen Doctrine-type `utc_datetime_immutable` in `Shared\Infrastructure`. Het
+   standaardtype van Doctrine gebruikt de tijdzone van PHP; zonder eigen type hangt de opgeslagen waarde af van
+   de serverinstelling. Status en dagdeel rekenen in `Europe/Amsterdam`.
+4. **Geen koppeling tussen modules in de database.** `Participation`, `RoundReport` en `RoundComment` bewaren een
+   `memberId`, geen Doctrine-relatie naar `Member`: zo'n relatie zou regel 4 (modules via use cases) breken.
+   Er komt dus geen foreign key tussen tabellen van verschillende modules. Daarom wordt een lid nooit uit de
+   database verwijderd: wissen (AVG) anonimiseert het lid, zodat elke `memberId` blijft verwijzen naar een
+   bestaand lid. Binnen een module wel foreign keys.
+5. **Rollen zonder hiërarchie.** `walker`, `coordinator`, `analyst`, `admin` zijn losse rollen; een lid zonder
+   rol kan alleen lezen. `ROLE_SUPER_ADMIN` uit v3 wordt alle vier, `ROLE_MEMBER` of `ROLE_USER` alleen wordt
+   geen rol (melding in de dry-run). Opslag als `simple_array`, zonder JSON-kolom (zie beslissing 13).
+6. **Eén telefoonnummer.** De conversie neemt `mobile`, anders `phone`; zijn beide gevuld en verschillend, dan
+   meldt de dry-run het. Alternatief: twee velden in v4 houden.
+7. **Een ronde wijzigen of verwijderen:** de coördinator altijd; de maker zolang er nog geen andere loper is
+   aangemeld. Daarna moet een loopmaatje erop kunnen rekenen. In v3 mocht de maker altijd.
+8. **Gegevens na de bewaartermijn:** `Round` krijgt `anonymisedAt` en `anonymisedWalkerCount`, zodat aantal
+   lopers en status blijven kloppen als de aanmeldingen weg zijn; `RoundReport` verliest alleen de notitie. De
+   conversie gebruikt dit al (Conversie v3 → v4); de scheduler later ook.
+9. **Een verwijderd v3-lid wordt een eigen anoniem lid** ("verwijderd lid", inactief, zonder account), één per
+   v3-gebruiker. Eén gedeeld anoniem lid botst met de unieke sleutel ronde + lid zodra twee verwijderde leden in
+   dezelfde ronde liepen.
+
+### Architectuur
+
+10. **`Symfony\Component\Uid` mag in `Domain`** (regel 1 uitgebreid). ID's zijn UUIDv7 (`Uuid`); een eigen
+    ID-klasse per entiteit zou alleen een laag om dezelfde waarde zijn. De uitbreiding krijgt een sectie in
+    `docs/architecture.md`; de testopstelling blijft bewijzen dat Doctrine ORM in `Domain` wel afgaat.
+11. **Handlers kennen geen Doctrine** (regel 2 uitgebreid met `Doctrine\ORM` en `Doctrine\DBAL`). Ze werken
+    via repository-interfaces in `Domain` en via `Shared\Domain\Transaction`, zodat wijziging en auditregel in
+    één transactie vallen. Met een overtreding in `tests/Architecture/Fixtures/`.
+12. **Tijd, kanaal en uitvoerder komen via `Shared\Domain`:**
+    - domeinmethodes krijgen `DateTimeImmutable $now` mee, handlers krijgen `Psr\Clock\ClockInterface`;
+    - `Shared\Domain\ExecutionContext` geeft het kanaal (`web`, `api`, `mcp`, `cron`, `console`) en het lid dat
+      de actie uitvoert. In fase 1 vullen console-commando's en tests het; fase 2 en 5 voegen HTTP en MCP toe.
+      `console` is nieuw ten opzichte van de woordenlijst, voor conversie en voorbeelddata;
+    - `Shared\Domain\Authorization::denyUnlessGranted()`, geïmplementeerd met Symfony's AccessDecisionManager
+      en de Voters. Elke Voter staat in de `Infrastructure` van zijn module en volgt een regelklasse in `Domain`
+      (zoals `RoundPolicy`), zodat de matrixtest in memory draait.
+13. **Geen JSON-kolommen.** MariaDB slaat `JSON` op als `LONGTEXT` met een controle, MySQL heeft een eigen type;
+    dezelfde migratie levert dan op de twee een ander schema. De gewijzigde velden van een auditregel worden tekst
+    met `json_encode`, rollen een `simple_array`.
+14. **Schrijvende handlers dragen `#[WriteAction(...)]`** met de Voter-actie en de auditactie, lezende
+    `#[ReadAction]`. Een bewakingstest leest alle handlers: elke handler heeft één van beide, elke `WriteAction`
+    heeft een rij per rol in de matrixtest, en de test van de handler heeft een test die met `it_records_` begint.
+15. **E-mail volgt in fase 3.** `SendReminders` en `NotifyBuddyNeeded` bepalen in fase 1 wie welk bericht krijgt,
+    en leggen vast dat het verstuurd is (`remindedAt`, één bericht per ronde). Versturen loopt via een interface
+    `Shared\Domain\Notifier`; fase 1 heeft alleen een implementatie die logt, tests gebruiken een eigen in-memory
+    versie. Zo komen `symfony/mailer` en Twig pas in fase 3.
+16. **Hashketen in het auditlog niet in fase 1.** Het plan noemt die optioneel; een hash van de vorige regel maakt
+    de anonimisering bij wissen (de naam wordt "verwijderd lid") lastiger. Apart te beslissen.
+
+### Database (ADR 0005)
+
+17. **Twee databases, één set migraties.** Migraties worden lokaal op MariaDB 10.11 gegenereerd en met de hand
+    nagelopen. CI draait ze vanaf een lege database op MariaDB 10.11 en MySQL 8.4, met daarna
+    `doctrine:schema:validate` en de databasetests. Een migratie die alleen op één database werkt, faalt zo
+    meteen. Migraties mogen alleen toevoegen en blijven terug te draaien (`down()`), zoals het plan voor
+    patchversies eist.
+18. **`utf8mb4` met `utf8mb4_unicode_ci`** als standaard-tabeloptie in `doctrine.yaml`, en `charset: utf8mb4` op
+    de verbinding. MySQL 8.4 kiest anders `utf8mb4_0900_ai_ci`, MariaDB `utf8mb4_general_ci`.
+19. **Zoeksleutels in kleine letters, in PHP, in een `utf8mb4_bin`-kolom.** `utf8mb4_unicode_ci` maakt ook
+    accenten gelijk: `José` en `Jose` botsen op een unieke index, ook als PHP ze verschillend vindt. Daarom:
+    - een value object (`EmailAddress`, en `LookupKey` voor namen, startpunten en uitkomsten) maakt van de invoer
+      `mb_strtolower(trim(...))`, met spaties samengevoegd;
+    - die sleutel staat in een eigen kolom met `utf8mb4_bin`, waarop de unieke index en het zoeken werken;
+    - de weergave (naam zoals getypt) staat ernaast. Een e-mailadres wordt alleen in kleine letters opgeslagen;
+      het plan zegt "kleine letters vóór opslag", maar voor een naam zou dat de weergave bederven.
+20. **Geheime tokens alleen als hash.** SHA-256 van 32 willekeurige bytes (`random_bytes`), opgeslagen als
+    `BINARY(32)`, gezocht op de hash zelf; de tekst wordt één keer getoond. Dat geldt in fase 1 voor
+    `ApiToken`; inloglink en wachtwoord-reset (fase 2) volgen hetzelfde patroon. Wachtwoorden gaan via
+    Symfony's `auto`-hasher, zodat v3-hashes geldig blijven.
+21. **Geen eigen SQL**, behalve in een repositorymethode in `<Module>\Infrastructure\Persistence\` met een
+    integratietest die op beide databases draait. Querybuilder en DQL gelden ook als eigen query: elke
+    repositorymethode met een query heeft zo'n test; `find()` en `findBy()` niet.
+22. **Coördinaten als `DECIMAL(9,6)`**, breedte- en lengtegraad in WGS84, in een embeddable `Coordinates` met
+    controle op het bereik. Geen spatial types. De conversie leest `POINT(lengte breedte)` met
+    `ST_X()`/`ST_Y()`, wat op beide databases bestaat.
+23. **ID's als `BINARY(16)`.** Of Doctrine op MariaDB 10.11 het eigen `UUID`-type van MariaDB kiest, controleert
+    T3; zo ja, dan wordt de kolom expliciet `BINARY(16)`, zodat het schema op beide gelijk is.
+24. **Aanmelden is veilig bij gelijktijdigheid:**
+    - unieke sleutel op ronde + lid; een tweede aanmelding van hetzelfde lid is een geslaagde no-op (`PUT` is
+      idempotent);
+    - aanmelden en afmelden zetten een schrijfslot op de ronde (`PESSIMISTIC_WRITE`) binnen de transactie, zodat
+      een aanmelding nooit verdwijnt doordat tegelijk de laatste loper vertrekt en de ronde wordt verwijderd.
+25. **Databasetests:** groep `database`, met `dama/doctrine-test-bundle`; elke test rolt terug en filtert op de
+    id's die hij zelf maakt. De gelijktijdigheidstest zet DAMA voor zichzelf uit, werkt met twee eigen
+    verbindingen die echt committen en ruimt zijn rijen zelf op. Het schema wordt gemaakt vóór de tests, door een
+    eigen PHPUnit-extensie (migraties vanaf leeg, één keer per run), omdat MariaDB bij DDL stil commit en
+    `tests/bootstrap.php` een receptbestand is dat blijft zoals geleverd. Zonder bereikbare database slaan de
+    databasetests over met een duidelijke reden; in CI maakt `REQUIRE_DATABASE=1` van overslaan een fout.
+
+### Conversie en voorbeelddata
+
+26. **`app:import-v3` vult alleen een lege v4-database** en weigert anders. De v3-database komt via een tweede
+    verbinding `legacy` (`LEGACY_DATABASE_URL`), met alleen `SELECT`-rechten (staat in de handleiding) en een
+    lezer die alleen vaste `SELECT`-query's kent.
+27. **`--dry-run` voert de hele conversie uit in een transactie en rolt die terug.** Het rapport komt dus uit
+    precies dezelfde code: aantallen per soort, waarschuwingen, en wat niet meegaat.
+28. **Opnieuw draaien geeft hetzelfde resultaat, behalve de ID's.** Een test converteert twee keer naar een lege
+    database en vergelijkt alles behalve de UUID's. Een koppeltabel `legacy_id_map` (soort, oud id, nieuw id)
+    blijft staan voor naslag.
+29. **Wat de conversie doet met v3-gegevens:**
+    - soft-deleted rondes en catalogusitems gaan niet mee, behalve een catalogusitem waar een meegenomen
+      terugmelding of ronde naar verwijst: dat wordt gearchiveerd;
+    - een afgemelde `round_walker` wordt geen aanmelding, wel een auditregel "afgemeld" (gemarkeerd "uit v3") als
+      hij binnen de bewaartermijn valt;
+    - een terugmelding bij een niet-gelopen ronde gaat niet mee, met een waarschuwing in het rapport; meerdere
+      terugmeldingen van één lid bij één ronde worden de laatste, ook met waarschuwing;
+    - een `result` met `incident` wordt `incident`, anders met `remarks` wordt `remarks`, anders
+      `nothing_to_report`;
+    - `round.datetime` geldt als `Europe/Amsterdam`; een tijd die bij de wintertijdwissel dubbel bestaat of bij
+      de zomertijdwissel niet bestaat, staat als waarschuwing in het rapport;
+    - bewaartermijnen en `--since=<datum>` zoals in het plan.
+30. **Voorbeelddata met een eigen command en `doctrine/data-fixtures`, zonder de bundle.** `app:fixtures:load
+    <set>` leegt de database met de `ORMPurger` en bouwt de set via de use cases, met een vaste seed en datums vanaf
+    de klok. De bundle voegt daar `doctrine:fixtures:load` en servicetags aan toe, die dit project niet gebruikt;
+    zonder bundle is er een afhankelijkheid minder. Alternatief: de bundle, zoals het plan noemt.
+31. **De set `v3` vult de `legacy`-verbinding** met een schema dat de v3-mapping nabouwt (zie Vastgesteld 1) en
+    verzonnen rijen: hooguit 12 leden, rondes over 30 maanden, soft-deleted rijen, een verwijderd lid in de
+    historie, een tijd rond de wintertijdwissel, twee leden met zowel telefoon als mobiel. Wachtwoorden zijn
+    bcrypt-hashes van vaste voorbeeldwachtwoorden die alleen in de fixture-code staan. De schemadefinitie is
+    nagebouwd uit de MIT-code van v3; v3 zelf blijft ongemoeid.
+
+### Opengrep-regels voor deze fase
+
+32. Elke regel met een regeltest, zoals in `docs/testing.md`:
+    - **`sql-built-from-strings` uitbreiden** met `select`, `addSelect`, `from`, `join`, `innerJoin`, `leftJoin`,
+      `groupBy`, `addGroupBy` en `set` van de querybuilder;
+    - **`sql-outside-repository`** (nieuw): `executeQuery`, `executeStatement`, `fetch*`, `createQuery`,
+      `createNativeQuery` en `createQueryBuilder` alleen in `src/*/Infrastructure/Persistence/` en in de
+      v3-lezer;
+    - **`weak-random-or-hash`** (nieuw): `md5`, `sha1`, `rand`, `mt_rand`, `uniqid`, `lcg_value` en
+      `str_shuffle` niet in `src/` (v3 maakte tokens met `sha1(random_bytes(10))`); voor tokens `random_bytes` en
+      `hash('sha256', ...)`;
+    - **`byte-lowercase`** (nieuw): `strtolower` en `strtoupper` niet in `src/`, want ze laten `É` staan; de
+      zoeksleutel gebruikt `mb_strtolower`.
+
+## Nieuwe afhankelijkheden (ter goedkeuring)
+
+Alle MIT. Versies en datums van Packagist op 15 november 2026. De Composer-cooldown van 24 uur houdt releases
+van 14 en 15 november tegen; `composer require` kiest dan de vorige versie.
+
+| Pakket | Waarvoor | Soort | Releaseritme | Nu |
+| --- | --- | --- | --- | --- |
+| `doctrine/orm` | Entiteiten, mapping, unit of work | runtime | Patch elke 1 tot 3 weken, minor een paar keer per jaar | 3.8.0 en 3.7.7 (14 nov, cooldown), 3.7.6 (30 okt) |
+| `doctrine/dbal` (via ORM) | Verbinding, platforms, schema | runtime | Patch maandelijks, minor een paar keer per jaar | 4.6.0 (14 nov, cooldown), 4.5.1 (10 nov) |
+| `doctrine/doctrine-bundle` | Koppeling met Symfony, `doctrine.yaml` | runtime | Patch elke paar weken; 3.x vraagt PHP 8.4 | 3.4.2 (15 nov, cooldown), 3.4.1 (12 nov) |
+| `doctrine/doctrine-migrations-bundle` + `doctrine/migrations` | Migraties, ook voor de updater in fase 6b | runtime | Een paar releases per jaar | 4.0.1 (aug 2026); migrations 3.9.8 (okt 2026) |
+| `symfony/doctrine-bridge` (via de bundle) | UUID-type, `UniqueEntity` | runtime | Symfony 7.4 LTS, patch ongeveer maandelijks | 7.4.22 (18 okt) |
+| `symfony/uid` | UUIDv7 | runtime | Symfony 7.4 LTS | 7.4.x |
+| `symfony/clock` | Klok die tests vastzetten | runtime | Symfony 7.4 LTS | 7.4.21 (12 okt) |
+| `symfony/security-bundle` | Voters, AccessDecisionManager, wachtwoord-hasher (`auto`); fase 2 bouwt erop verder | runtime | Symfony 7.4 LTS | 7.4.x |
+| `doctrine/data-fixtures` | `ORMPurger` en volgorde voor `app:fixtures:load` | dev | Een paar releases per jaar | 2.2.1 (apr 2026) |
+| `dama/doctrine-test-bundle` | Elke databasetest rolt terug | dev | Elke paar weken tot maanden | v8.8.0 (13 nov), v8.7.1 (10 nov) |
+
+Niet nodig bij beslissing 30: `doctrine/doctrine-fixtures-bundle` (4.3.1, december 2025; het laagste
+releaseritme van de lijst). `symfony/uid`, `symfony/clock` en `symfony/security-bundle` stonden niet in de
+prompt; ze zijn nodig voor UUIDv7, de vaste klok in tests en de Voters uit het plan.
+
+Dependabot neemt ze vanzelf mee, binnen de cooldown en zonder Symfony-majors; `SymfonyReleaseLineTest` bewaakt
+dat de drie Symfony-pakketten op 7.4 staan.
+
+## Taken
+
+Elke taak is één of enkele kleine commits; tests komen vóór de code.
+
+### T1. Branch en taakplan
+
+`feature/phase-1` vanaf `develop`; dit plan. Bouwen pas na akkoord.
+
+### T2. Afhankelijkheden en configuratie
+
+- `composer require` van de goedgekeurde pakketten; recepten nalopen, receptbestanden ongewijzigd laten.
+- `config/packages/doctrine.yaml`: tabelopties (beslissing 18), eigen types, mapping per module uit
+  `src/<Module>/Domain`, verbinding `legacy`; `doctrine_migrations.yaml` met migraties in `migrations/`.
+- `phpunit.dist.xml`: DAMA-extensie en de schema-extensie (beslissing 25).
+- Test eerst: `SymfonyReleaseLineTest` dekt de nieuwe Symfony-pakketten; `composer deprecations` blijft schoon.
+
+### T3. Gedeelde bouwstenen (test eerst)
+
+In `Shared\Domain`: `Transaction`, `ExecutionContext` met `Channel`, `AuditTrail`, `Authorization`, `Notifier`,
+`EmailAddress`, `LookupKey`. In `Shared\Infrastructure`: `UtcDateTimeImmutableType`, de Doctrine-transactie,
+de Symfony-autorisatie. Unit-tests voor de value objects (`Anke@Example.org ` wordt `anke@example.org`; `José` en
+`Jose` zijn verschillende sleutels); een integratietest dat `utc_datetime_immutable` een tijd ongewijzigd
+heen en terug brengt, en welk kolomtype een UUID op MariaDB krijgt (beslissing 23).
+
+PHPat: regel 1 en 2 uitbreiden (beslissingen 10 en 11), met een overtreding per uitbreiding in de fixtures en
+een sectie in `docs/architecture.md`.
+
+### T4. Regels uit v3 als test, dan het Patrol-domein
+
+Eerst de tests, in memory, met een vaste klok. Per v3-regel:
+
+| v3 (`WalkService` en aanroepers) | v4 | Test (in `tests/Patrol/Domain/`) |
+| --- | --- | --- |
+| `hasMinimumWalkers`: aantal ≥ minimum | blijft, minimum per ronde | `it_is_staffed_once_the_minimum_is_reached` |
+| `wasWalked`: voorbij en minimum gehaald | blijft, als status `walked`/`not_walked` | `it_counts_as_walked_only_when_past_with_the_minimum` |
+| `getWalked` laat rondes onder het minimum weg | blijft, als status | `it_counts_a_past_round_below_the_minimum_as_not_walked` |
+| `inPast`: datum en `H:i` als tekst, serverklok | verbeterd: tijdstip in UTC tegen de klok | `it_starts_at_the_same_instant_in_every_time_zone` |
+| `getTimeOfDay`: < 12, < 18, anders avond | blijft, in `Europe/Amsterdam` | `it_takes_the_daypart_from_local_time` |
+| `addRound`: maker wordt meteen loper, memo wordt opmerking | blijft | `it_signs_up_the_creator_of_a_new_round` |
+| `walkRound`: geen controle op dubbel | verbeterd: idempotent | `it_ignores_a_second_sign_up_of_the_same_member` |
+| `walkRound`: ook voor een voorbije ronde | verbeterd: alleen vóór de start | `it_refuses_a_sign_up_after_the_start` |
+| `exitRound`: laatste loper weg, ronde weg | blijft | `it_deletes_the_round_when_the_last_walker_withdraws` |
+| `exitRound`: ook na de start | verbeterd: alleen vóór de start | `it_refuses_a_withdrawal_after_the_start` |
+| `roundResult`: memo alleen bij `remarks` | verbeterd: notitie bij `remarks` en `incident` | `it_drops_the_note_when_there_is_nothing_to_report` |
+| `roundResult`: geen controle op status of loper | verbeterd: alleen `walked`, alleen lopers van die ronde | `it_refuses_a_report_for_a_round_that_was_not_walked` |
+| `roundResult`: meerdere per lid | verbeterd: één per lid per ronde | `it_replaces_the_report_of_the_same_walker` |
+| `isUserRoundResult`, `isUserComment`: eigenaar is `updatedBy ?? createdBy` | verbeterd: vaste auteur, plus coördinator | `it_lets_only_the_author_or_a_coordinator_delete_a_report` |
+| `walkerRemoveFromFutureRounds`: vanaf morgen | verbeterd: alles wat nog niet begonnen is | `it_removes_an_inactive_member_from_rounds_that_have_not_started` |
+| `getWalkers`/`getWalkedWith`: inactieve lopers als aantal | blijft, in de uitvoer (fase 2) | `it_lists_inactive_walkers_as_a_count` |
+| Herinnering één keer per lid per dag, alleen actieve lopers | blijft | `it_reminds_each_active_walker_once` |
+| `setActive(false)` wist wachtwoord en token | verbeterd: account uit, tokens ingetrokken, wachtwoord blijft voor heractiveren | `it_revokes_every_token_on_deactivation` (Membership/Identity) |
+| `erasePersonalInformation` | blijft, plus naam "verwijderd lid" in historie en auditlog | `it_erases_contact_details_and_the_name` |
+| Ronde wijzigen of verwijderen: coördinator of maker | verbeterd (beslissing 7) | `it_lets_the_creator_change_a_round_until_a_buddy_joins` |
+| Aanmelden: elke ingelogde gebruiker | verbeterd: rol `walker` | in de matrixtest |
+
+Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `RoundComment`, `StaffingRule`,
+`RoundStatus`, `Daypart`, `RoundPolicy` en de repository-interfaces.
+
+### T5. Review-focus 2: zomer- en wintertijd (test eerst)
+
+- Domein: een ronde om 22:00 op de dag vóór en na beide wissels houdt 22:00 `Europe/Amsterdam` en dagdeel
+  `evening`; de herinnering valt op de goede kalenderdag.
+- Database (beide): dezelfde rondes heen en terug via de repository, met `startsAt` exact gelijk.
+- Conversie: een v3-tijd in het dubbele uur geeft een waarschuwing en een vaste keuze (de eerste, zomertijd).
+  Fase 2 test dezelfde rondes via de API.
+
+### T6. Membership, Identity, Settings (test eerst)
+
+- `Member` met `EmailAddress`, naam met `LookupKey`, telefoon, adres, rollen, `consentContactShare`,
+  `certified`, `active`, `notifyOpenRounds`, `erasedAt`.
+- `Account` (e-mail, wachtwoordhash, laatste login) en `ApiToken` (hash, naam, scopes `read`/`write`/`admin`,
+  verloopdatum, laatst gebruikt, `revokedAt`).
+- `Setting` met alleen het minimumaantal lopers (standaard 2); beheer volgt in fase 3.
+- Use cases: `AddMember`, `ChangeMember`, `ChangeMemberRoles`, `ChangeContactConsent`, `DeactivateMember`,
+  `ReactivateMember`, `EraseMember`, `GetMemberSummaries`; `SetPassword`, `VerifyPassword`, `CreateApiToken`,
+  `RevokeApiToken`, `RevokeMemberApiTokens`.
+
+### T7. Review-focus 4: gedeactiveerd of gewist lid (test eerst)
+
+- `DeactivateMember` schrijft het lid uit elke ronde die nog niet begonnen is (via de Patrol-use case
+  `WithdrawMemberFromUpcomingRounds`), elk met een auditregel "automatisch uitgeschreven"; valt een ronde onder
+  het minimum, dan krijgt de overgebleven loper bericht; was het de laatste loper, dan vervalt de ronde.
+- Na `DeactivateMember` en `EraseMember` is elk token ingetrokken en het account uit, in dezelfde transactie.
+- Een gewist lid staat in historie en auditlog als "verwijderd lid", zonder contactgegevens.
+- Fase 2 test dat de token-authenticator een ingetrokken token meteen weigert en dat de ledenlijst
+  gedeactiveerde leden weglaat.
+
+### T8. Audit (test eerst)
+
+- `AuditEntry`: tijdstip (UTC), lid-id en naam op dat moment of "systeem", actie (`round.created`, ...),
+  onderwerp (soort en id), kanaal, gewijzigde velden oud → nieuw, `importedFromV3`. Nooit wachtwoorden,
+  tokens of volledige IP-adressen.
+- `DoctrineAuditTrail` schrijft in de lopende transactie; `EraseActorName` vervangt de naam van een gewist lid.
+- Geen use case om regels te wijzigen of te verwijderen. Lezen via API volgt in fase 2.
+
+### T9. Patrol-use cases, Voters en matrixtest (test eerst)
+
+- Use cases: `CreateRound`, `ChangeRound`, `DeleteRound`, `SignUpForRound` (ook namens), `WithdrawFromRound`
+  (ook namens en verwijderen door de coördinator), `WithdrawMemberFromUpcomingRounds`, `ReportRoundResult`,
+  `DeleteRoundReport`, `AddRoundComment`, `DeleteRoundComment`, `CreateMeetingPoint`, `ChangeMeetingPoint`,
+  `ArchiveMeetingPoint`, `CreateOutcome`, `ChangeOutcome`, `ArchiveOutcome`, `ListRounds`, `GetRound`,
+  `FindStaffingGaps`, `SendReminders`, `NotifyBuddyNeeded`.
+- Voters: `RoundVoter`, `ParticipationVoter`, `ReportVoter`, `CommentVoter`, `CatalogueVoter`, `MemberVoter`,
+  `ApiTokenVoter`.
+- Matrixtest (`tests/Shared/AuthorizationMatrixTest.php`): rol (geen rol, loper, coördinator, analist, beheerder)
+  × elke `WriteAction`, met als verwachting:
+
+  | Actie | Wie |
+  | --- | --- |
+  | Ronde aanmaken | loper |
+  | Ronde wijzigen of verwijderen | coördinator; maker zolang alleen |
+  | Zelf aan- of afmelden | loper |
+  | Namens aan- of afmelden, loper verwijderen | coördinator |
+  | Terugmelden | loper van die ronde |
+  | Terugmelding of opmerking verwijderen | auteur, coördinator |
+  | Opmerking plaatsen | elk lid |
+  | Startpunten en uitkomsten | beheerder |
+  | Leden toevoegen, wijzigen, rollen, (de)activeren, wissen | beheerder |
+  | Eigen toestemming, eigen tokens | het lid zelf |
+
+- De bewakingstest uit beslissing 14.
+
+### T10. Database en review-focus 1 (test eerst)
+
+- Doctrine-repositories per module in `Infrastructure/Persistence/`, elke query met een integratietest.
+- Migraties uit de mapping, nagelopen op beslissingen 13, 18, 19, 22 en 23.
+- Review-focus 1, met twee eigen verbindingen:
+  - hetzelfde lid meldt zich tegelijk twee keer aan: één aanmelding, status klopt, geen fout voor het lid;
+  - de laatste loper meldt zich af terwijl een ander zich aanmeldt: óf de ronde bestaat met de nieuwe loper, óf
+    de aanmelding krijgt "ronde bestaat niet meer"; nooit een stil verloren aanmelding.
+
+### T11. CI: databases
+
+Job "Database (MariaDB 10.11)" en "Database (MySQL 8.4)" in `ci.yml` (matrix, services met healthcheck,
+database met `utf8mb4_unicode_ci`): migraties vanaf leeg, `doctrine:schema:validate`, `migrations:migrate
+first` en weer omhoog (alle `down()` werken), databasetests met `REQUIRE_DATABASE=1`, elke fixture-set laden
+met rooktest, conversie van de set `v3`. Actions vastgepind op SHA. De twee jobs worden verplichte checks op
+`develop`, na akkoord.
+
+### T12. Voorbeelddata (test eerst)
+
+`app:fixtures:load <set>` (alleen `dev` en `test`, `#[When]`), sets `demo`, `test`, `edge`, `v3`, zoals in
+Voorbeelddata en beslissing 31. Tests: dezelfde seed geeft dezelfde mensen en hetzelfde patroon; de set `demo`
+houdt zich aan hooguit 20 leden, drie met een andere rol dan loper, alleen `example.org`, en ruim een kwart van
+de rondes zonder loopmaatje; de set `edge` bevat elk geval uit het plan.
+
+### T13. Conversie `app:import-v3` (test eerst)
+
+Integratietests op de set `v3`, op beide databases:
+
+- dry-run: rapport met aantallen per soort en elke waarschuwing uit beslissing 29, en daarna een lege
+  v4-database;
+- echte run: dezelfde aantallen, auditregels "uit v3", bewaartermijnen toegepast, `--since` neemt minder mee;
+- elk voorbeeldlid met een v3-wachtwoord: `VerifyPassword` slaagt met het v3-wachtwoord en faalt met een ander;
+- een tweede conversie naar een lege database geeft hetzelfde (beslissing 28);
+- een niet-lege v4-database en een afwijkend v3-schema geven een duidelijke fout zonder wijzigingen.
+
+### T14. Opengrep-regels
+
+Per regel eerst het testbestand, dan de regel (beslissing 32).
+
+### T15. ADR 0005 en documentatie
+
+- `docs/adr/0005-database-approach.md`: beslissingen 13 en 17 tot en met 25, en waarom geen spatial types en geen
+  JSON-kolommen.
+- `docs/architecture.md`: de uitbreiding van regel 1 en 2, `Shared\Domain` met zijn interfaces, en de module-
+  grens in de database (beslissing 4).
+- `docs/testing.md`: groep `database`, DAMA, de gelijktijdigheidstest, de matrix- en bewakingstest, en hoe je
+  lokaal de database start voor tests.
+- `docs/configuration.md`: `LEGACY_DATABASE_URL`; `docs/getting-started.md`: fixtures laden;
+  `docs/gotchas.md`: wat er tijdens deze fase opvalt.
+- `docs/glossary.md`: kanaal `console`, `anonymisedAt`, `LookupKey`, `legacy_id_map`, "verwijderd lid".
+- `docs/admin-guide/`: een korte pagina over de conversie (eerst `--dry-run`, alleen-lezen databasegebruiker,
+  kopie na afloop wissen).
+- `AGENTS.md` (Commands) en `CHANGELOG.md`; in `docs/plan-v4.md` de punten van Fase 1 afvinken.
+
+### T16. Verifiëren en opleveren
+
+- Lokaal `composer check` met de database aan; uitvoer in het verslag, en welke check niet draaide.
+- Push en pull request naar `develop` na akkoord; CI groen (alle jobs); merge na akkoord.
+
+## Afspraken
+
+1. Claude commit in deze privérepo, in kleine commits. Push, pull request, merge en instellingen op GitHub
+   alleen na akkoord.
+2. De database start de ontwikkelaar (`docker compose up -d --wait`, container `database`, poort door Docker
+   gekozen; `docker compose port database 3306` toont hem). Draait hij niet, dan meldt Claude dat en draait de
+   databasetests niet.
+3. Nieuwe afhankelijkheden pas na akkoord op de tabel hierboven; ze vallen onder de Composer-cooldown van 24 uur.
+
+## Opgemerkt, buiten deze fase
+
+- Voorbeelddata: het plan zegt "nooit in de release-zip" en ook "een proefinstallatie kan in de web-installer
+  voorbeelddata laden". Dat kan niet allebei zolang fixtures alleen in `dev` bestaan; dat hoort bij fase 6a.
+- Het plan noemt "codes" bij wat hoofdletterongevoelig is; in het model van fase 1 bestaat geen code. Voor
+  uitkomsten en startpunten geldt de sleutel uit beslissing 19.
+- De hashketen in het auditlog (beslissing 16) en de bewaartermijn-opruiming door de scheduler (fase 6b) staan
+  open.
