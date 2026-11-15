@@ -1,6 +1,8 @@
 doctrine:
     dbal:
         default_connection: default
+        types:
+            utc_datetime_immutable: App\Shared\Infrastructure\Doctrine\UtcDateTimeImmutableType
         connections:
             default:
                 url: '%env(resolve:DATABASE_URL)%'
