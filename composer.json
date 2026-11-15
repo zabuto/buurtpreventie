@@ -2,7 +2,7 @@
     "name": "zabuto/buurtpreventie",
     "type": "project",
     "license": "PolyForm-Noncommercial-1.0.0",
-    "description": "Buurtpreventie: rondes plannen, een loopmaatje vinden en terugmelden",
+    "description": "Buurtpreventie: plan neighbourhood watch rounds, find a walking buddy and report back",
     "minimum-stability": "stable",
     "prefer-stable": true,
     "require": {
