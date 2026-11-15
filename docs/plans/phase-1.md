@@ -391,8 +391,10 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
 
 - `Member` met `EmailAddress`, volledige naam en weergavenaam elk met `LookupKey`, telefoon, adres, rollen, `consentContactShare`,
   `certified`, `active`, `notifyOpenRounds`, `erasedAt`.
-- `Account` (e-mail, wachtwoordhash, laatste login) en `ApiToken` (hash, naam, scopes `read`/`write`/`admin`,
-  verloopdatum, laatst gebruikt, `revokedAt`).
+- `Account` (lid-id, wachtwoordhash, laatste login) en `ApiToken` (hash, naam, scopes `read`/`write`/`admin`,
+  verloopdatum, laatst gebruikt, `revokedAt`). Het e-mailadres staat alleen op `Member` (besloten op 15 november
+  2026): één adres voor mails en inloggen, dat nooit uit elkaar loopt, op één plek gewist wordt, en ook een lid
+  zonder account bereikt. Bij inloggen (fase 2) zoekt Identity het lid op via een use case van Membership.
 - `Setting` met alleen het minimum- en maximumaantal lopers (standaard 2 en 7, maximum ≥ minimum); beheer volgt
   in fase 3.
 - Use cases: `AddMember`, `ChangeMember`, `ChangeMemberRoles`, `ChangeContactConsent`, `DeactivateMember`,

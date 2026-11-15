@@ -393,8 +393,8 @@ Het domeinmodel wordt verbeterd waar dat de app helderder en eenvoudiger maakt; 
 
 | Entiteit | Module | Uit v3 | Wat verandert |
 | --- | --- | --- | --- |
-| `Account` | Identity | deel van `User` | Alleen inloggen: e-mail, wachtwoordhash, laatste login, inloglinks. Los van het profiel, zodat de v3-`User` geen god object meer is |
-| `Member` | Membership | deel van `User` | Naam, unieke weergavenaam (`displayName`, zoals "Jan H."), telefoon, adres, rollen, `consentContactShare` (was `permitted`), `certified` (was `credited`), `active`, `notifyOpenRounds` |
+| `Account` | Identity | deel van `User` | Alleen inloggen: wachtwoordhash, laatste login, inloglinks, met een verwijzing naar het lid. Los van het profiel, zodat de v3-`User` geen god object meer is |
+| `Member` | Membership | deel van `User` | E-mailadres (voor mails én inloggen), naam, unieke weergavenaam (`displayName`, zoals "Jan H."), telefoon, adres, rollen, `consentContactShare` (was `permitted`), `certified` (was `credited`), `active`, `notifyOpenRounds` |
 | `Round` | Patrol | `Round` | `startsAt`, aangemaakt door een loper, optioneel `meetingPoint` en vrije tekst `startNote`; `minimumWalkers` en `maximumWalkers` vastgelegd bij aanmaken; status, open plekken en dagdeel afgeleid |
 | `Participation` | Patrol | `RoundWalker` | Aanmelding: lid, `joinedAt`, `remindedAt`, `onBehalfOf` (als de coördinator aanmeldde); ronde + lid is uniek |
 | `RoundReport` | Patrol | `RoundResult` | Terugmelding per loper: uitkomst + notitie; alleen bij een gelopen ronde |
