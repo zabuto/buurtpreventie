@@ -7,7 +7,7 @@ The plan lives in docs/plan-v4.md and is leading. Read it before every phase.
 - Code, API, MCP tools, database and commit messages: English.
 - All folder and file names: English, also under docs/ (docs/admin-guide/, not docs/beheer/).
 - AGENTS.md and CLAUDE.md: English.
-- README: English, with a short Dutch section. docs/, CHANGELOG.md and SECURITY.md: English,
+- README: English, with a short Dutch summary. docs/, CHANGELOG.md and SECURITY.md: English,
   except docs/glossary.md (Dutch terms and their code names) and the Dutch plans
   (docs/plan-v4.md, docs/plans/). UI texts: nl and en, through translation files.
 - Domain terms follow docs/glossary.md (loopronde = Round, loopmaatje = buddy, ...).

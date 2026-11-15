@@ -19,7 +19,7 @@ Buurtpreventie is free to use for non-commercial purposes and intended for neigh
 residents' associations. It is source-available, not open source in the OSI sense. The software is
 provided as is, without warranty or support.
 
-## Nederlands
+## Samenvatting in het Nederlands
 
 Buurtpreventie helpt buurtpreventieteams om rondes te plannen, een loopmaatje te vinden en na afloop
 terug te melden. Versie 4 wordt gebouwd op de branch `develop`; het plan staat in `docs/plan-v4.md`.
