@@ -13,7 +13,7 @@ final readonly class FixedSecretGenerator implements SecretGenerator
     public function __construct(
         // @mago-expect lint:no-literal-password - a made-up secret the tests compare with
         #[SensitiveParameter]
-        private string $secret = 'bpt_vast-geheim',
+        private string $secret = 'bpt_0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
     ) {
     }
 

@@ -184,7 +184,9 @@ Klaar als:
       ze.
 20. **Geheime tokens alleen als hash.** SHA-256 van 32 willekeurige bytes (`random_bytes`), opgeslagen als
     `BINARY(32)`, gezocht op de hash zelf; de tekst wordt één keer getoond. Dat geldt in fase 1 voor
-    `ApiToken`; inloglink en wachtwoord-reset (fase 2) volgen hetzelfde patroon. Wachtwoorden gaan via
+    `ApiToken`; inloglink en wachtwoord-reset (fase 2) volgen hetzelfde patroon. Een geheim wordt altijd
+    gegenereerd, nooit ingevuld (besloten op 15 november 2026): `ApiToken::issue()` weigert alles wat niet `bpt_`
+    plus 64 hex-tekens is. Wachtwoorden gaan via
     Symfony's `auto`-hasher, zodat v3-hashes geldig blijven.
 21. **Geen eigen SQL**, behalve in een repositorymethode in `<Module>\Infrastructure\Persistence\` met een
     integratietest die op beide databases draait. Querybuilder en DQL gelden ook als eigen query: elke

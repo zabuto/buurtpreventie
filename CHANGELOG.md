@@ -50,7 +50,7 @@ versions follow [Semantic Versioning](https://semver.org/).
   system, channel and changed fields, never a field holding a password, token or other secret.
   Erasing a member wipes its name from the log and keeps its actions.
 - Identity: accounts with a password that accepts v3 hashes, and API tokens stored as a hash with
-  scopes, expiry and revocation. Settings: the default minimum and maximum walkers of a new round.
+  scopes, expiry and revocation; a token secret is always generated, and any other value is refused. Settings: the default minimum and maximum walkers of a new round.
 - Responses do not name the PHP version: the app and `public/.htaccess` set `X-Powered-By` to `PHP Symfony`.
 - API responses carry a Content-Security-Policy that allows nothing, `nosniff`, `Referrer-Policy: no-referrer`
   and `Cross-Origin-Opener-Policy: same-origin`.

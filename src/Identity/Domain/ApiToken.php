@@ -6,6 +6,7 @@ namespace App\Identity\Domain;
 
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
+use InvalidArgumentException;
 use SensitiveParameter;
 use Symfony\Component\Uid\Uuid;
 
@@ -17,6 +18,9 @@ use Symfony\Component\Uid\Uuid;
 #[ORM\Index(name: 'api_token_member', columns: ['member_id'])]
 final class ApiToken
 {
+    /** \z, not $: $ also matches before a trailing newline. */
+    private const string SECRET_FORMAT = '/^bpt_[0-9a-f]{64}\z/';
+
     #[ORM\Id]
     #[ORM\Column(type: 'uuid')]
     private Uuid $id;
@@ -56,8 +60,17 @@ final class ApiToken
         $this->expiresAt = $terms->expiresAt;
     }
 
+    /**
+     * The secret comes from the SecretGenerator, never from a person: a typed or truncated secret is guessable.
+     *
+     * @throws InvalidArgumentException for a secret that is not bpt_ followed by 64 lower-case hex digits
+     */
     public static function issue(Uuid $memberId, TokenTerms $terms, #[SensitiveParameter] string $secret, DateTimeImmutable $now): self
     {
+        if (1 !== \preg_match(self::SECRET_FORMAT, $secret)) {
+            throw new InvalidArgumentException('An API token secret is bpt_ followed by 64 lower-case hex digits.');
+        }
+
         return new self($memberId, $terms, $secret, $now);
     }
 

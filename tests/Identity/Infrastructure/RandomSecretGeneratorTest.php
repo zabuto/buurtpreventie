@@ -4,18 +4,25 @@ declare(strict_types=1);
 
 namespace App\Tests\Identity\Infrastructure;
 
+use App\Identity\Domain\ApiToken;
+use App\Identity\Domain\TokenScope;
+use App\Identity\Domain\TokenTerms;
 use App\Identity\Infrastructure\RandomSecretGenerator;
+use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Uid\Uuid;
 
 final class RandomSecretGeneratorTest extends TestCase
 {
     #[Test]
-    public function it_makes_a_prefixed_secret_of_32_random_bytes(): void
+    public function it_makes_a_secret_that_an_api_token_accepts(): void
     {
         $secret = new RandomSecretGenerator()->newSecret();
 
-        $this->assertMatchesRegularExpression('/^bpt_[0-9a-f]{64}$/', $secret);
+        $token = ApiToken::issue(Uuid::v7(), new TokenTerms('Script', [TokenScope::Read]), $secret, new DateTimeImmutable('2026-11-15T12:00:00+00:00'));
+
+        $this->assertTrue($token->matches($secret));
     }
 
     #[Test]

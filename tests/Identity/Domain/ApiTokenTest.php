@@ -8,15 +8,17 @@ use App\Identity\Domain\ApiToken;
 use App\Identity\Domain\TokenScope;
 use App\Identity\Domain\TokenTerms;
 use DateTimeImmutable;
+use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use SensitiveParameter;
 use Symfony\Component\Uid\Uuid;
 
 final class ApiTokenTest extends TestCase
 {
     // @mago-expect lint:no-literal-password - a made-up secret whose hash the test knows
-    private const string SECRET = 'bpt_vast-geheim';
+    private const string SECRET = 'bpt_0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
     private const string ISSUED_AT = '2026-11-15T12:00:00+00:00';
 
     #[Test]
@@ -24,7 +26,7 @@ final class ApiTokenTest extends TestCase
     {
         $token = $this->token();
 
-        $this->assertSame('fac41e241871f17901f7b612f10e1ea3f4ea388638fec79d2543c0c10c840996', \bin2hex($token->secretHash()));
+        $this->assertSame('a2296723ecba63a3f18102a065f80303719e4d4ca85f602d8d28b54f77e160f7', \bin2hex($token->secretHash()));
     }
 
     #[Test]
@@ -90,6 +92,43 @@ final class ApiTokenTest extends TestCase
         $token = ApiToken::issue(Uuid::v7(), $terms, self::SECRET, new DateTimeImmutable(self::ISSUED_AT));
 
         $this->assertSame([TokenScope::Read, TokenScope::Write], $token->scopes());
+    }
+
+    /**
+     * A token is only as strong as its secret; the app generates every secret, so anything else is a bug.
+     *
+     * @return iterable<string, array{string}>
+     */
+    public static function secretsNotMadeByTheGenerator(): iterable
+    {
+        yield 'one hex digit short' => ['bpt_' . \str_repeat('0', 63)];
+        yield 'one hex digit too many' => ['bpt_' . \str_repeat('0', 65)];
+        yield 'without the prefix' => [\str_repeat('0', 64)];
+        yield 'with upper-case hex' => ['bpt_' . \str_repeat('A', 64)];
+        yield 'with a trailing newline' => ['bpt_' . \str_repeat('0', 64) . "\n"];
+        yield 'typed by hand' => ['bpt_mijn-eigen-token'];
+    }
+
+    #[Test]
+    #[DataProvider('secretsNotMadeByTheGenerator')]
+    public function it_refuses_a_secret_that_the_generator_did_not_make(#[SensitiveParameter] string $secret): void
+    {
+        $this->expectExceptionObject(new InvalidArgumentException('An API token secret is bpt_ followed by 64 lower-case hex digits.'));
+
+        ApiToken::issue(Uuid::v7(), new TokenTerms('Script', [TokenScope::Read]), $secret, new DateTimeImmutable(self::ISSUED_AT));
+    }
+
+    #[Test]
+    public function it_accepts_a_secret_of_exactly_64_hex_digits(): void
+    {
+        $token = ApiToken::issue(
+            Uuid::v7(),
+            new TokenTerms('Script', [TokenScope::Read]),
+            'bpt_' . \str_repeat('f', 64),
+            new DateTimeImmutable(self::ISSUED_AT),
+        );
+
+        $this->assertTrue($token->matches('bpt_' . \str_repeat('f', 64)));
     }
 
     private function token(?DateTimeImmutable $expiresAt = null): ApiToken

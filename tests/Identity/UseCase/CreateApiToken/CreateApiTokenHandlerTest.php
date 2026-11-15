@@ -43,10 +43,10 @@ final class CreateApiTokenHandlerTest extends TestCase
         $output = $this->handler()(new CreateApiToken($this->memberId->toRfc4122(), 'Script', ['read', 'write'], '2027-11-15T12:00:00+00:00'));
 
         $token = $this->tokens->get(Uuid::fromString($output->id));
-        $this->assertSame('bpt_vast-geheim', $output->token);
+        $this->assertSame('bpt_0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef', $output->token);
         $this->assertSame(
             [true, 'Script', [TokenScope::Read, TokenScope::Write]],
-            [$token->matches('bpt_vast-geheim'), $token->name(), $token->scopes()],
+            [$token->matches('bpt_0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'), $token->name(), $token->scopes()],
         );
         $this->assertEquals(new DateTimeImmutable('2027-11-15T12:00:00+00:00'), $token->expiresAt());
     }

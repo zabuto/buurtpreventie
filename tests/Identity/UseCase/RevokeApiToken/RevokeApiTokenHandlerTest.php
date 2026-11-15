@@ -38,7 +38,7 @@ final class RevokeApiTokenHandlerTest extends TestCase
         $this->token = ApiToken::issue(
             Uuid::v7(),
             new TokenTerms('Script', [TokenScope::Read]),
-            'bpt_vast-geheim',
+            'bpt_0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
             new DateTimeImmutable('2026-11-01T12:00:00+00:00'),
         );
         $this->tokens->add($this->token);
