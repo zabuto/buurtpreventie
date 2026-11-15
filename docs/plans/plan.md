@@ -868,7 +868,7 @@ Na fase 2 tot en met 5 staat het model dat uitgebracht wordt; de conversie volgt
 
 Extra functies, geen onderdeel van de MVP. Ze komen pas na de uitrol van fase 6b, elk met een eigen taakplan, en elke uitbreiding is per vereniging los aan of uit te zetten.
 
-Geen enkele uitbreiding is nodig voor de beveiliging: de MVP is zonder ze compleet. De volgorde:
+Geen enkele uitbreiding is nodig voor de beveiliging: de MVP is zonder ze compleet. Elke uitbreiding heeft een feature flag (fase 3) met een standaard: wat een nieuw risico voor beveiliging of privacy meebrengt, staat standaard uit en zet de beheerder per vereniging aan; de rest staat aan en kan uit. De volgorde:
 
 1. **Eerst wat lopers snel helpt**, want zij gebruiken de app het meest, en een loopmaatje vinden is het kernprobleem.
 2. **Dan wat coördinator en analist helpt.**
@@ -876,19 +876,19 @@ Geen enkele uitbreiding is nodig voor de beveiliging: de MVP is zonder ze comple
 
 Binnen elke groep gaat waarde vóór moeite.
 
-| Uitbreiding | Inhoud | Voor | Waarde | Moeite | Beveiliging en privacy | Waarom op deze plek |
-| --- | --- | --- | --- | --- | --- | --- |
-| U1 | Vast loopmaatje uitnodigen | lopers | hoog | middel | Alleen met toestemming per persoon; geen uitnodigingen via MCP | Pakt het kernprobleem aan: ruim een kwart van de rondes vindt geen loopmaatje |
-| U2 | iCal-feed met eigen rondes | lopers | middel | klein | Een geheime agenda-URL, in te trekken; de agenda-app haalt de feed op, dus alleen weergavenamen, geen contactgegevens | Snelle winst: rondes in de eigen agenda, met de herinnering van de telefoon, ook zonder cron |
-| U3 | Reageren op de terugmelding | lopers | laag tot middel | klein | Geen nieuwe risico's | Snelle winst: de andere lopers laten zien of ze het met de ene terugmelding eens zijn |
-| U4 | Pushmeldingen | lopers | middel | middel | Nieuwe afhankelijkheid en pushdiensten van derden; alleen als het lid het aanzet | Maakt uitnodigingen (U1) en herinneringen sneller |
-| U5 | Statistieken voor analist | analist, coördinator | middel tot hoog | klein | Alleen totalen, geen cijfers per loper | De use case bestaat al sinds fase 4 (MCP); alleen het scherm komt erbij |
-| U6 | Offline terugmelden | lopers | laag tot middel | middel | Geen nieuwe risico's | Handig bij slecht bereik; terugmelden kan ook thuis |
-| U7 | Terugmelden met spraak | lopers | middel | klein tot middel | De browser stuurt spraak naar zijn maker; opt-in, de server krijgt alleen tekst | Dicteren via het toetsenbord kan al in fase 5; de route via MCP volgt na OAuth (U10) |
-| U8 | Vaste export voor politie en gemeente | coördinator | nog te bepalen | klein tot middel | Geen persoonsgegevens in de export | Eerst met de coördinator uitwerken welke cijfers, in welke vorm en hoe vaak |
-| U9 | Route en incidentkaart | coördinator, analist | middel | groot | Locatie is gevoelig: toestemming per loper, DPIA en afstemming met het bestuur vooraf | Veel werk en privacy-afwegingen |
-| U10 | OAuth voor MCP-clients | lopers via een AI-app | laag | groot | Een eigen autorisatieserver is het grootste nieuwe aanvalsoppervlak; per vereniging aan of uit | Maakt MCP bruikbaar met inloggen in plaats van een token; tot dan werkt MCP met tokens |
-| U11 | No-shows bijhouden | coördinator | middel | klein | Een oordeel over betrouwbaarheid is gevoelig: opt-in per vereniging; alleen coördinator en het lid zelf, vaste bewaartermijn, inzage en bezwaar | Helpt de coördinator een loper aan te spreken die vaak niet komt, maar vraagt eerst een privacy-afweging |
+| Uitbreiding | Inhoud | Voor | Waarde | Moeite | Beveiliging en privacy | Standaard | Waarom op deze plek |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| U1 | Vast loopmaatje uitnodigen | lopers | hoog | middel | Alleen met toestemming per persoon; geen uitnodigingen via MCP | aan | Pakt het kernprobleem aan: ruim een kwart van de rondes vindt geen loopmaatje |
+| U2 | iCal-feed met eigen rondes | lopers | middel | klein | Een geheime agenda-URL, in te trekken; de agenda-app haalt de feed op, dus alleen weergavenamen, geen contactgegevens | uit, per lid aan te zetten | Snelle winst: rondes in de eigen agenda, met de herinnering van de telefoon, ook zonder cron |
+| U3 | Reageren op de terugmelding | lopers | laag tot middel | klein | Geen nieuwe risico's | aan | Snelle winst: de andere lopers laten zien of ze het met de ene terugmelding eens zijn |
+| U4 | Pushmeldingen | lopers | middel | middel | Nieuwe afhankelijkheid en pushdiensten van derden; alleen als het lid het aanzet | uit | Maakt uitnodigingen (U1) en herinneringen sneller |
+| U5 | Statistieken voor analist | analist, coördinator | middel tot hoog | klein | Alleen totalen, geen cijfers per loper | aan | De use case bestaat al sinds fase 4 (MCP); alleen het scherm komt erbij |
+| U6 | Offline terugmelden | lopers | laag tot middel | middel | Geen nieuwe risico's | aan | Handig bij slecht bereik; terugmelden kan ook thuis |
+| U7 | Terugmelden met spraak | lopers | middel | klein tot middel | De browser stuurt spraak naar zijn maker; opt-in, de server krijgt alleen tekst | uit | Dicteren via het toetsenbord kan al in fase 5; de route via MCP volgt na OAuth (U10) |
+| U8 | Vaste export voor politie en gemeente | coördinator | nog te bepalen | klein tot middel | Geen persoonsgegevens in de export | aan | Eerst met de coördinator uitwerken welke cijfers, in welke vorm en hoe vaak |
+| U9 | Route en incidentkaart | coördinator, analist | middel | groot | Locatie is gevoelig: toestemming per loper, DPIA en afstemming met het bestuur vooraf | uit | Veel werk en privacy-afwegingen |
+| U10 | OAuth voor MCP-clients | lopers via een AI-app | laag | groot | Een eigen autorisatieserver is het grootste nieuwe aanvalsoppervlak; per vereniging aan of uit | uit | Maakt MCP bruikbaar met inloggen in plaats van een token; tot dan werkt MCP met tokens |
+| U11 | No-shows bijhouden | coördinator | middel | klein | Een oordeel over betrouwbaarheid is gevoelig: opt-in per vereniging; alleen coördinator en het lid zelf, vaste bewaartermijn, inzage en bezwaar | uit | Helpt de coördinator een loper aan te spreken die vaak niet komt, maar vraagt eerst een privacy-afweging |
 
 ### Uitbreiding U1 — Vast loopmaatje uitnodigen
 

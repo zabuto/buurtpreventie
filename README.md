@@ -5,8 +5,6 @@ rounds, find a walking buddy and report back afterwards. Development happens on 
 branch; `main` holds only released, production-ready versions, each with a tag `vX.Y.Z`. The plans
 are in `docs/plans/` (Dutch).
 
-The predecessor (v1 to v3, MIT) lives at https://github.com/zabuto/buurtpreventie-legacy.
-
 ## Getting started
 
 See [docs/getting-started.md](docs/getting-started.md). Report a vulnerability privately, see
