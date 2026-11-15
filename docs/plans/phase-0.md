@@ -1,6 +1,6 @@
 # Fase 0: taakplan
 
-Status: opgeleverd in pull request #1, aangevuld in #7 tot en met #12.
+Status: opgeleverd in pull request #1, aangevuld in #7 tot en met #14.
 
 Bron: `docs/plan-v4.md` (Samenvatting, Uitgangspunten, Licentie, Codestructuur, Overdraagbaarheid,
 Overstap naar Symfony 8.4 LTS, Fase 0) en `AGENTS.md`.
@@ -49,8 +49,8 @@ Oude repo afgerond en hernoemd, nieuwe repo `zabuto/buurtpreventie` met `main` e
 5. **De regel "elke module heeft Domain, UseCase en Infrastructure" wordt een PHPUnit-test, geen
    PHPat-regel.** PHPat controleert afhankelijkheden tussen klassen; lege mappen bevatten geen
    klassen en zijn voor PHPat onzichtbaar. De test controleert ook dat elke map onder `UseCase/`
-   precies de vijf bestanden met de mapnaam bevat. De foutmelding verwijst net als de PHPat-regels
-   naar `docs/architecture.md`.
+   alleen de vijf vaste bestanden met de mapnaam bevat, waarvan invoer en handler verplicht zijn.
+   De foutmelding verwijst net als de PHPat-regels naar `docs/architecture.md`.
 6. **De generator staat in `src/Shared/Infrastructure/Generator/`** en wordt alleen in `dev` en
    `test` geregistreerd (`#[When]`), zodat hij niet in productie draait. Sjablonen zijn gewone
    PHP-strings, geen Twig (Twig alleen voor e-mails en installer).
