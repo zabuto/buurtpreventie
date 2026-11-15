@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Patrol\UseCase\DeleteRound;
 
-use App\Patrol\Domain\RoundHasStarted;
 use App\Patrol\Domain\RoundRepository;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\AuditTrail;
@@ -41,9 +40,7 @@ final readonly class DeleteRoundHandler
             $round = $this->rounds->get(Uuid::fromString($input->roundId));
             $this->authorization->denyUnlessGranted('round.delete', $round);
 
-            if ($round->hasStarted($this->clock->now())) {
-                throw RoundHasStarted::forRound($round->id());
-            }
+            $round->ensureDeletable($this->clock->now());
 
             $this->rounds->remove($round);
             $this->auditTrail->record(new AuditedAction('round.deleted', 'round', $round->id()));

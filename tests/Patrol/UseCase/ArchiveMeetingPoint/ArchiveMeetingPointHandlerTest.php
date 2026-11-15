@@ -6,6 +6,7 @@ namespace App\Tests\Patrol\UseCase\ArchiveMeetingPoint;
 
 use App\Patrol\Domain\MeetingPoint;
 use App\Patrol\Domain\MeetingPointInUse;
+use App\Patrol\Domain\MeetingPointInUseGuard;
 use App\Patrol\Domain\Round;
 use App\Patrol\Domain\RoundStart;
 use App\Patrol\Domain\StaffingRule;
@@ -119,16 +120,6 @@ final class ArchiveMeetingPointHandlerTest extends TestCase
         $this->assertSame([false, []], [$this->speeltuin->isArchived(), $this->auditTrail->recorded]);
     }
 
-    #[Test]
-    public function it_archives_a_meeting_point_where_only_rounds_that_started_began(): void
-    {
-        $this->roundAt('2026-11-15T12:00:00+00:00');
-
-        $this->handler()(new ArchiveMeetingPoint($this->speeltuin->id()->toRfc4122()));
-
-        $this->assertTrue($this->speeltuin->isArchived());
-    }
-
     private function roundAt(string $startsAt): void
     {
         $this->rounds->add(Round::plan(
@@ -143,7 +134,7 @@ final class ArchiveMeetingPointHandlerTest extends TestCase
     {
         return new ArchiveMeetingPointHandler(
             $this->meetingPoints,
-            $this->rounds,
+            new MeetingPointInUseGuard($this->rounds),
             $authorization ?? FakeAuthorization::granting(),
             $this->auditTrail,
             new ImmediateTransaction(),

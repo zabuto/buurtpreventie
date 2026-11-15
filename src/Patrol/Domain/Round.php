@@ -137,6 +137,18 @@ final class Round
         return $this->startNote;
     }
 
+    /**
+     * A round that started is part of the history: it can be cancelled, not deleted.
+     *
+     * @throws RoundHasStarted
+     */
+    public function ensureDeletable(DateTimeImmutable $now): void
+    {
+        if ($this->hasStarted($now)) {
+            throw RoundHasStarted::forRound($this->id);
+        }
+    }
+
     public function hasStarted(DateTimeImmutable $now): bool
     {
         return $now >= $this->startsAt;

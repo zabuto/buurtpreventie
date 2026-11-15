@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Patrol\UseCase\ArchiveMeetingPoint;
 
 use App\Patrol\Domain\MeetingPointInUse;
+use App\Patrol\Domain\MeetingPointInUseGuard;
 use App\Patrol\Domain\MeetingPointRepository;
-use App\Patrol\Domain\RoundRepository;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\AuditTrail;
 use App\Shared\Domain\Authorization;
@@ -21,7 +21,7 @@ final readonly class ArchiveMeetingPointHandler
 {
     public function __construct(
         private MeetingPointRepository $meetingPoints,
-        private RoundRepository $rounds,
+        private MeetingPointInUseGuard $inUseGuard,
         private Authorization $authorization,
         private AuditTrail $auditTrail,
         private Transaction $transaction,
@@ -43,10 +43,7 @@ final readonly class ArchiveMeetingPointHandler
                 return;
             }
 
-            $upcoming = $this->rounds->countUpcomingAt($meetingPoint, $this->clock->now());
-            if ($upcoming > 0) {
-                throw MeetingPointInUse::byUpcomingRounds($meetingPoint->id(), $upcoming);
-            }
+            $this->inUseGuard->refuseWhileInUse($meetingPoint, $this->clock->now());
 
             $meetingPoint->archive();
             $this->auditTrail->record(new AuditedAction('meeting_point.archived', 'meeting_point', $meetingPoint->id()));
