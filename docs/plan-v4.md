@@ -398,7 +398,7 @@ Het domeinmodel wordt verbeterd waar dat de app helderder en eenvoudiger maakt; 
 | `Participation` | Patrol | `RoundWalker` | Aanmelding: lid, `joinedAt`, `remindedAt`, `onBehalfOf` (als de coördinator aanmeldde); ronde + lid is uniek |
 | `RoundReport` | Patrol | `RoundResult` | Terugmelding per loper: uitkomst + notitie; alleen bij een gelopen ronde |
 | `Outcome` | Patrol | `Result` | Eén veld `kind` (`nothing_to_report`, `remarks`, `incident`) in plaats van twee vinkjes die elkaar konden tegenspreken; `archived` in plaats van soft delete |
-| `MeetingPoint` | Patrol | `MeetingPoint` | Optionele lijst met suggesties, coördinaat optioneel; `archived` in plaats van soft delete |
+| `MeetingPoint` | Patrol | `MeetingPoint` | Optionele lijst met suggesties, coördinaat optioneel (breedte- en lengtegraad in WGS84); `archived` in plaats van soft delete |
 | `RoundComment` | Patrol | `Comment` | Opmerking met auteur |
 | `AuditEntry` | Audit | nieuw | Zie Auditlog |
 | `ApiToken` | Identity | nieuw | Hash, naam, scopes, verloopdatum, laatst gebruikt |
@@ -741,6 +741,7 @@ Fase 3, 4 en 5 hangen alleen van de API af; wie het frontend het eerst nodig hee
 - [ ] Entiteiten in `src/*/Domain` met Doctrine-mapping volgens het verbeterde model, en het conversiecommando app:import-v3 met dry-run; nieuw zijn ook `ApiToken`/`Setting`.
 - [ ] Use cases in UseCase/ per module, elk met invoerklasse, handler en later de adapters (zie Codestructuur): `SignUpForRound`, `WithdrawFromRound`, `CreateRound`, `ChangeRound`, `ReportRoundResult`, `AddComment`, `SendReminders`, `NotifyBuddyNeeded`, …
 - [ ] Voters per onderwerp en de module Audit (elke schrijvende handler legt een auditregel vast, met test); regels uit de oude `WalkService` (minimum lopers, inactieve lopers uit toekomstige rondes, eigen melding verwijderen) als unit tests vastgelegd; fixture-sets demo, test, edge en v3 (zie Voorbeelddata).
+- [ ] Database: lokaal MariaDB 10.11 (`compose.yaml`), omdat shared hosting meestal MariaDB biedt. CI draait de migraties vanaf een lege database en de databasetests op MariaDB 10.11 én MySQL 8.4, omdat niet elke hoster MariaDB heeft en Doctrine niet alles gelijktrekt: gegenereerde migraties, collation en gelijktijdige schrijfacties kunnen per database verschillen. Standaard-tabelopties in `doctrine.yaml`: `utf8mb4` met `utf8mb4_unicode_ci`, dat op beide bestaat. E-mailadressen gaan in kleine letters de database in, zodat de unieke sleutel niet van de collation afhangt. Geen eigen SQL, behalve in een repositorymethode met een integratietest op beide. Coördinaten zijn twee getallen in WGS84 (`DECIMAL(9,6)`), geen spatial types.
 
 **Klaar als:** alle domeinregels uit de oude app hebben een test; conversie draait foutloos op de verzonnen v3-fixture-set, de aantallen kloppen en voorbeeldlopers loggen in met hun v3-wachtwoord.
 
@@ -880,8 +881,9 @@ Een losse uitbreiding die pas start als fase 0 t/m 6 draaien. Standaard staat hi
 - [ ] **Alternatief zonder volgen:** de route achteraf op de kaart intekenen of alleen de gelopen straten aantikken. Werkt ook op oude telefoons en kost geen batterij.
 - [ ] **Pin bij een melding:** bij een terugmelding "Locatie toevoegen", met de huidige plek of door op de kaart te tikken, zodat de coördinator weet waar het was.
 - [ ] **Kaart** met Leaflet (gevendord, geen buildstap). De kaartondergrond is instelbaar; voor Nederland ligt de gratis BRT-Achtergrondkaart van PDOK voor de hand, anders OpenStreetMap met naamsvermelding.
-- [ ] **Overzicht voor coördinator en analist:** route en pins per ronde, en een dekkingskaart over een periode (welke straten weinig worden gelopen) om routes af te spreken.
+- [ ] **Overzicht voor coördinator en analist:** route en pins per ronde, en een dekkingskaart over een periode (waar weinig wordt gelopen, geteld per rastervak van bijvoorbeeld 50 × 50 m) om routes af te spreken.
 - [ ] **Model:** module `Tracking` met `RoundTrack` (ronde, loper, vereenvoudigde lijn, start/eind) en een optionele `location` op `RoundReport`; endpoints `POST/GET /rounds/{id}/track`. Uitzetten verwijdert de knoppen, niet de rest van de app.
+- [ ] **Geo in PHP, niet in SQL:** de lijn als GeoJSON in een `json`-kolom, vereenvoudigd vóór opslag; een pin als twee getallen in WGS84; de dekking telt punten per rastervak in PHP. Geen spatial types of `ST_*`-functies: MariaDB en MySQL rekenen daarmee verschillend, Doctrine kent ze niet zonder extra pakket, en de aantallen (tientallen lopers, routes 3 maanden bewaard) vragen er niet om.
 - [ ] **Privacy (AVG):** locatie is gevoelige persoonsgegevens. Alleen zichtbaar voor coördinator, analist en de lopers van die ronde; niet via MCP behalve geaggregeerd; routes standaard na 3 maanden weg, pins zo lang als de terugmelding. Vooraf de privacyverklaring aanpassen en met het bestuur afstemmen.
 
 **Klaar als:** een loper met toestemming een route opneemt of intekent en een pin bij een melding zet, de coördinator dat op de kaart ziet, en alles uit staat voor wie geen toestemming gaf.
