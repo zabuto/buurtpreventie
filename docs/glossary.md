@@ -28,6 +28,8 @@ dezelfde naam.
 | Startpunt | `MeetingPoint` | Optionele plek om te verzamelen |
 | Opmerking | `RoundComment` | Opmerking bij een ronde, met auteur |
 | Lid | `Member` | Profiel: naam, contactgegevens, rollen |
+| Volledige naam | `name` | Naam van een lid; doorzoekbaar, niet uniek |
+| Weergavenaam | `displayName` | Unieke naam in rondes, lijsten en auditlog, zoals "Jan H." |
 | Account | `Account` | Inloggegevens van een lid |
 | Toestemming contactgegevens | `consentContactShare` | Andere leden zien telefoon en adres alleen hiermee |
 | Certificaat | `certified` | Lid heeft een certificaat (in v3: `credited`) |

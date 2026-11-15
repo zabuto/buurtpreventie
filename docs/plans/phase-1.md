@@ -98,7 +98,8 @@ Klaar als:
 8. **Gegevens na de bewaartermijn:** `Round` krijgt `anonymisedAt` en `anonymisedWalkerCount`, zodat aantal
    lopers en status blijven kloppen als de aanmeldingen weg zijn; `RoundReport` verliest alleen de notitie. De
    conversie gebruikt dit al (Conversie v3 → v4); de scheduler later ook.
-9. **Een verwijderd v3-lid wordt een eigen anoniem lid** ("verwijderd lid", inactief, zonder account), één per
+9. **Een verwijderd v3-lid wordt een eigen anoniem lid** ("verwijderd lid", inactief, zonder account en zonder
+   weergavenaam), één per
    v3-gebruiker. Eén gedeeld anoniem lid botst met de unieke sleutel ronde + lid zodra twee verwijderde leden in
    dezelfde ronde liepen.
 
@@ -152,10 +153,18 @@ Klaar als:
       adressen. Het adres wordt alleen zo opgeslagen;
     - de sleutel staat in een eigen kolom met `utf8mb4_bin` en een index; de naam zoals getypt staat ernaast en is
       wat de app toont;
-    - **alleen het e-mailadres is uniek.** Namen van leden zijn doorzoekbaar, niet uniek: twee leden mogen
-      dezelfde naam hebben, ook "José" en "Jose". v3 eiste een unieke naam; de conversie neemt dubbele namen
-      over, zonder waarschuwing. Bij een tweede gelijk e-mailadres weigert de handler met een eigen fout; de unieke
+    - **bij leden zijn het e-mailadres en de weergavenaam uniek, de volledige naam niet.** Twee leden mogen
+      dezelfde volledige naam hebben (`name`), ook "José" en "Jose". In rondes, bij "zoekt loopmaatje", in lijsten
+      en in het auditlog staat de weergavenaam (`displayName`, bijvoorbeeld "Jan H." en "Jan B."): met twee keer
+      "Jan" weet niemand wie er loopt. De weergavenaam is uniek op dezelfde `LookupKey`, dus "Jan H." en "jan h"
+      botsen, net als "José" en "Jose". Beide zijn doorzoekbaar;
+    - de beheerder kiest de weergavenaam bij `AddMember` en kan hem wijzigen met `ChangeMember`. Een gewist lid en
+      een verwijderd v3-lid hebben geen weergavenaam (sleutel `NULL`; een unieke index in InnoDB staat
+      meerdere `NULL`'s toe, op beide databases) en staan in beeld als "verwijderd lid";
+    - bij een tweede gelijk e-mailadres of gelijke weergavenaam weigert de handler met een eigen fout; de unieke
       index vangt de gelijktijdige variant, en de repository vertaalt die naar dezelfde fout;
+    - wie de volledige naam ziet en wie alleen de weergavenaam, bepaalt de uitvoer in fase 2. Voorstel: lopers
+      zien alleen de weergavenaam, coördinator en beheerder ook de volledige naam;
     - **startpunten en uitkomsten houden een unieke naam, met dezelfde sleutel.** Ze staan in een keuzelijst:
       "Café" en "cafe" naast elkaar zijn voor een loper niet uit elkaar te houden. De unieke index geldt ook voor
       gearchiveerde items, omdat MariaDB en MySQL geen gedeeltelijke index kennen. Een naam die al gearchiveerd
@@ -219,6 +228,9 @@ Klaar als:
       terugmeldingen van één lid bij één ronde worden de laatste, ook met waarschuwing;
     - een `result` met `incident` wordt `incident`, anders met `remarks` wordt `remarks`, anders
       `nothing_to_report`;
+    - de v3-naam wordt volledige naam én weergavenaam. v3 eiste al een unieke naam, maar botsen twee namen op de
+      sleutel (hoofdletters, accent of spaties, afhankelijk van de v3-collation), dan krijgt de tweede
+      weergavenaam " (2)", met een waarschuwing in de dry-run;
     - een ronde met meer lopers dan `--maximum-walkers` krijgt `maximumWalkers` gelijk aan het aantal lopers, met
       een waarschuwing in de dry-run; minimum en maximum met maximum < minimum geven een fout vóór de conversie;
     - twee startpunten of uitkomsten met dezelfde sleutel: zie beslissing 19;
@@ -366,7 +378,7 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
 
 ### T6. Membership, Identity, Settings (test eerst)
 
-- `Member` met `EmailAddress`, naam met `LookupKey`, telefoon, adres, rollen, `consentContactShare`,
+- `Member` met `EmailAddress`, volledige naam en weergavenaam elk met `LookupKey`, telefoon, adres, rollen, `consentContactShare`,
   `certified`, `active`, `notifyOpenRounds`, `erasedAt`.
 - `Account` (e-mail, wachtwoordhash, laatste login) en `ApiToken` (hash, naam, scopes `read`/`write`/`admin`,
   verloopdatum, laatst gebruikt, `revokedAt`).
@@ -375,8 +387,10 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
 - Use cases: `AddMember`, `ChangeMember`, `ChangeMemberRoles`, `ChangeContactConsent`, `DeactivateMember`,
   `ReactivateMember`, `EraseMember`, `GetMemberSummaries` (met optionele zoekterm op naam); `SetPassword`,
   `VerifyPassword`, `CreateApiToken`, `RevokeApiToken`, `RevokeMemberApiTokens`.
-- Tests: twee leden met dezelfde naam, en "José" naast "Jose", bestaan naast elkaar; `AddMember` en `ChangeMember`
-  weigeren een e-mailadres dat alleen in hoofdletters verschilt van een bestaand adres.
+- Tests: twee leden met dezelfde volledige naam, en "José" naast "Jose", bestaan naast elkaar; `AddMember` en
+  `ChangeMember` weigeren een e-mailadres dat alleen in hoofdletters verschilt van een bestaand adres, en een
+  weergavenaam die op de sleutel botst ("Jan H." en "jan h", "José" en "Jose"); twee gewiste leden bestaan naast
+  elkaar zonder weergavenaam.
 
 ### T7. Review-focus 4: gedeactiveerd of gewist lid (test eerst)
 
@@ -390,7 +404,7 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
 
 ### T8. Audit (test eerst)
 
-- `AuditEntry`: tijdstip (UTC), lid-id en naam op dat moment of "systeem", actie (`round.created`, ...),
+- `AuditEntry`: tijdstip (UTC), lid-id en weergavenaam op dat moment of "systeem", actie (`round.created`, ...),
   onderwerp (soort en id), kanaal, gewijzigde velden oud → nieuw, `importedFromV3`. Nooit wachtwoorden,
   tokens of volledige IP-adressen.
 - `DoctrineAuditTrail` schrijft in de lopende transactie; `EraseActorName` vervangt de naam van een gewist lid.
@@ -435,9 +449,10 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
 - Doctrine-repositories per module in `Infrastructure/Persistence/`, elke query met een integratietest.
 - Migraties uit de mapping, nagelopen op beslissingen 4, 13, 18, 19, 22 en 23.
 - Schematest: elke UUID-kolom die geen primaire sleutel is heeft een index (beslissing 4).
-- Zoeken, op beide databases: "Jose" en "JOSE" vinden "José"; twee leden met dezelfde naam staan allebei in de
-  uitkomst; "Anke@Example.org" en "anke@example.org" botsen op de unieke index; een `%` in de zoekterm zoekt een
-  letterlijk procentteken.
+- Zoeken, op beide databases: "Jose" en "JOSE" vinden "José"; twee leden met dezelfde volledige naam staan allebei
+  in de uitkomst; "Anke@Example.org" en "anke@example.org" botsen op de unieke index, net als de weergavenamen
+  "Jan H." en "jan h"; twee leden zonder weergavenaam (`NULL`) passen naast elkaar; een `%` in de zoekterm zoekt
+  een letterlijk procentteken.
 - Review-focus 1, met twee eigen verbindingen die echt committen:
   - **twee lopers melden zich tegelijk aan voor de laatste plek**: er komt er precies één bij, de ander krijgt
     "ronde is vol", en `walkerCount` is gelijk aan het maximum;
@@ -463,7 +478,8 @@ met rooktest, conversie van de set `v3`. Actions vastgepind op SHA. De twee jobs
 Voorbeelddata en beslissing 31. Tests: dezelfde seed geeft dezelfde mensen en hetzelfde patroon; de set `demo`
 houdt zich aan hooguit 20 leden, drie met een andere rol dan loper, alleen `example.org`, ruim een kwart van
 de rondes zonder loopmaatje en een paar volle rondes; de set `edge` bevat elk geval uit het plan, plus een ronde
-op het maximum, een ronde met één plek over, en twee leden met dezelfde naam.
+op het maximum, een ronde met één plek over, en twee leden met dezelfde volledige naam, elk met een eigen
+weergavenaam.
 
 ### T13. Conversie `app:import-v3` (test eerst)
 
@@ -486,8 +502,8 @@ Per regel eerst het testbestand, dan de regel (beslissing 32).
 ### T15. ADR 0005 en documentatie
 
 - `docs/adr/0005-database-approach.md`: beslissingen 4 (UUID-verwijzingen met index, geen foreign keys tussen
-  modules), 13 en 17 tot en met 25: de zoeksleutel uit PHP in plaats van de collation, alleen het e-mailadres
-  uniek bij leden, het slot met vergrendelende telling voor de laatste plek, en waarom geen spatial types en geen
+  modules), 13 en 17 tot en met 25: de zoeksleutel uit PHP in plaats van de collation, bij leden e-mailadres en
+  weergavenaam uniek en de volledige naam niet, het slot met vergrendelende telling voor de laatste plek, en waarom geen spatial types en geen
   JSON-kolommen.
 - `docs/architecture.md`: de uitbreiding van regel 1 en 2, `Shared\Domain` met zijn interfaces, en de module-
   grens in de database (beslissing 4).
@@ -496,8 +512,8 @@ Per regel eerst het testbestand, dan de regel (beslissing 32).
 - `docs/configuration.md`: `LEGACY_DATABASE_URL`; `docs/getting-started.md`: fixtures laden;
   `docs/gotchas.md`: wat er tijdens deze fase opvalt.
 - `docs/glossary.md`: kanaal `console`, `anonymisedAt`, `LookupKey` (zoeksleutel), `walkersNeeded`,
-  `legacy_id_map`, "verwijderd lid". `maximumWalkers` en `openSpots` staan er al in, net als in het Domeinmodel
-  van `docs/plan-v4.md`.
+  `legacy_id_map`, "verwijderd lid". `maximumWalkers`, `openSpots` en `displayName` staan er al in, net als in het
+  Domeinmodel van `docs/plan-v4.md`.
 - `docs/gotchas.md`: de momentopname van InnoDB bij `REPEATABLE READ` (beslissing 24).
 - `docs/admin-guide/`: een korte pagina over de conversie (eerst `--dry-run`, alleen-lezen databasegebruiker,
   kopie na afloop wissen).
