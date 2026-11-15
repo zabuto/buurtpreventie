@@ -190,8 +190,8 @@ via de generator doorstaat alle PHPat-regels" aantoonbaar in CI.
 
 ### T9. Documentatie
 
-Alles in het Engels, behalve `docs/glossary.md` (Nederlandse begrippen en hun codenamen) en de
-README (Nederlands met een korte Engelse samenvatting).
+Alles in het Engels, behalve `docs/glossary.md` (Nederlandse begrippen en hun codenamen). De README
+is Engels met een korte Nederlandse samenvatting.
 
 - `docs/getting-started.md`: vereisten, installeren, starten, testen, controles, het recept voor een
   nieuwe use case.
