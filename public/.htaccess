@@ -1,0 +1,6 @@
+# PHP names its exact version in X-Powered-By when expose_php is on; the app removes it as well, but this also covers
+# responses that never reach PHP's response handling, such as a fatal error.
+<IfModule mod_headers.c>
+    Header always unset X-Powered-By
+    Header unset X-Powered-By
+</IfModule>

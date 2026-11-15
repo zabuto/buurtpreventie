@@ -39,3 +39,4 @@ versions follow [Semantic Versioning](https://semver.org/).
   daypart; signing up (idempotent, refused when full or started), withdrawing, round reports, outcomes,
   meeting points with coordinates, comments, reminders once per walker per day, and who may change a
   round or delete a report or comment.
+- Responses do not name the PHP version: the app and `public/.htaccess` remove `X-Powered-By`.

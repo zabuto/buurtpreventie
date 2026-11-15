@@ -88,6 +88,12 @@ The extensions `intl` and `mbstring` are required as well: search keys strip acc
 `Normalizer` and lower-case with `mb_strtolower`. Shared hosting enables both by default, but a
 hosting panel can switch them off; Composer's runtime check then refuses to start the app.
 
+With `expose_php` on, PHP names its exact version in an `X-Powered-By` header, which tells an
+attacker which known vulnerabilities to try. Set `expose_php = Off` in `php.ini` where the host
+allows it. The app removes the header from every response it handles (`HidePhpVersion`), and
+`public/.htaccess` removes it on Apache with `mod_headers`, also for a response that never reaches
+the app's response handling.
+
 ## Symfony 8.4 LTS
 
 v4 runs on Symfony 7.4 LTS (bug fixes until November 2028, security fixes until November 2029), for
