@@ -55,7 +55,7 @@ The plan lives in docs/plan-v4.md and is leading. Read it before every phase.
   back into develop through a pull request.
 - main only holds released versions: a release is develop merged into main with a tag
   vX.Y.Z. Urgent fixes go through hotfix/<short-name> from main, back into main and develop.
-- ../buurtpreventie-v3 is the old repository (v3, MIT): read only, never change it.
+- ../buurtpreventie-legacy is the old repository (v1 to v3, MIT): read only, never change it.
 - Per phase, first write a task plan in docs/plans/phase-<n>.md and wait for approval.
 - Ask first before: adding a dependency, an irreversible schema change, git push,
   or a release.

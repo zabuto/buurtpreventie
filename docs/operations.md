@@ -10,7 +10,7 @@ phase 6.
 - Branches: `develop` is the default branch until v4.0.0; work arrives there through pull requests
   from `feature/<short-name>`. `main` holds released versions only, tagged `vX.Y.Z`. Urgent fixes go
   through `hotfix/<short-name>` from `main`, back into `main` and `develop`.
-- The predecessor lives in `zabuto/buurtpreventie-v3` (MIT, read only).
+- The predecessor lives in `zabuto/buurtpreventie-legacy` (MIT, read only).
 
 ### Settings made by hand
 
