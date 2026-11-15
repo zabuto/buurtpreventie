@@ -1,6 +1,6 @@
 #!/bin/bash
-# The image grants the app user only MYSQL_DATABASE. The test and v3 databases share its name as a prefix
-# (buurtpreventie_test, buurtpreventie_legacy), so the app user may create and use every database with that prefix.
+# The image grants the app user only MYSQL_DATABASE. Other databases share its name as a prefix (such as
+# buurtpreventie_test), so the app user may create and use every database with that prefix.
 # The image runs this once, on an empty data volume.
 #
 # The image sources a non-executable script and executes an executable one. Docker Desktop shows every mounted file

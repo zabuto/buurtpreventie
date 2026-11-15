@@ -13,11 +13,6 @@ doctrine:
                     charset: utf8mb4
                     collation: utf8mb4_unicode_ci
                 profiling_collect_backtrace: '%kernel.debug%'
-            # The v3 database, read only by app:import-v3. In dev and test it sits next to the main database,
-            # filled by the fixture set v3.
-            legacy:
-                url: '%env(resolve:LEGACY_DATABASE_URL)%'
-                charset: utf8mb4
     orm:
         default_entity_manager: default
         entity_managers:
@@ -51,23 +46,12 @@ doctrine:
                         dir: '%kernel.project_dir%/src/Settings/Domain'
                         prefix: 'App\Settings\Domain'
 
-when@dev:
-    doctrine:
-        dbal:
-            connections:
-                legacy:
-                    url: '%env(resolve:DATABASE_URL)%'
-                    dbname_suffix: '_legacy'
-
 when@test:
     doctrine:
         dbal:
             connections:
                 default:
                     dbname_suffix: '_test%env(default::TEST_TOKEN)%'
-                legacy:
-                    url: '%env(resolve:DATABASE_URL)%'
-                    dbname_suffix: '_legacy_test%env(default::TEST_TOKEN)%'
 
 when@prod:
     doctrine:

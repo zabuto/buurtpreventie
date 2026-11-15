@@ -312,12 +312,12 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
   receptbestanden ongewijzigd laten. `extensions: intl, mbstring` bij elke `setup-php` in `ci.yml` en
   `weekly.yml`; `docs/getting-started.md` en `docs/operations.md` noemen de twee extensies.
 - `config/packages/doctrine.yaml`: tabelopties (beslissing 18), eigen types, mapping per module uit
-  `src/<Module>/Domain`, verbinding `legacy`; `doctrine_migrations.yaml` met migraties in `migrations/`.
+  `src/<Module>/Domain`; `doctrine_migrations.yaml` met migraties in `migrations/`. De verbinding `legacy` gaat
+  met de conversie naar fase 5b (besloten op 15 november 2026).
 - `phpunit.dist.xml`: de DAMA-extensie. De schema-extensie (beslissing 25) komt in T3, met de eerste
   databasetest die haar nodig heeft.
 - `compose.yaml`: een init-script geeft de databasegebruiker alle databases met het voorvoegsel
-  `buurtpreventie_` (`_test`, `_legacy`, `_legacy_test`); in `dev` en `test` gebruikt de `legacy`-verbinding
-  `DATABASE_URL` met een eigen achtervoegsel.
+  `buurtpreventie_` (zoals `_test`).
 - Test eerst: `SymfonyReleaseLineTest` dekt de nieuwe Symfony-pakketten; `composer deprecations` blijft schoon.
 
 ### T3. Gedeelde bouwstenen (test eerst)
