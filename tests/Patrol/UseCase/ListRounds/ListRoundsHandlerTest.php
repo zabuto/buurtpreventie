@@ -106,6 +106,25 @@ final class ListRoundsHandlerTest extends TestCase
     }
 
     #[Test]
+    public function it_refuses_a_period_longer_than_93_days(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        $this->handler()(new ListRounds('2026-10-01T00:00:00+00:00', '2027-01-02T00:00:01+00:00'));
+    }
+
+    /**
+     * The longest quarter in local time lasts 92 days and the hour the clocks go back, so it fits.
+     */
+    #[Test]
+    public function it_lists_a_period_of_exactly_93_days(): void
+    {
+        $output = $this->handler()(new ListRounds('2026-10-01T00:00:00+00:00', '2027-01-02T00:00:00+00:00'));
+
+        $this->assertSame([], $output->rounds);
+    }
+
+    #[Test]
     public function it_returns_nothing_when_access_is_denied(): void
     {
         $this->round(new RoundStart(new DateTimeImmutable('2026-11-16T21:00:00+00:00')), walkers: 1);

@@ -20,6 +20,11 @@ use Psr\Clock\ClockInterface;
 #[ReadAction]
 final readonly class ListRoundsHandler
 {
+    /**
+     * A quarter in local time, the hour the clocks go back included, keeps one answer to a few hundred rounds.
+     */
+    private const int MAXIMUM_PERIOD_IN_DAYS = 93;
+
     public function __construct(
         private RoundRepository $rounds,
         private Authorization $authorization,
@@ -28,7 +33,7 @@ final readonly class ListRoundsHandler
     }
 
     /**
-     * @throws InvalidArgumentException for a period that does not end after its start
+     * @throws InvalidArgumentException for a period that does not end after its start or lasts longer than the maximum
      */
     public function __invoke(ListRounds $input): ListRoundsOutput
     {
@@ -38,6 +43,9 @@ final readonly class ListRoundsHandler
         $to = new DateTimeImmutable($input->to);
         if ($to <= $from) {
             throw new InvalidArgumentException(\sprintf('The period from %s does not end after its start.', $input->from));
+        }
+        if (($to->getTimestamp() - $from->getTimestamp()) > (self::MAXIMUM_PERIOD_IN_DAYS * 86_400)) {
+            throw new InvalidArgumentException(\sprintf('The period from %s lasts longer than %d days.', $input->from, self::MAXIMUM_PERIOD_IN_DAYS));
         }
 
         $now = $this->clock->now();
