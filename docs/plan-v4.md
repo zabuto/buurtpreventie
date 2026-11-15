@@ -34,7 +34,7 @@ De huidige app is een nette maar monolithische Symfony 7.3-app (PHP 8.4, \~5.100
 | Stack | Symfony 7.3, Doctrine ORM 3, Twig, AssetMapper, Bootstrap, eigen Zabuto Calendar (jQuery-plugin) | Frontend zit in Twig + jQuery; geen losse client |
 | Entiteiten | `User`, `Round`, `RoundWalker`, `RoundResult`, `Result`, `MeetingPoint`, `Comment`; basisklasse met blame, timestamps en soft delete | Goed bruikbaar als basis; `Result` is eigenlijk een uitkomst-type (catalogus) |
 | Rollen | `ROLE_MEMBER`, `ROLE_WALK`, `ROLE_COORDINATE`, `ROLE_ANALYST`, `ROLE_ADMIN`, `ROLE_SUPER_ADMIN` | Rechten zitten verspreid in controllers en templates (\~80 vermeldingen) |
-| "API" | 8 routes onder `/api/*`, sessie-cookie, `GET` én `POST` op muterende acties (`/walk`, `/exit`, `/delete`) | Niet REST, geen schema, geen tokens |
+| "API" | 8 routes onder `/api/*`, sessie-cookie | Niet REST, geen schema, geen tokens |
 | Overige routes | \~40 Twig-routes: kalender, rondes, gelopen rondes, resultaten, leden, admin (gebruikers, startpunten, uitkomsten), account, wachtwoord-reset via token | Al deze schermen worden API + nieuwe frontend |
 | Domeinlogica | `WalkService` (aanmelden, afmelden, resultaat, opmerking, minimumaantal lopers), `CalendarService`, `MailService` | Logica is herbruikbaar; mag naar een applicatielaag |
 | Achtergrond | `app:reminder --days=1` (e-mailherinnering), Messenger; mail staat sinds de laatste commit op `sync` | Past bij shared hosting: cron + synchroon |
@@ -824,7 +824,7 @@ Na fase 6 draait de kern. De uitbreidingen staan in de volgorde waarin ze het me
 
 ### Fase 8 — Statistieken voor analist
 
-De grafieken uit dit plan worden een scherm Statistieken voor analist en coördinator, met exacte cijfers uit de database in plaats van tellingen uit schermafbeeldingen. Er zijn geen externe diensten voor nodig.
+Er komt een scherm Statistieken voor analist en coördinator, met exacte cijfers uit de database in plaats van tellingen uit schermafbeeldingen. Er zijn geen externe diensten voor nodig.
 
 - [ ] **Grafieken:** per maand gelopen tegenover niet gelopen (geen loopmaatje), met percentage; per weekdag; per dagdeel; uitkomsten en incidenten per maand; de komende weken met rondes die nog een loopmaatje zoeken.
 - [ ] **Filters:** periode, dagdeel en startpunt, en vergelijken met de vorige periode.
@@ -834,7 +834,7 @@ De grafieken uit dit plan worden een scherm Statistieken voor analist en coördi
 - [ ] **Export:** de getoonde cijfers als CSV; een vaste rapportage voor politie en gemeente volgt eventueel in fase 14.
 - [ ] **Snel op shared hosting:** tellingen als SQL-aggregaties, een dag gecachet in de bestandscache.
 
-**Klaar als:** de analist de grafieken uit dit plan voor elke periode zelf maakt, de cijfers kloppen met een handtelling op de voorbeelddata, en een schermlezer de conclusie en de tabel voorleest.
+**Klaar als:** de analist de grafieken voor elke periode zelf maakt, de cijfers kloppen met een handtelling op de voorbeelddata, en een schermlezer de conclusie en de tabel voorleest.
 
 ### Fase 9 — Vast loopmaatje uitnodigen
 
