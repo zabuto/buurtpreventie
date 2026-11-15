@@ -579,7 +579,7 @@ Elke wijziging door een lid wordt vastgelegd als regel in een alleen-toevoegen-l
 - Een eigen module `Audit` met entiteit `AuditEntry`. Andere modules schrijven via de interface `Shared\Domain\AuditTrail::record()`, die `Audit` implementeert.
 - Handlers in `UseCase/` roepen `record()` expliciet aan, in dezelfde databasetransactie als de wijziging. Geen Doctrine-listeners: die weten niet wat de bedoeling was of via welk kanaal het kwam.
 - Het kanaal komt uit de requestcontext (`Http`, `Mcp`, `Console`) en hoeft dus niet door elke handler doorgegeven te worden.
-- De app heeft geen endpoint om regels te wijzigen of te verwijderen. Optioneel: elke regel bevat de hash van de vorige, zodat achteraf geknoei in de database opvalt.
+- De app heeft geen endpoint om regels te wijzigen of te verwijderen. Elke regel draagt een HMAC-keten met de vorige, zodat achteraf geknoei in de database opvalt; uitgewerkt in Fase 3.
 - Er zijn geen generieke blame-velden meer; het auditlog is de volledige geschiedenis, en entiteiten houden alleen velden met betekenis, zoals de auteur van een opmerking.
 - Een test faalt als een schrijvende handler geen auditregel achterlaat.
 
@@ -809,8 +809,16 @@ Fase 3, 4 en 5 hangen alleen van de API af; MCP (fase 4) gaat vóór de frontend
 ### Fase 3 — Branding en configuratie
 
 - [ ] `Setting`-repository met standaardwaarden, `/admin/settings`, logo-upload, `GET /config`, `manifest.webmanifest`.
-- [ ] E-mailtemplates (welkom, wachtwoord-reset, herinnering, nieuwe ronde zoekt loopmaatje, loopmaatje afgemeld) met branding en `nl`/`en`; altijd met een tekstversie, geen informatie die alleen in een afbeelding staat, en zo min mogelijk persoonsgegevens in de mail zelf.
+- [ ] E-mailtemplates (uitnodiging, inlogcode, herinnering, nieuwe ronde zoekt loopmaatje, loopmaatje afgemeld) met branding en `nl`/`en`; altijd met een tekstversie, geen informatie die alleen in een afbeelding staat, en zo min mogelijk persoonsgegevens in de mail zelf.
 - [ ] Berichten gaan pas na de commit uit, niet binnen de transactie; een test bewijst dat een teruggedraaide wijziging niets verstuurt.
+- [ ] Hashketen in het auditlog (beslissing 16 van fase 1, besloten op 16 november 2026), vóór de conversie van fase 5b, die de eerste echte regels schrijft. Hij maakt geknoei zichtbaar voor wie de database kan wijzigen maar niet bij de bestanden kan, zoals bij een SQL-injectie of een gelekte databaselogin; wie ook bij de bestanden kan, houdt hij niet tegen.
+  - **HMAC-SHA-256 met een eigen sleutel** `AUDIT_SECRET` in `shared/.env.local`, buiten de database en los van `APP_SECRET`, zodat het vervangen van `APP_SECRET` de keten niet breekt. Zonder sleutel is een geldige keten niet na te maken. De installer van fase 6a maakt de sleutel aan, zoals de andere geheimen.
+  - **De hash dekt alleen wat nooit verandert**: id, tijdstip, lid-id, actie, onderwerp en kanaal, plus de hash van de vorige regel. De naam van de uitvoerder valt erbuiten, zodat wissen hem kan vervangen door "verwijderd lid".
+  - **De gewijzigde velden krijgen een eigen hash**, en de keten loopt over die hash. Wissen haalt de inhoud weg en laat de hash staan: van die regel is de inhoud dan niet meer te controleren, de keten wel.
+  - **Een ankerrij** bewaart de hash van de laatst opgeruimde regel, zodat de keten na opruimen volgens de bewaartermijn vanaf daar te controleren blijft.
+  - **Een slot op één rij met de laatste hash**, als laatste stap van de transactie, zodat twee gelijktijdige schrijfacties nooit aan dezelfde vorige regel koppelen. Het zet alle schrijfacties achter elkaar, wat bij tientallen gebruikers niets uitmaakt; omdat het altijd als laatste komt, kan het niet vastlopen op het slot van een ronde.
+  - `app:audit:verify` meldt "intact tot en met …" of de eerste regel die niet klopt; Onderhoud (fase 6b) toont hetzelfde.
+  - Tests: een gewijzigde, verwijderde of tussengevoegde regel valt op; wissen en opruimen breken de keten niet; twee gelijktijdige schrijfacties op MariaDB en MySQL geven een kloppende keten.
 
 **Klaar als:** een tweede vereniging alleen via het beheerscherm een eigen naam, logo, kleuren en teksten krijgt, zonder codewijziging.
 

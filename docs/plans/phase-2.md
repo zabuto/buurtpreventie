@@ -482,7 +482,7 @@ Gemeld, niet in deze fase opgelost:
   berichten bij (inlogcode, uitnodiging), die zo ook binnen de transactie vertrekken.
 - **`anonymisedAt` uit beslissing 8 van fase 1** volgt in fase 5b of 6a.
 - **Het slot op alle ledenrijen in `activeAdminsForUpdate()`** is een geaccepteerd risico (ADR 0005).
-- **De hashketen in het auditlog** (beslissing 16 van fase 1) staat nog open.
+- **De hashketen in het auditlog** (beslissing 16 van fase 1) is uitgewerkt als taak in Fase 3 van `docs/plans/plan.md`, vóór de conversie van fase 5b.
 - **De schakelaar die API-tokens en MCP uitzet** (plan, Datalek en Beveiligingsupdates) hoort bij de instellingen
   van fase 3; de tokenauthenticator krijgt dan een controle erop.
 - **Links in mails met de ingestelde basis-URL** (review-focus 5) volgen in fase 3 en 6; in deze fase wijst een link
