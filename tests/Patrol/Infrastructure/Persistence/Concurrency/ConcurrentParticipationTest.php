@@ -46,6 +46,9 @@ final class ConcurrentParticipationTest extends KernelTestCase
     private Connection $connection;
     private ParticipationHandlers $handlers;
 
+    /** Without a database setUp skips before it connects, and tearDown has nothing to remove. */
+    private bool $connected = false;
+
     /** @var list<Uuid> */
     private array $memberIds = [];
 
@@ -61,14 +64,14 @@ final class ConcurrentParticipationTest extends KernelTestCase
         $this->assertInstanceOf(EntityManagerInterface::class, $entityManager);
         $this->entityManager = $entityManager;
         $this->connection = $entityManager->getConnection();
+        $this->connected = true;
         $this->handlers = ParticipationKernel::handlers();
     }
 
     #[Override]
     protected function tearDown(): void
     {
-        // Without a database setUp skips before it connects, and there is nothing to remove.
-        if (!isset($this->connection)) {
+        if (!$this->connected) {
             parent::tearDown();
 
             return;

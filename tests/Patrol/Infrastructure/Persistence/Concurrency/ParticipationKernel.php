@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Patrol\Infrastructure\Persistence\Concurrency;
 
-use Doctrine\Persistence\ManagerRegistry;
+use App\Patrol\UseCase\SignUpForRound\SignUpForRoundHandler;
+use App\Patrol\UseCase\WithdrawFromRound\WithdrawFromRoundHandler;
+use App\Shared\Infrastructure\Security\RunAs;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 /**
  * The test kernel and its private services, for the test and for the process it races, which runs outside PHPUnit.
@@ -18,16 +18,16 @@ abstract class ParticipationKernel extends KernelTestCase
     public static function handlers(): ParticipationHandlers
     {
         $container = self::getContainer();
-        $registry = $container->get(ManagerRegistry::class);
-        $tokenStorage = $container->get(TokenStorageInterface::class);
-        $checker = $container->get(AuthorizationCheckerInterface::class);
+        $signUp = $container->get(SignUpForRoundHandler::class);
+        $withdraw = $container->get(WithdrawFromRoundHandler::class);
+        $runAs = $container->get(RunAs::class);
         // @phpstan-ignore function.alreadyNarrowedType, instanceof.alwaysTrue (PHPStan reads the types from the container, Mago does not)
-        \assert($registry instanceof ManagerRegistry, 'Doctrine registers its manager registry.');
+        \assert($signUp instanceof SignUpForRoundHandler, 'The sample data keep the handler in the container.');
         // @phpstan-ignore function.alreadyNarrowedType, instanceof.alwaysTrue (PHPStan reads the types from the container, Mago does not)
-        \assert($tokenStorage instanceof TokenStorageInterface, 'The security bundle registers the token storage.');
+        \assert($withdraw instanceof WithdrawFromRoundHandler, 'The sample data keep the handler in the container.');
         // @phpstan-ignore function.alreadyNarrowedType, instanceof.alwaysTrue (PHPStan reads the types from the container, Mago does not)
-        \assert($checker instanceof AuthorizationCheckerInterface, 'The security bundle registers the authorization checker.');
+        \assert($runAs instanceof RunAs, 'The sample data keep RunAs in the container.');
 
-        return ParticipationHandlers::on($registry, $tokenStorage, $checker);
+        return new ParticipationHandlers($signUp, $withdraw, $runAs);
     }
 }
