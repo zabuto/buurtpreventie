@@ -1,7 +1,7 @@
 # Buurtpreventie
 
-A rota for neighbourhood watch teams that patrol on foot (in Dutch: actieve buurtpreventie): walkers
-plan rounds, find a walking buddy and report back afterwards. Version 4 is being built on the
+A rota for neighbourhood watch teams that patrol the neighbourhood on foot, never alone: walkers plan
+rounds, find a walking buddy and report back afterwards. Version 4 is being built on the
 `develop` branch; the plan is in `docs/plan-v4.md` (Dutch).
 
 The predecessor (v1 to v3, MIT) lives at https://github.com/zabuto/buurtpreventie-legacy.
@@ -22,8 +22,8 @@ allowed. The software is provided as is, without warranty or support.
 
 ## Samenvatting in het Nederlands
 
-Buurtpreventie is voor teams die aan actieve buurtpreventie doen: lopers plannen rondes, vinden een
-loopmaatje en melden na afloop terug. Versie 4 wordt gebouwd op de branch `develop`; het plan staat
+Buurtpreventie is voor buurtpreventieteams die samen door de wijk lopen: lopers plannen rondes, vinden
+een loopmaatje en melden na afloop terug. Versie 4 wordt gebouwd op de branch `develop`; het plan staat
 in `docs/plan-v4.md`. De documentatie in `docs/` is in het Engels; begin bij
 [docs/getting-started.md](docs/getting-started.md). Een kwetsbaarheid meld je privé, zie
 [SECURITY.md](SECURITY.md).
