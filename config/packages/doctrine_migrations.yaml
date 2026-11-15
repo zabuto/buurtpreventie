@@ -1,0 +1,8 @@
+doctrine_migrations:
+    migrations_paths:
+        # Outside App\, so the autoloader of the app never loads a migration class.
+        'DoctrineMigrations': '%kernel.project_dir%/migrations'
+    # MariaDB and MySQL commit every DDL statement on the spot, so a migration transaction would promise a rollback
+    # that cannot happen.
+    transactional: false
+    enable_profiler: false

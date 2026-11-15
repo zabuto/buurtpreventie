@@ -1,0 +1,88 @@
+doctrine:
+    dbal:
+        default_connection: default
+        connections:
+            default:
+                url: '%env(resolve:DATABASE_URL)%'
+                charset: utf8mb4
+                # MySQL 8.4 defaults to utf8mb4_0900_ai_ci and MariaDB 10.11 to utf8mb4_general_ci; one explicit
+                # collation keeps the generated schema identical on both.
+                default_table_options:
+                    charset: utf8mb4
+                    collation: utf8mb4_unicode_ci
+                profiling_collect_backtrace: '%kernel.debug%'
+            # The v3 database for app:import-v3, which only reads it. In dev and test it sits next to the main
+            # database, where the fixture set v3 fills it.
+            legacy:
+                url: '%env(resolve:LEGACY_DATABASE_URL)%'
+                charset: utf8mb4
+    orm:
+        default_entity_manager: default
+        entity_managers:
+            default:
+                connection: default
+                naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
+                mappings:
+                    Audit:
+                        type: attribute
+                        is_bundle: false
+                        dir: '%kernel.project_dir%/src/Audit/Domain'
+                        prefix: 'App\Audit\Domain'
+                    Identity:
+                        type: attribute
+                        is_bundle: false
+                        dir: '%kernel.project_dir%/src/Identity/Domain'
+                        prefix: 'App\Identity\Domain'
+                    Membership:
+                        type: attribute
+                        is_bundle: false
+                        dir: '%kernel.project_dir%/src/Membership/Domain'
+                        prefix: 'App\Membership\Domain'
+                    Patrol:
+                        type: attribute
+                        is_bundle: false
+                        dir: '%kernel.project_dir%/src/Patrol/Domain'
+                        prefix: 'App\Patrol\Domain'
+                    Settings:
+                        type: attribute
+                        is_bundle: false
+                        dir: '%kernel.project_dir%/src/Settings/Domain'
+                        prefix: 'App\Settings\Domain'
+
+when@dev:
+    doctrine:
+        dbal:
+            connections:
+                legacy:
+                    url: '%env(resolve:DATABASE_URL)%'
+                    dbname_suffix: '_legacy'
+
+when@test:
+    doctrine:
+        dbal:
+            connections:
+                default:
+                    dbname_suffix: '_test%env(default::TEST_TOKEN)%'
+                legacy:
+                    url: '%env(resolve:DATABASE_URL)%'
+                    dbname_suffix: '_legacy_test%env(default::TEST_TOKEN)%'
+
+when@prod:
+    doctrine:
+        orm:
+            entity_managers:
+                default:
+                    query_cache_driver:
+                        type: pool
+                        pool: doctrine.system_cache_pool
+                    result_cache_driver:
+                        type: pool
+                        pool: doctrine.result_cache_pool
+
+    framework:
+        cache:
+            pools:
+                doctrine.result_cache_pool:
+                    adapter: cache.app
+                doctrine.system_cache_pool:
+                    adapter: cache.system

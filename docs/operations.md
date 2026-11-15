@@ -84,6 +84,10 @@ unauthenticated remote code execution, exploited in the wild. `composer.json` th
 `>=8.4.27`, and Composer's runtime check refuses to start the app on an older version. A new critical
 PHP vulnerability raises this minimum in `require.php` and `config.platform.php`.
 
+The extensions `intl` and `mbstring` are required as well: search keys strip accents with
+`Normalizer` and lower-case with `mb_strtolower`. Shared hosting enables both by default, but a
+hosting panel can switch them off; Composer's runtime check then refuses to start the app.
+
 ## Symfony 8.4 LTS
 
 v4 runs on Symfony 7.4 LTS (bug fixes until November 2028, security fixes until November 2029), for
