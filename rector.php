@@ -28,7 +28,11 @@ return RectorConfig::configure()
         RemoveUnusedPublicMethodParameterRector::class => [__DIR__.'/src/*/UseCase/*'],
         // The test converts through the Type contract, as Doctrine does; the narrow type would make PHPStan deem the
         // null and class checks on the result always true.
-        NarrowObjectReturnTypeRector::class => [__DIR__.'/tests/Shared/Infrastructure/Doctrine/UtcDateTimeImmutableTypeTest.php'],
+        // An entity id is a Uuid by contract; that it is made as UUIDv7 is no promise to its callers.
+        NarrowObjectReturnTypeRector::class => [
+            __DIR__.'/tests/Shared/Infrastructure/Doctrine/UtcDateTimeImmutableTypeTest.php',
+            __DIR__.'/src/*/Domain/*',
+        ],
     ])
     ->withPhpSets(php84: true)
     ->withComposerBased(symfony: true, phpunit: true)
