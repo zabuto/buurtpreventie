@@ -72,7 +72,7 @@ Gevolgen voor het ontwerp:
 2. **Geen workers, geen long-running processen.** Messenger blijft `sync`; geen Mercure, geen websockets, geen SSE-streams die minuten openstaan.
 3. **Cron is optioneel.** Herinneringen draaien via `bin/console app:scheduler:run` als er cron is, en anders via een beveiligde URL (`POST /api/v1/system/tick` met geheime sleutel) die een externe dienst als cron-job.org aanroept. Een vertraging van uren is acceptabel voor een herinnering "morgen loop je".
 4. **Installeren zonder SSH.** Een GitHub Release levert een kant-en-klare zip (met `vendor/`, gebouwde frontend, `.htaccess`). Migraties en de eerste beheerder kunnen via een eenmalige, met een token beveiligde web-installer; met SSH gewoon via `bin/console`.
-5. **Pad of subdomein.** De bestaande root-`.htaccess` die naar `public/` herschrijft, blijft; de updater laat hem naar de actieve map releases/\<versie>/public/ wijzen. Op een eigen subdomein (de voorkeur en de standaard in de handleiding) wijst de documentroot naar de app-map, en stuurt dezelfde root-.htaccess door naar de actieve release; cookies staan dan los van andere sites op het domein. De installer waarschuwt als de map binnen de map van een andere applicatie staat (bijvoorbeeld een WordPress-installatie), omdat diens .htaccess-regels dan kunnen doorwerken. In een pad werkt `example.nl/buurtpreventie/` zonder `/public` in de URL.
+5. **Pad of subdomein.** De bestaande root-`.htaccess` die naar `public/` herschrijft, blijft; de updater laat hem naar de actieve map `releases/<versie>/public/` wijzen. Op een eigen subdomein (de voorkeur en de standaard in de handleiding) wijst de documentroot naar de app-map, en stuurt dezelfde root-`.htaccess` door naar de actieve release; cookies staan dan los van andere sites op het domein. De installer waarschuwt als de map binnen de map van een andere applicatie staat (bijvoorbeeld een WordPress-installatie), omdat diens `.htaccess`-regels dan kunnen doorwerken. In een pad werkt `example.nl/buurtpreventie/` zonder `/public` in de URL.
 6. **`Authorization`-header.** Apache/LiteSpeed met FastCGI stript die header vaak; `.htaccess` moet hem doorgeven (`CGIPassAuth On` of een `RewriteRule` met `E=HTTP_AUTHORIZATION`). Zonder dit werken API-tokens en MCP niet.
 
 **HTTPS en certificaat.** De app werkt alleen via HTTPS: veilige cookies, de service worker en inloglinks vereisen het, en de installer weigert zonder. Een nieuw subdomein heeft dus eerst een eigen certificaat nodig. Veel hosters bieden gratis Let's Encrypt in het hostingpaneel, per subdomein aan te zetten en automatisch verlengd. Daarnaast stuurt de app `http://` door naar `https://`. De handleiding beschrijft de volgorde: subdomein aanmaken, DNS laten wijzen, certificaat aanvragen, en pas daarna installeren. Onderhoud waarschuwt als het certificaat binnen 14 dagen verloopt.
@@ -139,7 +139,7 @@ Gekozen: de nieuwe versie verschijnt onder **PolyForm Noncommercial 1.0.0**, net
 
 - **Wat de licentie doet.** Gebruiken, wijzigen en delen mag voor elk niet-commercieel doel, ook door goede doelen, onderwijs, overheid en vergelijkbare organisaties; commercieel gebruik niet. Wie het doorgeeft, geeft de voorwaarden en de `Required Notice:`-regel mee ([licentietekst](https://polyformproject.org/licenses/noncommercial/1.0.0)).
 - **Overgang van MIT.** De huidige repo is MIT, met dezelfde auteur als rechthebbende. Die mag nieuwe versies onder een andere licentie uitbrengen; bestaande MIT-versies blijven MIT. Leg dit vast met een tag (`v3-mit-final`) en een regel in de README.
-- **Afhankelijkheden.** Symfony en Doctrine zijn MIT, de MCP SDK MIT/Apache 2.0; dat combineert met PolyForm NC voor de eigen code, mits hun licentieteksten in \`vendor/\` meekomen.
+- **Afhankelijkheden.** Symfony en Doctrine zijn MIT, de MCP SDK MIT/Apache 2.0; dat combineert met PolyForm NC voor de eigen code, mits hun licentieteksten in `vendor/` meekomen.
 - **Let op de term "open source".** PolyForm NC is source-available, geen OSI-licentie. Spreek in de README van "vrij te gebruiken voor niet-commerciële doelen".
 - **Bewonersverenigingen.** Een vereniging zonder winstoogmerk die het voor haar leden inzet, valt naar de geest onder niet-commercieel gebruik. Een expliciete zin in de README ("bedoeld voor buurt- en bewonersverenigingen") voorkomt twijfel. Dit is geen juridisch advies.
 
@@ -164,8 +164,6 @@ Keuze: **Symfony 7.4 LTS op PHP 8.4, gewone controllers met invoerklassen, en de
 
 Eén Symfony-app met drie ingangen (REST, MCP, scheduler) die allemaal via dezelfde applicatielaag gaan; de frontend is een losse map met statische bestanden die alleen de API aanroept.
 
-&#91;embedded content: architectuur · 3 ingangen, 1 gedeelde applicatielaag\]
-
 De applicatielaag is het hart: een regel als "minimaal twee lopers" of "alleen eigen melding verwijderen" staat daar één keer, en geldt dus voor browser, AI-client en cron tegelijk.
 
 **Waarom buildless.** Geen Node-toolchain bij installeren of bijwerken, net als in je andere projecten. Lit draait als één gevendord bestand (lit-core.min.js) via relatieve imports, zonder importmap; de release-workflow kopieert `frontend/` naar `public/app/`.
@@ -186,12 +184,13 @@ De backend is een modulaire monoliet: elke module staat direct onder `src/` en h
 | `Audit` | Auditlog vastleggen en tonen |
 | `Settings` | Branding en teksten |
 | `Maintenance` | Herinneringen, updates, installer, conversie uit v3 |
-| `Shared` | Algemene bouwstenen: klok, ID's, foutafhandeling (`problem+json`) |
+
+`Shared` is geen module: het bevat algemene bouwstenen, zoals klok, ID's en foutafhandeling (`problem+json`).
 
 **Binnen elke module.**
 
 - **`Domain/`**: entiteiten, value objects, regels (zoals `StaffingRule`) en repository-interfaces. Gewone PHP zonder HTTP of MCP, dus alle domeinregels zijn in milliseconden te testen met in-memory repositories.
-- **`UseCase/<Naam>/`**: vijf bestanden met vaste namen. De invoerklasse (`SignUpForRound`, met Validator-regels) is het contract. De `…Handler` regelt rechten, regels en auditlog. De `…Controller` (REST) en `…Tool` (MCP) zijn dunne adapters: invoer omzetten, handler aanroepen, uitvoer teruggeven. De uitvoer staat in `…Output`, zonder entiteiten. Een pariteitstest controleert per use case dat beide dezelfde handler met dezelfde invoer aanroepen.
+- **`UseCase/<Naam>/`**: tot vijf bestanden met vaste namen; alleen de invoerklasse en de handler zijn verplicht, de andere drie komen erbij als de use case ze nodig heeft. De invoerklasse (`SignUpForRound`, met Validator-regels) is het contract. De `…Handler` regelt rechten, regels en auditlog. De `…Controller` (REST) en `…Tool` (MCP) zijn dunne adapters: invoer omzetten, handler aanroepen, uitvoer teruggeven. De uitvoer staat in `…Output`, zonder entiteiten. Een pariteitstest controleert per use case dat beide dezelfde handler met dezelfde invoer aanroepen.
 - **`Infrastructure/`**: Doctrine-repositories, e-mail, Symfony-koppelingen zoals authenticators, console-commando's.
 - **Tussen modules** alleen via elkaars use cases, bijvoorbeeld `Patrol` haalt een lopernaam op via `Membership/UseCase/GetMemberSummary`, nooit via diens entiteiten.
 
@@ -236,7 +235,7 @@ Een PHPat-regel bewaakt dit: elke map direct onder `src/` behalve `Shared` is ee
 1. `*\Domain` hangt alleen af van de eigen module, `Shared\Domain` en Doctrine-mapping-attributen.
 2. Invoerklassen en handlers hangen niet af van Symfony HttpFoundation, het MCP SDK of `*\Infrastructure`.
 3. `*Controller` en `*Tool` roepen alleen de handler uit hun eigen map aan; geen Doctrine, en geen entiteiten in de uitvoer.
-4. Een module gebruikt een andere module alleen via diens `UseCase`-handlers, of via een interface in Shared\\Domain die een module implementeert (zoals AuditTrail).
+4. Een module gebruikt een andere module alleen via diens `UseCase`-handlers, of via een interface in `Shared\Domain` die een module implementeert (zoals `AuditTrail`).
 5. Twig alleen voor e-mails en de installer; de backend rendert geen schermen.
 6. De frontend roept alleen endpoints aan die in de OpenAPI-spec staan (contracttest in CI).
 
@@ -431,19 +430,19 @@ Regels die daaruit volgen:
 | Publiek | `GET /config` (branding, teksten, minimumaantal lopers) | iedereen |
 | Sessie | `POST /auth/login`, `POST /auth/logout`, `POST /auth/password-reset`, `POST /auth/password-reset/{token}` | iedereen |
 | Eigen account | `GET/PATCH /me`, `PUT /me/password`, `GET/POST/DELETE /me/tokens` | lid |
-| Rondes | `GET /rounds?from=&to=`&status=, `GET /rounds/{id}`, `POST /rounds`, `PATCH /rounds/{id}`, `DELETE /rounds/{id}` | lid leest; loper maakt aan; coördinator wijzigt/verwijdert |
+| Rondes | `GET /rounds?from=&to=&status=`, `GET /rounds/{id}`, `POST /rounds`, `PATCH /rounds/{id}`, `DELETE /rounds/{id}` | lid leest; loper maakt aan; coördinator wijzigt/verwijdert |
 | Aanmelden | `PUT /rounds/{id}/walkers/me`, `DELETE /rounds/{id}/walkers/me` | loper |
 | Na de ronde | `GET /me/rounds?walked=1`, `POST /rounds/{id}/reports`, `DELETE /reports/{id}`, `POST /rounds/{id}/comments`, `DELETE /comments/{id}` | loper (eigen items), coördinator |
 | Leden | `GET /members` (contactgegevens alleen bij toestemming) | lid |
 | Analyse | `GET /reports?from=&to=&outcome=`, `GET /stats?period=` | analist |
 | Beheer | `/admin/members` (CRUD, herstellen, uitnodiging), `/admin/meeting-points`, `/admin/outcomes`, `/admin/settings` | beheerder |
 | Systeem | `POST /system/tick` (geheime sleutel; draait herinneringen) | cron |
-| Inloggen per e-mail | POST /auth/login-link, GET /auth/login-link/{token} | iedereen |
-| Namens een loper | PUT /rounds/{id}/walkers/{memberId}, DELETE /rounds/{id}/walkers/{memberId} | coördinator |
-| Auditlog | GET /me/activity, GET /rounds/{id}/history, GET /admin/audit | lid, coördinator, beheerder (zie Auditlog) |
-| Onderhoud | GET /admin/maintenance, POST /admin/maintenance/update, POST /admin/maintenance/rollback, POST /admin/maintenance/backup | beheerder |
-| Media | GET /media/brand/{bestand} | iedereen |
-| Privacy | GET /me/export, DELETE /admin/members/{id} (wissen) | lid (eigen gegevens), beheerder (wissen) |
+| Inloggen per e-mail | `POST /auth/login-link`, `GET /auth/login-link/{token}` | iedereen |
+| Namens een loper | `PUT /rounds/{id}/walkers/{memberId}`, `DELETE /rounds/{id}/walkers/{memberId}` | coördinator |
+| Auditlog | `GET /me/activity`, `GET /rounds/{id}/history`, `GET /admin/audit` | lid, coördinator, beheerder (zie Auditlog) |
+| Onderhoud | `GET /admin/maintenance`, `POST /admin/maintenance/update`, `POST /admin/maintenance/rollback`, `POST /admin/maintenance/backup` | beheerder |
+| Media | `GET /media/brand/{bestand}` | iedereen |
+| Privacy | `GET /me/export`, `DELETE /admin/members/{id}` (wissen) | lid (eigen gegevens), beheerder (wissen) |
 
 **Rechten.** Eén Voter per onderwerp (`RoundVoter`, `ReportVoter`, `MemberVoter`, …) met de rollen walker, coordinator, analyst en admin. Controllers en MCP-tools roepen dezelfde Voters aan; een test controleert de volledige matrix rol × actie.
 
@@ -480,7 +479,7 @@ De MCP-server is een dunne laag op `/mcp` die dezelfde use cases en Voters aanro
 | `add_round_comment` | Opmerking bij een ronde | `write` | lid |
 | `report_summary` | Aantallen per uitkomst en incidenten in een periode | `read` | analist |
 | `list_meeting_points`, `list_outcomes` | Keuzelijsten | `read` | lid |
-| round\_statistics | Aantallen gepland, gelopen, niet gelopen (geen loopmaatje) en incidenten, per maand, weekdag of dagdeel, met percentages en vergelijking met de vorige periode | read | analist, coördinator |
+| `round_statistics` | Aantallen gepland, gelopen, niet gelopen (geen loopmaatje) en incidenten, per maand, weekdag of dagdeel, met percentages en vergelijking met de vorige periode | `read` | analist, coördinator |
 
 **Resources:** `buurtpreventie://config` (naam, minimumaantal lopers, startpunten, uitkomsten). **Prompts:** `monthly_report` (maandoverzicht voor politie/gemeente uit `report_summary`) en `plan_week` (open plekken komende week).
 
@@ -629,7 +628,7 @@ De repo bevat geen enkele verwijzing naar een specifieke vereniging: technische 
 | --- | --- | --- |
 | Database, mail, geheime sleutels, basis-URL | `.env.local` | `DATABASE_URL`, `MAILER_DSN`, `APP_SECRET`, `TICK_SECRET` |
 | Naam vereniging, korte naam | `Setting` | "Buurtpreventie" |
-| Logo, favicon, app-icoon | `Setting` + upload naar `shared/uploads/brand/, geserveerd via GET /media/brand/{bestand}` | neutraal standaardlogo in repo |
+| Logo, favicon, app-icoon | `Setting` + upload naar `shared/uploads/brand/`, geserveerd via `GET /media/brand/{bestand}` | neutraal standaardlogo in repo |
 | Kleuren (primair, accent) | `Setting` → CSS custom properties | toegankelijk contrast gecontroleerd bij opslaan |
 | Afzender e-mail en ondertekening | `Setting` | valt terug op `.env` |
 | Contact coördinator (naam, e-mail, telefoon) | `Setting` | leeg |
@@ -649,7 +648,7 @@ Hoe het doorwerkt:
 
 Ja: na de eerste installatie kan de webbeheerder updates zelf installeren met één knop in het beheerscherm. Voor beveiligingspatches hoeft de ontwikkelaar meestal alleen een automatisch klaargezette update goed te keuren; de release wordt daarna vanzelf gebouwd.
 
-&#91;embedded content: updateflow · van CVE tot bijgewerkte site\]
+Van beveiligingsadvies tot bijgewerkte site: Dependabot zet een update klaar en CI test hem; een groene patch- of minor-update wordt automatisch samengevoegd, de rest keurt de ontwikkelaar goed. Elke samengevoegde fix levert een ondertekende patchversie, en de beheerder krijgt een melding en klikt op Bijwerken.
 
 Alleen als CI rood blijft, moet de ontwikkelaar zelf iets doen; de beheerder merkt daar niets van tot de release er is.
 
@@ -667,7 +666,12 @@ Alleen als CI rood blijft, moet de ontwikkelaar zelf iets doen; de beheerder mer
 **Kant ontwikkelaar: eenmalig inrichten, daarna bijna vanzelf.**
 
 - Dependabot-beveiligingsupdates voor Composer en GitHub Actions; patch- en minor-updates worden automatisch samengevoegd als CI groen is, behalve minor-updates van pakketten onder 1.0.
+- **Cooldown tegen gekaapte releases:** Dependabot stelt een nieuwe versie pas voor na 3 dagen (patch), 7 dagen (minor) of 14 dagen (major), voor alle pakketten en actions, zonder uitzonderingen: ook een vertrouwd project kan een gekaapt account van een maintainer hebben. Beveiligingsupdates vallen niet onder de cooldown en komen meteen.
 - CI faalt op `composer audit`, dat `composer.lock` toetst aan de beveiligingsadviezen van Packagist ([Composer audit](https://github.com/composer/composer/pull/10798)); een wekelijkse geplande run opent een issue als er iets nieuws is.
+- **Een kwetsbaarheid in PHP zelf** (zoals PHP2Shell) ziet Dependabot niet. De ontwikkelaar verhoogt dan de ondergrens in `composer.json` (`require` en `config.platform.php`) en brengt een patchrelease uit; de installer en Onderhoud controleren dezelfde ondergrens.
+- **Codescan (SAST) in CI** met Opengrep (LGPL-2.1) en een eigen regelset in de repo, elke regel met een regeltest; een bevinding laat CI falen. De binary komt op een vaste versie uit de releases van `opengrep/opengrep`, nooit via `install.sh` of PyPI. CI controleert de SHA-256 die in de repo staat en de Cosign-handtekening tegen een vaste certificaatidentiteit en issuer, zodat ook een later opnieuw ondertekende binary faalt.
+- **Cooldown voor Opengrep:** Dependabot kan die download niet bijwerken. De wekelijkse workflow opent een issue als er een nieuwere release is van minstens 7 dagen oud (patch of minor) of 14 dagen (major); bijwerken gaat via een pull request met versie, hash en identiteit.
+- **Geen regels of scanners met een licentie die dit project uitsluit.** Semgrep-regels komen niet in de repo: hun licentie verbiedt verspreiden. CodeQL valt af: de licentie staat analyse alleen toe op code onder een OSI-licentie, en PolyForm Noncommercial is dat niet.
 - Symfony 7.4 LTS krijgt alleen bug- en securityfixes, dus patch-updates zijn klein en weinig riskant. De overstap naar 8.4 LTS volgt in 2028 en komt bij de webbeheerder als gewone release via de knop Bijwerken.
 - Elke samengevoegde fix levert automatisch een patchversie (4.0.x): zip, SHA-256 en een handtekening (libsodium) waarvan de publieke sleutel in de app zit.
 
@@ -677,7 +681,7 @@ Alleen als CI rood blijft, moet de ontwikkelaar zelf iets doen; de beheerder mer
 - **Status in één oogopslag:** versie, PHP-versie en einddatum, laatste back-up, open adviezen, een test of de `Authorization`-header werkt, welke tijdtrigger actief is met de laatste run, en de laatste verzonden mail met een knop "Testmail sturen".
 - **Bijwerken in één klik:** handtekening controleren → database-back-up (downloadbaar) → nieuwe versie uitpakken naast de oude in `releases/<versie>/` → migraties → root-`.htaccess` naar de nieuwe map → gezondheidscheck. Mislukt een stap, dan zet de app zelf de vorige map en de back-up terug.
 - **Terugzetten** naar de vorige versie blijft beschikbaar tot de volgende update. Daarom zijn migraties in patchversies altijd terugdraaibaar: alleen toevoegen, nooit kolommen weggooien.
-- **Data staat buiten de releases**, in `shared/`: `.env.local`, uploads, back-ups en logs. Een update raakt die nooit. Elke release leest .env.local uit shared/ via de dotenv\_path-optie van Symfony Runtime; cache staat per release, logs in shared/.
+- **Data staat buiten de releases**, in `shared/`: `.env.local`, uploads, back-ups en logs. Een update raakt die nooit. Elke release leest `.env.local` uit `shared/` via de `dotenv_path`-optie van Symfony Runtime; cache staat per release, logs in `shared/`.
 - Alleen beheerders mogen bijwerken, en ze voeren eerst opnieuw hun wachtwoord in.
 
 **Wat toch kennis of hulp vraagt.**
@@ -723,8 +727,6 @@ v4 start op 7.4 LTS en stapt in 2028 over naar 8.4 LTS (verwacht november 2027),
 
 Fase 0 t/m 6 zijn de kern, fase 7 tot en met 15 optionele uitbreidingen, in volgorde van aanpak; na fase 2 is de API bruikbaar, na fase 6 is de MVP klaar; de overstap van bestaande installaties is daarna een apart project. Elke fase levert iets testbaars op en krijgt bij de start een eigen gedetailleerd taakplan (test eerst, kleine commits).
 
-&#91;embedded content: routekaart · kern fase 0–6, daarna uitbreidingen 7–15\]
-
 Fase 3, 4 en 5 hangen alleen van de API af; wie het frontend het eerst nodig heeft, doet fase 3 en 4 vóór MCP.
 
 ### Fase 0 — Basis
@@ -732,7 +734,9 @@ Fase 3, 4 en 5 hangen alleen van de API af; wie het frontend het eerst nodig hee
 - [x] Oude repo afgerond (verwijzing in de README, tag `v3-mit-final`, hernoemd naar `buurtpreventie-v3`); nieuwe repo `zabuto/buurtpreventie` met `main` en `develop` (zie Werkwijze), en `LICENSE` (PolyForm NC + `Required Notice:`) vanaf de eerste commit.
 - [x] Symfony 7.4 LTS-skelet, PHP 8.4, modulaire mapindeling uit Codestructuur, PHPat-regels in PHPStan, docs/glossary.md, docs/architecture.md met voorbeeld, ADR 0001 over de structuur, en de generator app:make:use-case.
 - [x] CI (GitHub Actions): PHPStan level max, Mago (opmaak, lint en analyse), PHPUnit, `composer audit`, controle op deprecations, wekelijkse vooruitkijk-job met de nieuwste Symfony 8 en PHP 8.5, Rector met Symfony-regels; Dependabot met automatisch samenvoegen van groene patch- en minor-updates (minor niet onder 1.0), wekelijkse audit-run, SECURITY.md en privé melden van kwetsbaarheden aan.
-- [x] `AGENTS.md` + `CLAUDE.md`, en `docs/` met `getting-started`, `configuration`, `architecture`, `operations`, `testing`, `gotchas`.
+- [x] `AGENTS.md` + `CLAUDE.md`, en `docs/` met `getting-started`, `configuration`, `architecture`, `operations`, `testing`, `gotchas`, `writing`, `code-style`.
+- [ ] Dependabot-cooldown van 3, 7 en 14 dagen voor patch-, minor- en major-updates, zonder uitzonderingen (zie Beveiligingsupdates en zelf bijwerken).
+- [ ] Codescan in CI met Opengrep en een eigen regelset met regeltests, als verplichte check op `develop`, en een wekelijkse melding van nieuwe Opengrep-releases na de cooldown (zie Beveiligingsupdates en zelf bijwerken).
 
 **Klaar als:** CI groen op een lege app; `docs/getting-started.md` brengt een nieuwe dev in één keer tot een draaiende lokale omgeving.
 
@@ -752,6 +756,7 @@ Fase 3, 4 en 5 hangen alleen van de API af; wie het frontend het eerst nodig hee
 - [ ] Auth: `json_login` + sessie + CSRF; `access_token`-authenticator; `/me/tokens`; inloglink per e-mail en ingelogd blijven (90 dagen); aan- en afmelden namens een loper (coördinator); auditlog-endpoints.
 - [ ] Alle endpoints uit het API-ontwerp, `problem+json`-fouten, OpenAPI via NelmioApiDocBundle.
 - [ ] Functionele tests per endpoint plus één matrixtest rol × actie.
+- [ ] Opengrep-regelset uitgebreid voor wat deze fase toevoegt: verzoekinvoer naar SQL en bestandspaden, inloggen en CSRF; elke regel met een regeltest.
 
 **Klaar als:** de OpenAPI-spec dekt elk endpoint, de matrixtest is groen, en `curl` met een token kan een lid aanmelden voor een ronde.
 
@@ -775,7 +780,7 @@ Fase 3, 4 en 5 hangen alleen van de API af; wie het frontend het eerst nodig hee
 ### Fase 5 — MCP-server
 
 - [ ] `symfony/mcp-bundle` + `mcp/sdk` (minor vastgepind), tools als `…Tool`-klasse in de map van de use case: dunne wrappers om de handler, met een pariteitstest tegen de REST-controller.
-- [ ] Use case RoundStatistics met de tool round\_statistics (het scherm volgt in fase 8); token-scopes, rate limit, audit `via: mcp`, DNS-rebinding-instelling.
+- [ ] Use case `RoundStatistics` met de tool `round_statistics` (het scherm volgt in fase 8); token-scopes, rate limit, audit `via: mcp`, DNS-rebinding-instelling.
 - [ ] Tests met de SDK-client in PHPUnit: elke tool, en elke tool geweigerd zonder juiste scope of rol.
 
 **Klaar als:** de MCP Inspector alle tools ziet en Claude Code met een token `staffing_gaps` en `sign_up_for_round` kan gebruiken.
@@ -813,8 +818,6 @@ Na fase 6 draait de kern. De uitbreidingen staan in de volgorde waarin ze het me
 | 13 | OAuth voor MCP-clients | laag | groot | Later: maakt MCP bruikbaar voor lopers vanuit web- en telefoonapps, met inloggen in plaats van een token; per vereniging aan of uit |
 | 14 | Vaste export voor politie en gemeente | nog te bepalen | klein tot middel | Eerst met de coördinator uitwerken welke cijfers, in welke vorm en hoe vaak |
 | 15 | Terugmelden met spraak | middel | klein tot middel | Makkelijker terugmelden onderweg; dicteren via het toetsenbord kan al in fase 4, de route via MCP pas na OAuth (fase 13) |
-
-&#91;embedded content: uitbreidingen · waarde tegen moeite, volgens de tabel\]
 
 ### Fase 7 — iCal-feed met eigen rondes
 
@@ -974,8 +977,6 @@ git switch -c develop && git push -u origin develop
 gh repo edit zabuto/buurtpreventie --default-branch develop
 ```
 
-Het script `init-buurtpreventie-v4.sh` doet dit allemaal, met controles vooraf.
-
 Daarna dit plan exporteren als Markdown naar `docs/plan-v4.md` in de nieuwe repo en committen op `develop`. Claude Code starten met de oude repo erbij als naslag:
 
 ```bash
@@ -1116,10 +1117,11 @@ Alleen rapporteren, niets wijzigen.
 
 | Risico | Gevolg | Maatregel |
 | --- | --- | --- |
-| MCP SDK en bundle zijn nog pre-1.0 | Breaking changes bij updates | Minor vastpinnen, alle MCP-code in `…Tool-klassen`, tests per tool; MCP pas in fase 5 |
+| MCP SDK en bundle zijn nog pre-1.0 | Breaking changes bij updates | Minor vastpinnen, alle MCP-code in `…Tool`-klassen, tests per tool; MCP pas in fase 5 |
 | Hosting zonder SSH | Geen `bin/console` voor installatie en migraties | Release-zip + web-installer; herinneringen via cron in het hostingpaneel, of een externe tick |
 | Host stript `Authorization`-header | Tokens en MCP werken niet | Regel in `.htaccess` + een diagnosepagina in de installer die het controleert |
 | Persoonsgegevens via AI-clients | AVG-vraag voor de vereniging | Dataminimalisatie in MCP-uitvoer, MCP standaard uit, per vereniging aan te zetten |
+| Gekaapte release van een afhankelijkheid | Kwaadaardige code via een automatisch samengevoegde update | Dependabot-cooldown van 3, 7 en 14 dagen; actions vastgepind op commit-SHA; Opengrep op een vaste hash en handtekening; CI zonder geheimen in pull requests |
 | Eén onderhouder | Kennis zit bij één persoon | `docs/`, `AGENTS.md`, weinig afhankelijkheden, geen buildstap; webbeheerder werkt zelf bij via het scherm Onderhoud |
 | Overstap 7.4 → 8.4 LTS blijft liggen | Na november 2029 geen security-fixes meer | Geen deprecations (CI faalt erop); overstap gepland in 2028 en vastgelegd in docs/operations.md |
 
