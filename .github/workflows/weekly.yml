@@ -83,3 +83,39 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TITLE: 'Look-ahead: develop breaks on Symfony 8 or PHP 8.5'
         run: .github/scripts/report-issue.sh
+
+  opengrep-major:
+    name: Opengrep major version (develop)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: develop
+          persist-credentials: false
+
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: composer:v2
+
+      - name: Generate the autoloader
+        run: composer dump-autoload --dev --no-interaction
+
+      # CI never moves to a new Opengrep major by itself; this reports one once it has waited 14 days.
+      - name: Check for a new major version
+        id: major
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: php tools/opengrep-release.php check-major --fail 2>&1 | tee report.txt
+
+      - name: Open or update an issue
+        if: steps.major.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: 'Opengrep: new major version or failed check'
+        run: .github/scripts/report-issue.sh

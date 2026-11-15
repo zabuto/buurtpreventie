@@ -71,7 +71,8 @@
             "@auto-scripts"
         ],
         "post-update-cmd": [
-            "@auto-scripts"
+            "@auto-scripts",
+            "@php tools/opengrep-release.php check-major"
         ],
         "test": [
             "@php vendor/bin/phpunit"
