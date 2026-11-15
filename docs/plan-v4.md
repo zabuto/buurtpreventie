@@ -18,7 +18,7 @@ Buurtpreventie v4 wordt een Symfony 7.4 LTS-backend met een echte REST-API (`/ap
 
 **Klaar-afspraak voor elke taak** (naast het "Klaar als" per fase):
 
-- Tests eerst geschreven en groen; PHPStan, PHPat en PHP-CS-Fixer schoon; geen nieuwe deprecations.
+- Tests eerst geschreven en groen; PHPStan, PHPat en Mago schoon; geen nieuwe deprecations.
 - Schrijvende acties laten een auditregel achter; rechten zitten in een Voter en in de matrixtest.
 - Nieuwe teksten in `nl` en `en`; schermen getest met toetsenbord en op een smal scherm.
 - Voorbeelddata en woordenlijst bijgewerkt waar het model veranderde.
@@ -68,7 +68,7 @@ De app draait op gewone shared hosting. Die biedt moderne PHP, maar SSH en cron 
 
 Gevolgen voor het ontwerp:
 
-1. **Minimum PHP 8.4.** Gangbare shared hosting biedt het, het krijgt security-updates tot eind 2028, en het houdt de latere stap naar Symfony 8.4 LTS klein. De oude app zit er al op.
+1. **Minimum PHP 8.4.27.** Gangbare shared hosting biedt 8.4, het krijgt security-updates tot eind 2028, en het houdt de latere stap naar Symfony 8.4 LTS klein. De oude app zit er al op. Eerdere 8.4-versies hebben PHP2Shell (CVE-2026-109618 en CVE-2026-109619), daarom 8.4.27 als ondergrens.
 2. **Geen workers, geen long-running processen.** Messenger blijft `sync`; geen Mercure, geen websockets, geen SSE-streams die minuten openstaan.
 3. **Cron is optioneel.** Herinneringen draaien via `bin/console app:scheduler:run` als er cron is, en anders via een beveiligde URL (`POST /api/v1/system/tick` met geheime sleutel) die een externe dienst als cron-job.org aanroept. Een vertraging van uren is acceptabel voor een herinnering "morgen loop je".
 4. **Installeren zonder SSH.** Een GitHub Release levert een kant-en-klare zip (met `vendor/`, gebouwde frontend, `.htaccess`). Migraties en de eerste beheerder kunnen via een eenmalige, met een token beveiligde web-installer; met SSH gewoon via `bin/console`.
@@ -381,7 +381,7 @@ Testen met echte lopers en toestellen:
 
 **Testen.**
 
-- Automatisch: axe-core op elk scherm in CI (Playwright, alleen in CI, niet nodig op de server).
+- Automatisch: axe-core op elk scherm in CI (Playwright, alleen in CI, niet nodig op de server), met de tags `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa` en `wcag22aa`. De contrastregel blijft aan, omdat beheerders de kleuren zelf instellen.
 - Handmatig per release: één ronde met alleen toetsenbord, met VoiceOver op een iPhone en met NVDA op Windows; checklist in `docs/testing.md`.
 - In fase 4: twee echte lopers doen aanmelden en terugmelden op hun eigen telefoon, met voorbeelddata.
 - Een korte toegankelijkheidsverklaring staat in de app (standaardtekst, aan te passen in de instellingen).
@@ -666,7 +666,7 @@ Alleen als CI rood blijft, moet de ontwikkelaar zelf iets doen; de beheerder mer
 
 **Kant ontwikkelaar: eenmalig inrichten, daarna bijna vanzelf.**
 
-- Dependabot-beveiligingsupdates voor Composer en GitHub Actions; patch-updates worden automatisch samengevoegd als CI groen is.
+- Dependabot-beveiligingsupdates voor Composer en GitHub Actions; patch- en minor-updates worden automatisch samengevoegd als CI groen is, behalve minor-updates van pakketten onder 1.0.
 - CI faalt op `composer audit`, dat `composer.lock` toetst aan de beveiligingsadviezen van Packagist ([Composer audit](https://github.com/composer/composer/pull/10798)); een wekelijkse geplande run opent een issue als er iets nieuws is.
 - Symfony 7.4 LTS krijgt alleen bug- en securityfixes, dus patch-updates zijn klein en weinig riskant. De overstap naar 8.4 LTS volgt in 2028 en komt bij de webbeheerder als gewone release via de knop Bijwerken.
 - Elke samengevoegde fix levert automatisch een patchversie (4.0.x): zip, SHA-256 en een handtekening (libsodium) waarvan de publieke sleutel in de app zit.
@@ -729,10 +729,10 @@ Fase 3, 4 en 5 hangen alleen van de API af; wie het frontend het eerst nodig hee
 
 ### Fase 0 — Basis
 
-- [ ] Oude repo afgerond (verwijzing in de README, tag `v3-mit-final`, hernoemd naar `buurtpreventie-v3`); nieuwe repo `zabuto/buurtpreventie` met `main` en `develop` (zie Werkwijze), en `LICENSE` (PolyForm NC + `Required Notice:`) vanaf de eerste commit.
-- [ ] Symfony 7.4 LTS-skelet, PHP 8.4, modulaire mapindeling uit Codestructuur, PHPat-regels in PHPStan, docs/glossary.md, docs/architecture.md met voorbeeld, ADR 0001 over de structuur, en de generator app:make:use-case.
-- [ ] CI (GitHub Actions): PHPStan level max, PHP-CS-Fixer, PHPUnit, `composer audit`, controle op deprecations, wekelijkse vooruitkijk-job met de nieuwste Symfony 8 en PHP 8.5, Rector met Symfony-regels; Dependabot met automatisch samenvoegen van groene patch-updates, wekelijkse audit-run, SECURITY.md en privé melden van kwetsbaarheden aan.
-- [ ] `AGENTS.md` + `CLAUDE.md`, en `docs/` met `getting-started`, `configuration`, `architecture`, `operations`, `testing`, `gotchas`.
+- [x] Oude repo afgerond (verwijzing in de README, tag `v3-mit-final`, hernoemd naar `buurtpreventie-v3`); nieuwe repo `zabuto/buurtpreventie` met `main` en `develop` (zie Werkwijze), en `LICENSE` (PolyForm NC + `Required Notice:`) vanaf de eerste commit.
+- [x] Symfony 7.4 LTS-skelet, PHP 8.4, modulaire mapindeling uit Codestructuur, PHPat-regels in PHPStan, docs/glossary.md, docs/architecture.md met voorbeeld, ADR 0001 over de structuur, en de generator app:make:use-case.
+- [x] CI (GitHub Actions): PHPStan level max, Mago (opmaak, lint en analyse), PHPUnit, `composer audit`, controle op deprecations, wekelijkse vooruitkijk-job met de nieuwste Symfony 8 en PHP 8.5, Rector met Symfony-regels; Dependabot met automatisch samenvoegen van groene patch- en minor-updates (minor niet onder 1.0), wekelijkse audit-run, SECURITY.md en privé melden van kwetsbaarheden aan.
+- [x] `AGENTS.md` + `CLAUDE.md`, en `docs/` met `getting-started`, `configuration`, `architecture`, `operations`, `testing`, `gotchas`.
 
 **Klaar als:** CI groen op een lege app; `docs/getting-started.md` brengt een nieuwe dev in één keer tot een draaiende lokale omgeving.
 
@@ -743,6 +743,8 @@ Fase 3, 4 en 5 hangen alleen van de API af; wie het frontend het eerst nodig hee
 - [ ] Voters per onderwerp en de module Audit (elke schrijvende handler legt een auditregel vast, met test); regels uit de oude `WalkService` (minimum lopers, inactieve lopers uit toekomstige rondes, eigen melding verwijderen) als unit tests vastgelegd; fixture-sets demo, test, edge en v3 (zie Voorbeelddata).
 
 **Klaar als:** alle domeinregels uit de oude app hebben een test; conversie draait foutloos op de verzonnen v3-fixture-set, de aantallen kloppen en voorbeeldlopers loggen in met hun v3-wachtwoord.
+
+**Ter goedkeuring in het taakplan:** `dama/doctrine-test-bundle` als nieuwe dev-afhankelijkheid. Elke databasetest rolt dan terug, en controles filteren op het id van wat de test zelf aanmaakt, nooit op de hele tabel. De test voor twee lopers die tegelijk aanmelden (review-focus 1) zet DAMA voor zichzelf uit: hij werkt met twee eigen verbindingen die echt committen, en ruimt zijn rijen zelf op. Het schema staat er vóór de tests, omdat MariaDB bij DDL stil commit.
 
 ### Fase 2 — REST-API v1
 
@@ -755,7 +757,7 @@ Fase 3, 4 en 5 hangen alleen van de API af; wie het frontend het eerst nodig hee
 ### Fase 3 — Branding en configuratie
 
 - [ ] `Setting`-repository met standaardwaarden, `/admin/settings`, logo-upload, `GET /config`, `manifest.webmanifest`.
-- [ ] E-mailtemplates (welkom, wachtwoord-reset, herinnering, nieuwe ronde zoekt loopmaatje, loopmaatje afgemeld) met branding en `nl`/`en`.
+- [ ] E-mailtemplates (welkom, wachtwoord-reset, herinnering, nieuwe ronde zoekt loopmaatje, loopmaatje afgemeld) met branding en `nl`/`en`; altijd met een tekstversie, geen informatie die alleen in een afbeelding staat, en zo min mogelijk persoonsgegevens in de mail zelf.
 
 **Klaar als:** een tweede vereniging alleen via het beheerscherm een eigen naam, logo, kleuren en teksten krijgt, zonder codewijziging.
 
@@ -979,73 +981,7 @@ cd ~/Sites/buurtpreventie
 claude --add-dir ../buurtpreventie-v3
 ```
 
-**Eerste `AGENTS.md` en `CLAUDE.md` in de nieuwe repo.** `AGENTS.md` bevat de regels voor iedereen, mens of AI-tool; `CLAUDE.md` verwijst ernaar, net als in je andere projecten. Fase 0 vult de commando's aan zodra ze bestaan.
-
-```markdown
-# Buurtpreventie v4
-
-The plan lives in docs/plan-v4.md and is leading. Read it before every phase.
-
-## Language and naming
-
-- Code, API, MCP tools, database and commit messages: English.
-- All folder and file names: English, also under docs/ (docs/admin-guide/, not docs/beheer/).
-- AGENTS.md and CLAUDE.md: English.
-- Content of README and docs/: Dutch. UI texts: nl and en, through translation files.
-- Domain terms follow docs/glossary.md (loopronde = Round, loopmaatje = buddy, ...).
-
-## Structure
-
-- Modules sit directly under src/, each with Domain/, UseCase/<Name>/ and Infrastructure/.
-  Shared/ is not a module.
-- Per use case: <Name>.php (input), <Name>Handler.php, <Name>Controller.php (REST),
-  <Name>Tool.php (MCP). New use case: bin/console app:make:use-case <Module> <Name>.
-- Domain knows nothing about HTTP or MCP. Controllers and tools only call the handler
-  in their own folder. Modules use each other only through use cases or interfaces
-  in Shared\Domain.
-- The frontend lives only in frontend/ and talks only to /api/v1.
-  Twig is used only for e-mails and the installer.
-- PHPat rules must not fail; their messages point to docs/architecture.md.
-
-## Definition of done for every task
-
-- Tests first, all green; PHPStan, PHPat and PHP-CS-Fixer clean; no new deprecations.
-- Every write action = audit entry + Voter + a row in the matrix test.
-- New texts in nl and en; screens checked with keyboard only and on a narrow screen.
-- Fixtures and glossary updated when the model changed.
-- docs/ updated where behaviour or administration changed, plus a line in CHANGELOG.md.
-
-## Data and secrets
-
-- Only made-up sample data (bin/console app:fixtures:load demo).
-  Never real personal data in the repo, in tests or in fixtures.
-- Never commit secrets; they belong in .env.local or shared/.env.local.
-
-## Way of working
-
-- Work on a feature/<short-name> branch from develop, in small commits, and merge it
-  back into develop through a pull request.
-- main only holds released versions: a release is develop merged into main with a tag
-  vX.Y.Z. Urgent fixes go through hotfix/<short-name> from main, back into main and develop.
-- ../buurtpreventie-v3 is the old repository (v3, MIT): read only, never change it.
-- Per phase, first write a task plan in docs/plans/phase-<n>.md and wait for approval.
-- Ask first before: adding a dependency, an irreversible schema change, git push,
-  or a release.
-
-## Commands
-
-(Filled in during phase 0: start, test, PHPStan, CS-Fixer, load fixtures.)
-```
-
-`CLAUDE.md`:
-
-```markdown
-@AGENTS.md
-
-# Claude Code
-
-<!-- Claude Code-specific notes only. Shared rules live in AGENTS.md. -->
-```
+**`AGENTS.md` en `CLAUDE.md`.** `AGENTS.md` bevat de regels voor iedereen, mens of AI-tool; `CLAUDE.md` verwijst ernaar. De geldende tekst staat in de repo; dit plan houdt er geen kopie van bij.
 
 **Prompts per fase.** Elke prompt begint met een taakplan en wacht op akkoord; zo blijft de ontwikkelaar aan het stuur.
 
@@ -1058,9 +994,9 @@ Maak eerst een taakplan in docs/plans/phase-0.md en wacht op mijn akkoord.
 
 Daarna, op een branch feature/phase-0 vanaf develop:
 - Symfony 7.4 LTS-skelet met PHP 8.4 en de modulemappen uit Codestructuur.
-- PHPStan level max met PHPat-regels (met uitleg in de foutmeldingen), PHP-CS-Fixer,
+- PHPStan level max met PHPat-regels (met uitleg in de foutmeldingen), Mago,
   PHPUnit, Rector met Symfony-regels.
-- GitHub Actions: tests, PHPStan, CS-Fixer, composer audit, falen op deprecations, plus de
+- GitHub Actions: tests, PHPStan, Mago, composer audit, falen op deprecations, plus de
   wekelijkse vooruitkijk-job met de nieuwste Symfony 8 en PHP 8.5 (niet-blokkerend).
 - Dependabot met target-branch develop, en SECURITY.md.
 - docs/: getting-started.md, architecture.md met uitgewerkt voorbeeld, glossary.md,
