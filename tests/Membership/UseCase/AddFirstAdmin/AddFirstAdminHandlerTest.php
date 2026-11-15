@@ -6,6 +6,7 @@ namespace App\Tests\Membership\UseCase\AddFirstAdmin;
 
 use App\Membership\Domain\AdminExists;
 use App\Membership\Domain\EmailAddressTaken;
+use App\Membership\Domain\FirstAdminGuard;
 use App\Membership\Domain\UniqueMemberDetails;
 use App\Membership\UseCase\AddFirstAdmin\AddFirstAdmin;
 use App\Membership\UseCase\AddFirstAdmin\AddFirstAdminHandler;
@@ -133,6 +134,7 @@ final class AddFirstAdminHandlerTest extends TestCase
     {
         return new AddFirstAdminHandler(
             $this->members,
+            new FirstAdminGuard($this->members),
             new UniqueMemberDetails($this->members),
             $authorization ?? FakeAuthorization::granting(),
             $this->auditTrail,

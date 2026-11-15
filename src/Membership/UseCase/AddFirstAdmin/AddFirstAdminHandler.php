@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Membership\UseCase\AddFirstAdmin;
 
 use App\Membership\Domain\AdminExists;
+use App\Membership\Domain\FirstAdminGuard;
 use App\Membership\Domain\Member;
 use App\Membership\Domain\MemberDetails;
 use App\Membership\Domain\MemberRepository;
@@ -27,6 +28,7 @@ final readonly class AddFirstAdminHandler
 {
     public function __construct(
         private MemberRepository $members,
+        private FirstAdminGuard $firstAdminGuard,
         private UniqueMemberDetails $uniqueMemberDetails,
         private Authorization $authorization,
         private AuditTrail $auditTrail,
@@ -50,9 +52,7 @@ final readonly class AddFirstAdminHandler
         );
 
         return $this->transaction->run(function () use ($details): AddFirstAdminOutput {
-            if ([] !== $this->members->activeAdminsForUpdate()) {
-                throw AdminExists::create();
-            }
+            $this->firstAdminGuard->refuseWhileAnAdminIsActive();
             $this->uniqueMemberDetails->ensureAvailable($details);
 
             $member = Member::register($details);
