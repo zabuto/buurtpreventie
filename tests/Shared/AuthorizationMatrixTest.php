@@ -118,6 +118,7 @@ final class AuthorizationMatrixTest extends TestCase
         foreach (['member.add', 'member.change', 'member.change_roles', 'member.deactivate', 'member.reactivate', 'member.erase'] as $attribute) {
             yield $attribute => [$attribute, $nobody, ['admin']];
         }
+        yield 'member.add_first_admin' => ['member.add_first_admin', $nobody, ['system']];
         yield 'member.change_consent of oneself' => ['member.change_consent', 'member:self', self::MEMBERS];
         yield 'member.change_consent of another member' => ['member.change_consent', 'member:other', []];
         yield 'member.list' => ['member.list', $nobody, [...self::MEMBERS, 'system']];

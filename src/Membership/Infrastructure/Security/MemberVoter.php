@@ -14,11 +14,13 @@ use Symfony\Component\Security\Core\Authorization\Voter\CacheableVoterInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 
 /**
- * Members: the list every member reads, managing members, and the consent each member gives for themselves.
+ * Members: the list every member reads, managing members, the consent each member gives for themselves, and the
+ * first admin, which only the system adds.
  */
 final readonly class MemberVoter implements CacheableVoterInterface
 {
     private const array ATTRIBUTES = [
+        'member.add_first_admin',
         'member.add',
         'member.change',
         'member.change_roles',
@@ -60,6 +62,9 @@ final readonly class MemberVoter implements CacheableVoterInterface
 
     private function decide(string $attribute, mixed $subject, #[SensitiveParameter] TokenInterface $token): bool
     {
+        if ('member.add_first_admin' === $attribute) {
+            return TokenActor::isSystem($token);
+        }
         if ('member.list' === $attribute) {
             return null !== TokenActor::of($token) || TokenActor::isSystem($token);
         }
