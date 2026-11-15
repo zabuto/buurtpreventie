@@ -13,7 +13,7 @@ Buurtpreventie v4 wordt een Symfony 7.4 LTS-backend met een echte REST-API (`/ap
 - Frontend praat uitsluitend met `/api/v1`; geen domeindata in Twig. Bruikbaar voor lopers van elk digitaal niveau, ook op oudere telefoons (iOS 15 en nieuwer).
 - REST en MCP delen dezelfde use cases en Voters; MCP bevat geen eigen logica.
 - Geen vereniging-specifieke naam, logo of tekst in de code: alles via instellingen.
-- Licentie PolyForm Noncommercial 1.0.0; README in het Nederlands met een korte Engelse samenvatting; docs in het Engels, behalve de woordenlijst en de plannen; code, API, AGENTS.md, CLAUDE.md en alle map- en bestandsnamen in het Engels.
+- Licentie PolyForm Noncommercial 1.0.0; README in het Engels met een korte Nederlandse samenvatting; docs in het Engels, behalve de woordenlijst en de plannen; code, API, AGENTS.md, CLAUDE.md en alle map- en bestandsnamen in het Engels.
 - Weinig afhankelijkheden, geen deprecations, tests vóór code, en overdraagbaar aan een andere ontwikkelaar (zie Overdraagbaarheid). Een beter domeinmodel gaat voor compatibiliteit met v3; data gaat over via conversie.
 
 **Klaar-afspraak voor elke taak** (naast het "Klaar als" per fase):
