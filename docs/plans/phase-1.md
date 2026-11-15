@@ -492,7 +492,8 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
   - de eigenaar wordt afgeleid, niet opgeslagen: de loper die zich het eerst aanmeldde en nog in de ronde zit.
     Meldt die zich af, dan is de volgende de eigenaar. Beslissing 7 wordt daarmee: de coördinator altijd, de
     eigenaar zolang hij de enige loper is. `Round.createdBy` en de kolom `created_by` vervallen; wie de ronde
-    aanmaakte, staat in het auditlog;
+    aanmaakte, staat in het auditlog: `round.created` met de uitvoerder (ook een coördinator) en in de gewijzigde
+    velden de eerste loper. Bij aanmaken namens bewaart de aanmelding van de eerste loper ook `onBehalfOf`;
   - `GetRound` toont het telefoonnummer van een loper met toestemming alleen aan de andere lopers van die ronde en
     aan de coördinator;
   - de laatste beheerder kan zijn rol niet kwijtraken en niet gedeactiveerd of gewist worden; `ChangeMemberRoles`,
