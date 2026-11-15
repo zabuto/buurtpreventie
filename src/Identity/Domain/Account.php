@@ -12,6 +12,7 @@ use Symfony\Component\Uid\Uuid;
  * How a member logs in. The e-mail address lives on the member, so the account holds only what proves who logs in.
  */
 #[ORM\Entity]
+#[ORM\UniqueConstraint(name: 'account_member', columns: ['member_id'])]
 final class Account
 {
     #[ORM\Id]
@@ -25,7 +26,7 @@ final class Account
     private ?DateTimeImmutable $lastLoginAt = null;
 
     private function __construct(
-        #[ORM\Column(type: 'uuid', unique: true)]
+        #[ORM\Column(type: 'uuid')]
         private readonly Uuid $memberId,
     ) {
         $this->id = Uuid::v7();

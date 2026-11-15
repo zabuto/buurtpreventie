@@ -17,12 +17,20 @@ interface MemberRepository
     public function get(Uuid $id): Member;
 
     /**
-     * Stores the member when the running transaction commits.
+     * Writes the new member within the running transaction, so a clash with another member surfaces here.
      *
      * @throws EmailAddressTaken when another member committed the same address in the meantime
      * @throws DisplayNameTaken when another member committed the same display name in the meantime
      */
     public function add(Member $member): void;
+
+    /**
+     * Writes the changes to the member within the running transaction, so a clash with another member surfaces here.
+     *
+     * @throws EmailAddressTaken when another member committed the same address in the meantime
+     * @throws DisplayNameTaken when another member committed the same display name in the meantime
+     */
+    public function update(Member $member): void;
 
     /**
      * @param list<Uuid> $ids

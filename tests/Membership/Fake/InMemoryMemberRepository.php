@@ -31,6 +31,12 @@ final class InMemoryMemberRepository implements MemberRepository
     }
 
     #[Override]
+    public function update(Member $member): void
+    {
+        $this->members[$member->id()->toRfc4122()] = $member;
+    }
+
+    #[Override]
     public function getMany(array $ids): array
     {
         $found = [];

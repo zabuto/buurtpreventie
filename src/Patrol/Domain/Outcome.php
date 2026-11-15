@@ -13,6 +13,7 @@ use Symfony\Component\Uid\Uuid;
  * included: "Café" next to "cafe" in a list cannot be told apart.
  */
 #[ORM\Entity]
+#[ORM\UniqueConstraint(name: 'outcome_name_key', columns: ['name_key'])]
 final class Outcome
 {
     #[ORM\Id]
@@ -22,7 +23,7 @@ final class Outcome
     #[ORM\Column(length: 100)]
     private string $name;
 
-    #[ORM\Column(length: 100, unique: true, options: ['collation' => 'utf8mb4_bin'])]
+    #[ORM\Column(length: 100, options: ['collation' => 'utf8mb4_bin'])]
     private string $nameKey;
 
     #[ORM\Column]

@@ -15,6 +15,7 @@ use Symfony\Component\Uid\Uuid;
  * The coordinates are two plain columns: Doctrine cannot leave an embedded object empty.
  */
 #[ORM\Entity]
+#[ORM\UniqueConstraint(name: 'meeting_point_name_key', columns: ['name_key'])]
 final class MeetingPoint
 {
     #[ORM\Id]
@@ -24,7 +25,7 @@ final class MeetingPoint
     #[ORM\Column(length: 100)]
     private string $name;
 
-    #[ORM\Column(length: 100, unique: true, options: ['collation' => 'utf8mb4_bin'])]
+    #[ORM\Column(length: 100, options: ['collation' => 'utf8mb4_bin'])]
     private string $nameKey;
 
     #[ORM\Column(type: 'decimal', precision: 9, scale: 6, nullable: true)]

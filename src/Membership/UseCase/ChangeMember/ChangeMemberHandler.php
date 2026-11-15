@@ -52,6 +52,7 @@ final readonly class ChangeMemberHandler
             $before = self::snapshot($member);
             $member->change($details);
             $member->certify($input->certified);
+            $this->members->update($member);
 
             $changes = self::changes($before, self::snapshot($member));
             if ([] !== $changes) {

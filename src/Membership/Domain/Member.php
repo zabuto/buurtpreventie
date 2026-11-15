@@ -19,6 +19,8 @@ use Symfony\Component\Uid\Uuid;
  * identifies the person.
  */
 #[ORM\Entity]
+#[ORM\UniqueConstraint(name: 'member_email', columns: ['email'])]
+#[ORM\UniqueConstraint(name: 'member_display_name_key', columns: ['display_name_key'])]
 #[ORM\Index(name: 'member_name_key', columns: ['name_key'])]
 final class Member
 {
@@ -26,7 +28,8 @@ final class Member
     #[ORM\Column(type: 'uuid')]
     private readonly Uuid $id;
 
-    #[ORM\Column(length: 180, unique: true, nullable: true)]
+    /** Binary, as an address with an accent differs from the one without; EmailAddress lowercases it already. */
+    #[ORM\Column(length: 180, nullable: true, options: ['collation' => 'utf8mb4_bin'])]
     private ?string $email = null;
 
     #[ORM\Column(length: 100, nullable: true)]
@@ -39,7 +42,7 @@ final class Member
     private ?string $displayName = null;
 
     /** Unique; NULL for an erased member, which InnoDB allows more than once. */
-    #[ORM\Column(length: 100, unique: true, nullable: true, options: ['collation' => 'utf8mb4_bin'])]
+    #[ORM\Column(length: 100, nullable: true, options: ['collation' => 'utf8mb4_bin'])]
     private ?string $displayNameKey = null;
 
     #[ORM\Column(length: 30, nullable: true)]

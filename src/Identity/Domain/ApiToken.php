@@ -15,6 +15,7 @@ use Symfony\Component\Uid\Uuid;
  * the token is created, and a copy of the database lets nobody in.
  */
 #[ORM\Entity]
+#[ORM\UniqueConstraint(name: 'api_token_secret_hash', columns: ['secret_hash'])]
 #[ORM\Index(name: 'api_token_member', columns: ['member_id'])]
 final class ApiToken
 {
@@ -25,7 +26,7 @@ final class ApiToken
     #[ORM\Column(type: 'uuid')]
     private readonly Uuid $id;
 
-    #[ORM\Column(type: 'binary', length: 32, unique: true, options: ['fixed' => true])]
+    #[ORM\Column(type: 'binary', length: 32, options: ['fixed' => true])]
     private readonly string $secretHash;
 
     /** @var list<string> */
