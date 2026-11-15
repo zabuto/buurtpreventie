@@ -1,6 +1,7 @@
 # Fase 1: taakplan
 
-Status: ter goedkeuring.
+Status: ter goedkeuring. Akkoord: beslissingen 1, 4, 10, 11 en 26 tot en met 31, en de tabel met
+afhankelijkheden. Aangevuld en opnieuw ter goedkeuring: beslissingen 1, 2, 4, 19, 24, 29 en 31.
 
 Bron: `docs/plan-v4.md` (Domeinmodel en API-ontwerp, Voorbeelddata, Auditlog, Privacy en AVG, Conversie
 v3 → v4, Fase 1, Risico's en review-focus), `docs/plans/phase-0.md`, `docs/plans/phase-0-security-scanning.md`,
@@ -53,10 +54,25 @@ Klaar als:
 
 1. **Het minimum wordt per ronde vastgelegd** (`Round.minimumWalkers`, gezet bij aanmaken uit de instelling). In
    v3 verandert het verleden mee als het minimum in `.env` wijzigt: een gelopen ronde wordt dan achteraf "niet
-   gelopen", en de statistiek (fase 8) klopt niet meer. De conversie zet het v3-minimum met
-   `--minimum-walkers=<n>` (standaard 2).
-2. **Alleen een minimum, geen maximum.** Er is dus geen "laatste plek"; review-focus 1 gaat over dubbel aanmelden
-   door één lid en over aanmelden terwijl de laatste loper zich afmeldt (T10).
+   gelopen", en de statistiek (fase 8) klopt niet meer. De conversie zet minimum en maximum met
+   `--minimum-walkers=<n>` (standaard 2) en `--maximum-walkers=<n>` (standaard 7), en vult de instellingen ermee.
+2. **Ook een maximum, net zo per ronde vastgelegd** (`Round.maximumWalkers`, instelling standaard 7); anders wordt
+   een groep te groot. `StaffingRule` houdt minimum en maximum samen:
+   - maximum ≥ minimum, gecontroleerd bij de instelling en bij elke ronde. Een gewijzigde instelling geldt alleen
+     voor nieuwe rondes; `ChangeRound` wijzigt minimum en maximum niet;
+   - aanmelden bij een volle ronde wordt geweigerd met "ronde is vol", ook namens. Is het lid al aangemeld, dan
+     blijft het een geslaagde no-op, ook bij een volle ronde: de controle op dubbel gaat vóór die op vol, anders
+     krijgt een dubbelklik op de laatste plek een foutmelding;
+   - het aantal lopers is nooit hoger dan het maximum. Daarom krijgt een v3-ronde met meer lopers dan het maximum
+     het aantal lopers als maximum (beslissing 29), en niet het standaardmaximum;
+   - **"vol" is een veld, geen status.** De status zegt of een ronde doorgaat (`seeking_buddy`, `staffed`,
+     `walked`, `not_walked`); een volle ronde is altijd `staffed`, want maximum ≥ minimum. Als eigen status zou
+     een filter op `staffed` volle rondes missen, en zou een voorbije volle ronde moeten kiezen tussen `walked` en
+     vol. Elke ronde in de uitvoer krijgt daarom `maximumWalkers` en `openSpots` naast `status`, `walkerCount` en
+     `minimumWalkers`. `openSpots` is maximum min aantal lopers zolang de ronde niet begonnen is, en 0 vanaf de
+     start, omdat aanmelden dan niet meer kan;
+   - review-focus 1 houdt de laatste plek: twee lopers tegelijk op de laatste plek geeft precies één aanmelding
+     (beslissing 24, T10).
 3. **`startsAt` als UTC** via een eigen Doctrine-type `utc_datetime_immutable` in `Shared\Infrastructure`. Het
    standaardtype van Doctrine gebruikt de tijdzone van PHP; zonder eigen type hangt de opgeslagen waarde af van
    de serverinstelling. Status en dagdeel rekenen in `Europe/Amsterdam`.
@@ -65,6 +81,13 @@ Klaar als:
    Er komt dus geen foreign key tussen tabellen van verschillende modules. Daarom wordt een lid nooit uit de
    database verwijderd: wissen (AVG) anonimiseert het lid, zodat elke `memberId` blijft verwijzen naar een
    bestaand lid. Binnen een module wel foreign keys.
+   - Een verwijzing naar een andere module is altijd de UUID van het lid (`BINARY(16)`), nooit een oplopend id:
+     `Round.createdBy`, `Participation.memberId` en `onBehalfOf`, `RoundReport.memberId`, `RoundComment.authorId`,
+     `Account.memberId` en `AuditEntry.actorId`.
+   - Elke zo'n kolom krijgt een eigen index, ook `Participation.memberId`: de unieke sleutel ronde + lid begint met
+     de ronde en helpt dus niet bij "rondes van dit lid". Zonder foreign key maakt de database die index niet
+     vanzelf. Een schematest op beide databases (T10) eist een index op elke UUID-kolom die geen primaire sleutel
+     is.
 5. **Rollen zonder hiërarchie.** `walker`, `coordinator`, `analyst`, `admin` zijn losse rollen; een lid zonder
    rol kan alleen lezen. `ROLE_SUPER_ADMIN` uit v3 wordt alle vier, `ROLE_MEMBER` of `ROLE_USER` alleen wordt
    geen rol (melding in de dry-run). Opslag als `simple_array`, zonder JSON-kolom (zie beslissing 13).
@@ -117,13 +140,35 @@ Klaar als:
     patchversies eist.
 18. **`utf8mb4` met `utf8mb4_unicode_ci`** als standaard-tabeloptie in `doctrine.yaml`, en `charset: utf8mb4` op
     de verbinding. MySQL 8.4 kiest anders `utf8mb4_0900_ai_ci`, MariaDB `utf8mb4_general_ci`.
-19. **Zoeksleutels in kleine letters, in PHP, in een `utf8mb4_bin`-kolom.** `utf8mb4_unicode_ci` maakt ook
-    accenten gelijk: `José` en `Jose` botsen op een unieke index, ook als PHP ze verschillend vindt. Daarom:
-    - een value object (`EmailAddress`, en `LookupKey` voor namen, startpunten en uitkomsten) maakt van de invoer
-      `mb_strtolower(trim(...))`, met spaties samengevoegd;
-    - die sleutel staat in een eigen kolom met `utf8mb4_bin`, waarop de unieke index en het zoeken werken;
-    - de weergave (naam zoals getypt) staat ernaast. Een e-mailadres wordt alleen in kleine letters opgeslagen;
-      het plan zegt "kleine letters vóór opslag", maar voor een naam zou dat de weergave bederven.
+19. **Zoeken is hoofdletter- en accentongevoelig, met een zoeksleutel uit PHP in een `utf8mb4_bin`-kolom.**
+    Zoeken op "Jose" of "JOSE" vindt "José". De collation laten vergelijken is niet genoeg: wat
+    `utf8mb4_unicode_ci` op MariaDB en `utf8mb4_0900_ai_ci` op MySQL gelijk vinden, verschilt (bijvoorbeeld `ß`
+    en ligaturen), en een sleutel uit PHP is op beide databases dezelfde. Daarom:
+    - `LookupKey` maakt van een naam: `trim`, spaties samengevoegd, `Normalizer::normalize(..., FORM_D)`, de
+      combinerende tekens weg (`\p{Mn}`), dan `mb_strtolower`. Letters die niet ontleden (`ø`, `ł`, `æ`, `ß`)
+      blijven staan: "Søren" vindt "Soren" niet. Ongeldige UTF-8 wordt bij de invoer geweigerd, want `Normalizer`
+      geeft dan `false`;
+    - `EmailAddress` maakt `mb_strtolower(trim(...))` en haalt geen accenten weg: met en zonder accent zijn twee
+      adressen. Het adres wordt alleen zo opgeslagen;
+    - de sleutel staat in een eigen kolom met `utf8mb4_bin` en een index; de naam zoals getypt staat ernaast en is
+      wat de app toont;
+    - **alleen het e-mailadres is uniek.** Namen van leden zijn doorzoekbaar, niet uniek: twee leden mogen
+      dezelfde naam hebben, ook "José" en "Jose". v3 eiste een unieke naam; de conversie neemt dubbele namen
+      over, zonder waarschuwing. Bij een tweede gelijk e-mailadres weigert de handler met een eigen fout; de unieke
+      index vangt de gelijktijdige variant, en de repository vertaalt die naar dezelfde fout;
+    - **startpunten en uitkomsten houden een unieke naam, met dezelfde sleutel.** Ze staan in een keuzelijst:
+      "Café" en "cafe" naast elkaar zijn voor een loper niet uit elkaar te houden. De unieke index geldt ook voor
+      gearchiveerde items, omdat MariaDB en MySQL geen gedeeltelijke index kennen. Een naam die al gearchiveerd
+      bestaat geeft een fout die dat zegt, en de beheerder zet het oude item terug (`RestoreMeetingPoint`,
+      `RestoreOutcome`). Botsen twee v3-items op de sleutel, dan krijgt het tweede " (2)" achter de naam, met een
+      waarschuwing in de dry-run;
+    - zoeken is "bevat": `LIKE` op de sleutel, met `%`, `_` en `\` in de zoekterm geëscaped. De index helpt daarbij
+      alleen voor "begint met"; bij enkele honderden leden maakt dat niets uit;
+    - `Normalizer` en `mb_*` komen uit ext-intl en ext-mbstring, die standaard aan staan bij shared hosting.
+      `composer.json` eist ze (`ext-intl`, `ext-mbstring`), zodat Composer en zijn platformcontrole een host
+      zonder deze extensies meteen weigeren; de app leunt niet op de polyfills die `symfony/string` toevallig
+      meebrengt. Een hostingpaneel kan ze wel uitzetten: de diagnosepagina van de installer (fase 6a) controleert
+      ze.
 20. **Geheime tokens alleen als hash.** SHA-256 van 32 willekeurige bytes (`random_bytes`), opgeslagen als
     `BINARY(32)`, gezocht op de hash zelf; de tekst wordt één keer getoond. Dat geldt in fase 1 voor
     `ApiToken`; inloglink en wachtwoord-reset (fase 2) volgen hetzelfde patroon. Wachtwoorden gaan via
@@ -139,8 +184,15 @@ Klaar als:
 24. **Aanmelden is veilig bij gelijktijdigheid:**
     - unieke sleutel op ronde + lid; een tweede aanmelding van hetzelfde lid is een geslaagde no-op (`PUT` is
       idempotent);
-    - aanmelden en afmelden zetten een schrijfslot op de ronde (`PESSIMISTIC_WRITE`) binnen de transactie, zodat
-      een aanmelding nooit verdwijnt doordat tegelijk de laatste loper vertrekt en de ronde wordt verwijderd.
+    - aanmelden en afmelden zetten als eerste query van de transactie een schrijfslot op de ronde
+      (`PESSIMISTIC_WRITE`, `SELECT ... FOR UPDATE`). Pas daarna tellen ze de aanmeldingen, met een vergrendelende
+      query in de repository en niet met een collectie die al geladen was. Zo wacht de tweede aanmelder voor de
+      laatste plek op de eerste, telt hem mee en krijgt "ronde is vol"; en verdwijnt een aanmelding nooit doordat
+      tegelijk de laatste loper vertrekt en de ronde wordt verwijderd;
+    - waarom de telling zelf ook vergrendelt: InnoDB legt in `REPEATABLE READ` de momentopname vast bij de eerste
+      gewone `SELECT` van de transactie. Leest de handler vóór het slot al iets, dan ziet een gewone telling de
+      aanmelding van de ander niet, en komt er een loper te veel bij. Een vergrendelende lezing ziet altijd de
+      laatste gecommitte stand.
 25. **Databasetests:** groep `database`, met `dama/doctrine-test-bundle`; elke test rolt terug en filtert op de
     id's die hij zelf maakt. De gelijktijdigheidstest zet DAMA voor zichzelf uit, werkt met twee eigen
     verbindingen die echt committen en ruimt zijn rijen zelf op. Het schema wordt gemaakt vóór de tests, door een
@@ -167,16 +219,20 @@ Klaar als:
       terugmeldingen van één lid bij één ronde worden de laatste, ook met waarschuwing;
     - een `result` met `incident` wordt `incident`, anders met `remarks` wordt `remarks`, anders
       `nothing_to_report`;
+    - een ronde met meer lopers dan `--maximum-walkers` krijgt `maximumWalkers` gelijk aan het aantal lopers, met
+      een waarschuwing in de dry-run; minimum en maximum met maximum < minimum geven een fout vóór de conversie;
+    - twee startpunten of uitkomsten met dezelfde sleutel: zie beslissing 19;
     - `round.datetime` geldt als `Europe/Amsterdam`; een tijd die bij de wintertijdwissel dubbel bestaat of bij
       de zomertijdwissel niet bestaat, staat als waarschuwing in het rapport;
     - bewaartermijnen en `--since=<datum>` zoals in het plan.
 30. **Voorbeelddata met een eigen command en `doctrine/data-fixtures`, zonder de bundle.** `app:fixtures:load
     <set>` leegt de database met de `ORMPurger` en bouwt de set via de use cases, met een vaste seed en datums vanaf
     de klok. De bundle voegt daar `doctrine:fixtures:load` en servicetags aan toe, die dit project niet gebruikt;
-    zonder bundle is er een afhankelijkheid minder. Alternatief: de bundle, zoals het plan noemt.
+    zonder bundle is er een afhankelijkheid minder.
 31. **De set `v3` vult de `legacy`-verbinding** met een schema dat de v3-mapping nabouwt (zie Vastgesteld 1) en
     verzonnen rijen: hooguit 12 leden, rondes over 30 maanden, soft-deleted rijen, een verwijderd lid in de
-    historie, een tijd rond de wintertijdwissel, twee leden met zowel telefoon als mobiel. Wachtwoorden zijn
+    historie, een tijd rond de wintertijdwissel, twee leden met zowel telefoon als mobiel, een ronde met acht
+    lopers (boven het maximum van 7). Wachtwoorden zijn
     bcrypt-hashes van vaste voorbeeldwachtwoorden die alleen in de fixture-code staan. De schemadefinitie is
     nagebouwd uit de MIT-code van v3; v3 zelf blijft ongemoeid.
 
@@ -212,9 +268,12 @@ van 14 en 15 november tegen; `composer require` kiest dan de vorige versie.
 | `doctrine/data-fixtures` | `ORMPurger` en volgorde voor `app:fixtures:load` | dev | Een paar releases per jaar | 2.2.1 (apr 2026) |
 | `dama/doctrine-test-bundle` | Elke databasetest rolt terug | dev | Elke paar weken tot maanden | v8.8.0 (13 nov), v8.7.1 (10 nov) |
 
-Niet nodig bij beslissing 30: `doctrine/doctrine-fixtures-bundle` (4.3.1, december 2025; het laagste
-releaseritme van de lijst). `symfony/uid`, `symfony/clock` en `symfony/security-bundle` stonden niet in de
-prompt; ze zijn nodig voor UUIDv7, de vaste klok in tests en de Voters uit het plan.
+Niet nodig bij beslissing 30: `doctrine/doctrine-fixtures-bundle`. `symfony/uid`, `symfony/clock` en
+`symfony/security-bundle` stonden niet in de prompt; ze zijn nodig voor UUIDv7, de vaste klok in tests en de Voters
+uit het plan.
+
+Daarnaast eist `composer.json` de PHP-extensies `ext-intl` en `ext-mbstring` (beslissing 19); dat zijn geen
+pakketten, en CI zet ze expliciet aan in `setup-php`.
 
 Dependabot neemt ze vanzelf mee, binnen de cooldown en zonder Symfony-majors; `SymfonyReleaseLineTest` bewaakt
 dat de drie Symfony-pakketten op 7.4 staan.
@@ -229,7 +288,9 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
 
 ### T2. Afhankelijkheden en configuratie
 
-- `composer require` van de goedgekeurde pakketten; recepten nalopen, receptbestanden ongewijzigd laten.
+- `composer require` van de goedgekeurde pakketten en van `ext-intl` en `ext-mbstring`; recepten nalopen,
+  receptbestanden ongewijzigd laten. `extensions: intl, mbstring` bij elke `setup-php` in `ci.yml` en
+  `weekly.yml`; `docs/getting-started.md` en `docs/operations.md` noemen de twee extensies.
 - `config/packages/doctrine.yaml`: tabelopties (beslissing 18), eigen types, mapping per module uit
   `src/<Module>/Domain`, verbinding `legacy`; `doctrine_migrations.yaml` met migraties in `migrations/`.
 - `phpunit.dist.xml`: DAMA-extensie en de schema-extensie (beslissing 25).
@@ -239,9 +300,14 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
 
 In `Shared\Domain`: `Transaction`, `ExecutionContext` met `Channel`, `AuditTrail`, `Authorization`, `Notifier`,
 `EmailAddress`, `LookupKey`. In `Shared\Infrastructure`: `UtcDateTimeImmutableType`, de Doctrine-transactie,
-de Symfony-autorisatie. Unit-tests voor de value objects (`Anke@Example.org ` wordt `anke@example.org`; `José` en
-`Jose` zijn verschillende sleutels); een integratietest dat `utc_datetime_immutable` een tijd ongewijzigd
-heen en terug brengt, en welk kolomtype een UUID op MariaDB krijgt (beslissing 23).
+de Symfony-autorisatie. Unit-tests voor de value objects:
+
+- `EmailAddress`: `Anke@Example.org ` wordt `anke@example.org`; een accent blijft staan;
+- `LookupKey`: "José", "Jose" en "JOSE" geven dezelfde sleutel; dubbele spaties tellen als één; "Søren" en
+  "Soren" blijven verschillend (de grens uit beslissing 19); ongeldige UTF-8 wordt geweigerd.
+
+Een integratietest dat `utc_datetime_immutable` een tijd ongewijzigd heen en terug brengt, en welk kolomtype een
+UUID op MariaDB krijgt (beslissing 23).
 
 PHPat: regel 1 en 2 uitbreiden (beslissingen 10 en 11), met een overtreding per uitbreiding in de fixtures en
 een sectie in `docs/architecture.md`.
@@ -274,8 +340,21 @@ Eerst de tests, in memory, met een vaste klok. Per v3-regel:
 | Ronde wijzigen of verwijderen: coördinator of maker | verbeterd (beslissing 7) | `it_lets_the_creator_change_a_round_until_a_buddy_joins` |
 | Aanmelden: elke ingelogde gebruiker | verbeterd: rol `walker` | in de matrixtest |
 
-Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `RoundComment`, `StaffingRule`,
-`RoundStatus`, `Daypart`, `RoundPolicy` en de repository-interfaces.
+Nieuwe regels, die v3 niet had (beslissing 2):
+
+| Regel | Test (in `tests/Patrol/Domain/`) |
+| --- | --- |
+| Minimum en maximum komen bij aanmaken uit de instelling en veranderen daarna niet | `it_keeps_the_staffing_rule_it_was_created_with` |
+| Maximum onder het minimum wordt geweigerd | `it_refuses_a_maximum_below_the_minimum` |
+| Aanmelden bij een volle ronde wordt geweigerd | `it_refuses_a_sign_up_when_the_round_is_full` |
+| Een lid dat al aangemeld is, meldt zich ook bij een volle ronde zonder fout aan | `it_ignores_a_second_sign_up_in_a_full_round` |
+| Open plekken tot de start, daarna 0 | `it_has_no_open_spots_once_started` |
+| Een volle ronde is `staffed` | `it_reports_a_full_round_as_staffed` |
+
+Namens aanmelden bij een volle ronde test de handler in T9.
+
+Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `RoundComment`, `StaffingRule`
+(minimum en maximum), `RoundStatus`, `Daypart`, `RoundPolicy` en de repository-interfaces.
 
 ### T5. Review-focus 2: zomer- en wintertijd (test eerst)
 
@@ -291,10 +370,13 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
   `certified`, `active`, `notifyOpenRounds`, `erasedAt`.
 - `Account` (e-mail, wachtwoordhash, laatste login) en `ApiToken` (hash, naam, scopes `read`/`write`/`admin`,
   verloopdatum, laatst gebruikt, `revokedAt`).
-- `Setting` met alleen het minimumaantal lopers (standaard 2); beheer volgt in fase 3.
+- `Setting` met alleen het minimum- en maximumaantal lopers (standaard 2 en 7, maximum ≥ minimum); beheer volgt
+  in fase 3.
 - Use cases: `AddMember`, `ChangeMember`, `ChangeMemberRoles`, `ChangeContactConsent`, `DeactivateMember`,
-  `ReactivateMember`, `EraseMember`, `GetMemberSummaries`; `SetPassword`, `VerifyPassword`, `CreateApiToken`,
-  `RevokeApiToken`, `RevokeMemberApiTokens`.
+  `ReactivateMember`, `EraseMember`, `GetMemberSummaries` (met optionele zoekterm op naam); `SetPassword`,
+  `VerifyPassword`, `CreateApiToken`, `RevokeApiToken`, `RevokeMemberApiTokens`.
+- Tests: twee leden met dezelfde naam, en "José" naast "Jose", bestaan naast elkaar; `AddMember` en `ChangeMember`
+  weigeren een e-mailadres dat alleen in hoofdletters verschilt van een bestaand adres.
 
 ### T7. Review-focus 4: gedeactiveerd of gewist lid (test eerst)
 
@@ -319,8 +401,15 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
 - Use cases: `CreateRound`, `ChangeRound`, `DeleteRound`, `SignUpForRound` (ook namens), `WithdrawFromRound`
   (ook namens en verwijderen door de coördinator), `WithdrawMemberFromUpcomingRounds`, `ReportRoundResult`,
   `DeleteRoundReport`, `AddRoundComment`, `DeleteRoundComment`, `CreateMeetingPoint`, `ChangeMeetingPoint`,
-  `ArchiveMeetingPoint`, `CreateOutcome`, `ChangeOutcome`, `ArchiveOutcome`, `ListRounds`, `GetRound`,
-  `FindStaffingGaps`, `SendReminders`, `NotifyBuddyNeeded`.
+  `ArchiveMeetingPoint`, `RestoreMeetingPoint`, `CreateOutcome`, `ChangeOutcome`, `ArchiveOutcome`,
+  `RestoreOutcome`, `ListRounds`, `GetRound`, `FindStaffingGaps`, `SendReminders`, `NotifyBuddyNeeded`.
+- `ListRounds` en `GetRound` geven per ronde `status`, `walkerCount`, `minimumWalkers`, `maximumWalkers`,
+  `openSpots` en `daypart`.
+- `FindStaffingGaps` geeft de rondes die nog niet begonnen zijn met status `seeking_buddy`, op starttijd, met
+  `walkersNeeded` (minimum min aantal lopers) en `openSpots`. Een volle ronde is nooit een gat, want maximum ≥
+  minimum; een test met een volle en een bijna volle ronde legt dat vast.
+- Handlertests: namens aanmelden bij een volle ronde geeft "ronde is vol"; een startpunt of uitkomst met een naam
+  die op de sleutel botst wordt geweigerd, ook tegen een gearchiveerd item, en de fout noemt dat item.
 - Voters: `RoundVoter`, `ParticipationVoter`, `ReportVoter`, `CommentVoter`, `CatalogueVoter`, `MemberVoter`,
   `ApiTokenVoter`.
 - Matrixtest (`tests/Shared/AuthorizationMatrixTest.php`): rol (geen rol, loper, coördinator, analist, beheerder)
@@ -344,11 +433,21 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
 ### T10. Database en review-focus 1 (test eerst)
 
 - Doctrine-repositories per module in `Infrastructure/Persistence/`, elke query met een integratietest.
-- Migraties uit de mapping, nagelopen op beslissingen 13, 18, 19, 22 en 23.
-- Review-focus 1, met twee eigen verbindingen:
+- Migraties uit de mapping, nagelopen op beslissingen 4, 13, 18, 19, 22 en 23.
+- Schematest: elke UUID-kolom die geen primaire sleutel is heeft een index (beslissing 4).
+- Zoeken, op beide databases: "Jose" en "JOSE" vinden "José"; twee leden met dezelfde naam staan allebei in de
+  uitkomst; "Anke@Example.org" en "anke@example.org" botsen op de unieke index; een `%` in de zoekterm zoekt een
+  letterlijk procentteken.
+- Review-focus 1, met twee eigen verbindingen die echt committen:
+  - **twee lopers melden zich tegelijk aan voor de laatste plek**: er komt er precies één bij, de ander krijgt
+    "ronde is vol", en `walkerCount` is gelijk aan het maximum;
   - hetzelfde lid meldt zich tegelijk twee keer aan: één aanmelding, status klopt, geen fout voor het lid;
   - de laatste loper meldt zich af terwijl een ander zich aanmeldt: óf de ronde bestaat met de nieuwe loper, óf
     de aanmelding krijgt "ronde bestaat niet meer"; nooit een stil verloren aanmelding.
+- Opzet van die tests: één PHP-proces kan niet op twee verbindingen tegelijk wachten. Verbinding A neemt het slot
+  en doet zijn aanmelding zonder te committen; een tweede proces (`proc_open`) meldt aan en wacht op het slot; A
+  commit, en dan wordt de uitkomst van B gecontroleerd. Zonder slot of met een niet-vergrendelende telling
+  (beslissing 24) komt B er in deze volgorde wel bij, dus de test faalt als een van beide ontbreekt.
 
 ### T11. CI: databases
 
@@ -362,8 +461,9 @@ met rooktest, conversie van de set `v3`. Actions vastgepind op SHA. De twee jobs
 
 `app:fixtures:load <set>` (alleen `dev` en `test`, `#[When]`), sets `demo`, `test`, `edge`, `v3`, zoals in
 Voorbeelddata en beslissing 31. Tests: dezelfde seed geeft dezelfde mensen en hetzelfde patroon; de set `demo`
-houdt zich aan hooguit 20 leden, drie met een andere rol dan loper, alleen `example.org`, en ruim een kwart van
-de rondes zonder loopmaatje; de set `edge` bevat elk geval uit het plan.
+houdt zich aan hooguit 20 leden, drie met een andere rol dan loper, alleen `example.org`, ruim een kwart van
+de rondes zonder loopmaatje en een paar volle rondes; de set `edge` bevat elk geval uit het plan, plus een ronde
+op het maximum, een ronde met één plek over, en twee leden met dezelfde naam.
 
 ### T13. Conversie `app:import-v3` (test eerst)
 
@@ -372,6 +472,9 @@ Integratietests op de set `v3`, op beide databases:
 - dry-run: rapport met aantallen per soort en elke waarschuwing uit beslissing 29, en daarna een lege
   v4-database;
 - echte run: dezelfde aantallen, auditregels "uit v3", bewaartermijnen toegepast, `--since` neemt minder mee;
+- de ronde met acht lopers krijgt `maximumWalkers` 8, met een waarschuwing in de dry-run; de andere rondes krijgen
+  minimum en maximum uit de opties, en de instellingen ook;
+- `--maximum-walkers` kleiner dan `--minimum-walkers` geeft een fout zonder wijzigingen;
 - elk voorbeeldlid met een v3-wachtwoord: `VerifyPassword` slaagt met het v3-wachtwoord en faalt met een ander;
 - een tweede conversie naar een lege database geeft hetzelfde (beslissing 28);
 - een niet-lege v4-database en een afwijkend v3-schema geven een duidelijke fout zonder wijzigingen.
@@ -382,7 +485,9 @@ Per regel eerst het testbestand, dan de regel (beslissing 32).
 
 ### T15. ADR 0005 en documentatie
 
-- `docs/adr/0005-database-approach.md`: beslissingen 13 en 17 tot en met 25, en waarom geen spatial types en geen
+- `docs/adr/0005-database-approach.md`: beslissingen 4 (UUID-verwijzingen met index, geen foreign keys tussen
+  modules), 13 en 17 tot en met 25: de zoeksleutel uit PHP in plaats van de collation, alleen het e-mailadres
+  uniek bij leden, het slot met vergrendelende telling voor de laatste plek, en waarom geen spatial types en geen
   JSON-kolommen.
 - `docs/architecture.md`: de uitbreiding van regel 1 en 2, `Shared\Domain` met zijn interfaces, en de module-
   grens in de database (beslissing 4).
@@ -390,7 +495,10 @@ Per regel eerst het testbestand, dan de regel (beslissing 32).
   lokaal de database start voor tests.
 - `docs/configuration.md`: `LEGACY_DATABASE_URL`; `docs/getting-started.md`: fixtures laden;
   `docs/gotchas.md`: wat er tijdens deze fase opvalt.
-- `docs/glossary.md`: kanaal `console`, `anonymisedAt`, `LookupKey`, `legacy_id_map`, "verwijderd lid".
+- `docs/glossary.md`: kanaal `console`, `anonymisedAt`, `LookupKey` (zoeksleutel), `walkersNeeded`,
+  `legacy_id_map`, "verwijderd lid". `maximumWalkers` en `openSpots` staan er al in, net als in het Domeinmodel
+  van `docs/plan-v4.md`.
+- `docs/gotchas.md`: de momentopname van InnoDB bij `REPEATABLE READ` (beslissing 24).
 - `docs/admin-guide/`: een korte pagina over de conversie (eerst `--dry-run`, alleen-lezen databasegebruiker,
   kopie na afloop wissen).
 - `AGENTS.md` (Commands) en `CHANGELOG.md`; in `docs/plan-v4.md` de punten van Fase 1 afvinken.
@@ -413,7 +521,5 @@ Per regel eerst het testbestand, dan de regel (beslissing 32).
 
 - Voorbeelddata: het plan zegt "nooit in de release-zip" en ook "een proefinstallatie kan in de web-installer
   voorbeelddata laden". Dat kan niet allebei zolang fixtures alleen in `dev` bestaan; dat hoort bij fase 6a.
-- Het plan noemt "codes" bij wat hoofdletterongevoelig is; in het model van fase 1 bestaat geen code. Voor
-  uitkomsten en startpunten geldt de sleutel uit beslissing 19.
 - De hashketen in het auditlog (beslissing 16) en de bewaartermijn-opruiming door de scheduler (fase 6b) staan
   open.
