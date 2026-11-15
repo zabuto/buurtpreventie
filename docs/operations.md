@@ -64,7 +64,7 @@ Automatic merging relies on CI: a minor update that breaks a test, a PHPStan rul
 stays open. The `SymfonyReleaseLineTest` fails when an update would put a Symfony component outside
 7.4, so such an update never merges automatically.
 
-Dependabot skips major updates of Symfony packages (`symfony/*`). v4 stays on 7.4 LTS until the
+Dependabot skips major updates of Symfony packages (`symfony/*`). The app stays on 7.4 LTS until the
 planned move to 8.4 LTS; a single Symfony 8 release such as 8.1 is maintained for only a few months,
 and one package on 8 next to the rest on 7.4 is a mix Symfony does not support. The look-ahead job
 shows what breaks on Symfony 8.
@@ -113,7 +113,7 @@ the error response keeps it.
 
 ## Symfony 8.4 LTS
 
-v4 runs on Symfony 7.4 LTS (bug fixes until November 2028, security fixes until November 2029), for
+The app runs on Symfony 7.4 LTS (bug fixes until November 2028, security fixes until November 2029), for
 the reasons in [ADR 0002](adr/0002-symfony-lts-and-php-minimum.md). The move to 8.4 LTS is planned
 for early 2028, together with PHP 8.5; the steps are in
 [plans/plan.md](plans/plan.md#overstap-naar-symfony-84-lts). The look-ahead job shows every week what

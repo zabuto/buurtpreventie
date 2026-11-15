@@ -1,4 +1,4 @@
-# Buurtpreventie v4
+# Buurtpreventie
 
 The plan lives in docs/plans/plan.md and is leading. Read it before every phase.
 

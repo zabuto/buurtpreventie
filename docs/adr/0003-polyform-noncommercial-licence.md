@@ -7,14 +7,15 @@
 
 Buurtpreventie is made for neighbourhood and residents' associations, which run it without a profit
 motive. Commercial resale of the software, for example as a paid hosted service, is not intended.
-The predecessor (v1 to v3) is MIT-licensed, with the same author as copyright holder.
+The earlier versions, in the legacy repository, are MIT-licensed, with the same author as copyright
+holder.
 
 ## Decision
 
-- **v4 is released under PolyForm Noncommercial 1.0.0**, with the `Required Notice:` line at the top
-  of `LICENSE`, from the first commit of the repository.
-- **The predecessor stays MIT.** Its last commit carries the tag `v3-mit-final` and a README pointing
-  to v4; MIT versions keep their licence.
+- **This repository is released under PolyForm Noncommercial 1.0.0**, with the `Required Notice:`
+  line at the top of `LICENSE`, from its first commit.
+- **The legacy repository stays MIT.** Its last commit carries the tag `v3-mit-final` and a README
+  pointing to this repository; MIT versions keep their licence.
 - **The README speaks of "free to use for non-commercial purposes"**, says the software is meant for
   neighbourhood and residents' associations, and says the code is public but not open source, because
   commercial use is not allowed (the OSI definition excludes licences that forbid any kind of use). The

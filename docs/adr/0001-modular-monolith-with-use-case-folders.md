@@ -5,7 +5,7 @@
 
 ## Context
 
-Buurtpreventie v4 has three entry points: a REST API for the frontend, an MCP server for AI clients
+Buurtpreventie has three entry points: a REST API for the frontend, an MCP server for AI clients
 and a scheduler for reminders. A rule such as "at least two walkers" or "only delete your own round
 report" must hold for all three in exactly the same way. The project has one maintainer, runs on
 shared hosting without workers, and must be transferable to another developer who finds their way
