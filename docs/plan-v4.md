@@ -666,7 +666,7 @@ Alleen als CI rood blijft, moet de ontwikkelaar zelf iets doen; de beheerder mer
 **Kant ontwikkelaar: eenmalig inrichten, daarna bijna vanzelf.**
 
 - Dependabot-beveiligingsupdates voor Composer en GitHub Actions; patch- en minor-updates worden automatisch samengevoegd als CI groen is, behalve minor-updates van pakketten onder 1.0.
-- **Cooldown tegen gekaapte releases:** Dependabot stelt een nieuwe versie pas voor na 3 dagen (patch), 7 dagen (minor) of 14 dagen (major), voor alle pakketten en actions, zonder uitzonderingen: ook een vertrouwd project kan een gekaapt account van een maintainer hebben. Beveiligingsupdates vallen niet onder de cooldown en komen meteen.
+- **Cooldown tegen gekaapte releases:** Dependabot stelt een nieuwe Composer-versie pas voor na 3 dagen (patch), 7 dagen (minor) of 14 dagen (major), en een nieuwe action na 7 dagen (Dependabot kent voor actions geen dagen per soort update), zonder uitzonderingen: ook een vertrouwd project kan een gekaapt account van een maintainer hebben. Beveiligingsupdates vallen niet onder de cooldown en komen meteen.
 - CI faalt op `composer audit`, dat `composer.lock` toetst aan de beveiligingsadviezen van Packagist ([Composer audit](https://github.com/composer/composer/pull/10798)); een wekelijkse geplande run opent een issue als er iets nieuws is.
 - **Een kwetsbaarheid in PHP zelf** (zoals PHP2Shell) ziet Dependabot niet. De ontwikkelaar verhoogt dan de ondergrens in `composer.json` (`require` en `config.platform.php`) en brengt een patchrelease uit; de installer en Onderhoud controleren dezelfde ondergrens.
 - **Codescan (SAST) in CI** met Opengrep (LGPL-2.1) en een eigen regelset in de repo, elke regel met een regeltest; een bevinding laat CI falen. De binary komt uit de releases van `opengrep/opengrep`, nooit via `install.sh` of PyPI. CI controleert de Cosign-handtekening tegen de release-workflow van Opengrep als vaste certificaatidentiteit en issuer, en zet de gekozen versie en de SHA-256 in de log.
@@ -735,7 +735,7 @@ Fase 3, 4 en 5 hangen alleen van de API af; wie het frontend het eerst nodig hee
 - [x] Symfony 7.4 LTS-skelet, PHP 8.4, modulaire mapindeling uit Codestructuur, PHPat-regels in PHPStan, docs/glossary.md, docs/architecture.md met voorbeeld, ADR 0001 over de structuur, en de generator app:make:use-case.
 - [x] CI (GitHub Actions): PHPStan level max, Mago (opmaak, lint en analyse), PHPUnit, `composer audit`, controle op deprecations, wekelijkse vooruitkijk-job met de nieuwste Symfony 8 en PHP 8.5, Rector met Symfony-regels; Dependabot met automatisch samenvoegen van groene patch- en minor-updates (minor niet onder 1.0), wekelijkse audit-run, SECURITY.md en privé melden van kwetsbaarheden aan.
 - [x] `AGENTS.md` + `CLAUDE.md`, en `docs/` met `getting-started`, `configuration`, `architecture`, `operations`, `testing`, `gotchas`, `writing`, `code-style`.
-- [ ] Dependabot-cooldown van 3, 7 en 14 dagen voor patch-, minor- en major-updates, zonder uitzonderingen (zie Beveiligingsupdates en zelf bijwerken).
+- [ ] Dependabot-cooldown van 3, 7 en 14 dagen voor patch-, minor- en major-updates van Composer en 7 dagen voor actions, zonder uitzonderingen (zie Beveiligingsupdates en zelf bijwerken).
 - [ ] Codescan in CI met Opengrep en een eigen regelset met regeltests, als verplichte check op `develop`; CI kiest de Opengrep-versie zelf binnen de huidige major, met cooldown, en `composer update` en de wekelijkse workflow melden een nieuwe major (zie Beveiligingsupdates en zelf bijwerken).
 
 **Klaar als:** CI groen op een lege app; `docs/getting-started.md` brengt een nieuwe dev in één keer tot een draaiende lokale omgeving.
@@ -1121,7 +1121,7 @@ Alleen rapporteren, niets wijzigen.
 | Hosting zonder SSH | Geen `bin/console` voor installatie en migraties | Release-zip + web-installer; herinneringen via cron in het hostingpaneel, of een externe tick |
 | Host stript `Authorization`-header | Tokens en MCP werken niet | Regel in `.htaccess` + een diagnosepagina in de installer die het controleert |
 | Persoonsgegevens via AI-clients | AVG-vraag voor de vereniging | Dataminimalisatie in MCP-uitvoer, MCP standaard uit, per vereniging aan te zetten |
-| Gekaapte release van een afhankelijkheid | Kwaadaardige code via een automatisch samengevoegde update | Dependabot-cooldown van 3, 7 en 14 dagen; actions vastgepind op commit-SHA; Opengrep alleen met een geldige handtekening van zijn release-workflow, na dezelfde cooldown en binnen de huidige major; CI zonder geheimen in pull requests |
+| Gekaapte release van een afhankelijkheid | Kwaadaardige code via een automatisch samengevoegde update | Dependabot-cooldown (Composer 3, 7 en 14 dagen, actions 7); actions vastgepind op commit-SHA; Opengrep alleen met een geldige handtekening van zijn release-workflow, na dezelfde cooldown en binnen de huidige major; CI zonder geheimen in pull requests |
 | Eén onderhouder | Kennis zit bij één persoon | `docs/`, `AGENTS.md`, weinig afhankelijkheden, geen buildstap; webbeheerder werkt zelf bij via het scherm Onderhoud |
 | Overstap 7.4 → 8.4 LTS blijft liggen | Na november 2029 geen security-fixes meer | Geen deprecations (CI faalt erop); overstap gepland in 2028 en vastgelegd in docs/operations.md |
 
