@@ -36,7 +36,11 @@ final class ComposerCooldownTest extends TestCase
     {
         $composer = \json_decode((string) \file_get_contents(__DIR__ . '/../../composer.json'), true);
         $this->assertIsArray($composer);
-        $cooldown = $composer['config']['policy']['cooldown'] ?? null;
+        $config = $composer['config'] ?? null;
+        $this->assertIsArray($config, 'composer.json lacks config.');
+        $policy = $config['policy'] ?? null;
+        $this->assertIsArray($policy, 'composer.json lacks config.policy.');
+        $cooldown = $policy['cooldown'] ?? null;
         $this->assertIsArray($cooldown, 'composer.json lacks config.policy.cooldown.');
 
         return $cooldown;

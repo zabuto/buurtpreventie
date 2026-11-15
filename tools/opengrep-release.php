@@ -16,8 +16,8 @@ $command = new OpengrepReleaseCommand(
     new ReleasePolicy(),
     new DateTimeImmutable('now', new DateTimeZone('UTC')),
 );
-/** @var list<string> $argv */
-$result = $command->run(\array_slice($argv, 1), $major);
+$arguments = \is_array($_SERVER['argv'] ?? null) ? \array_slice($_SERVER['argv'], 1) : [];
+$result = $command->run(\array_values(\array_filter($arguments, \is_string(...))), $major);
 
 \fwrite(\STDOUT, $result->output);
 \fwrite(\STDERR, $result->error);
