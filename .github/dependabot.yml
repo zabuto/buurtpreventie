@@ -5,6 +5,7 @@ updates:
     target-branch: develop
     schedule:
       interval: weekly
+    # Patch updates arrive together; minor and major updates arrive one per package, so a red CI run names the package.
     groups:
       patch:
         update-types: [patch]
@@ -21,3 +22,4 @@ updates:
     groups:
       actions:
         patterns: ['*']
+        update-types: [minor, patch]

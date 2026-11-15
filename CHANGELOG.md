@@ -15,6 +15,6 @@ versions follow [Semantic Versioning](https://semver.org/).
 - Checks through `composer check`: PHPStan level max, PHP-CS-Fixer, Rector, PHPUnit, `composer audit`
   and deprecations.
 - GitHub Actions for CI, a weekly audit and a weekly look-ahead on Symfony 8 and PHP 8.5;
-  Dependabot with automatic merging of patch updates. Dependabot skips major Symfony updates, so v4
-  stays on 7.4 LTS.
+  Dependabot with automatic merging of patch and minor updates once CI is green (minor updates of
+  packages below 1.0 excepted). Dependabot skips major Symfony updates, so v4 stays on 7.4 LTS.
 - `SECURITY.md` and documentation in `docs/`.

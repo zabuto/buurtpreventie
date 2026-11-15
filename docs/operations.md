@@ -31,16 +31,27 @@ These are not stored in files and must be set again on a fork or a recreated rep
 | `ci.yml` | Every pull request, every push to `develop` and `main` | `composer check` on PHP 8.4; see [testing.md](testing.md) |
 | `weekly.yml`, audit job | Monday 05:00 UTC and by hand | `composer audit` on `develop`; opens an issue on an advisory |
 | `weekly.yml`, look-ahead job | Same | Newest Symfony 8 on PHP 8.5, all checks; opens an issue on failure. Blocks nothing |
-| `dependabot-automerge.yml` | Dependabot pull requests | Merges patch updates once CI is green |
+| `dependabot-automerge.yml` | Dependabot pull requests | Merges patch and minor updates once CI is green, except minor updates of packages below 1.0 |
 
 The weekly jobs open one issue per kind and add a comment to that issue on a later failure. Actions
 are pinned to a commit SHA; Dependabot keeps them up to date.
 
 ## Dependabot
 
-`.github/dependabot.yml`: weekly for Composer and GitHub Actions, targeting `develop`. Composer patch
-updates arrive together in one pull request and merge automatically once CI is green; the developer
-reviews minor and major updates. Security updates target the default branch.
+`.github/dependabot.yml`: weekly for Composer and GitHub Actions, targeting `develop`. Security
+updates target the default branch.
+
+| Update | Pull request | Merge |
+| --- | --- | --- |
+| Patch | All Composer patch updates together | Automatic once CI is green |
+| Minor | One per package, so a red CI run names the package | Automatic once CI is green; for a package below 1.0 (such as `phpat/phpat`) by the developer, because there a minor release may break the API |
+| Major | One per package | By the developer |
+
+GitHub Actions minor and patch updates arrive together in one pull request and merge the same way.
+
+Automatic merging relies on CI: a minor update that breaks a test, a PHPStan rule or the code style
+stays open. The `SymfonyReleaseLineTest` fails when an update would put a Symfony component outside
+7.4, so such an update never merges automatically.
 
 Dependabot skips major updates of Symfony packages (`symfony/*`). v4 stays on 7.4 LTS until the
 planned move to 8.4 LTS; a single Symfony 8 release such as 8.1 is maintained for only a few months,
