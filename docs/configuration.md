@@ -25,5 +25,6 @@ Symfony reads them in this order; a later value wins. Real secrets live only in 
 | --- | --- | --- |
 | `APP_ENV` | Environment: `dev`, `test` or `prod` | `dev` |
 | `APP_SECRET` | Key for signed values such as CSRF tokens. Unique and secret per installation | required in production, in `shared/.env.local` |
-| `DATABASE_URL` | Database connection, from phase 1 on. Locally the Symfony CLI sets it from the `database` container in `compose.yaml`; on a server it goes in `shared/.env.local` | none |
+| `DATABASE_URL` | Database connection, from phase 1 on. Locally the Symfony CLI sets it from the `database` container in `compose.yaml`; on a server it goes in `shared/.env.local`. Tests add `_test` to the database name | none |
+| `LEGACY_DATABASE_URL` | The v3 database that `app:import-v3` reads, through a database user with only `SELECT` rights. In `dev` and `test` the app ignores it and uses `DATABASE_URL` with `_legacy` (or `_legacy_test`) added to the database name | none |
 | `DEFAULT_URI` | Base URL of the app for links outside a web request, such as in e-mails and from the console. A subdomain (`https://buurtpreventie.example.org`) or a path (`https://example.org/buurtpreventie`), without `/public` | `http://localhost` (in `config/services.yaml`) |

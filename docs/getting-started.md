@@ -5,7 +5,8 @@ From a clean machine to a running local environment and a first change.
 ## Requirements
 
 - PHP 8.4.27 or later, or PHP 8.5. Earlier 8.4 releases have a critical vulnerability (PHP2Shell);
-  Composer refuses to start the app on them. See [gotchas.md](gotchas.md).
+  Composer refuses to start the app on them. See [gotchas.md](gotchas.md). With the extensions
+  `intl` and `mbstring`.
 - Composer 2.11 or later, which applies the 24-hour cooldown in `composer.json` to every update.
 - Git.
 - Docker with Compose, for the development database.
@@ -36,6 +37,11 @@ Docker publishes the database on a free port, so it does not clash with other pr
 Symfony CLI (`symfony server:start`, `symfony console`) the app gets `DATABASE_URL` from the running
 container; `symfony var:export --multiline` shows it. `docker compose stop` stops the database and
 keeps the data; `docker compose down --volumes` removes the data as well.
+
+Tests use `buurtpreventie_test`, and the v3 conversion reads `buurtpreventie_legacy`, both on the
+same server. On an empty data volume, `docker/database/grant-prefixed-databases.sh` gives the
+database user every database starting with `buurtpreventie_`. A volume created before that script
+lacks the grant; `docker compose down --volumes` and starting again adds it.
 
 ## Start
 
