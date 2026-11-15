@@ -81,10 +81,11 @@ Every new key (database, mail, tick, release signing) gets a row here.
 
 ## PHP version
 
-At least PHP 8.4.27. PHP 8.4.0 to 8.4.26 have PHP2Shell (CVE-2026-109618 and CVE-2026-109619):
-unauthenticated remote code execution, exploited in the wild. `composer.json` therefore requires
-`>=8.4.27`, and Composer's runtime check refuses to start the app on an older version. A new critical
-PHP vulnerability raises this minimum in `require.php` and `config.platform.php`.
+The minimum PHP version is the oldest release without a known critical vulnerability, as set in
+`require.php` of `composer.json`; Composer's runtime check refuses to start the app on an older
+version. A new critical PHP vulnerability raises this minimum, in `require.php` and
+`config.platform.php`, followed by a patch release. Dependabot does not watch PHP itself, so this
+takes following the PHP security announcements.
 
 The extensions `intl` and `mbstring` are required as well: search keys strip accents with
 `Normalizer` and lower-case with `mb_strtolower`. Shared hosting enables both by default, but a

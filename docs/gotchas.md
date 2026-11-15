@@ -4,11 +4,11 @@ Things that are not obvious and cost time when you do not know them.
 
 ## PHP version
 
-- **At least PHP 8.4.27.** Earlier 8.4 releases have PHP2Shell (CVE-2026-109618 and
-  CVE-2026-109619). `vendor/composer/platform_check.php` stops the app on such a version with
-  "Your Composer dependencies require a PHP version >= 8.4.27". The fix is upgrading PHP, never
-  lowering the requirement.
-- **PHP 8.5 locally, PHP 8.4 as the target.** `config.platform.php` is 8.4.27, so Composer picks
+- **A PHP minimum that moves up.** `require.php` in `composer.json` is the oldest PHP release without
+  a known critical vulnerability, and rises with each new one. `vendor/composer/platform_check.php`
+  stops the app on an older version with "Your Composer dependencies require a PHP version >= …".
+  The fix is upgrading PHP, never lowering the requirement.
+- **PHP 8.5 locally, PHP 8.4 as the target.** `config.platform.php` is the minimum 8.4, so Composer picks
   packages that run on 8.4 even when you have 8.5 locally. PHPStan checks with `phpVersion: 80400`
   that the code uses no syntax that only exists in 8.5. CI runs on 8.4.
 

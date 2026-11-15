@@ -65,7 +65,8 @@ The plan lives in docs/plans/plan.md and is leading. Read it before every phase.
 
 ## Commands
 
-- Minimum PHP is 8.4.27 (PHP2Shell, CVE-2026-109618 and CVE-2026-109619); CI runs on 8.4.
+- Minimum PHP is the `require.php` in composer.json: the oldest release without a known critical
+  vulnerability, raised with each new one; CI runs on 8.4.
 - Install: composer install
 - Database (development): docker compose up -d --wait; run console commands as symfony console,
   which takes DATABASE_URL from the container.
