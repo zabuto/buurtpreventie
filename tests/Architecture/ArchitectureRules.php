@@ -210,7 +210,7 @@ final readonly class ArchitectureRules
      */
     private function modules(): array
     {
-        return array_values(array_filter(
+        return \array_values(\array_filter(
             $this->folders($this->sourceRoot),
             static fn(string $folder): bool => 'Shared' !== $folder,
         ));
@@ -236,14 +236,14 @@ final readonly class ArchitectureRules
      */
     private function folders(string $path): array
     {
-        $entries = is_dir($path) ? scandir($path) : false;
+        $entries = \is_dir($path) ? \scandir($path) : false;
         if (false === $entries) {
             return [];
         }
 
-        return array_values(array_filter(
+        return \array_values(\array_filter(
             $entries,
-            static fn(string $entry): bool => !str_starts_with($entry, '.') && is_dir($path . '/' . $entry),
+            static fn(string $entry): bool => !\str_starts_with($entry, '.') && \is_dir($path . '/' . $entry),
         ));
     }
 }

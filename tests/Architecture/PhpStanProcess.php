@@ -32,13 +32,13 @@ final readonly class PhpStanProcess
      */
     public static function analyse(string $configuration, string ...$paths): self
     {
-        $workDir = sys_get_temp_dir() . '/phpstan-run-' . bin2hex(random_bytes(6));
-        mkdir($workDir . '/cache', 0o777, recursive: true);
+        $workDir = \sys_get_temp_dir() . '/phpstan-run-' . \bin2hex(\random_bytes(6));
+        \mkdir($workDir . '/cache', 0o777, recursive: true);
 
         $wrapper = $workDir . '/phpstan.neon';
-        file_put_contents($wrapper, \sprintf(
+        \file_put_contents($wrapper, \sprintf(
             "includes:\n    - %s\nparameters:\n    tmpDir: %s/cache\n",
-            (string) realpath($configuration),
+            (string) \realpath($configuration),
             $workDir,
         ));
 
@@ -51,7 +51,7 @@ final readonly class PhpStanProcess
                 '--error-format=json',
                 '--no-progress',
                 '--memory-limit=512M',
-                ...array_values($paths),
+                ...\array_values($paths),
             ], $workDir . '/stderr.txt');
         } finally {
             self::remove($workDir);
@@ -63,7 +63,7 @@ final readonly class PhpStanProcess
      */
     public function report(): ?array
     {
-        $report = json_decode($this->stdout, true);
+        $report = \json_decode($this->stdout, true);
 
         return \is_array($report) ? $report : null;
     }
@@ -80,19 +80,19 @@ final readonly class PhpStanProcess
     private static function run(array $command, string $stderrFile): self
     {
         // Stderr goes to a file: reading two pipes one after the other can deadlock once the second one fills up.
-        $process = proc_open($command, [1 => ['pipe', 'w'], 2 => ['file', $stderrFile, 'w']], $pipes, self::PROJECT_ROOT);
+        $process = \proc_open($command, [1 => ['pipe', 'w'], 2 => ['file', $stderrFile, 'w']], $pipes, self::PROJECT_ROOT);
         if (!\is_resource($process)) {
             return new self(-1, '', 'Could not start PHPStan.');
         }
 
         $stdoutPipe = $pipes[1] ?? null;
-        $stdout = \is_resource($stdoutPipe) ? (string) stream_get_contents($stdoutPipe) : '';
+        $stdout = \is_resource($stdoutPipe) ? (string) \stream_get_contents($stdoutPipe) : '';
         if (\is_resource($stdoutPipe)) {
-            fclose($stdoutPipe);
+            \fclose($stdoutPipe);
         }
-        $exitCode = proc_close($process);
+        $exitCode = \proc_close($process);
 
-        return new self($exitCode, $stdout, (string) file_get_contents($stderrFile));
+        return new self($exitCode, $stdout, (string) \file_get_contents($stderrFile));
     }
 
     private static function remove(string $path): void
@@ -103,8 +103,8 @@ final readonly class PhpStanProcess
         );
         foreach ($iterator as $entry) {
             \assert($entry instanceof SplFileInfo, 'RecursiveDirectoryIterator yields SplFileInfo by default.');
-            $entry->isDir() ? rmdir($entry->getPathname()) : unlink($entry->getPathname());
+            $entry->isDir() ? \rmdir($entry->getPathname()) : \unlink($entry->getPathname());
         }
-        rmdir($path);
+        \rmdir($path);
     }
 }

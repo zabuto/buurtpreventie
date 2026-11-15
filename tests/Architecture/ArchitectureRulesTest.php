@@ -50,8 +50,8 @@ final class ArchitectureRulesTest extends TestCase
     {
         $phpstan = PhpStanProcess::analyse(self::CONFIGURATION, self::FIXTURES . $fixture);
 
-        $firedRules = array_values(array_unique(array_column($this->errors($phpstan), 'rule')));
-        sort($firedRules);
+        $firedRules = \array_values(\array_unique(\array_column($this->errors($phpstan), 'rule')));
+        \sort($firedRules);
 
         $this->assertSame($expectedRules, $firedRules, $phpstan->describe());
     }
@@ -104,12 +104,12 @@ final class ArchitectureRulesTest extends TestCase
     private function ruleMethod(array $message): string
     {
         $identifier = \is_string($message['identifier'] ?? null) ? $message['identifier'] : '';
-        $methods = array_filter(
-            get_class_methods(ArchitectureRules::class),
-            static fn(string $method): bool => str_starts_with($identifier, 'phpat.' . $method),
+        $methods = \array_filter(
+            \get_class_methods(ArchitectureRules::class),
+            static fn(string $method): bool => \str_starts_with($identifier, 'phpat.' . $method),
         );
         $this->assertCount(1, $methods, 'Not traceable to a single PHPat rule: ' . $identifier);
 
-        return array_values($methods)[0];
+        return \array_values($methods)[0];
     }
 }

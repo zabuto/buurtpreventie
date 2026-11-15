@@ -19,7 +19,7 @@ final class UseCaseTemplatesTest extends TestCase
 
         self::assertSame(
             ['SignUpForRound.php', 'SignUpForRoundHandler.php', 'SignUpForRoundOutput.php', 'SignUpForRoundController.php', 'SignUpForRoundTool.php'],
-            array_keys($files),
+            \array_keys($files),
         );
     }
 
@@ -32,7 +32,7 @@ final class UseCaseTemplatesTest extends TestCase
 
         foreach ($files as $file => $code) {
             self::assertStringContainsString("namespace App\\Patrol\\UseCase\\SignUpForRound;\n", $code, $file);
-            self::assertStringContainsString('final readonly class ' . basename($file, '.php') . "\n", $code, $file);
+            self::assertStringContainsString('final readonly class ' . \basename($file, '.php') . "\n", $code, $file);
         }
     }
 

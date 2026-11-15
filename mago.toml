@@ -45,8 +45,8 @@ inline-empty-anonymous-class-braces = false
 integrations = ["symfony", "phpunit"]
 
 [linter.rules]
-ambiguous-constant-access = { enabled = true }
-ambiguous-function-call = { enabled = true }
+ambiguous-constant-access = { enabled = true, level = "warning" }
+ambiguous-function-call = { enabled = true, level = "warning" }
 no-fully-qualified-global-class-like = { enabled = true }
 prefer-array-spread = { enabled = true }
 prefer-explode-over-preg-split = { enabled = true }

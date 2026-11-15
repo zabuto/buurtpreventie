@@ -34,12 +34,12 @@ final class DocumentationLinksTest extends TestCase
         ];
         $anchors = [];
         foreach ($files as $file) {
-            preg_match_all("/architecture\\.md#([a-z0-9-]+)|DOCS\\s*\\.\\s*'([a-z0-9-]+)'/", (string) file_get_contents($file), $matches);
-            foreach (array_filter([...$matches[1], ...$matches[2]]) as $anchor) {
+            \preg_match_all("/architecture\\.md#([a-z0-9-]+)|DOCS\\s*\\.\\s*'([a-z0-9-]+)'/", (string) \file_get_contents($file), $matches);
+            foreach (\array_filter([...$matches[1], ...$matches[2]]) as $anchor) {
                 $anchors[$anchor] = [$anchor];
             }
         }
-        ksort($anchors);
+        \ksort($anchors);
 
         return $anchors;
     }
@@ -58,11 +58,11 @@ final class DocumentationLinksTest extends TestCase
      */
     private static function headingAnchors(): array
     {
-        preg_match_all('/^#{1,6} (.+)$/m', (string) file_get_contents(self::PROJECT_ROOT . '/docs/architecture.md'), $matches);
+        \preg_match_all('/^#{1,6} (.+)$/m', (string) \file_get_contents(self::PROJECT_ROOT . '/docs/architecture.md'), $matches);
 
         $anchors = [];
         foreach ($matches[1] as $heading) {
-            $anchors[] = str_replace(' ', '-', (string) preg_replace('/[^a-z0-9 -]/', '', strtolower($heading)));
+            $anchors[] = \str_replace(' ', '-', (string) \preg_replace('/[^a-z0-9 -]/', '', \strtolower($heading)));
         }
 
         return $anchors;
@@ -77,11 +77,11 @@ final class DocumentationLinksTest extends TestCase
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS));
         foreach ($iterator as $file) {
             \assert($file instanceof SplFileInfo, 'RecursiveDirectoryIterator yields SplFileInfo by default.');
-            if ($extension === $file->getExtension() && (null === $exclude || !str_starts_with($file->getPathname(), $exclude))) {
+            if ($extension === $file->getExtension() && (null === $exclude || !\str_starts_with($file->getPathname(), $exclude))) {
                 $files[] = $file->getPathname();
             }
         }
-        sort($files);
+        \sort($files);
 
         return $files;
     }

@@ -12,7 +12,7 @@ messages) follow [writing.md](writing.md); tests follow [testing.md](testing.md)
 | --- | --- |
 | `.editorconfig` | UTF-8, LF, final newline, 4 spaces (2 in `compose*.yaml`), lines up to 160 characters in PHP, and the PhpStorm formatter settings for PHP |
 | Mago format (`mago.toml`) | The layout of every PHP file, matching the PhpStorm settings in `.editorconfig`, so a PhpStorm reformat and `mago format` agree |
-| Mago lint | Strict types, PHPUnit and Symfony rules, `#[Test]` instead of a `test` prefix, `$this->assert…()`, yoda conditions, no shorthand ternary (`?:`), complexity limits. Warnings fail the check |
+| Mago lint | Strict types, PHPUnit and Symfony rules, `#[Test]` instead of a `test` prefix, `$this->assert…()`, fully qualified global functions and constants (`\sprintf()`), yoda conditions, no shorthand ternary (`?:`), complexity limits. Warnings fail the check |
 | Mago analyze | Type errors, unused code and parameters, missing type hints. Errors fail the check |
 | Rector | PHP 8.4 syntax, Symfony and PHPUnit sets for the installed versions, dead code removal, type declarations |
 | PHPStan | Level max, no deprecated API, PHPUnit and Symfony rules, the architecture rules (PHPat) |
