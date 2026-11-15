@@ -85,7 +85,7 @@ Klaar als:
    database verwijderd: wissen (AVG) anonimiseert het lid, zodat elke `memberId` blijft verwijzen naar een
    bestaand lid. Binnen een module wel foreign keys.
    - Een verwijzing naar een andere module is altijd de UUID van het lid (`BINARY(16)`), nooit een oplopend id:
-     `Round.createdBy`, `Participation.memberId` en `onBehalfOf`, `RoundReport.memberId`, `RoundComment.authorId`,
+     `Participation.memberId` en `onBehalfOf`, `RoundReport.memberId`, `RoundComment.authorId`,
      `Account.memberId` en `AuditEntry.actorId`.
    - Elke zo'n kolom krijgt een eigen index, ook `Participation.memberId`: de unieke sleutel ronde + lid begint met
      de ronde en helpt dus niet bij "rondes van dit lid". Zonder foreign key maakt de database die index niet
@@ -464,7 +464,7 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
   | Actie | Wie |
   | --- | --- |
   | Ronde aanmaken | loper; coördinator namens een actief lid |
-  | Ronde wijzigen of verwijderen | coördinator; maker zolang alleen |
+  | Ronde wijzigen of verwijderen | coördinator; eigenaar zolang hij de enige loper is |
   | Zelf aan- of afmelden | loper |
   | Namens aan- of afmelden, loper verwijderen | coördinator |
   | Terugmelden (één per ronde) | loper van die ronde, coördinator |
@@ -486,6 +486,13 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
   - één terugmelding per ronde, niet één per loper: een loper van die ronde of de coördinator meldt terug, en dat
     is genoeg. De eigenaar hoeft het niet te zijn. Reageren door de andere lopers volgt later (fase 16 in
     `docs/plan-v4.md`);
+  - een tweede terugmelding wordt geweigerd ("deze ronde heeft al een terugmelding"), zodat niemand ongemerkt de
+    melding van een ander overschrijft. De auteur of de coördinator verwijdert de bestaande; daarna kan er een
+    nieuwe komen. Er is geen use case om een terugmelding te wijzigen;
+  - de eigenaar wordt afgeleid, niet opgeslagen: de loper die zich het eerst aanmeldde en nog in de ronde zit.
+    Meldt die zich af, dan is de volgende de eigenaar. Beslissing 7 wordt daarmee: de coördinator altijd, de
+    eigenaar zolang hij de enige loper is. `Round.createdBy` en de kolom `created_by` vervallen; wie de ronde
+    aanmaakte, staat in het auditlog;
   - `GetRound` toont het telefoonnummer van een loper met toestemming alleen aan de andere lopers van die ronde en
     aan de coördinator;
   - de laatste beheerder kan zijn rol niet kwijtraken en niet gedeactiveerd of gewist worden; `ChangeMemberRoles`,
