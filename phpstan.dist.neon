@@ -17,8 +17,12 @@ parameters:
         - public
         - src
         - tests
+    # Recipe files stay exactly as Symfony ships them, so a recipe update applies cleanly.
     excludePaths:
+        - config/preload.php
         - config/reference.php
+        - public/index.php
         - tests/Architecture/Fixtures
+        - tests/bootstrap.php
     symfony:
         containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml

@@ -48,7 +48,7 @@ is `{"status":"ok"}`.
 | `composer test` | All tests |
 | `composer test:unit` | Only the in-memory unit tests |
 | `composer check` | Everything CI checks: Composer, security advisories, container, deprecations, code style, Rector, PHPStan with the architecture rules, tests |
-| `composer fix` | Applies Rector and PHP-CS-Fixer |
+| `composer fix` | Applies Rector, Mago lint fixes and Mago formatting |
 
 What each check does: [testing.md](testing.md).
 
@@ -56,7 +56,8 @@ What each check does: [testing.md](testing.md).
 
 1. Read [architecture.md](architecture.md): the folder layout, the worked example and the rules.
 2. Concepts such as round, buddy and round report are listed with their code names in
-   [glossary.md](glossary.md).
+   [glossary.md](glossary.md). Code and texts follow [code-style.md](code-style.md) and
+   [writing.md](writing.md).
 3. Follow [Adding a feature](architecture.md#adding-a-feature).
 4. Work on a `feature/<short-name>` branch from `develop` and deliver through a pull request.
    `composer check` must be green.

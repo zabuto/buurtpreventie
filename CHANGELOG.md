@@ -12,10 +12,10 @@ versions follow [Semantic Versioning](https://semver.org/).
 - Health check `GET /api/v1/health`.
 - Generator `bin/console app:make:use-case <Module> <Name>`.
 - Architecture rules (PHPat) and a folder layout test, explained in `docs/architecture.md`.
-- Checks through `composer check`: PHPStan level max, PHP-CS-Fixer, Rector, PHPUnit, `composer audit`
+- Checks through `composer check`: PHPStan level max, Mago (format, lint, analyze), Rector, PHPUnit, `composer audit`
   and deprecations.
 - GitHub Actions for CI, a weekly audit and a weekly look-ahead on Symfony 8 and PHP 8.5;
   Dependabot with automatic merging of patch and minor updates once CI is green (minor updates of
   packages below 1.0 excepted). Dependabot skips major Symfony updates, so v4 stays on 7.4 LTS.
 - Test suite in unit, integration and functional groups; `composer test:unit` runs the unit tests.
-- `SECURITY.md` and documentation in `docs/`.
+- `SECURITY.md` and documentation in `docs/`, including the code style and writing guidelines.

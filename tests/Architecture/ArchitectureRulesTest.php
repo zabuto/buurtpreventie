@@ -6,100 +6,94 @@ namespace App\Tests\Architecture;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 /**
  * Runs PHPStan over fixtures that break each architecture rule once, so a rule that stops firing fails here
- * instead of silently letting violations into src/.
+ * instead of silently letting violations into src/. Every test runs its own analysis and shares no state.
  */
 #[Group('integration')]
 final class ArchitectureRulesTest extends TestCase
 {
-    private const string PROJECT_ROOT = __DIR__.'/../..';
-    private const string FIXTURES = 'tests/Architecture/Fixtures';
-
-    /** @var array<string, list<array{rule: string, tip: string}>>|null */
-    private static ?array $errorsByFile = null;
+    private const string CONFIGURATION = __DIR__ . '/Fixtures/phpstan.neon';
+    private const string FIXTURES = 'tests/Architecture/Fixtures/src/';
 
     /**
      * @return iterable<string, array{string, list<string>}>
      */
     public static function fixtures(): iterable
     {
-        yield 'domain depending on infrastructure' => ['src/Alpha/Domain/Thing.php', ['testDomainDependsOnlyOnItsOwnDomainAndSharedDomain']];
-        yield 'domain using its own domain and Shared\Domain' => ['src/Alpha/Domain/Name.php', []];
-        yield 'handler depending on HTTP' => ['src/Alpha/UseCase/DoThing/DoThingHandler.php', ['testInputAndHandlerStayFreeOfTransportAndInfrastructure']];
-        yield 'controller calling another use case' => ['src/Alpha/UseCase/DoThing/DoThingController.php', ['testControllerUsesOnlyItsOwnUseCaseAndHttp']];
-        yield 'tool depending on HTTP' => ['src/Alpha/UseCase/DoThing/DoThingTool.php', ['testToolUsesOnlyItsOwnUseCaseAndMcp']];
-        yield 'output exposing a domain object' => ['src/Alpha/UseCase/DoThing/DoThingOutput.php', ['testOutputExposesNoDomainObjects']];
-        yield 'module reaching into another domain' => ['src/Beta/Infrastructure/ThingReader.php', ['testModulesMeetOnlyThroughUseCasesAndSharedDomain']];
-        yield 'module calling another use case' => ['src/Beta/Infrastructure/OtherThingClient.php', []];
-        yield 'Twig outside e-mail and installer' => ['src/Beta/Infrastructure/Report.php', ['testTwigOnlyRendersEmailsAndTheInstaller']];
-        yield 'Twig in e-mail infrastructure' => ['src/Beta/Infrastructure/Mail/Mailer.php', []];
-        yield 'Shared depending on a module' => ['src/Shared/Domain/ModuleAware.php', [
-            'testDomainDependsOnlyOnItsOwnDomainAndSharedDomain',
-            'testSharedDependsOnNoModule',
-        ]];
-        yield 'Shared\Domain on its own' => ['src/Shared/Domain/Identifier.php', []];
+        yield 'domain depending on infrastructure' => ['Alpha/Domain/Thing.php', ['domainDependsOnlyOnItsOwnDomainAndSharedDomain']];
+        yield 'domain using its own domain and Shared\Domain' => ['Alpha/Domain/Name.php', []];
+        yield 'handler depending on HTTP' => ['Alpha/UseCase/DoThing/DoThingHandler.php', ['inputAndHandlerStayFreeOfTransportAndInfrastructure']];
+        yield 'controller calling another use case' => ['Alpha/UseCase/DoThing/DoThingController.php', ['controllerUsesOnlyItsOwnUseCaseAndHttp']];
+        yield 'tool depending on HTTP' => ['Alpha/UseCase/DoThing/DoThingTool.php', ['toolUsesOnlyItsOwnUseCaseAndMcp']];
+        yield 'output exposing a domain object' => ['Alpha/UseCase/DoThing/DoThingOutput.php', ['outputExposesNoDomainObjects']];
+        yield 'module reaching into another domain' => ['Beta/Infrastructure/ThingReader.php', ['modulesMeetOnlyThroughUseCasesAndSharedDomain']];
+        yield 'module calling another use case' => ['Beta/Infrastructure/OtherThingClient.php', []];
+        yield 'Twig outside e-mail and installer' => ['Beta/Infrastructure/Report.php', ['twigOnlyRendersEmailsAndTheInstaller']];
+        yield 'Twig in e-mail infrastructure' => ['Beta/Infrastructure/Mail/Mailer.php', []];
+        yield 'Shared depending on a module' => [
+            'Shared/Domain/ModuleAware.php',
+            ['domainDependsOnlyOnItsOwnDomainAndSharedDomain', 'sharedDependsOnNoModule'],
+        ];
+        yield 'Shared\Domain on its own' => ['Shared/Domain/Identifier.php', []];
     }
 
     /**
      * @param list<string> $expectedRules
      */
     #[DataProvider('fixtures')]
-    public function test_each_rule_fires_only_on_its_violation(string $file, array $expectedRules): void
+    #[Test]
+    public function each_rule_fires_only_on_its_violation(string $fixture, array $expectedRules): void
     {
-        $errors = self::errorsByFile()[$file] ?? [];
-        $firedRules = array_values(array_unique(array_column($errors, 'rule')));
+        $phpstan = PhpStanProcess::analyse(self::CONFIGURATION, self::FIXTURES . $fixture);
+
+        $firedRules = array_values(array_unique(array_column($this->errors($phpstan), 'rule')));
         sort($firedRules);
 
-        self::assertSame($expectedRules, $firedRules);
+        $this->assertSame($expectedRules, $firedRules, $phpstan->describe());
     }
 
-    public function test_every_violation_points_to_the_architecture_document(): void
+    #[Test]
+    public function every_violation_points_to_the_architecture_document(): void
     {
-        $errors = array_merge(...array_values(self::errorsByFile()));
+        $phpstan = PhpStanProcess::analyse(self::CONFIGURATION);
 
-        self::assertNotEmpty($errors);
+        $errors = $this->errors($phpstan);
+
+        $this->assertNotEmpty($errors, $phpstan->describe());
         foreach ($errors as $error) {
-            self::assertStringContainsString('docs/architecture.md#', $error['tip'], $error['rule']);
+            $this->assertStringContainsString('docs/architecture.md#', $error['tip'], $error['rule']);
         }
     }
 
     /**
-     * @return array<string, list<array{rule: string, tip: string}>>
+     * @return list<array{rule: string, tip: string}>
      */
-    private static function errorsByFile(): array
+    private function errors(PhpStanProcess $phpstan): array
     {
-        if (null !== self::$errorsByFile) {
-            return self::$errorsByFile;
-        }
-
-        $phpstan = PhpStanProcess::analyse(self::PROJECT_ROOT.'/'.self::FIXTURES.'/phpstan.neon');
         $report = $phpstan->report();
-        self::assertIsArray($report, $phpstan->describe());
-        self::assertSame([], $report['errors'] ?? null, $phpstan->describe());
-        self::assertIsArray($report['files'] ?? null, $phpstan->describe());
+        $this->assertIsArray($report, $phpstan->describe());
+        $this->assertSame([], $report['errors'] ?? null, $phpstan->describe());
+        $files = $report['files'] ?? null;
+        $this->assertIsArray($files, $phpstan->describe());
 
-        $fixturesRoot = realpath(self::PROJECT_ROOT.'/'.self::FIXTURES);
-        self::assertIsString($fixturesRoot);
-
-        $errorsByFile = [];
-        foreach ($report['files'] as $path => $file) {
-            self::assertIsString($path);
-            self::assertIsArray($file);
-            self::assertIsArray($file['messages'] ?? null);
-            $relativePath = substr($path, \strlen($fixturesRoot) + 1);
-            foreach ($file['messages'] as $message) {
-                self::assertIsArray($message);
-                $errorsByFile[$relativePath][] = [
-                    'rule' => self::ruleMethod($message),
+        $errors = [];
+        foreach ($files as $file) {
+            $messages = \is_array($file) ? $file['messages'] ?? [] : [];
+            $this->assertIsArray($messages, $phpstan->describe());
+            foreach ($messages as $message) {
+                $this->assertIsArray($message, $phpstan->describe());
+                $errors[] = [
+                    'rule' => $this->ruleMethod($message),
                     'tip' => \is_string($message['tip'] ?? null) ? $message['tip'] : '',
                 ];
             }
         }
 
-        return self::$errorsByFile = $errorsByFile;
+        return $errors;
     }
 
     /**
@@ -107,14 +101,14 @@ final class ArchitectureRulesTest extends TestCase
      *
      * @param array<mixed> $message
      */
-    private static function ruleMethod(array $message): string
+    private function ruleMethod(array $message): string
     {
         $identifier = \is_string($message['identifier'] ?? null) ? $message['identifier'] : '';
         $methods = array_filter(
             get_class_methods(ArchitectureRules::class),
-            static fn (string $method): bool => str_starts_with($identifier, 'phpat.'.$method),
+            static fn(string $method): bool => str_starts_with($identifier, 'phpat.' . $method),
         );
-        self::assertCount(1, $methods, 'Not traceable to a single PHPat rule: '.$identifier);
+        $this->assertCount(1, $methods, 'Not traceable to a single PHPat rule: ' . $identifier);
 
         return array_values($methods)[0];
     }

@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Tests\Shared\Infrastructure\Generator;
 
 use App\Shared\Infrastructure\Generator\UseCaseTemplates;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 final class UseCaseTemplatesTest extends TestCase
 {
-    public function test_it_renders_input_handler_output_controller_and_tool(): void
+    #[Test]
+    public function it_renders_input_handler_output_controller_and_tool(): void
     {
         $templates = new UseCaseTemplates();
 
@@ -21,7 +23,8 @@ final class UseCaseTemplatesTest extends TestCase
         );
     }
 
-    public function test_every_file_declares_a_final_readonly_class_in_the_use_case_namespace(): void
+    #[Test]
+    public function every_file_declares_a_final_readonly_class_in_the_use_case_namespace(): void
     {
         $templates = new UseCaseTemplates();
 
@@ -29,11 +32,12 @@ final class UseCaseTemplatesTest extends TestCase
 
         foreach ($files as $file => $code) {
             self::assertStringContainsString("namespace App\\Patrol\\UseCase\\SignUpForRound;\n", $code, $file);
-            self::assertStringContainsString('final readonly class '.basename($file, '.php')."\n", $code, $file);
+            self::assertStringContainsString('final readonly class ' . basename($file, '.php') . "\n", $code, $file);
         }
     }
 
-    public function test_handler_takes_the_input_and_returns_the_output(): void
+    #[Test]
+    public function handler_takes_the_input_and_returns_the_output(): void
     {
         $templates = new UseCaseTemplates();
 
@@ -42,7 +46,8 @@ final class UseCaseTemplatesTest extends TestCase
         self::assertStringContainsString('public function __invoke(SignUpForRound $input): SignUpForRoundOutput', $handler);
     }
 
-    public function test_controller_starts_as_post_on_the_kebab_cased_name(): void
+    #[Test]
+    public function controller_starts_as_post_on_the_kebab_cased_name(): void
     {
         $templates = new UseCaseTemplates();
 
@@ -54,7 +59,8 @@ final class UseCaseTemplatesTest extends TestCase
         );
     }
 
-    public function test_route_keeps_an_acronym_together(): void
+    #[Test]
+    public function route_keeps_an_acronym_together(): void
     {
         $templates = new UseCaseTemplates();
 

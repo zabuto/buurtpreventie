@@ -1,0 +1,70 @@
+#:schema https://mago.carthage.software/1.60.1/schema.json
+version = "1"
+php-version = "8.4.0"
+
+# The architecture fixtures break the rules on purpose. Recipe files stay exactly as Symfony ships them, so a recipe
+# update applies cleanly; Flex writes config/bundles.php and the kernel writes config/reference.php.
+[source]
+workspace = "."
+paths = ["src/", "tests/", "config/", "public/"]
+includes = ["vendor"]
+excludes = [
+    "tests/Architecture/Fixtures/",
+    "config/bundles.php",
+    "config/reference.php",
+    "config/preload.php",
+    "public/index.php",
+    "src/Kernel.php",
+    "tests/bootstrap.php",
+]
+
+[source.glob]
+literal-separator = true
+
+# Follows the PHP section of .editorconfig, so a PhpStorm reformat and mago format agree.
+[formatter]
+preset = "default"
+print-width = 160
+method-chain-semicolon-on-next-line = true
+preserve-breaking-member-access-chain = true
+preserve-breaking-argument-list = true
+preserve-breaking-parameter-list = true
+preserve-breaking-attribute-list = true
+preserve-breaking-conditional-expression = true
+preserve-breaking-condition-expression = true
+preserve-breaking-binary-expression = true
+preserve-breaking-pipe-expression = true
+# Empty bodies as PhpStorm writes them under .editorconfig (ij_php_keep_simple_*_in_one_line = false).
+inline-empty-function-braces = false
+inline-empty-method-braces = false
+inline-empty-constructor-braces = false
+inline-empty-classlike-braces = false
+inline-empty-anonymous-class-braces = false
+
+[linter]
+integrations = ["symfony", "phpunit"]
+
+[linter.rules]
+ambiguous-constant-access = { enabled = true }
+ambiguous-function-call = { enabled = true }
+no-fully-qualified-global-class-like = { enabled = true }
+prefer-array-spread = { enabled = true }
+prefer-explode-over-preg-split = { enabled = true }
+prefer-first-class-callable = { enabled = true }
+prefer-test-attribute = { enabled = true }
+yoda-conditions = { enabled = true }
+assertion-style = { style = "this" }
+literal-named-argument = { enabled = false }
+no-boolean-flag-parameter = { enabled = false }
+too-many-methods = { threshold = 25 }
+too-many-properties = { threshold = 25 }
+excessive-parameter-list = { constructor-threshold = 50 }
+halstead = { effort-threshold = 7000 }
+
+[analyzer]
+find-unused-definitions = true
+find-unused-expressions = true
+find-unused-parameters = true
+analyze-dead-code = true
+check-use-statements = true
+check-missing-type-hints = true

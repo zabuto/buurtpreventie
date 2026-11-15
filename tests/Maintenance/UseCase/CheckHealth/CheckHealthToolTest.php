@@ -7,14 +7,16 @@ namespace App\Tests\Maintenance\UseCase\CheckHealth;
 use App\Maintenance\UseCase\CheckHealth\CheckHealth;
 use App\Maintenance\UseCase\CheckHealth\CheckHealthHandler;
 use App\Maintenance\UseCase\CheckHealth\CheckHealthTool;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 final class CheckHealthToolTest extends TestCase
 {
-    public function test_returns_the_handler_output_unchanged(): void
+    #[Test]
+    public function it_returns_the_handler_output_unchanged(): void
     {
         $handler = new CheckHealthHandler();
 
-        self::assertEquals($handler(new CheckHealth()), (new CheckHealthTool($handler))(new CheckHealth()));
+        self::assertEquals($handler(new CheckHealth()), new CheckHealthTool($handler)(new CheckHealth()));
     }
 }

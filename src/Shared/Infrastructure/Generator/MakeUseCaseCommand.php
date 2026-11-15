@@ -39,7 +39,8 @@ final class MakeUseCaseCommand extends Command
     {
         $this
             ->addArgument('module', InputArgument::REQUIRED, 'Existing module under src/, for example Patrol')
-            ->addArgument('name', InputArgument::REQUIRED, 'Use-case name in PascalCase, for example SignUpForRound');
+            ->addArgument('name', InputArgument::REQUIRED, 'Use-case name in PascalCase, for example SignUpForRound')
+        ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -47,14 +48,14 @@ final class MakeUseCaseCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $module = $input->getArgument('module');
         $name = $input->getArgument('name');
-        \assert(\is_string($module) && \is_string($name));
+        \assert(\is_string($module) && \is_string($name), 'Both arguments are required strings.');
 
         if (1 !== preg_match(self::PASCAL_CASE, $name)) {
             $io->error(\sprintf('"%s" is not a PascalCase name such as SignUpForRound.', $name));
 
             return Command::INVALID;
         }
-        if ('Shared' === $module || 1 !== preg_match(self::PASCAL_CASE, $module) || !is_dir($this->sourceRoot.'/'.$module.'/UseCase')) {
+        if ('Shared' === $module || 1 !== preg_match(self::PASCAL_CASE, $module) || !is_dir($this->sourceRoot . '/' . $module . '/UseCase')) {
             $io->error(\sprintf('"%s" is not a module. Modules: %s.', $module, implode(', ', $this->modules())));
 
             return Command::INVALID;
@@ -70,12 +71,14 @@ final class MakeUseCaseCommand extends Command
         mkdir($folder);
         $created = [];
         foreach ($this->templates->render($module, $name) as $file => $contents) {
-            file_put_contents($folder.'/'.$file, $contents);
+            file_put_contents($folder . '/' . $file, $contents);
             $created[] = \sprintf('src/%s/UseCase/%s/%s', $module, $name, $file);
         }
 
         $io->listing($created);
-        $io->success('Fill in the input and output, write the handler test first, and set the route. Delete the controller or tool when the use case has no REST or MCP entry.');
+        $io->success(
+            'Fill in the input and output, write the handler test first, and set the route. Delete the controller or tool when the use case has no REST or MCP entry.',
+        );
 
         return Command::SUCCESS;
     }
@@ -85,10 +88,10 @@ final class MakeUseCaseCommand extends Command
      */
     private function modules(): array
     {
-        $modules = glob($this->sourceRoot.'/*/UseCase', \GLOB_ONLYDIR);
+        $modules = glob($this->sourceRoot . '/*/UseCase', \GLOB_ONLYDIR);
 
         return array_map(
-            static fn (string $path): string => basename(\dirname($path)),
+            static fn(string $path): string => basename(\dirname($path)),
             false === $modules ? [] : $modules,
         );
     }

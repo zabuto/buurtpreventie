@@ -15,11 +15,11 @@ final readonly class UseCaseTemplates
     public function render(string $module, string $name): array
     {
         $namespace = \sprintf('App\%s\UseCase\%s', $module, $name);
-        $path = '/'.implode('-', $this->words($name));
-        $routeName = strtolower($module).'_'.implode('_', $this->words($name));
+        $path = '/' . implode('-', $this->words($name));
+        $routeName = strtolower($module) . '_' . implode('_', $this->words($name));
 
         return [
-            $name.'.php' => <<<PHP
+            $name . '.php' => <<<PHP
                 <?php
 
                 declare(strict_types=1);
@@ -31,7 +31,7 @@ final readonly class UseCaseTemplates
                 }
 
                 PHP,
-            $name.'Handler.php' => <<<PHP
+            $name . 'Handler.php' => <<<PHP
                 <?php
 
                 declare(strict_types=1);
@@ -47,7 +47,7 @@ final readonly class UseCaseTemplates
                 }
 
                 PHP,
-            $name.'Output.php' => <<<PHP
+            $name . 'Output.php' => <<<PHP
                 <?php
 
                 declare(strict_types=1);
@@ -59,7 +59,7 @@ final readonly class UseCaseTemplates
                 }
 
                 PHP,
-            $name.'Controller.php' => <<<PHP
+            $name . 'Controller.php' => <<<PHP
                 <?php
 
                 declare(strict_types=1);
@@ -74,8 +74,9 @@ final readonly class UseCaseTemplates
                 #[AsController]
                 final readonly class {$name}Controller
                 {
-                    public function __construct(private {$name}Handler \$handler)
-                    {
+                    public function __construct(
+                        private {$name}Handler \$handler,
+                    ) {
                     }
 
                     #[Route('{$path}', name: '{$routeName}', methods: ['POST'])]
@@ -86,7 +87,7 @@ final readonly class UseCaseTemplates
                 }
 
                 PHP,
-            $name.'Tool.php' => <<<PHP
+            $name . 'Tool.php' => <<<PHP
                 <?php
 
                 declare(strict_types=1);
@@ -95,8 +96,9 @@ final readonly class UseCaseTemplates
 
                 final readonly class {$name}Tool
                 {
-                    public function __construct(private {$name}Handler \$handler)
-                    {
+                    public function __construct(
+                        private {$name}Handler \$handler,
+                    ) {
                     }
 
                     public function __invoke({$name} \$input): {$name}Output

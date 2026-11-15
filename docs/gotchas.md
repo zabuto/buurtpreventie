@@ -11,8 +11,6 @@ Things that are not obvious and cost time when you do not know them.
 - **PHP 8.5 locally, PHP 8.4 as the target.** `config.platform.php` is 8.4.27, so Composer picks
   packages that run on 8.4 even when you have 8.5 locally. PHPStan checks with `phpVersion: 80400`
   that the code uses no syntax that only exists in 8.5. CI runs on 8.4.
-- **PHP-CS-Fixer warns on PHP 8.5** that the project's minimum is 8.4. That is a warning, not an
-  error; it does not appear in CI (8.4).
 
 ## PHPStan
 
@@ -20,7 +18,16 @@ Things that are not obvious and cost time when you do not know them.
   change, run `bin/console cache:warmup` first; `composer check` does that itself.
 - **Symfony generates `config/reference.php`** on every cache warm-up, with different contents per
   environment (`dev` adds `when@dev` blocks). It only helps autocompletion of PHP config, so it stays
-  out of Git and out of PHPStan, PHP-CS-Fixer and Rector.
+  out of Git and out of PHPStan, Mago and Rector.
+
+## Mago
+
+- **The Composer package downloads the Mago binary** for the platform on first use, from the Mago
+  releases on GitHub. Without network access on a fresh install, the Mago checks cannot run.
+- **Recipe files are excluded** from Mago, PHPStan and Rector; see
+  [code-style.md](code-style.md#symfony-recipe-files).
+- **`ambiguous-function-call` hints** (an unqualified global function such as `sprintf()`) do not fail
+  the check. Write global functions as `\sprintf()` in new code.
 
 ## Rector
 

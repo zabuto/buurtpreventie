@@ -7,27 +7,32 @@ namespace App\Tests\Shared\Infrastructure\Generator;
 use App\Shared\Infrastructure\Generator\MakeUseCaseCommand;
 use App\Shared\Infrastructure\Generator\UseCaseTemplates;
 use App\Tests\Architecture\PhpStanProcess;
+use FilesystemIterator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
 
 #[Group('integration')]
 final class MakeUseCaseCommandTest extends TestCase
 {
-    private const string PROJECT_ROOT = __DIR__.'/../../../..';
+    private const string PROJECT_ROOT = __DIR__ . '/../../../..';
 
     private string $sourceRoot;
 
     protected function setUp(): void
     {
-        $this->sourceRoot = sys_get_temp_dir().'/make-use-case-'.bin2hex(random_bytes(4)).'/src';
+        $this->sourceRoot = sys_get_temp_dir() . '/make-use-case-' . bin2hex(random_bytes(4)) . '/src';
         foreach (['Domain', 'UseCase', 'Infrastructure'] as $folder) {
-            mkdir($this->sourceRoot.'/Patrol/'.$folder, 0o777, recursive: true);
+            mkdir($this->sourceRoot . '/Patrol/' . $folder, 0o777, recursive: true);
         }
         foreach (['Domain', 'Infrastructure'] as $folder) {
-            mkdir($this->sourceRoot.'/Shared/'.$folder, 0o777, recursive: true);
+            mkdir($this->sourceRoot . '/Shared/' . $folder, 0o777, recursive: true);
         }
     }
 
@@ -36,7 +41,8 @@ final class MakeUseCaseCommandTest extends TestCase
         $this->removeRecursively(\dirname($this->sourceRoot));
     }
 
-    public function test_writes_the_rendered_templates_into_a_new_use_case_folder(): void
+    #[Test]
+    public function it_writes_the_rendered_templates_into_a_new_use_case_folder(): void
     {
         $expected = new UseCaseTemplates()->render('Patrol', 'SignUpForRound');
 
@@ -44,7 +50,7 @@ final class MakeUseCaseCommandTest extends TestCase
 
         self::assertSame(Command::SUCCESS, $tester->getStatusCode());
         foreach ($expected as $file => $code) {
-            self::assertStringEqualsFile($this->sourceRoot.'/Patrol/UseCase/SignUpForRound/'.$file, $code);
+            self::assertStringEqualsFile($this->sourceRoot . '/Patrol/UseCase/SignUpForRound/' . $file, $code);
         }
     }
 
@@ -61,53 +67,79 @@ final class MakeUseCaseCommandTest extends TestCase
     }
 
     #[DataProvider('invalidNames')]
-    public function test_refuses_a_name_that_is_not_pascal_case(string $name): void
+    #[Test]
+    public function it_refuses_a_name_that_is_not_pascal_case(string $name): void
     {
         $tester = $this->generate('Patrol', $name);
 
         self::assertSame(Command::INVALID, $tester->getStatusCode());
-        self::assertSame(['Domain', 'Infrastructure', 'UseCase'], $this->visibleEntries($this->sourceRoot.'/Patrol'));
-        self::assertSame([], $this->visibleEntries($this->sourceRoot.'/Patrol/UseCase'));
+        self::assertSame(['Domain', 'Infrastructure', 'UseCase'], $this->visibleEntries($this->sourceRoot . '/Patrol'));
+        self::assertSame([], $this->visibleEntries($this->sourceRoot . '/Patrol/UseCase'));
     }
 
-    public function test_refuses_a_module_that_does_not_exist(): void
+    #[Test]
+    public function it_refuses_a_module_that_does_not_exist(): void
     {
         $tester = $this->generate('Rounds', 'SignUpForRound');
 
         self::assertSame(Command::INVALID, $tester->getStatusCode());
-        self::assertDirectoryDoesNotExist($this->sourceRoot.'/Rounds');
+        self::assertDirectoryDoesNotExist($this->sourceRoot . '/Rounds');
     }
 
-    public function test_refuses_shared_because_it_holds_no_use_cases(): void
+    #[Test]
+    public function it_refuses_shared_because_it_holds_no_use_cases(): void
     {
         $tester = $this->generate('Shared', 'Clock');
 
         self::assertSame(Command::INVALID, $tester->getStatusCode());
-        self::assertDirectoryDoesNotExist($this->sourceRoot.'/Shared/UseCase');
+        self::assertDirectoryDoesNotExist($this->sourceRoot . '/Shared/UseCase');
     }
 
-    public function test_leaves_an_existing_use_case_untouched(): void
+    #[Test]
+    public function it_leaves_an_existing_use_case_untouched(): void
     {
-        $folder = $this->sourceRoot.'/Patrol/UseCase/SignUpForRound';
+        $folder = $this->sourceRoot . '/Patrol/UseCase/SignUpForRound';
         mkdir($folder);
-        file_put_contents($folder.'/SignUpForRound.php', 'existing');
+        file_put_contents($folder . '/SignUpForRound.php', 'existing');
 
         $tester = $this->generate('Patrol', 'SignUpForRound');
 
         self::assertSame(Command::FAILURE, $tester->getStatusCode());
-        self::assertSame('existing', file_get_contents($folder.'/SignUpForRound.php'));
+        self::assertSame('existing', file_get_contents($folder . '/SignUpForRound.php'));
         self::assertSame(['SignUpForRound.php'], $this->visibleEntries($folder));
+    }
+
+    /**
+     * A new use case must pass composer check as generated, without a reformat first.
+     */
+    #[Test]
+    public function generated_use_case_needs_no_formatting(): void
+    {
+        $this->generate('Patrol', 'SignUpForRound');
+
+        exec(
+            \sprintf(
+                'cd %s && vendor/bin/mago format --dry-run %s 2>&1',
+                escapeshellarg(self::PROJECT_ROOT),
+                escapeshellarg($this->sourceRoot),
+            ),
+            $output,
+            $exitCode,
+        );
+
+        $this->assertSame(0, $exitCode, implode("\n", $output));
     }
 
     /**
      * Guards the templates themselves: whatever the generator writes must satisfy the same checks as src/.
      */
-    public function test_generated_use_case_passes_phpstan_at_level_max_including_the_architecture_rules(): void
+    #[Test]
+    public function generated_use_case_passes_phpstan_at_level_max_including_the_architecture_rules(): void
     {
         $this->generate('Patrol', 'SignUpForRound');
 
         $projectRoot = (string) realpath(self::PROJECT_ROOT);
-        $config = \dirname($this->sourceRoot).'/phpstan.neon';
+        $config = \dirname($this->sourceRoot) . '/phpstan.neon';
         file_put_contents($config, <<<NEON
             includes:
                 - {$projectRoot}/vendor/phpat/phpat/extension.neon
@@ -142,10 +174,17 @@ final class MakeUseCaseCommandTest extends TestCase
      */
     private function visibleEntries(string $path): array
     {
-        return array_values(array_filter(
-            (array) scandir($path),
-            static fn (mixed $entry): bool => \is_string($entry) && !str_starts_with($entry, '.'),
-        ));
+        $found = scandir($path);
+        $entries = [];
+        foreach (false === $found ? [] : $found as $entry) {
+            if (str_starts_with($entry, '.')) {
+                continue;
+            }
+
+            $entries[] = $entry;
+        }
+
+        return $entries;
     }
 
     private function removeRecursively(string $path): void
@@ -153,12 +192,12 @@ final class MakeUseCaseCommandTest extends TestCase
         if (!is_dir($path)) {
             return;
         }
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
         foreach ($iterator as $entry) {
-            \assert($entry instanceof \SplFileInfo);
+            \assert($entry instanceof SplFileInfo, 'RecursiveDirectoryIterator yields SplFileInfo by default.');
             $entry->isDir() ? rmdir($entry->getPathname()) : unlink($entry->getPathname());
         }
         rmdir($path);
