@@ -44,6 +44,7 @@ Buurtpreventie v4 wordt een Symfony 7.4 LTS-backend met een echte REST-API (`/ap
 | U8 | Vaste export voor politie en gemeente | later, nog uit te werken |
 | U9 | Route en incidentkaart | open, na DPIA en afstemming met het bestuur |
 | U10 | OAuth voor MCP-clients | later |
+| U11 | No-shows bijhouden | open, na afstemming met het bestuur |
 
 **Klaar-afspraak voor elke taak** (naast het "Klaar als" per fase):
 
@@ -761,7 +762,7 @@ v4 start op 7.4 LTS en stapt in 2028 over naar 8.4 LTS (verwacht november 2027),
 
 ## Implementatieplan
 
-Fase 0 tot en met 6b vormen de MVP: na fase 2 is de API bruikbaar, na fase 6b is de MVP klaar en kan de uitrol beginnen. Daarna volgen de uitbreidingen U1 tot en met U10: extra functies, elk los aan of uit te zetten, in volgorde van aanpak (zie Uitbreidingen na de MVP). De overstap van bestaande installaties is een apart project. Elke fase levert iets testbaars op en krijgt bij de start een eigen gedetailleerd taakplan (test eerst, kleine commits).
+Fase 0 tot en met 6b vormen de MVP: na fase 2 is de API bruikbaar, na fase 6b is de MVP klaar en kan de uitrol beginnen. Daarna volgen de uitbreidingen U1 tot en met U11: extra functies, elk los aan of uit te zetten, in volgorde van aanpak (zie Uitbreidingen na de MVP). De overstap van bestaande installaties is een apart project. Elke fase levert iets testbaars op en krijgt bij de start een eigen gedetailleerd taakplan (test eerst, kleine commits).
 
 Fase 3, 4 en 5 hangen alleen van de API af; MCP (fase 4) gaat vóór de frontend (fase 5).
 
@@ -862,7 +863,7 @@ Na fase 2 tot en met 5 staat het model dat uitgebracht wordt; de conversie volgt
 
 **Klaar als:** een webbeheerder zonder dev-achtergrond met alleen `docs/admin-guide/` een update én een terugzetting uitvoert op de proefinstallatie, een overdrachtsrelease naar een proef-fork werkt, en de overdrachtstoets uit Overdraagbaarheid is gedaan. Daarmee is de MVP klaar.
 
-### Uitbreidingen na de MVP (U1–U10)
+### Uitbreidingen na de MVP (U1–U11)
 
 Extra functies, geen onderdeel van de MVP. Ze komen pas na de uitrol van fase 6b, elk met een eigen taakplan, en elke uitbreiding is per vereniging los aan of uit te zetten.
 
@@ -886,6 +887,7 @@ Binnen elke groep gaat waarde vóór moeite.
 | U8 | Vaste export voor politie en gemeente | coördinator | nog te bepalen | klein tot middel | Geen persoonsgegevens in de export | Eerst met de coördinator uitwerken welke cijfers, in welke vorm en hoe vaak |
 | U9 | Route en incidentkaart | coördinator, analist | middel | groot | Locatie is gevoelig: toestemming per loper, DPIA en afstemming met het bestuur vooraf | Veel werk en privacy-afwegingen |
 | U10 | OAuth voor MCP-clients | lopers via een AI-app | laag | groot | Een eigen autorisatieserver is het grootste nieuwe aanvalsoppervlak; per vereniging aan of uit | Maakt MCP bruikbaar met inloggen in plaats van een token; tot dan werkt MCP met tokens |
+| U11 | No-shows bijhouden | coördinator | middel | klein | Een oordeel over betrouwbaarheid is gevoelig: alleen coördinator en het lid zelf, vaste bewaartermijn, inzage en bezwaar, afstemming met het bestuur vooraf | Helpt de coördinator een loper aan te spreken die vaak niet komt, maar vraagt eerst een privacy-afweging |
 
 ### Uitbreiding U1 — Vast loopmaatje uitnodigen
 
@@ -997,6 +999,18 @@ Een losse uitbreiding die pas start als fase 0 t/m 6 draaien. Standaard staat hi
 - [ ] Een latere uitbreiding: tot die tijd werkt MCP met de tokens uit fase 4, vooral voor ontwikkelaar en coördinator vanuit bijvoorbeeld Claude Code of Claude Desktop. Met OAuth kunnen ook lopers MCP gebruiken vanuit een web- of telefoonapp, door in te loggen in plaats van een token in te vullen. De MCP SDK controleert tokens maar geeft ze niet uit, dus dit is extra code en extra beveiligingsrisico.
 
 **Klaar als:** de gewenste client via OAuth inlogt, met dezelfde scopes en rollen als een token.
+
+### Uitbreiding U11 — No-shows bijhouden
+
+Een losse uitbreiding, standaard uit; een vereniging zet hem aan in de instellingen, na afstemming met het bestuur.
+
+- [ ] **Markeren bij annuleren:** wie een begonnen ronde annuleert (`CancelRound`, een loper van die ronde of de coördinator), vinkt aan welke lopers niet kwamen. De coördinator kan dat achteraf aanpassen.
+- [ ] **Model:** `noShowAt` op de aanmelding (`Participation`) van die loper in die ronde; geen eigen tabel. Elke markering en elke verwijdering laat een auditregel achter.
+- [ ] **Zichtbaar voor de coördinator:** het aantal no-shows per lid over een periode, bij het lid in het ledenoverzicht, zodat hij iemand kan aanspreken. Geen ranglijst; niet zichtbaar voor andere lopers of de analist, en via MCP alleen voor de coördinator.
+- [ ] **Zichtbaar voor het lid zelf:** de eigen no-shows bij "Mijn activiteit", met de mogelijkheid bezwaar te maken bij de coördinator.
+- [ ] **Privacy (AVG):** een oordeel over hoe betrouwbaar iemand is, is gevoelige persoonsinformatie. Vaste bewaartermijn (standaard 12 maanden, instelbaar), daarna verwijdert de scheduler de markering; vermelding in de privacyverklaring van de vereniging; inzage en correctie voor het lid; uitzetten verwijdert alle markeringen.
+
+**Klaar als:** een no-show bij het annuleren vastligt, de coördinator het aantal per lid ziet, het lid zijn eigen no-shows ziet, en markeringen na de bewaartermijn weg zijn.
 
 ## Overstap van bestaande v3-installaties
 
