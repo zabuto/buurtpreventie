@@ -497,7 +497,9 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
     melding op dezelfde kloktijd valt, ook over een wissel van zomer- en wintertijd. De scheduler verstuurt de
     geplande meldingen; de melding "meteen" verstuurt `CreateRound` zelf, zodat die ook zonder cron aankomt. De ronde
     onthoudt dat de melding verstuurd is, dus een loopmaatje dat zich aan- en weer afmeldt, geeft geen tweede;
-  - de analist schrijft niets, behalve eigen toestemming, eigen tokens en een opmerking als loper van de ronde.
+  - de analist schrijft niets; wat elk lid mag (eigen toestemming, eigen tokens) en wat een loper van de ronde mag,
+    geldt voor hem als voor ieder ander. Loopt een analist ook, dan krijgt hij de rol loper erbij: rollen tellen op,
+    en elke rol geeft alleen zijn eigen rechten.
 - Wie de actie uitvoert (besloten op 15 november 2026):
   - één bron: de token-opslag van Symfony. `ExecutionContext` leest het token; `SymfonyAuthorization` leest via de
     `AuthorizationChecker` hetzelfde token, dus handler en Voters zien altijd dezelfde uitvoerder;
