@@ -53,8 +53,11 @@ lacks the grant; `docker compose down --volumes` and starting again adds it.
 With the Symfony CLI:
 
 ```bash
-symfony server:start
+symfony server:start -d
 ```
+
+`-d` runs the server in the background; `symfony server:log` shows its log and `symfony server:stop`
+stops it.
 
 Without the Symfony CLI:
 
@@ -79,7 +82,7 @@ symfony proxy:start
 The browser reaches `.wip` domains only when the system or browser proxy uses
 `http://127.0.0.1:7080/proxy.pac`; see
 [Setting up the local proxy](https://symfony.com/doc/current/setup/symfony_cli.html#setting-up-the-local-proxy).
-After `symfony server:start`, the health check answers on `https://buurtpreventie.wip/api/v1/health`.
+After `symfony server:start -d`, the health check answers on `https://buurtpreventie.wip/api/v1/health`.
 
 ## Test and check
 

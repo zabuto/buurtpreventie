@@ -68,8 +68,10 @@ The plan lives in docs/plan-v4.md and is leading. Read it before every phase.
 - Install: composer install
 - Database (development): docker compose up -d --wait; run console commands as symfony console,
   which takes DATABASE_URL from the container.
-- Start: symfony server:start, or php -S localhost:8000 -t public; check /api/v1/health.
-- Test: composer test (all), composer test:unit (in-memory unit tests only)
+- Start: symfony server:start -d (in the background), or php -S localhost:8000 -t public; check
+  /api/v1/health.
+- Test: composer test (all; database tests skip), symfony composer test (all, with the database),
+  composer test:unit (in-memory unit tests only)
 - All CI checks: composer check (validate, audit, container lint, deprecations, Mago format,
   lint and analyze, Rector dry run, PHPStan level max with PHPat, PHPUnit). The Opengrep security
   scan runs only in CI (docs/testing.md).
