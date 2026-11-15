@@ -82,3 +82,6 @@ Things that are not obvious and cost time when you do not know them.
   `symfony console cache:clear --env=test` after pulling changes to services or voters.
 - **`bin/console debug:container --deprecations` always exits with code 0.** `composer deprecations`
   therefore checks the text of its output.
+- **`zircote/swagger-php` stays below 7.** NelmioApiDocBundle extends `OpenApi\Generator`, which swagger-php 7
+  deprecates, so `composer deprecations` fails on 7. The `conflict` entry in `composer.json` holds the 6 line,
+  which still gets releases; drop it once Nelmio builds on `OpenApi\Builder`.

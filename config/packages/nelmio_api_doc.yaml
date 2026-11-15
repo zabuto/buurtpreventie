@@ -1,0 +1,10 @@
+nelmio_api_doc:
+    documentation:
+        info:
+            title: Buurtpreventie API
+            description: Plan neighbourhood watch rounds, find a walking buddy and report back.
+            version: v1
+    areas:
+        default:
+            path_patterns:
+                - ^/api/v1(?!/docs\.json$)

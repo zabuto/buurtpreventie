@@ -249,8 +249,8 @@ Versies en datums van Packagist op 15 november 2026. De Composer-cooldown van 24
 | Pakket | Waarvoor | Licentie | Soort | Releaseritme | Nu |
 | --- | --- | --- | --- | --- | --- |
 | `nelmio/api-doc-bundle` | OpenAPI-spec uit routes, invoer en uitvoer | MIT | runtime | Patch elke paar weken, minor elke paar maanden | v5.13.2 (30 okt) |
-| `zircote/swagger-php` (via Nelmio) | OpenAPI-model en attributen | Apache-2.0 | runtime | Vaak: vier minors in de laatste twee weken | 7.6.0 (12 nov) |
-| `phpdocumentor/reflection-docblock`, `phpdocumentor/type-resolver`, `phpstan/phpdoc-parser`, `radebatz/type-info-extras` (via Nelmio en swagger-php) | Typen uit docblocks | MIT | runtime | Een paar releases per jaar; type-info-extras vaker | type-info-extras 1.0.14 (12 nov) |
+| `zircote/swagger-php` (via Nelmio) | OpenAPI-model en attributen | Apache-2.0 | runtime | Vaak: vier minors in de laatste twee weken; de 6-lijn krijgt nog releases | 6.20.4 (11 nov), zie T2 |
+| `phpdocumentor/reflection-docblock`, `phpdocumentor/reflection-common`, `phpdocumentor/type-resolver`, `phpstan/phpdoc-parser`, `radebatz/type-info-extras`, `webmozart/assert` (via Nelmio en swagger-php) | Typen uit docblocks | MIT | runtime | Een paar releases per jaar; type-info-extras vaker | type-info-extras 1.0.14 (12 nov) |
 | `symfony/security-csrf` | CSRF voor de browser (beslissing 7) | MIT | runtime | Symfony 7.4 LTS; dit onderdeel verandert zelden | v7.4.8 (24 mrt) |
 | `symfony/rate-limiter` (+ `symfony/options-resolver`) | Inlogpogingen en link-aanvragen (beslissing 13); fase 4 gebruikt hem voor MCP | MIT | runtime | Symfony 7.4 LTS, patch ongeveer maandelijks | v7.4.23 (1 nov) |
 | `symfony/translation` | API-meldingen en validatorfouten in `nl` en `en` (beslissing 21) | MIT | runtime | Symfony 7.4 LTS | v7.4.23 (1 nov) |
@@ -275,6 +275,17 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
 - `framework.yaml`: sessie (beslissing 8), vertaling met `nl` als standaard; `rate_limiter.yaml`;
   `nelmio_api_doc.yaml` met alleen `/api/v1` en de route `/api/v1/docs.json`.
 - Test eerst: `SymfonyReleaseLineTest` dekt de nieuwe pakketten; `composer deprecations` blijft schoon.
+- Uitgevoerd op 15 november 2026, met deze keuzes:
+  - `zircote/swagger-php` blijft op de 6-lijn (`conflict` op `>=7` in `composer.json`): Nelmio breidt
+    `OpenApi\Generator` uit, die in 7.0 verouderd is, en `composer deprecations` faalt daarop. De regel gaat weg
+    zodra Nelmio `OpenApi\Builder` gebruikt; `docs/gotchas.md` noemt het;
+  - `phpdocumentor/reflection-common` en `webmozart/assert` kwamen mee en staan in de tabel;
+  - het recept van Nelmio staat in `recipes-contrib` en wordt niet toegepast (`allow-contrib: false`): bundel,
+    `nelmio_api_doc.yaml` en de route staan er met de hand; de titel van de spec is Engels, zoals de API;
+  - sessie en rate limiter worden ingesteld in T5, met de tests die ze nodig hebben; vertaling staat op `nl` met
+    `en` erbij, `translations/` is nog leeg;
+  - `OpenApiDocumentTest`: de spec is JSON zonder inloggen, met de volledige paden onder `/api/v1`, zonder zijn
+    eigen route.
 
 ### T3. Foutafhandeling en testopzet (test eerst)
 

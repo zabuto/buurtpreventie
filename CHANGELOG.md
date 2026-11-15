@@ -87,3 +87,4 @@ versions follow [Semantic Versioning](https://semver.org/).
 - Opengrep rules against queries outside a repository, query builder parts built from strings, predictable random
   functions and broken hashes, and byte-wise case changes.
 - ADR 0005 on the database approach; fixed limits in `docs/configuration.md`.
+- OpenAPI description of the API at `GET /api/v1/docs.json` (NelmioApiDocBundle), public and in JSON only.
