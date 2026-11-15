@@ -16,6 +16,7 @@ use App\Tests\Shared\Fake\FixedExecutionContext;
 use App\Tests\Shared\Fake\FixedMemberNames;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use DomainException;
 use Override;
 use PHPUnit\Framework\Attributes\Group;
@@ -51,7 +52,7 @@ final class DoctrineAuditTrailTest extends KernelTestCase
         $round = Uuid::v7();
         $trail = $this->trail(new Actor($jan, [Role::Walker]), Channel::Api, [$jan->toRfc4122() => 'Jan B.']);
 
-        new DoctrineTransaction($this->entityManager)->run(static fn() => $trail->record(
+        $this->transaction()->run(static fn() => $trail->record(
             new AuditedAction('round.changed', 'round', $round, ['startsAt' => ['old' => '22:00', 'new' => '23:00']]),
         ));
 
@@ -69,7 +70,7 @@ final class DoctrineAuditTrailTest extends KernelTestCase
         $round = Uuid::v7();
         $trail = $this->trail(null, Channel::Cron);
 
-        new DoctrineTransaction($this->entityManager)->run(static fn() => $trail->record(new AuditedAction('participation.reminded', 'round', $round)));
+        $this->transaction()->run(static fn() => $trail->record(new AuditedAction('participation.reminded', 'round', $round)));
 
         $entry = $this->readBack($round);
         $this->assertSame([true, null, []], [$entry->isBySystem(), $entry->actorName(), $entry->changes()]);
@@ -89,7 +90,7 @@ final class DoctrineAuditTrailTest extends KernelTestCase
 
         $caught = null;
         try {
-            new DoctrineTransaction($this->entityManager)->run(static function () use ($trail, $round, $refusal): never {
+            $this->transaction()->run(static function () use ($trail, $round, $refusal): never {
                 $trail->record(new AuditedAction('round.created', 'round', $round));
 
                 throw $refusal;
@@ -125,5 +126,14 @@ final class DoctrineAuditTrailTest extends KernelTestCase
         $this->assertCount(1, $entries);
 
         return $entries[0];
+    }
+
+    private function transaction(): DoctrineTransaction
+    {
+        $registry = self::getContainer()->get(ManagerRegistry::class);
+        // @phpstan-ignore method.alreadyNarrowedType (PHPStan reads the type from the container, Mago does not)
+        $this->assertInstanceOf(ManagerRegistry::class, $registry);
+
+        return new DoctrineTransaction($registry);
     }
 }

@@ -8,6 +8,7 @@ use App\Shared\Infrastructure\Doctrine\DoctrineTransaction;
 use App\Tests\Database\TestDatabase;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use DomainException;
 use Override;
 use PHPUnit\Framework\Attributes\Group;
@@ -22,6 +23,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 final class DoctrineTransactionTest extends KernelTestCase
 {
     private Connection $connection;
+    private EntityManagerInterface $entityManager;
     private DoctrineTransaction $transaction;
 
     #[Override]
@@ -31,8 +33,12 @@ final class DoctrineTransactionTest extends KernelTestCase
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
         // @phpstan-ignore method.alreadyNarrowedType (PHPStan reads the type from the container, Mago does not)
         $this->assertInstanceOf(EntityManagerInterface::class, $entityManager);
+        $registry = self::getContainer()->get(ManagerRegistry::class);
+        // @phpstan-ignore method.alreadyNarrowedType (PHPStan reads the type from the container, Mago does not)
+        $this->assertInstanceOf(ManagerRegistry::class, $registry);
+        $this->entityManager = $entityManager;
         $this->connection = $entityManager->getConnection();
-        $this->transaction = new DoctrineTransaction($entityManager);
+        $this->transaction = new DoctrineTransaction($registry);
         // A temporary table commits nothing, so the rollback of each test also empties it. It lasts as long as the
         // connection of the test bundle, which every test shares.
         $this->connection->executeStatement('CREATE TEMPORARY TABLE IF NOT EXISTS transaction_probe (name VARCHAR(20) NOT NULL)');
@@ -99,5 +105,24 @@ final class DoctrineTransactionTest extends KernelTestCase
         $this->assertSame($refusal, $caught);
         $this->assertSame($level, $this->connection->getTransactionNestingLevel());
         $this->assertSame([], $this->connection->fetchFirstColumn('SELECT name FROM transaction_probe'));
+    }
+
+    /**
+     * Doctrine closes the entity manager when a transaction fails; without a reset, the next use case in the same
+     * process, such as the next fixture or scheduled job, fails on a closed entity manager.
+     */
+    #[Test]
+    public function it_leaves_a_working_entity_manager_after_a_failed_operation(): void
+    {
+        $refusal = new DomainException('The round is full.');
+
+        $caught = null;
+        try {
+            $this->transaction->run(static fn(): never => throw $refusal);
+        } catch (DomainException $exception) {
+            $caught = $exception;
+        }
+
+        $this->assertSame([$refusal, true], [$caught, $this->entityManager->isOpen()]);
     }
 }
