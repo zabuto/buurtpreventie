@@ -32,4 +32,17 @@ final readonly class BuddyCall
 
         return $createdAt;
     }
+
+    /**
+     * Whether the call goes out at this moment: once per round, only when due, before the start, and while the round
+     * seeks a buddy. A buddy who signs up and then withdraws causes no second call.
+     */
+    public static function isNeeded(Round $round, DateTimeImmutable $now): bool
+    {
+        return (
+            null === $round->buddyCallSentAt()
+                && $now >= $round->buddyCallDueAt()
+                && RoundStatus::SeekingBuddy === $round->status($now)
+        );
+    }
 }

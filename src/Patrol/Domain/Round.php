@@ -296,19 +296,6 @@ final class Round
         return BuddyCall::dueAt($this->createdAt, $this->startsAt);
     }
 
-    /**
-     * Whether the buddy call goes out at this moment: once per round, only when due, before the start, and while
-     * the round seeks a buddy. A buddy who signs up and then withdraws causes no second call.
-     */
-    public function needsBuddyCall(DateTimeImmutable $now): bool
-    {
-        return (
-            null === $this->buddyCallSentAt
-                && $now >= $this->buddyCallDueAt()
-                && RoundStatus::SeekingBuddy === $this->status($now)
-        );
-    }
-
     public function buddyCallSentAt(): ?DateTimeImmutable
     {
         return $this->buddyCallSentAt;

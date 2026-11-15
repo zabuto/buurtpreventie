@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Patrol\Domain;
 
+use App\Patrol\Domain\BuddyCall;
 use App\Patrol\Domain\Round;
 use App\Patrol\Domain\RoundStart;
 use App\Patrol\Domain\StaffingRule;
@@ -67,7 +68,7 @@ final class BuddyCallTest extends TestCase
     {
         $round = $this->round(RoundFixture::STARTS_AT, RoundFixture::CREATED_AT);
 
-        $this->assertSame($expected, $round->needsBuddyCall(new DateTimeImmutable($now)));
+        $this->assertSame($expected, BuddyCall::isNeeded($round, new DateTimeImmutable($now)));
     }
 
     #[Test]
@@ -77,7 +78,7 @@ final class BuddyCallTest extends TestCase
 
         $round->signUp(Uuid::v7(), new DateTimeImmutable(RoundFixture::CREATED_AT));
 
-        $this->assertFalse($round->needsBuddyCall(new DateTimeImmutable('2026-11-16T12:00:00+00:00')));
+        $this->assertFalse(BuddyCall::isNeeded($round, new DateTimeImmutable('2026-11-16T12:00:00+00:00')));
     }
 
     #[Test]
@@ -90,7 +91,7 @@ final class BuddyCallTest extends TestCase
 
         $round->withdraw($buddy, new DateTimeImmutable('2026-11-16T10:00:00+00:00'));
 
-        $this->assertFalse($round->needsBuddyCall(new DateTimeImmutable('2026-11-17T21:00:00+00:00')));
+        $this->assertFalse(BuddyCall::isNeeded($round, new DateTimeImmutable('2026-11-17T21:00:00+00:00')));
     }
 
     private function round(string $startsAt, string $createdAt): Round

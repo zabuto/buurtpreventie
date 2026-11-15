@@ -25,7 +25,7 @@ final readonly class BuddyCaller
      */
     public function callIfDue(Round $round, DateTimeImmutable $now): ?int
     {
-        if (!$round->needsBuddyCall($now)) {
+        if (!BuddyCall::isNeeded($round, $now)) {
             return null;
         }
 
