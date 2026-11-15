@@ -306,7 +306,7 @@ Het project krijgt verzonnen voorbeelddata die altijd actueel ogen: alle datums 
 **Wat erin zit (set `demo`).**
 
 - **Een verzonnen vereniging** "Buurtpreventie Voorbeeldwijk" met neutrale branding, een paar startpunten en de standaarduitkomsten.
-- **Hooguit 20 leden** met elke rol (vooral lopers; hooguit drie leden met een andere rol: één coördinator die ook loopt, en één analist en één beheerder die niet per se lopen), wisselende toestemming voor contactgegevens, een gedeactiveerd lid en een lid met een API-token. Alleen adressen op `example.org` en verzonnen telefoonnummers.
+- **Hooguit 20 leden** met elke rol (vooral lopers; hooguit drie leden met een andere rol: één coördinator die ook loopt, en één analist en één beheerder die niet per se lopen), wisselende toestemming voor contactgegevens, een gedeactiveerd lid, een gewist lid in de historie en een lid met een API-token. Alleen adressen op `example.org` en verzonnen telefoonnummers.
 - **Rondes van drie maanden terug tot zes weken vooruit**, met het patroon uit de echte loopschema's: vooral avonden, soms ochtend of middag, ruim een kwart zonder loopmaatje, soms een volle ronde, af en toe een incident, terugmeldingen bij gelopen rondes en een paar zonder.
 - **Auditlog-regels** die bij die rondes passen, zodat het scherm Auditlog meteen iets laat zien.
 

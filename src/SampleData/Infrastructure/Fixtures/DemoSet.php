@@ -13,7 +13,8 @@ use Symfony\Component\DependencyInjection\Attribute\When;
 
 /**
  * A made-up neighbourhood watch that looks in use: twenty members, rounds from three months back to six weeks ahead,
- * mostly in the evening, more than a quarter without a buddy, a few full ones, reports with now and then an incident.
+ * mostly in the evening, more than a quarter without a buddy, a few full ones, reports with now and then an incident,
+ * and a member erased after walking, so the history shows how an erased member looks.
  * A fixed seed gives the same people and pattern on every load; only the dates follow today.
  */
 #[When(env: 'dev')]
@@ -57,6 +58,9 @@ final readonly class DemoSet implements FixtureSet
     /** Willem stopped walking; deactivating him withdraws him from the rounds ahead. */
     private const string STOPPED = 'willem.dekker';
 
+    /** Yara moved away and asked to be erased; her rounds stay in the history under "erased member". */
+    private const string ERASED = 'yara.brouwer';
+
     public function __construct(
         private MemberSteps $members,
         private PatrolSteps $patrol,
@@ -89,10 +93,13 @@ final readonly class DemoSet implements FixtureSet
         foreach ($people['stopped'] as $stopped) {
             $this->members->deactivate($admin, $stopped, $now->modify('-5 minutes'));
         }
+        foreach ($people['erased'] as $erased) {
+            $this->members->erase($admin, $erased, $now->modify('-4 minutes'));
+        }
     }
 
     /**
-     * @return array{coordinator: SampleMember, walkers: list<SampleMember>, stopped: list<SampleMember>}
+     * @return array{coordinator: SampleMember, walkers: list<SampleMember>, stopped: list<SampleMember>, erased: list<SampleMember>}
      */
     private function walkers(Randomizer $random, SampleMember $admin, DateTimeImmutable $at): array
     {
@@ -115,6 +122,7 @@ final readonly class DemoSet implements FixtureSet
 
         $walkers = [$coordinator];
         $stopped = [];
+        $erased = [];
         foreach (self::WALKERS as $index => [$name, $displayName, $address]) {
             $walker = $this->walker(
                 $random,
@@ -128,10 +136,13 @@ final readonly class DemoSet implements FixtureSet
             if (self::STOPPED === $address) {
                 $stopped[] = $walker;
             }
+            if (self::ERASED === $address) {
+                $erased[] = $walker;
+            }
             $walkers[] = $walker;
         }
 
-        return ['coordinator' => $coordinator, 'walkers' => $walkers, 'stopped' => $stopped];
+        return ['coordinator' => $coordinator, 'walkers' => $walkers, 'stopped' => $stopped, 'erased' => $erased];
     }
 
     /**
