@@ -22,6 +22,27 @@ final class InMemoryRoundRepository implements RoundRepository
         return $this->rounds[$id->toRfc4122()] ?? throw NotFound::forId('round', $id);
     }
 
+    /**
+     * The fake holds no locks: the database tests prove the locking.
+     */
+    #[Override]
+    public function getForUpdate(Uuid $id): Round
+    {
+        return $this->get($id);
+    }
+
+    #[Override]
+    public function between(DateTimeImmutable $from, DateTimeImmutable $to): array
+    {
+        return $this->sortedWhere(static fn(Round $round): bool => $round->startsAt() >= $from && $round->startsAt() < $to);
+    }
+
+    #[Override]
+    public function upcoming(DateTimeImmutable $now): array
+    {
+        return $this->sortedWhere(static fn(Round $round): bool => !$round->hasStarted($now));
+    }
+
     #[Override]
     public function add(Round $round): void
     {
@@ -46,5 +67,26 @@ final class InMemoryRoundRepository implements RoundRepository
     public function has(Round $round): bool
     {
         return \array_key_exists($round->id()->toRfc4122(), $this->rounds);
+    }
+
+    /**
+     * @return list<Round>
+     */
+    public function all(): array
+    {
+        return \array_values($this->rounds);
+    }
+
+    /**
+     * @param callable(Round): bool $matches
+     *
+     * @return list<Round>
+     */
+    private function sortedWhere(callable $matches): array
+    {
+        $found = \array_values(\array_filter($this->rounds, $matches));
+        \usort($found, static fn(Round $a, Round $b): int => $a->startsAt() <=> $b->startsAt());
+
+        return $found;
     }
 }

@@ -7,9 +7,11 @@ namespace App\Tests\Patrol\Domain;
 use App\Patrol\Domain\Daypart;
 use App\Patrol\Domain\MeetingPoint;
 use App\Patrol\Domain\Round;
+use App\Patrol\Domain\RoundHasStarted;
 use App\Patrol\Domain\RoundStart;
 use App\Patrol\Domain\RoundStatus;
 use App\Patrol\Domain\StaffingRule;
+use App\Patrol\Domain\StartInPast;
 use DateTimeImmutable;
 use DateTimeZone;
 use Override;
@@ -176,7 +178,7 @@ final class RoundTest extends TestCase
     {
         $round = RoundFixture::withWalkers($this->firstWalker, 1, maximum: 3);
 
-        $round->change(new RoundStart(new DateTimeImmutable('2026-11-21T21:00:00+00:00')));
+        $round->change(new RoundStart(new DateTimeImmutable('2026-11-21T21:00:00+00:00')), new DateTimeImmutable(RoundFixture::CREATED_AT));
 
         $this->assertEquals(new StaffingRule(minimumWalkers: 2, maximumWalkers: 3), $round->staffingRule());
     }
@@ -186,7 +188,10 @@ final class RoundTest extends TestCase
     {
         $round = RoundFixture::withWalkers($this->firstWalker, 1);
 
-        $round->change(new RoundStart(new DateTimeImmutable('2026-11-21T22:00:00', new DateTimeZone('Europe/Amsterdam'))));
+        $round->change(
+            new RoundStart(new DateTimeImmutable('2026-11-21T22:00:00', new DateTimeZone('Europe/Amsterdam'))),
+            new DateTimeImmutable(RoundFixture::CREATED_AT),
+        );
 
         $this->assertSame('2026-11-21T21:00:00+00:00', $round->startsAt()->format(\DATE_ATOM));
     }
@@ -197,7 +202,7 @@ final class RoundTest extends TestCase
         $round = RoundFixture::withWalkers($this->firstWalker, 1);
         $meetingPoint = MeetingPoint::create('Speeltuin');
 
-        $round->change(new RoundStart($round->startsAt(), $meetingPoint, ' Bij het hek '));
+        $round->change(new RoundStart($round->startsAt(), $meetingPoint, ' Bij het hek '), new DateTimeImmutable(RoundFixture::CREATED_AT));
 
         $this->assertSame([$meetingPoint, 'Bij het hek'], [$round->meetingPoint(), $round->startNote()]);
     }
@@ -207,8 +212,57 @@ final class RoundTest extends TestCase
     {
         $round = RoundFixture::withWalkers($this->firstWalker, 1);
 
-        $round->change(new RoundStart($round->startsAt(), note: '   '));
+        $round->change(new RoundStart($round->startsAt(), note: '   '), new DateTimeImmutable(RoundFixture::CREATED_AT));
 
         $this->assertNull($round->startNote());
+    }
+
+    #[Test]
+    public function it_refuses_to_plan_a_round_that_starts_at_or_before_the_moment_it_is_created(): void
+    {
+        $this->expectExceptionObject(StartInPast::at(new DateTimeImmutable(RoundFixture::CREATED_AT)));
+
+        Round::plan(
+            start: new RoundStart(new DateTimeImmutable(RoundFixture::CREATED_AT)),
+            firstWalker: $this->firstWalker,
+            staffingRule: new StaffingRule(minimumWalkers: 2, maximumWalkers: 7),
+            now: new DateTimeImmutable(RoundFixture::CREATED_AT),
+        );
+    }
+
+    #[Test]
+    public function it_plans_a_round_that_starts_a_second_after_it_is_created(): void
+    {
+        $round = Round::plan(
+            start: new RoundStart(new DateTimeImmutable('2026-11-10T09:00:01+00:00')),
+            firstWalker: $this->firstWalker,
+            staffingRule: new StaffingRule(minimumWalkers: 2, maximumWalkers: 7),
+            now: new DateTimeImmutable(RoundFixture::CREATED_AT),
+        );
+
+        $this->assertSame('2026-11-10T09:00:01+00:00', $round->startsAt()->format(\DATE_ATOM));
+    }
+
+    #[Test]
+    public function it_refuses_to_move_to_a_start_in_the_past(): void
+    {
+        $round = RoundFixture::withWalkers($this->firstWalker, 1);
+
+        $this->expectExceptionObject(StartInPast::at(new DateTimeImmutable('2026-11-09T21:00:00+00:00')));
+
+        $round->change(new RoundStart(new DateTimeImmutable('2026-11-09T21:00:00+00:00')), new DateTimeImmutable(RoundFixture::CREATED_AT));
+    }
+
+    /**
+     * Who walked when is history from the start; moving the round would rewrite it.
+     */
+    #[Test]
+    public function it_refuses_a_change_once_started(): void
+    {
+        $round = RoundFixture::withWalkers($this->firstWalker, 2);
+
+        $this->expectExceptionObject(RoundHasStarted::forRound($round->id()));
+
+        $round->change(new RoundStart(new DateTimeImmutable('2026-11-27T21:00:00+00:00')), new DateTimeImmutable(RoundFixture::AT_START));
     }
 }

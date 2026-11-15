@@ -20,4 +20,9 @@ interface RoundCommentRepository
     public function add(RoundComment $roundComment): void;
 
     public function remove(RoundComment $roundComment): void;
+
+    /**
+     * @return list<RoundComment> oldest first
+     */
+    public function forRound(Round $round): array;
 }

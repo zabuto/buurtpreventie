@@ -56,7 +56,7 @@ final class Round
         private DateTimeImmutable $createdAt,
     ) {
         $this->id = Uuid::v7();
-        $this->change($start);
+        $this->moveTo($start);
         $this->participations = new ArrayCollection();
         $this->reports = new ArrayCollection();
     }
@@ -67,6 +67,8 @@ final class Round
      *
      * @param StaffingRule $staffingRule from the settings at this moment; it stays with the round
      * @param Uuid|null $onBehalfOf the coordinator creating the round for the first walker
+     *
+     * @throws StartInPast
      */
     public static function plan(
         RoundStart $start,
@@ -75,6 +77,7 @@ final class Round
         DateTimeImmutable $now,
         ?Uuid $onBehalfOf = null,
     ): self {
+        $start->refuseUnlessAfter($now);
         $round = new self($start, $staffingRule, $now);
         $round->participations->add(new Participation($round, $firstWalker, $now, $onBehalfOf));
 
@@ -318,8 +321,21 @@ final class Round
 
     /**
      * Changes when and where the round starts. The round keeps the staffing rule it was created with.
+     *
+     * @throws RoundHasStarted
+     * @throws StartInPast
      */
-    public function change(RoundStart $start): void
+    public function change(RoundStart $start, DateTimeImmutable $now): void
+    {
+        if ($this->hasStarted($now)) {
+            throw RoundHasStarted::forRound($this->id);
+        }
+
+        $start->refuseUnlessAfter($now);
+        $this->moveTo($start);
+    }
+
+    private function moveTo(RoundStart $start): void
     {
         $this->startsAt = $start->startsAt;
         $this->meetingPoint = $start->meetingPoint;

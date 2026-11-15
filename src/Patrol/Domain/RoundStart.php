@@ -26,4 +26,14 @@ final readonly class RoundStart
         $this->startsAt = $startsAt->setTimezone(new DateTimeZone('UTC'));
         $this->note = '' === $note ? null : $note;
     }
+
+    /**
+     * @throws StartInPast for a start at or before this moment
+     */
+    public function refuseUnlessAfter(DateTimeImmutable $now): void
+    {
+        if ($this->startsAt <= $now) {
+            throw StartInPast::at($this->startsAt);
+        }
+    }
 }

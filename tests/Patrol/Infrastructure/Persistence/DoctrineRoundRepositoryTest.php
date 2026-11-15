@@ -130,6 +130,59 @@ final class DoctrineRoundRepositoryTest extends KernelTestCase
         $this->assertEqualsCanonicalizing([$member, $buddy], $found[0]->walkerIds());
     }
 
+    #[Test]
+    public function it_finds_the_rounds_from_the_first_instant_up_to_the_last_by_start(): void
+    {
+        $justBefore = $this->stored('2026-11-19T22:59:59+00:00');
+        $atFrom = $this->stored('2026-11-19T23:00:00+00:00');
+        $atTo = $this->stored('2026-11-20T23:00:00+00:00');
+        $between = $this->stored('2026-11-20T21:00:00+00:00');
+        $this->entityManager->clear();
+
+        $found = $this->repository->between(new DateTimeImmutable('2026-11-19T23:00:00+00:00'), new DateTimeImmutable('2026-11-20T23:00:00+00:00'));
+
+        $this->assertEquals([$atFrom, $between], $this->idsOf($found, $justBefore, $atFrom, $atTo, $between));
+    }
+
+    #[Test]
+    public function it_finds_the_rounds_that_have_not_started_by_start(): void
+    {
+        $later = $this->stored('2026-11-22T21:00:00+00:00');
+        $started = $this->stored('2026-11-15T12:00:00+00:00');
+        $next = $this->stored('2026-11-15T12:00:01+00:00');
+        $this->entityManager->clear();
+
+        $found = $this->repository->upcoming(new DateTimeImmutable('2026-11-15T12:00:00+00:00'));
+
+        $this->assertEquals([$next, $later], $this->idsOf($found, $later, $started, $next));
+    }
+
+    #[Test]
+    public function it_brings_a_round_locked_with_all_its_walkers(): void
+    {
+        $firstWalker = Uuid::v7();
+        $buddy = Uuid::v7();
+        $round = $this->round(new DateTimeImmutable('2026-11-20T21:00:00+00:00'), $firstWalker);
+        $round->signUp($buddy, new DateTimeImmutable('2026-01-01T12:00:00+00:00'));
+        $this->repository->add($round);
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+
+        $read = $this->entityManager->wrapInTransaction(fn(): Round => $this->repository->getForUpdate($round->id()));
+
+        $this->assertEqualsCanonicalizing([$firstWalker, $buddy], $read->walkerIds());
+    }
+
+    #[Test]
+    public function it_refuses_to_lock_an_unknown_round(): void
+    {
+        $id = Uuid::v7();
+
+        $this->expectExceptionObject(NotFound::forId('round', $id));
+
+        $this->entityManager->wrapInTransaction(fn(): Round => $this->repository->getForUpdate($id));
+    }
+
     private function storeAndReadBack(Round $round): Round
     {
         $this->repository->add($round);
@@ -147,5 +200,31 @@ final class DoctrineRoundRepositoryTest extends KernelTestCase
             new StaffingRule(minimumWalkers: 2, maximumWalkers: 7),
             new DateTimeImmutable('2026-01-01T12:00:00+00:00'),
         );
+    }
+
+    private function stored(string $startsAt): Uuid
+    {
+        $round = $this->round(new DateTimeImmutable($startsAt));
+        $this->repository->add($round);
+        $this->entityManager->flush();
+
+        return $round->id();
+    }
+
+    /**
+     * Only the rounds this test made, in the order found, so rows of other tests cannot interfere.
+     *
+     * @param list<Round> $found
+     *
+     * @return list<Uuid>
+     */
+    private function idsOf(array $found, Uuid ...$ownIds): array
+    {
+        $own = \array_map(static fn(Uuid $id): string => $id->toRfc4122(), $ownIds);
+
+        return \array_values(\array_filter(
+            \array_map(static fn(Round $round): Uuid => $round->id(), $found),
+            static fn(Uuid $id): bool => \in_array($id->toRfc4122(), $own, strict: true),
+        ));
     }
 }

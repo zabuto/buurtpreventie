@@ -11,6 +11,7 @@ use App\Shared\Domain\NotFound;
 use DateTimeImmutable;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Query;
 use Override;
 use Symfony\Component\Uid\Uuid;
 
@@ -25,6 +26,47 @@ final readonly class DoctrineRoundRepository implements RoundRepository
     public function get(Uuid $id): Round
     {
         return $this->entityManager->find(Round::class, $id) ?? throw NotFound::forId('round', $id);
+    }
+
+    /**
+     * One locking query fetches the round with its walkers. The refresh hint makes it overwrite walkers the entity
+     * manager loaded earlier, which a plain read may have taken from an older snapshot.
+     */
+    #[Override]
+    public function getForUpdate(Uuid $id): Round
+    {
+        $round = $this->entityManager
+            ->createQuery(\sprintf('SELECT r, p FROM %s r LEFT JOIN r.participations p WHERE r.id = :id', Round::class))
+            ->setParameter('id', $id, 'uuid')
+            ->setLockMode(LockMode::PESSIMISTIC_WRITE)
+            ->setHint(Query::HINT_REFRESH, true)
+            ->getOneOrNullResult()
+        ;
+
+        return $round instanceof Round ? $round : throw NotFound::forId('round', $id);
+    }
+
+    #[Override]
+    public function between(DateTimeImmutable $from, DateTimeImmutable $to): array
+    {
+        /** @var list<Round> */
+        return $this->entityManager
+            ->createQuery(\sprintf('SELECT r FROM %s r WHERE r.startsAt >= :from AND r.startsAt < :to ORDER BY r.startsAt', Round::class))
+            ->setParameter('from', $from, 'utc_datetime_immutable')
+            ->setParameter('to', $to, 'utc_datetime_immutable')
+            ->getResult()
+        ;
+    }
+
+    #[Override]
+    public function upcoming(DateTimeImmutable $now): array
+    {
+        /** @var list<Round> */
+        return $this->entityManager
+            ->createQuery(\sprintf('SELECT r FROM %s r WHERE r.startsAt > :now ORDER BY r.startsAt', Round::class))
+            ->setParameter('now', $now, 'utc_datetime_immutable')
+            ->getResult()
+        ;
     }
 
     #[Override]
