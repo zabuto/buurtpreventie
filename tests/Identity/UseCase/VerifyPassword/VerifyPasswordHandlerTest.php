@@ -47,7 +47,7 @@ final class VerifyPasswordHandlerTest extends TestCase
     }
 
     /**
-     * The legacy app hashed passwords with bcrypt through the same "auto" hasher, so walkers keep their password.
+     * The legacy app hashed passwords with bcrypt through the same "auto" hasher, so members keep their password.
      */
     #[Test]
     public function it_accepts_a_bcrypt_hash_as_the_legacy_app_made_it(): void
