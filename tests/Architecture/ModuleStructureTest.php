@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 final class ModuleStructureTest extends TestCase
 {
     private const string SOURCE_ROOT = __DIR__.'/../../src';
-    private const string EXPLANATION = 'See docs/architecture.md#mapindeling.';
+    private const string EXPLANATION = 'See docs/architecture.md#folder-layout.';
     private const array MODULE_FOLDERS = ['Domain', 'Infrastructure', 'UseCase'];
     private const array SHARED_FOLDERS = ['Domain', 'Infrastructure'];
 

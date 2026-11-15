@@ -1,32 +1,24 @@
-# Beveiliging
+# Security
 
-## Een kwetsbaarheid melden
+## Reporting a vulnerability
 
-Meld een kwetsbaarheid altijd privé, nooit in een openbare issue: open in de repository het tabblad
-**Security** en kies **Report a vulnerability**
+Always report a vulnerability privately, never in a public issue: open the **Security** tab of the
+repository and choose **Report a vulnerability**
 (<https://github.com/zabuto/buurtpreventie/security/advisories/new>).
 
-Vermeld als het kan:
+If you can, include:
 
-- de versie of commit waarin je het zag;
-- de stappen om het na te doen;
-- wat een aanvaller ermee kan.
+- the version or commit where you found it;
+- the steps to reproduce it;
+- what an attacker can do with it.
 
-## Wat je kunt verwachten
+## What to expect
 
-Buurtpreventie is een vrijwilligersproject en wordt geleverd zoals het is, zonder garantie (zie
-`LICENSE`). Meldingen worden zo snel als mogelijk bekeken; een vaste reactietermijn is er niet.
-Een bevestigde kwetsbaarheid wordt opgelost in een patchversie en beschreven in een GitHub Security
-Advisory, zo nodig met een CVE-nummer.
+Buurtpreventie is a volunteer project, provided as is, without warranty (see `LICENSE`). Reports are
+handled on a best-effort basis; there is no guaranteed response time. A confirmed vulnerability is
+fixed in a patch release and described in a GitHub Security Advisory, with a CVE where needed.
 
-## Ondersteunde versies
+## Supported versions
 
-Alleen de nieuwste release van v4 krijgt beveiligingsfixes. Versies vóór v4 staan in
-`zabuto/buurtpreventie-v3` en vallen buiten dit beleid.
-
-## English
-
-Please report vulnerabilities privately through GitHub: open the **Security** tab and choose
-**Report a vulnerability**. Do not open a public issue. This is a volunteer project provided as is;
-reports are handled on a best-effort basis without a guaranteed response time. Only the latest v4
-release receives security fixes.
+Only the latest v4 release receives security fixes. Versions before v4 live in
+`zabuto/buurtpreventie-v3` and are outside this policy.

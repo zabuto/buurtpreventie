@@ -1,43 +1,41 @@
-# ADR 0001: modulaire monoliet met een map per use case
+# ADR 0001: modular monolith with a folder per use case
 
-- Status: aangenomen
-- Datum: 2026-11-15
+- Status: accepted
+- Date: 2026-11-15
 
 ## Context
 
-Buurtpreventie v4 krijgt drie ingangen: een REST-API voor de frontend, een MCP-server voor
-AI-clients en een scheduler voor herinneringen. Een regel zoals "minimaal twee lopers" of "alleen je
-eigen terugmelding verwijderen" moet voor alle drie precies hetzelfde gelden. Het project heeft één
-onderhouder, draait op shared hosting zonder workers en moet over te dragen zijn aan een andere
-ontwikkelaar die er binnen een uur zijn weg in vindt.
+Buurtpreventie v4 has three entry points: a REST API for the frontend, an MCP server for AI clients
+and a scheduler for reminders. A rule such as "at least two walkers" or "only delete your own round
+report" must hold for all three in exactly the same way. The project has one maintainer, runs on
+shared hosting without workers, and must be transferable to another developer who finds their way
+within an hour.
 
-De voorganger (v3) heeft controllers, formulieren, Twig-pagina's en een service met domeinregels door elkaar,
-met rechten verspreid over controllers en templates.
+The predecessor (v3) mixes controllers, forms, Twig pages and one service with domain rules, with
+permissions spread over controllers and templates.
 
-## Besluit
+## Decision
 
-- **Eén Symfony-app, ingedeeld in modules** direct onder `src/`: `Patrol`, `Membership`, `Identity`,
-  `Audit`, `Settings`, `Maintenance`. Elke module heeft `Domain/`, `UseCase/` en `Infrastructure/`.
-  `Shared/` bevat bouwstenen zonder use cases.
-- **Eén map per use case** met vaste bestanden: invoer, handler, uitvoer en per ingang een dunne
-  adapter (`…Controller` voor REST, `…Tool` voor MCP). De handler is de enige plek voor rechten,
-  regels en auditlog.
-- **Modules gebruiken elkaar alleen via use cases** of via interfaces in `Shared\Domain`.
-- **De grenzen worden bewaakt** met PHPat-regels in PHPStan, met een test die bewijst dat elke regel
-  afgaat, en met een test voor de mapindeling. Elke foutmelding verwijst naar
-  [architecture.md](../architecture.md).
-- **Een generator** (`bin/console app:make:use-case`) maakt een nieuwe use case, zodat nieuwe code het
-  patroon vanzelf volgt.
+- **One Symfony app, split into modules** directly under `src/`: `Patrol`, `Membership`, `Identity`,
+  `Audit`, `Settings`, `Maintenance`. Every module has `Domain/`, `UseCase/` and `Infrastructure/`.
+  `Shared/` holds building blocks without use cases.
+- **One folder per use case** with fixed files: input, handler, output, and a thin adapter per entry
+  point (`…Controller` for REST, `…Tool` for MCP). The handler is the only place for permissions,
+  rules and the audit log.
+- **Modules use each other only through use cases** or through interfaces in `Shared\Domain`.
+- **The boundaries are guarded** by PHPat rules in PHPStan, by a test proving each rule fires, and by a
+  test for the folder layout. Every error message links to [architecture.md](../architecture.md).
+- **A generator** (`bin/console app:make:use-case`) creates a new use case, so new code follows the
+  pattern by default.
 
-## Gevolgen
+## Consequences
 
-- REST en MCP staan precies hetzelfde toe: ze delen handler en invoer, en de regels verbieden
-  adapters eigen logica.
-- Domeinregels zijn zonder framework te testen.
-- Een opvolger leert één patroon en vindt elke handeling op een voorspelbare plek.
-- Meer bestanden per handeling dan bij één controller met alle logica. De generator en de vaste namen
-  houden dat beheersbaar.
-- Use cases die alleen via cron lopen, hebben geen controller of tool; die bestanden zijn daarom
-  optioneel.
-- Microservices, een message bus of CQRS met aparte leesmodellen vallen af: ze vragen workers of
-  infrastructuur die shared hosting niet biedt, en voegen voor tientallen gebruikers niets toe.
+- REST and MCP allow exactly the same: they share handler and input, and the rules forbid adapters
+  their own logic.
+- Domain rules are testable without the framework.
+- A successor learns one pattern and finds every action in a predictable place.
+- More files per action than one controller holding all logic. The generator and the fixed names keep
+  that manageable.
+- Use cases that run only from cron have no controller or tool; those files are therefore optional.
+- Microservices, a message bus or CQRS with separate read models are ruled out: they need workers or
+  infrastructure that shared hosting does not offer, and add nothing for a few dozen users.

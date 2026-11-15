@@ -1,20 +1,20 @@
 # Changelog
 
-Alle noemenswaardige wijzigingen per versie. Opzet volgens [Keep a Changelog](https://keepachangelog.com/nl/1.1.0/),
-versies volgens [Semantic Versioning](https://semver.org/lang/nl/).
+All notable changes per version. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-### Toegevoegd
+### Added
 
-- Symfony 7.4 LTS-basis op PHP 8.4.27 of hoger, met de modules `Patrol`, `Membership`, `Identity`,
-  `Audit`, `Settings` en `Maintenance`.
-- Gezondheidscheck `GET /api/v1/health`.
-- Generator `bin/console app:make:use-case <Module> <Naam>`.
-- Architectuurregels (PHPat) en een test van de mapindeling, met uitleg in `docs/architecture.md`.
-- Controles met `composer check`: PHPStan level max, PHP-CS-Fixer, Rector, PHPUnit, `composer audit`
-  en deprecations.
-- GitHub Actions voor CI, een wekelijkse audit en een wekelijkse vooruitblik op Symfony 8 en PHP 8.5;
-  Dependabot met automatisch samenvoegen van patch-updates; major-updates van Symfony slaat Dependabot
-  over, zodat v4 op 7.4 LTS blijft.
-- `SECURITY.md` en documentatie in `docs/`.
+- Symfony 7.4 LTS base on PHP 8.4.27 or later, with the modules `Patrol`, `Membership`, `Identity`,
+  `Audit`, `Settings` and `Maintenance`.
+- Health check `GET /api/v1/health`.
+- Generator `bin/console app:make:use-case <Module> <Name>`.
+- Architecture rules (PHPat) and a folder layout test, explained in `docs/architecture.md`.
+- Checks through `composer check`: PHPStan level max, PHP-CS-Fixer, Rector, PHPUnit, `composer audit`
+  and deprecations.
+- GitHub Actions for CI, a weekly audit and a weekly look-ahead on Symfony 8 and PHP 8.5;
+  Dependabot with automatic merging of patch updates. Dependabot skips major Symfony updates, so v4
+  stays on 7.4 LTS.
+- `SECURITY.md` and documentation in `docs/`.

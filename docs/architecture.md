@@ -1,66 +1,67 @@
-# Architectuur
+# Architecture
 
-Buurtpreventie is een modulaire monoliet: één Symfony-app met drie ingangen (REST, MCP en de
-scheduler) die allemaal dezelfde use cases aanroepen. Een regel zoals "minimaal twee lopers" staat
-daardoor één keer in de code en geldt voor browser, AI-client en cron tegelijk. De frontend staat los
-in `frontend/` en praat alleen met `/api/v1`.
+Buurtpreventie is a modular monolith: one Symfony app with three entry points (REST, MCP and the
+scheduler) that all call the same use cases. A rule such as "at least two walkers" therefore lives
+in the code once and holds for the browser, an AI client and cron alike. The frontend lives apart in
+`frontend/` and talks only to `/api/v1`.
 
-De keuze voor deze structuur staat in [ADR 0001](adr/0001-modular-monolith-with-use-case-folders.md).
+The reasons for this structure are in [ADR 0001](adr/0001-modular-monolith-with-use-case-folders.md).
+Dutch domain terms and their code names are in [glossary.md](glossary.md).
 
-## Mapindeling
+## Folder layout
 
 ```text
 src/
   <Module>/
-    Domain/           entiteiten, value objects, regels, repository-interfaces
+    Domain/           entities, value objects, rules, repository interfaces
     UseCase/
-      <Naam>/         één map per use case, zie hieronder
-    Infrastructure/   Doctrine-repositories, e-mail, Symfony-koppelingen, console-commando's
+      <Name>/         one folder per use case, see below
+    Infrastructure/   Doctrine repositories, e-mail, Symfony integrations, console commands
   Shared/
-    Domain/           bouwstenen voor elke module: klok, ID's, interfaces zoals AuditTrail
-    Infrastructure/   gedeelde techniek, zoals de generator app:make:use-case
+    Domain/           building blocks for every module: clock, IDs, interfaces such as AuditTrail
+    Infrastructure/   shared technical code, such as the app:make:use-case generator
   Kernel.php
-tests/                dezelfde mappen als src/, plus Architecture/
+tests/                the same folders as src/, plus Architecture/
 ```
 
-| Module | Gaat over |
+| Module | Covers |
 | --- | --- |
-| `Patrol` | Rondes, aanmelden, loopmaatjes, terugmelden |
-| `Membership` | Leden, rollen, toestemming, certificaat |
-| `Identity` | Inloggen, inloglinks, wachtwoorden, API-tokens |
-| `Audit` | Auditlog vastleggen en tonen |
-| `Settings` | Branding en teksten |
-| `Maintenance` | Gezondheidscheck, herinneringen, updates, installer, conversie uit v3 |
+| `Patrol` | Rounds, signing up, buddies, round reports |
+| `Membership` | Members, roles, consent, certificate |
+| `Identity` | Login, login links, passwords, API tokens |
+| `Audit` | Recording and showing the audit log |
+| `Settings` | Branding and texts |
+| `Maintenance` | Health check, reminders, updates, installer, v3 import |
 
-Elke module heeft precies `Domain/`, `UseCase/` en `Infrastructure/`. `Shared` is geen module: het
-heeft geen use cases. `tests/Architecture/ModuleStructureTest.php` bewaakt dit; PHPat ziet alleen
-klassen, geen lege mappen.
+Every module has exactly `Domain/`, `UseCase/` and `Infrastructure/`. `Shared` is not a module: it
+has no use cases. `tests/Architecture/ModuleStructureTest.php` guards this; PHPat sees classes only,
+not empty folders.
 
-### Een use case: vaste bestanden
+### A use case: fixed files
 
-Een map `UseCase/<Naam>/` bevat alleen deze bestanden, allemaal `final readonly`:
+A `UseCase/<Name>/` folder holds only these files, all `final readonly`:
 
-| Bestand | Rol | Verplicht |
+| File | Role | Required |
 | --- | --- | --- |
-| `<Naam>.php` | Invoer: het contract, met Validator-regels | ja |
-| `<Naam>Handler.php` | Rechten, domeinregels en auditlog; geeft de uitvoer terug | ja |
-| `<Naam>Output.php` | Uitvoer: alleen scalars en arrays, geen entiteiten | als er uitvoer is |
-| `<Naam>Controller.php` | REST-adapter: verzoek naar invoer, handler aanroepen, JSON terug | als er een REST-ingang is |
-| `<Naam>Tool.php` | MCP-adapter: toolaanroep naar invoer, handler aanroepen | als er een MCP-ingang is |
+| `<Name>.php` | Input: the contract, with Validator constraints | yes |
+| `<Name>Handler.php` | Permissions, domain rules and audit log; returns the output | yes |
+| `<Name>Output.php` | Output: scalars and arrays only, no entities | when there is output |
+| `<Name>Controller.php` | REST adapter: request to input, call the handler, return JSON | when there is a REST entry |
+| `<Name>Tool.php` | MCP adapter: tool call to input, call the handler | when there is an MCP entry |
 
-De tool krijgt zijn MCP-koppeling in fase 5; tot dan is het een gewone klasse die de handler aanroept.
+The tool gets its MCP binding in phase 5; until then it is a plain class that calls the handler.
 
-## Uitgewerkt voorbeeld: CheckHealth
+## Worked example: CheckHealth
 
-`Maintenance/UseCase/CheckHealth` beantwoordt `GET /api/v1/health` met `{"status":"ok"}`. De map is
-gemaakt met de generator en daarna ingevuld.
+`Maintenance/UseCase/CheckHealth` answers `GET /api/v1/health` with `{"status":"ok"}`. The folder
+was created with the generator and filled in afterwards.
 
 ```bash
 bin/console app:make:use-case Maintenance CheckHealth
 ```
 
-**Invoer** (`CheckHealth.php`). De gezondheidscheck vraagt niets, dus de invoer is leeg. De handler
-krijgt hem toch, zodat REST en MCP hem op dezelfde manier aanroepen.
+**Input** (`CheckHealth.php`). The health check asks for nothing, so the input is empty. The handler
+still takes it, so REST and MCP call it the same way.
 
 ```php
 final readonly class CheckHealth
@@ -68,8 +69,8 @@ final readonly class CheckHealth
 }
 ```
 
-**Uitvoer** (`CheckHealthOutput.php`). Alleen publieke, gewone velden: de controller zet het object
-direct om naar JSON.
+**Output** (`CheckHealthOutput.php`). Public, plain fields only: the controller turns the object into
+JSON directly.
 
 ```php
 final readonly class CheckHealthOutput
@@ -80,8 +81,8 @@ final readonly class CheckHealthOutput
 }
 ```
 
-**Handler** (`CheckHealthHandler.php`). Hier zitten de regels. Het endpoint is openbaar, daarom
-staat er geen versie of omgeving in het antwoord.
+**Handler** (`CheckHealthHandler.php`). The rules live here. The endpoint is public, so the answer
+carries no version or environment details.
 
 ```php
 final readonly class CheckHealthHandler
@@ -93,8 +94,8 @@ final readonly class CheckHealthHandler
 }
 ```
 
-**Controller** (`CheckHealthController.php`). Dun: route, invoer maken, handler aanroepen. De
-prefix `/api/v1` komt uit `config/routes.yaml`.
+**Controller** (`CheckHealthController.php`). Thin: route, build the input, call the handler. The
+`/api/v1` prefix comes from `config/routes.yaml`.
 
 ```php
 #[AsController]
@@ -112,95 +113,94 @@ final readonly class CheckHealthController
 }
 ```
 
-Een use case met invoer krijgt die via `#[MapRequestPayload]`; de generator zet dat klaar.
+A use case with input receives it through `#[MapRequestPayload]`; the generator sets that up.
 
-**Tool** (`CheckHealthTool.php`). Even dun als de controller, met dezelfde handler.
+**Tool** (`CheckHealthTool.php`). As thin as the controller, with the same handler.
 
-**Tests** in `tests/Maintenance/UseCase/CheckHealth/`: een unit-test voor de handler, een test dat de
-tool de uitvoer van de handler ongewijzigd teruggeeft, en een functionele test voor het endpoint
-(antwoord en het weigeren van `POST`).
+**Tests** in `tests/Maintenance/UseCase/CheckHealth/`: a unit test for the handler, a test that the
+tool returns the handler output unchanged, and a functional test for the endpoint (the answer, and
+that `POST` is refused).
 
-## Nieuwe functie toevoegen
+## Adding a feature
 
-1. Kies de module: waar hoort het begrip thuis volgens [glossary.md](glossary.md)?
-2. Maak de map: `bin/console app:make:use-case <Module> <Naam>`, met een naam in PascalCase die zegt
-   wat er gebeurt, zoals `SignUpForRound`.
-3. Schrijf eerst de test van de handler in `tests/<Module>/UseCase/<Naam>/`, en zie hem falen.
-4. Vul invoer en uitvoer in, en daarna de handler. Een schrijvende actie krijgt een Voter, een
-   auditregel en een rij in de matrixtest (vanaf fase 1 en 2).
-5. Pas in de controller route en methode aan. Verwijder controller of tool als de use case die ingang
-   niet heeft.
-6. Draai `composer check`. Een architectuurfout noemt de regel en verwijst naar de sectie hieronder.
-7. Werk `docs/` en `CHANGELOG.md` bij.
+1. Pick the module: where does the concept belong according to [glossary.md](glossary.md)?
+2. Create the folder: `bin/console app:make:use-case <Module> <Name>`, with a PascalCase name that
+   says what happens, such as `SignUpForRound`.
+3. Write the handler test first in `tests/<Module>/UseCase/<Name>/` and watch it fail.
+4. Fill in input and output, then the handler. A write action gets a Voter, an audit entry and a row
+   in the matrix test (from phases 1 and 2).
+5. Set the route and method in the controller. Delete the controller or tool when the use case has
+   no such entry point.
+6. Run `composer check`. An architecture error names the rule and links to the section below.
+7. Update `docs/` and `CHANGELOG.md`.
 
-## Regels
+## Rules
 
-De regels staan in `tests/Architecture/ArchitectureRules.php` en draaien als
-[PHPat](https://www.phpat.dev/)-regels in PHPStan. Elke foutmelding verwijst naar een sectie
-hieronder. `tests/Architecture/ArchitectureRulesTest.php` bewijst met opzettelijke overtredingen in
-`tests/Architecture/Fixtures/` dat elke regel afgaat. Nieuwe modules en use cases vallen er vanzelf
-onder: de regels lezen de mappen onder `src/`.
+The rules live in `tests/Architecture/ArchitectureRules.php` and run as [PHPat](https://www.phpat.dev/)
+rules inside PHPStan. Every error message links to a section below.
+`tests/Architecture/ArchitectureRulesTest.php` proves with deliberate violations in
+`tests/Architecture/Fixtures/` that each rule fires. New modules and use cases are covered
+automatically: the rules read the folders under `src/`.
 
-### Regel 1: domein
+### Rule 1: domain
 
-Klassen in `<Module>\Domain` mogen alleen afhangen van de eigen `Domain`, van `Shared\Domain`, van
-Doctrine-mapping-attributen en van Doctrine Collections. Voor `Shared\Domain` geldt hetzelfde.
+Classes in `<Module>\Domain` depend only on their own `Domain`, on `Shared\Domain`, on Doctrine
+mapping attributes and on Doctrine Collections. The same holds for `Shared\Domain`.
 
-**Waarom.** Domeinregels zijn dan in milliseconden te testen met in-memory repositories, zonder HTTP,
-MCP of database. Een domeinklasse die een repository of een andere module kent, maakt elke test
-zwaar en elke wijziging riskant.
+**Why.** Domain rules can then be tested in milliseconds with in-memory repositories, without HTTP,
+MCP or a database. A domain class that knows a repository implementation or another module makes
+every test heavy and every change risky.
 
-**Oplossen.** Zet een interface in `Domain` en de implementatie in `Infrastructure`. Heb je iets van
-een andere module nodig, roep dan diens use case aan vanuit de handler.
+**Fix.** Put an interface in `Domain` and the implementation in `Infrastructure`. If you need
+something from another module, call its use case from the handler.
 
-### Regel 2: invoer en handler
+### Rule 2: input and handler
 
-Invoer- en handlerklassen hangen niet af van HttpFoundation, HttpKernel, Routing, de MCP SDK of
-welke `Infrastructure` dan ook.
+Input and handler classes do not depend on HttpFoundation, HttpKernel, Routing, the MCP SDK or any
+`Infrastructure`.
 
-**Waarom.** REST en MCP roepen dezelfde handler aan met dezelfde invoer. Weet de handler welke ingang
-hem aanriep, dan gaan de twee uit elkaar lopen en geldt een regel maar voor één van beide.
+**Why.** REST and MCP call the same handler with the same input. A handler that knows which entry
+point called it lets the two drift apart, so that a rule holds for only one of them.
 
-**Oplossen.** Zet wat de ingang levert (gebruiker, kanaal) in de invoer of laat de handler het via een
-interface uit `Domain` ophalen.
+**Fix.** Put what the entry point provides (user, channel) in the input, or let the handler fetch it
+through an interface in `Domain`.
 
-### Regel 3: controller, tool en uitvoer
+### Rule 3: controller, tool and output
 
-- Een controller hangt alleen af van klassen in de eigen use-case-map en van Symfony's
-  HttpFoundation, `HttpKernel\Attribute` en `Routing\Attribute`.
-- Een tool hangt alleen af van klassen in de eigen use-case-map en van de MCP SDK.
-- Een `Output` hangt van geen enkele `Domain` af.
+- A controller depends only on classes in its own use-case folder and on Symfony's HttpFoundation,
+  `HttpKernel\Attribute` and `Routing\Attribute`.
+- A tool depends only on classes in its own use-case folder and on the MCP SDK.
+- An `Output` depends on no `Domain` at all.
 
-**Waarom.** Adapters zijn dun, zodat REST en MCP precies hetzelfde toestaan. De uitvoer is het
-publieke contract: een entiteit daarin zou velden lekken zoals contactgegevens die alleen met
-toestemming zichtbaar mogen zijn.
+**Why.** Adapters stay thin, so REST and MCP allow exactly the same. The output is the public
+contract: an entity in it would leak fields such as contact details that are visible only with
+consent.
 
-**Oplossen.** Verplaats logica naar de handler. Zet in de uitvoer alleen de velden die de client
-nodig heeft, als scalars of arrays.
+**Fix.** Move logic into the handler. Put only the fields the client needs in the output, as scalars
+or arrays.
 
-### Regel 4: modules onderling
+### Rule 4: modules and Shared
 
-Een module gebruikt een andere module alleen via diens use cases (invoer, handler en uitvoer) of via
-een interface in `Shared\Domain` die een module implementeert, zoals `AuditTrail`. `Shared` hangt van
-geen enkele module af.
+A module uses another module only through its use cases (input, handler and output) or through an
+interface in `Shared\Domain` that a module implements, such as `AuditTrail`. `Shared` depends on no
+module.
 
-**Waarom.** Elke module kan zijn binnenkant dan vrij veranderen. `Shared` bevat bouwstenen voor alle
-modules; als het zelf een module kent, ontstaat een kring.
+**Why.** Each module can then change its internals freely. `Shared` holds building blocks for all
+modules; if it knew a module itself, the two would form a cycle.
 
-**Oplossen.** Roep de handler van de andere module aan, of definieer een interface in
-`Shared\Domain` en laat de module die het weet hem implementeren.
+**Fix.** Call the other module's handler, or define an interface in `Shared\Domain` and let the module
+that has the knowledge implement it.
 
-### Regel 5: Twig
+### Rule 5: Twig
 
-Alleen klassen in `<Module>\Infrastructure\Mail` en `Maintenance\Infrastructure\Installer` gebruiken
-Twig.
+Only classes in `<Module>\Infrastructure\Mail` and `Maintenance\Infrastructure\Installer` use Twig.
 
-**Waarom.** Schermen staan in `frontend/` en gebruiken alleen de API. De backend rendert alleen
-e-mails en de eenmalige installer.
+**Why.** Screens live in `frontend/` and use only the API. The backend renders e-mails and the one-off
+installer, nothing else.
 
-**Oplossen.** Geef de gegevens terug via een use case en bouw het scherm in `frontend/`.
+**Fix.** Return the data through a use case and build the screen in `frontend/`.
 
-### Regel 6: frontend en OpenAPI
+### Rule 6: frontend and OpenAPI
 
-De frontend roept alleen endpoints aan die in de OpenAPI-spec staan. Deze contracttest komt met de
-frontend in fase 4.
+The frontend calls only endpoints listed in the OpenAPI spec. This contract test arrives with the
+frontend in phase 4.

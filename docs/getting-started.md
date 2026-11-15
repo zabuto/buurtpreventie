@@ -1,18 +1,18 @@
-# Aan de slag
+# Getting started
 
-Van een lege machine naar een draaiende lokale omgeving en een eerste wijziging.
+From a clean machine to a running local environment and a first change.
 
-## Vereisten
+## Requirements
 
-- PHP 8.4.27 of hoger, of PHP 8.5. Oudere 8.4-versies hebben een kritieke kwetsbaarheid
-  (PHP2Shell); Composer weigert de app daarop te starten. Zie [gotchas.md](gotchas.md).
+- PHP 8.4.27 or later, or PHP 8.5. Earlier 8.4 releases have a critical vulnerability (PHP2Shell);
+  Composer refuses to start the app on them. See [gotchas.md](gotchas.md).
 - Composer 2.
 - Git.
-- Optioneel: de [Symfony CLI](https://symfony.com/download) als lokale webserver.
+- Optional: the [Symfony CLI](https://symfony.com/download) as a local web server.
 
-Een database is in deze fase niet nodig.
+Phase 0 needs no database; it arrives in phase 1.
 
-## Installeren
+## Install
 
 ```bash
 git clone git@github.com:zabuto/buurtpreventie.git
@@ -21,41 +21,41 @@ git switch develop
 composer install
 ```
 
-Lokale instellingen en geheimen horen in `.env.local`, dat niet in Git komt. Zie
+Local settings and secrets go in `.env.local`, which stays out of Git. See
 [configuration.md](configuration.md).
 
-## Starten
+## Start
 
-Met de Symfony CLI:
+With the Symfony CLI:
 
 ```bash
 symfony server:start
 ```
 
-Zonder Symfony CLI:
+Without the Symfony CLI:
 
 ```bash
 php -S localhost:8000 -t public
 ```
 
-Controleer daarna `http://localhost:8000/api/v1/health` (de Symfony CLI toont zelf het adres). Het
-antwoord is `{"status":"ok"}`.
+Then open `http://localhost:8000/api/v1/health` (the Symfony CLI prints its own address). The answer
+is `{"status":"ok"}`.
 
-## Testen en controleren
+## Test and check
 
-| Commando | Wat het doet |
+| Command | What it does |
 | --- | --- |
-| `composer test` | Alle tests |
-| `composer check` | Alles wat CI controleert: Composer, beveiligingsadviezen, container, deprecations, codestijl, Rector, PHPStan met de architectuurregels, tests |
-| `composer fix` | Past Rector en PHP-CS-Fixer toe |
+| `composer test` | All tests |
+| `composer check` | Everything CI checks: Composer, security advisories, container, deprecations, code style, Rector, PHPStan with the architecture rules, tests |
+| `composer fix` | Applies Rector and PHP-CS-Fixer |
 
-Wat elke controle doet: [testing.md](testing.md).
+What each check does: [testing.md](testing.md).
 
-## Je eerste wijziging
+## Your first change
 
-1. Lees [architecture.md](architecture.md): de mapindeling, het uitgewerkte voorbeeld en de regels.
-2. Begrippen zoals ronde, loopmaatje en terugmelding staan met hun codenaam in
+1. Read [architecture.md](architecture.md): the folder layout, the worked example and the rules.
+2. Concepts such as round, buddy and round report are listed with their code names in
    [glossary.md](glossary.md).
-3. Volg het recept [Nieuwe functie toevoegen](architecture.md#nieuwe-functie-toevoegen).
-4. Werk op een branch `feature/<korte-naam>` vanaf `develop` en lever via een pull request op.
-   `composer check` moet groen zijn.
+3. Follow [Adding a feature](architecture.md#adding-a-feature).
+4. Work on a `feature/<short-name>` branch from `develop` and deliver through a pull request.
+   `composer check` must be green.
