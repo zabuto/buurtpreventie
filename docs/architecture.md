@@ -146,6 +146,9 @@ A handler reaches storage, rights, the audit log and messages only through inter
 | `AuditTrail`, `AuditedAction` | Records an action; time, actor and channel come from the clock and the execution context | the `Audit` module |
 | `Authorization`, `AccessDenied` | `denyUnlessGranted()` asks the voters of every module and throws `AccessDenied` on a refusal | `Shared\Infrastructure\Security\SymfonyAuthorization` |
 | `Notifier`, `Notification` | Sends a member a message by type and parameters; the domain holds no texts | a logging notifier in phase 1, e-mail in phase 3 |
+| `Role`, `Actor` | The fixed roles `walker`, `coordinator`, `analyst` and `admin`, without inheritance, and a member with their roles, as the policies of every module decide on them | |
+| `NotFound` | No item of a kind has a given id; entry points turn it into their own answer, such as HTTP 404 | |
+| `LocalTime` | Converts an instant to `Europe/Amsterdam`, the clock of dayparts, calendar days and everything a walker reads | |
 | `EmailAddress` | An address trimmed and in lower case, with accents kept | |
 | `LookupKey` | The search and uniqueness key of a name: no case, accents or extra whitespace | |
 

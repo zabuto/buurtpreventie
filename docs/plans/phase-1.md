@@ -338,17 +338,17 @@ Eerst de tests, in memory, met een vaste klok. Per v3-regel:
 | `getWalked` laat rondes onder het minimum weg | blijft, als status | `it_counts_a_past_round_below_the_minimum_as_not_walked` |
 | `inPast`: datum en `H:i` als tekst, serverklok | verbeterd: tijdstip in UTC tegen de klok | `it_starts_at_the_same_instant_in_every_time_zone` |
 | `getTimeOfDay`: < 12, < 18, anders avond | blijft, in `Europe/Amsterdam` | `it_takes_the_daypart_from_local_time` |
-| `addRound`: maker wordt meteen loper, memo wordt opmerking | blijft | `it_signs_up_the_creator_of_a_new_round` |
+| `addRound`: maker wordt meteen loper, memo wordt opmerking | blijft; de opmerking maakt `CreateRound` (T9) | `it_signs_up_the_creator_of_a_new_round` |
 | `walkRound`: geen controle op dubbel | verbeterd: idempotent | `it_ignores_a_second_sign_up_of_the_same_member` |
 | `walkRound`: ook voor een voorbije ronde | verbeterd: alleen vóór de start | `it_refuses_a_sign_up_after_the_start` |
-| `exitRound`: laatste loper weg, ronde weg | blijft | `it_deletes_the_round_when_the_last_walker_withdraws` |
+| `exitRound`: laatste loper weg, ronde weg | blijft; het domein meldt het, de handler verwijdert (T9) | `it_asks_for_deletion_when_the_last_walker_withdraws` |
 | `exitRound`: ook na de start | verbeterd: alleen vóór de start | `it_refuses_a_withdrawal_after_the_start` |
 | `roundResult`: memo alleen bij `remarks` | verbeterd: notitie bij `remarks` en `incident` | `it_drops_the_note_when_there_is_nothing_to_report` |
 | `roundResult`: geen controle op status of loper | verbeterd: alleen `walked`, alleen lopers van die ronde | `it_refuses_a_report_for_a_round_that_was_not_walked` |
 | `roundResult`: meerdere per lid | verbeterd: één per lid per ronde | `it_replaces_the_report_of_the_same_walker` |
 | `isUserRoundResult`, `isUserComment`: eigenaar is `updatedBy ?? createdBy` | verbeterd: vaste auteur, plus coördinator | `it_lets_only_the_author_or_a_coordinator_delete_a_report` |
 | `walkerRemoveFromFutureRounds`: vanaf morgen | verbeterd: alles wat nog niet begonnen is | `it_removes_an_inactive_member_from_rounds_that_have_not_started` |
-| `getWalkers`/`getWalkedWith`: inactieve lopers als aantal | blijft, in de uitvoer (fase 2) | `it_lists_inactive_walkers_as_a_count` |
+| `getWalkers`/`getWalkedWith`: inactieve lopers als aantal | blijft, in de uitvoer van `GetRound` (T9): alleen Membership weet wie inactief is | `it_lists_inactive_walkers_as_a_count` (in `tests/Patrol/UseCase/GetRound/`) |
 | Herinnering één keer per lid per dag, alleen actieve lopers | blijft | `it_reminds_each_active_walker_once` |
 | `setActive(false)` wist wachtwoord en token | verbeterd: account uit, tokens ingetrokken, wachtwoord blijft voor heractiveren | `it_revokes_every_token_on_deactivation` (Membership/Identity) |
 | `erasePersonalInformation` | blijft, plus naam "verwijderd lid" in historie en auditlog | `it_erases_contact_details_and_the_name` |

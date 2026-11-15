@@ -35,3 +35,7 @@ versions follow [Semantic Versioning](https://semver.org/).
 - Architecture rules: the domain may use Symfony Uid; input and handlers may not use Doctrine.
 - Database tests in the group `database`, on a test database built from the migrations once per
   run; they skip without a database, unless `REQUIRE_DATABASE=1`.
+- Patrol domain: rounds with a staffing rule fixed at creation, derived status, open spots and
+  daypart; signing up (idempotent, refused when full or started), withdrawing, round reports, outcomes,
+  meeting points with coordinates, comments, reminders once per walker per day, and who may change a
+  round or delete a report or comment.

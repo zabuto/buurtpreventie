@@ -26,6 +26,9 @@ dezelfde naam.
 | Terugmelding | `RoundReport` | Uitkomst en notitie van een loper na een gelopen ronde |
 | Uitkomst | `Outcome` | Soort terugmelding: `nothing_to_report`, `remarks`, `incident` |
 | Startpunt | `MeetingPoint` | Optionele plek om te verzamelen |
+| Startnotitie | `startNote` | Vrije tekst bij de start van een ronde, zoals waar je precies verzamelt |
+| Coördinaten | `Coordinates` | Breedte- en lengtegraad van een startpunt in WGS84, op zes decimalen |
+| Herinnering | `Reminder` | Eén bericht per loper per dag, over al zijn rondes van die dag |
 | Opmerking | `RoundComment` | Opmerking bij een ronde, met auteur |
 | Lid | `Member` | Profiel: naam, contactgegevens, rollen |
 | Volledige naam | `name` | Naam van een lid; doorzoekbaar, niet uniek |
