@@ -50,7 +50,7 @@ final class DependabotCooldownTest extends TestCase
     }
 
     /**
-     * @return array<string, array<string, mixed>> ecosystem => its cooldown block, empty when it has none
+     * @return array<string, array<mixed>> ecosystem => its cooldown block, empty when it has none
      */
     private function updates(): array
     {

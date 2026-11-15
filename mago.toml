@@ -6,7 +6,7 @@ php-version = "8.4.0"
 # update applies cleanly; Flex writes config/bundles.php and the kernel writes config/reference.php.
 [source]
 workspace = "."
-paths = ["src/", "tests/", "config/", "public/"]
+paths = ["src/", "tests/", "tools/", "config/", "public/"]
 includes = ["vendor"]
 excludes = [
     "tests/Architecture/Fixtures/",
