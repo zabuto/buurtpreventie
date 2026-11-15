@@ -451,10 +451,13 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
   | Namens aan- of afmelden, loper verwijderen | coördinator |
   | Terugmelden | loper van die ronde |
   | Terugmelding of opmerking verwijderen | auteur, coördinator |
-  | Opmerking plaatsen | loper van die ronde, coördinator, beheerder (besloten op 15 november 2026) |
+  | Opmerking plaatsen | loper van die ronde, coördinator (besloten op 15 november 2026) |
   | Startpunten en uitkomsten | beheerder |
   | Leden toevoegen, wijzigen, rollen, (de)activeren, wissen | beheerder |
   | Eigen toestemming, eigen tokens | het lid zelf |
+
+  De beheerder beheert leden, catalogi en instellingen en heeft geen rechten op de inhoud van rondes; wie dat
+  nodig heeft, krijgt ook de rol coördinator (besloten op 15 november 2026).
 
 - De bewakingstest uit beslissing 14.
 

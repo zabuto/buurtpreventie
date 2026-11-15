@@ -448,7 +448,7 @@ Regels die daaruit volgen:
 | Media | `GET /media/brand/{bestand}` | iedereen |
 | Privacy | `GET /me/export`, `DELETE /admin/members/{id}` (wissen) | lid (eigen gegevens), beheerder (wissen) |
 
-**Rechten.** Eén Voter per onderwerp (`RoundVoter`, `ReportVoter`, `MemberVoter`, …) met de rollen walker, coordinator, analyst en admin. Controllers en MCP-tools roepen dezelfde Voters aan; een test controleert de volledige matrix rol × actie.
+**Rechten.** Eén Voter per onderwerp (`RoundVoter`, `ReportVoter`, `MemberVoter`, …) met de rollen walker, coordinator, analyst en admin. De beheerder (`admin`) beheert leden, catalogi, instellingen en onderhoud, en heeft geen rechten op de inhoud van rondes; wie dat nodig heeft, krijgt ook de rol coördinator. Controllers en MCP-tools roepen dezelfde Voters aan; een test controleert de volledige matrix rol × actie.
 
 **Authenticatie.**
 
@@ -480,7 +480,7 @@ De MCP-server is een dunne laag op `/mcp` die dezelfde use cases en Voters aanro
 | `sign_up_for_round` / `withdraw_from_round` | Aan- en afmelden | `write` | loper |
 | `create_round` | Nieuwe ronde op datum, tijd, startpunt | `write` | loper |
 | `report_round_result` | Uitkomst + notitie na de ronde | `write` | loper |
-| `add_round_comment` | Opmerking bij een ronde | `write` | loper van die ronde, coördinator, beheerder |
+| `add_round_comment` | Opmerking bij een ronde | `write` | loper van die ronde, coördinator |
 | `report_summary` | Aantallen per uitkomst en incidenten in een periode | `read` | analist |
 | `list_meeting_points`, `list_outcomes` | Keuzelijsten | `read` | lid |
 | `round_statistics` | Aantallen gepland, gelopen, niet gelopen (geen loopmaatje) en incidenten, per maand, weekdag of dagdeel, met percentages en vergelijking met de vorige periode | `read` | analist, coördinator |
