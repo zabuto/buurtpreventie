@@ -1,0 +1,15 @@
+parametersSchema:
+    architectureSourceRoot: string()
+
+parameters:
+    architectureSourceRoot: %currentWorkingDirectory%/src
+    phpat:
+        ignore_built_in_classes: true
+
+services:
+    -
+        class: App\Tests\Architecture\ArchitectureRules
+        arguments:
+            sourceRoot: %architectureSourceRoot%
+        tags:
+            - phpat.test

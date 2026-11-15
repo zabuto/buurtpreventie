@@ -1,0 +1,59 @@
+# Woordenlijst
+
+Nederlandse begrippen en hun naam in code, API en MCP. Code is Engels; een begrip heeft overal
+dezelfde naam.
+
+## Modules
+
+| Begrip | Code | Toelichting |
+| --- | --- | --- |
+| Rondes en terugmelden | `Patrol` | Rondes, aanmelden, loopmaatjes, terugmelden |
+| Ledenbeheer | `Membership` | Leden, rollen, toestemming, certificaat |
+| Inloggen | `Identity` | Accounts, inloglinks, wachtwoorden, API-tokens |
+| Auditlog | `Audit` | Wie deed wat, wanneer en via welk kanaal |
+| Instellingen | `Settings` | Branding en teksten per vereniging |
+| Onderhoud | `Maintenance` | Gezondheidscheck, herinneringen, updates, installer, conversie uit v3 |
+
+## Domein
+
+| Begrip | Code | Toelichting |
+| --- | --- | --- |
+| Ronde, loopronde | `Round` | Een geplande ronde op een tijdstip; `startsAt` in UTC |
+| Loper | walker (rol `walker`) | Lid dat rondes loopt |
+| Loopmaatje | buddy | Tweede loper bij een ronde; een ronde gaat alleen door met loopmaatje |
+| Aanmelding | `Participation` | Een loper bij een ronde; ronde en lid samen zijn uniek |
+| Namens | `onBehalfOf` | Aanmelding door de coördinator voor een loper |
+| Terugmelding | `RoundReport` | Uitkomst en notitie van een loper na een gelopen ronde |
+| Uitkomst | `Outcome` | Soort terugmelding: `nothing_to_report`, `remarks`, `incident` |
+| Startpunt | `MeetingPoint` | Optionele plek om te verzamelen |
+| Opmerking | `RoundComment` | Opmerking bij een ronde, met auteur |
+| Lid | `Member` | Profiel: naam, contactgegevens, rollen |
+| Account | `Account` | Inloggegevens van een lid |
+| Toestemming contactgegevens | `consentContactShare` | Andere leden zien telefoon en adres alleen hiermee |
+| Certificaat | `certified` | Lid heeft een certificaat (in v3: `credited`) |
+| Melding bij open ronde | `notifyOpenRounds` | Lid wil mail bij een nieuwe ronde die een loopmaatje zoekt |
+| Coördinator | `coordinator` | Rol: wijzigt rondes, handelt namens lopers |
+| Analist | `analyst` | Rol: ziet terugmeldingen en statistieken |
+| Beheerder | `admin` | Rol: leden, instellingen, onderhoud |
+| Dagdeel | `Daypart` | `morning` (voor 12:00), `afternoon` (tot 18:00), `evening` (vanaf 18:00) |
+| Minimumaantal lopers | `StaffingRule`, `minimumWalkers` | Standaard 2 |
+| Zoekt loopmaatje | `seeking_buddy` | Status: minder lopers dan het minimum |
+| Bezet | `staffed` | Status: minimum gehaald |
+| Gelopen | `walked` | Status: voorbij en minimum gehaald |
+| Niet gelopen | `not_walked` | Status: voorbij zonder loopmaatje |
+| Auditregel | `AuditEntry` | Eén regel in het auditlog |
+| Kanaal | channel: `web`, `api`, `mcp`, `cron` | Hoe een actie binnenkwam |
+| Instelling | `Setting` | Waarde die een vereniging zelf instelt |
+| API-token | `ApiToken` | Persoonlijke sleutel voor scripts en MCP |
+| Tijdtrigger, tick | `app:scheduler:run`, `POST /api/v1/system/tick` | Start taken op een vast moment |
+| Gezondheidscheck | `CheckHealth`, `GET /api/v1/health` | Antwoordt `ok` als de app draait |
+
+## Code
+
+| Begrip | Code | Toelichting |
+| --- | --- | --- |
+| Use case | `UseCase/<Naam>/` | Eén handeling met invoer, handler en adapters, zie [architecture.md](architecture.md) |
+| Invoer | `<Naam>` | Contract van de use case |
+| Handler | `<Naam>Handler` | Rechten, regels en auditlog |
+| Uitvoer | `<Naam>Output` | Wat REST en MCP teruggeven |
+| Adapter | `<Naam>Controller`, `<Naam>Tool` | Dunne laag voor REST of MCP |

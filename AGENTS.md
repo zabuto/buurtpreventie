@@ -14,8 +14,9 @@ The plan lives in docs/plan-v4.md and is leading. Read it before every phase.
 
 - Modules sit directly under src/, each with Domain/, UseCase/<Name>/ and Infrastructure/.
   Shared/ is not a module.
-- Per use case: <Name>.php (input), <Name>Handler.php, <Name>Controller.php (REST),
-  <Name>Tool.php (MCP). New use case: bin/console app:make:use-case <Module> <Name>.
+- Per use case: <Name>.php (input), <Name>Handler.php, <Name>Output.php (no entities),
+  <Name>Controller.php (REST), <Name>Tool.php (MCP); only input and handler are mandatory.
+  New use case: bin/console app:make:use-case <Module> <Name>.
 - Domain knows nothing about HTTP or MCP. Controllers and tools only call the handler
   in their own folder. Modules use each other only through use cases or interfaces
   in Shared\Domain.
@@ -50,4 +51,13 @@ The plan lives in docs/plan-v4.md and is leading. Read it before every phase.
 
 ## Commands
 
-(Filled in during phase 0: start, test, PHPStan, CS-Fixer, load fixtures.)
+- Minimum PHP is 8.4.27 (PHP2Shell, CVE-2026-109618 and CVE-2026-109619); CI runs on 8.4.
+- Install: composer install
+- Start: symfony server:start, or php -S localhost:8000 -t public; check /api/v1/health.
+- Test: composer test
+- All CI checks: composer check (validate, audit, container lint, deprecations, PHP-CS-Fixer,
+  Rector dry run, PHPStan level max with PHPat, PHPUnit).
+- Fix style: composer fix (Rector, then PHP-CS-Fixer).
+- Single tools: vendor/bin/phpstan analyse, vendor/bin/php-cs-fixer check --diff,
+  vendor/bin/rector process --dry-run. PHPStan reads var/cache/dev: run bin/console cache:warmup first.
+- Load fixtures: bin/console app:fixtures:load demo (from phase 1).

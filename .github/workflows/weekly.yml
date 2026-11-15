@@ -1,0 +1,85 @@
+name: Weekly
+
+on:
+  schedule:
+    - cron: '0 5 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# An explicit bash shell runs with pipefail, so "| tee" keeps a failing exit code.
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  audit:
+    name: Security advisories (develop)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: develop
+          persist-credentials: false
+
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: composer:v2
+
+      - name: Audit composer.lock
+        id: audit
+        continue-on-error: true
+        run: composer audit --locked --no-interaction 2>&1 | tee report.txt
+
+      - name: Open or update an issue
+        if: steps.audit.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: 'Security advisories for packages on develop'
+        run: .github/scripts/report-issue.sh
+
+  lookahead:
+    name: Look-ahead (Symfony 8, PHP 8.5)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: develop
+          persist-credentials: false
+
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+
+      # Only this job's checkout changes; the 7.4 constraints in the repository stay as they are.
+      - name: Require the newest Symfony 8 and drop the PHP 8.4 platform pin
+        run: |
+          sed -i 's/"7\.4\.\*"/"8.*"/g' composer.json
+          composer config --unset platform.php
+
+      - name: Update and run all checks
+        id: checks
+        continue-on-error: true
+        run: |
+          {
+            composer update --no-interaction --no-progress --with-all-dependencies
+            composer check
+          } 2>&1 | tee report.txt
+
+      - name: Open or update an issue
+        if: steps.checks.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: 'Look-ahead: develop breaks on Symfony 8 or PHP 8.5'
+        run: .github/scripts/report-issue.sh
