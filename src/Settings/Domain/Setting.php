@@ -16,7 +16,7 @@ final class Setting
     private function __construct(
         #[ORM\Id]
         #[ORM\Column(length: 100)]
-        private string $name,
+        private readonly string $name,
         #[ORM\Column(type: 'text')]
         private string $value,
     ) {

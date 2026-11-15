@@ -14,7 +14,7 @@ use Symfony\Component\Uid\Uuid;
  */
 #[ORM\Entity]
 #[ORM\Index(name: 'round_comment_author', columns: ['author_id'])]
-final class RoundComment
+final readonly class RoundComment
 {
     #[ORM\Id]
     #[ORM\Column(type: 'uuid')]

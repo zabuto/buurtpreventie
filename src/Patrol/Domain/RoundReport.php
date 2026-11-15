@@ -15,7 +15,7 @@ use Symfony\Component\Uid\Uuid;
 #[ORM\Entity]
 #[ORM\UniqueConstraint(name: 'round_report_round', columns: ['round_id'])]
 #[ORM\Index(name: 'round_report_author', columns: ['author_id'])]
-final class RoundReport
+final readonly class RoundReport
 {
     #[ORM\Id]
     #[ORM\Column(type: 'uuid')]

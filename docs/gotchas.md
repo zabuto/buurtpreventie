@@ -36,6 +36,14 @@ Things that are not obvious and cost time when you do not know them.
   unused parameter; `rector.php` skips that rule for `src/*/UseCase/*`, because REST and MCP pass the
   same input.
 
+## Doctrine
+
+- **A refreshed entity cannot hold a readonly object.** Doctrine sets a readonly property only to the
+  value it has, and compares objects by identity: a `Uuid` or `DateTimeImmutable` read back is
+  another object, so the refresh fails with "Attempting to change readonly property". A query with
+  `Query::HINT_REFRESH`, such as `RoundRepository::getForUpdate()`, refreshes the round and its
+  walkers, so `Round` and `Participation` keep writable properties.
+
 ## Database
 
 - **`bin/console` does not see the database container.** Only the Symfony CLI reads the port

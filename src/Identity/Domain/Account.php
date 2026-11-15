@@ -16,7 +16,7 @@ final class Account
 {
     #[ORM\Id]
     #[ORM\Column(type: 'uuid')]
-    private Uuid $id;
+    private readonly Uuid $id;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $passwordHash = null;
@@ -26,7 +26,7 @@ final class Account
 
     private function __construct(
         #[ORM\Column(type: 'uuid', unique: true)]
-        private Uuid $memberId,
+        private readonly Uuid $memberId,
     ) {
         $this->id = Uuid::v7();
     }

@@ -216,6 +216,24 @@ final class DoctrineRoundRepositoryTest extends KernelTestCase
         $this->assertEqualsCanonicalizing([$firstWalker, $buddy], $read->walkerIds());
     }
 
+    /**
+     * The lock refreshes a round the entity manager holds already, readonly properties included; Doctrine may set
+     * those only to the value they have.
+     */
+    #[Test]
+    public function it_locks_a_round_the_entity_manager_holds_already(): void
+    {
+        $round = $this->round(new DateTimeImmutable('2026-11-20T21:00:00+00:00'));
+        $round->cancel('Onweer', new DateTimeImmutable('2026-11-20T21:30:00+00:00'));
+        $this->repository->add($round);
+        $this->entityManager->flush();
+        $loaded = $this->repository->get($round->id());
+
+        $locked = $this->entityManager->wrapInTransaction(fn(): Round => $this->repository->getForUpdate($round->id()));
+
+        $this->assertSame([$loaded, 'Onweer'], [$locked, $locked->cancellation()->reason()]);
+    }
+
     #[Test]
     public function it_refuses_to_lock_an_unknown_round(): void
     {

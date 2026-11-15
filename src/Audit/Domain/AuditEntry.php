@@ -28,26 +28,26 @@ final class AuditEntry
 
     #[ORM\Id]
     #[ORM\Column(type: 'uuid')]
-    private Uuid $id;
+    private readonly Uuid $id;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $changes;
+    private readonly ?string $changes;
 
     private function __construct(
         #[ORM\Column(type: 'utc_datetime_immutable')]
-        private DateTimeImmutable $occurredAt,
+        private readonly DateTimeImmutable $occurredAt,
         #[ORM\Column(type: 'uuid', nullable: true)]
-        private ?Uuid $actorId,
+        private readonly ?Uuid $actorId,
         #[ORM\Column(length: 100, nullable: true)]
         private ?string $actorName,
         #[ORM\Column(length: 60)]
-        private string $action,
+        private readonly string $action,
         #[ORM\Column(length: 30)]
-        private string $subjectType,
+        private readonly string $subjectType,
         #[ORM\Column(type: 'uuid')]
-        private Uuid $subjectId,
+        private readonly Uuid $subjectId,
         #[ORM\Column(length: 10, enumType: Channel::class)]
-        private Channel $channel,
+        private readonly Channel $channel,
         string $changes,
     ) {
         $this->id = Uuid::v7();

@@ -544,6 +544,10 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
   - aanmelden en afmelden lezen de ronde met `RoundRepository::getForUpdate()`, één vergrendelende query met de
     lopers erbij (beslissing 24); de gelijktijdigheidstest volgt in T10;
   - de bewakingstest (`tests/Shared/HandlerGuardTest.php`) eist ook dat de matrix elke Voter uit `src/` vraagt;
+  - readonly waar het kan: een klasse waarvan niets na de constructor verandert is `final readonly`
+    (`RoundReport`, `RoundComment`), en elke andere eigenschap die alleen de constructor zet is `readonly`, ook in
+    entiteiten. `Round` en `Participation` niet: de vergrendelende query ververst ze, en Doctrine weigert dat voor
+    een readonly object (zie `docs/gotchas.md`). Rector slaat entiteiten over, dus de review controleert ze;
   - berichten gaan binnen de transactie uit; met de `LoggingNotifier` geeft dat niets, maar e-mail (fase 3) hoort
     pas na de commit te gaan.
 

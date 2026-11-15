@@ -19,7 +19,7 @@ final class MeetingPoint
 {
     #[ORM\Id]
     #[ORM\Column(type: 'uuid')]
-    private Uuid $id;
+    private readonly Uuid $id;
 
     #[ORM\Column(length: 100)]
     private string $name;

@@ -28,7 +28,11 @@ and the conventions below do not apply to them. Change them only through a recip
 ## Conventions
 
 - **Final classes.** Every class is `final`; a class whose state never changes after construction is
-  `final readonly`, such as everything in a use-case folder. Composition over inheritance: no
+  `final readonly`, such as everything in a use-case folder. In any other class, a property set only
+  by the constructor is `readonly`, entities included (an id, a creation time, an author). A
+  Doctrine entity that a locking query refreshes, `Round` and `Participation`, has no readonly
+  property: see [gotchas.md](gotchas.md#doctrine). Rector adds `readonly` everywhere else but skips
+  entities, so a review checks those. Composition over inheritance: no
   abstract base classes for handlers or adapters. The recipe-owned `Kernel` is the exception.
 - **Types everywhere.** Native parameter, return, property and constant types (`private const string`).
   A docblock only adds what PHP cannot express, such as `list<string>` or an array shape. `mixed`

@@ -23,14 +23,14 @@ final class ApiToken
 
     #[ORM\Id]
     #[ORM\Column(type: 'uuid')]
-    private Uuid $id;
+    private readonly Uuid $id;
 
     #[ORM\Column(type: 'binary', length: 32, unique: true, options: ['fixed' => true])]
-    private string $secretHash;
+    private readonly string $secretHash;
 
     /** @var list<string> */
     #[ORM\Column(type: 'simple_array')]
-    private array $scopes;
+    private readonly array $scopes;
 
     #[ORM\Column(type: 'utc_datetime_immutable', nullable: true)]
     private ?DateTimeImmutable $lastUsedAt = null;
@@ -39,19 +39,19 @@ final class ApiToken
     private ?DateTimeImmutable $revokedAt = null;
 
     #[ORM\Column(length: 100)]
-    private string $name;
+    private readonly string $name;
 
     #[ORM\Column(type: 'utc_datetime_immutable', nullable: true)]
-    private ?DateTimeImmutable $expiresAt;
+    private readonly ?DateTimeImmutable $expiresAt;
 
     private function __construct(
         #[ORM\Column(type: 'uuid')]
-        private Uuid $memberId,
+        private readonly Uuid $memberId,
         TokenTerms $terms,
         #[SensitiveParameter]
         string $secret,
         #[ORM\Column(type: 'utc_datetime_immutable')]
-        private DateTimeImmutable $createdAt,
+        private readonly DateTimeImmutable $createdAt,
     ) {
         $this->id = Uuid::v7();
         $this->secretHash = self::hash($secret);

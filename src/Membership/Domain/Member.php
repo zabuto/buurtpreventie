@@ -24,7 +24,7 @@ final class Member
 {
     #[ORM\Id]
     #[ORM\Column(type: 'uuid')]
-    private Uuid $id;
+    private readonly Uuid $id;
 
     #[ORM\Column(length: 180, unique: true, nullable: true)]
     private ?string $email = null;

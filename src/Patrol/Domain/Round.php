@@ -15,6 +15,9 @@ use Symfony\Component\Uid\Uuid;
  * walkers and the staffing rule, so they never go stale.
  *
  * Who walked is history once the round starts: from then on nobody signs up or withdraws.
+ *
+ * No property is readonly: locking the round refreshes it with its walkers, and Doctrine refuses to refresh a
+ * readonly object value such as an id, because the value read back is another object.
  */
 #[ORM\Entity]
 #[ORM\Index(name: 'round_starts_at', columns: ['starts_at'])]

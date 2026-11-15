@@ -11,6 +11,8 @@ use Symfony\Component\Uid\Uuid;
 /**
  * A walker signed up for a round. The member lives in another module, so it is held by id: no foreign key crosses a
  * module boundary.
+ *
+ * No property is readonly: locking a round refreshes its walkers, which Doctrine refuses for a readonly object value.
  */
 #[ORM\Entity]
 #[ORM\UniqueConstraint(name: 'participation_round_member', columns: ['round_id', 'member_id'])]

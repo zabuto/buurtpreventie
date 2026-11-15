@@ -17,7 +17,7 @@ final class Outcome
 {
     #[ORM\Id]
     #[ORM\Column(type: 'uuid')]
-    private Uuid $id;
+    private readonly Uuid $id;
 
     #[ORM\Column(length: 100)]
     private string $name;
@@ -31,7 +31,7 @@ final class Outcome
     private function __construct(
         string $name,
         #[ORM\Column(length: 20, enumType: OutcomeKind::class)]
-        private OutcomeKind $kind,
+        private readonly OutcomeKind $kind,
     ) {
         $this->id = Uuid::v7();
         $this->rename($name);
