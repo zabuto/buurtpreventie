@@ -6,6 +6,8 @@ namespace App\Shared\Domain;
 
 /**
  * For an input constraint that takes its choices from the enum, as an attribute cannot call cases() itself.
+ *
+ * @require-implements \BackedEnum
  */
 trait BackedEnumValues
 {
@@ -14,6 +16,6 @@ trait BackedEnumValues
      */
     public static function values(): array
     {
-        return \array_map(static fn(self $case): string => $case->value, self::cases());
+        return \array_map(static fn(self $case): string => (string) $case->value, self::cases());
     }
 }
