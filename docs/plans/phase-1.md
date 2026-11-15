@@ -642,6 +642,17 @@ Per regel eerst het testbestand, dan de regel (beslissing 32).
   - de regeltests en de scan zijn lokaal gedraaid met Opengrep 1.33.1 (de versie die CI kiest), zonder
     Cosign-verificatie en alleen in een tijdelijke map: alle tests groen, 0 bevindingen.
 
+### Vóór T15: regels uit de handlers naar het domein (besloten op 15 november 2026)
+
+- Regels die in handlers stonden, staan nu in het domein: `UniqueCatalogueName` (unieke naam van startpunt en
+  uitkomst), `Coordinates::fromOptional()` (beide of geen), `Round` weigert een gearchiveerd startpunt of
+  gearchiveerde uitkomst (`ensureSelectable()`), `Withdrawal::DroppedBelowMinimum`,
+  `RoundPolicy::maySeeFullNames()`, `Round::ensureDeletable()`, `MeetingPointInUseGuard` en `FirstAdminGuard`.
+  In de handlers blijft de orkestratie: autoriseren, transactie, auditregel, berichten en de controle op een actief
+  lid via een andere module.
+- `Patrol/Domain` is verdeeld in `Round/` en `Catalogue/`, met de tests in dezelfde indeling. De andere modules
+  blijven plat. Doctrine-mapping en PHPat lezen de submappen mee (PHPat vergelijkt op het begin van de namespace).
+
 ### T15. ADR 0005 en documentatie
 
 - `docs/adr/0005-database-approach.md`: beslissingen 4 (UUID-verwijzingen met index, geen foreign keys tussen
