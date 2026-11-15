@@ -53,8 +53,6 @@ final readonly class WithdrawMemberFromUpcomingRoundsHandler
 
     private function withdraw(Round $round, Uuid $memberId, DateTimeImmutable $now): void
     {
-        $wasStaffed = $round->staffingRule()->isStaffedBy($round->walkerCount());
-
         $withdrawal = $round->withdrawInactiveMember($memberId, $now);
         if (null === $withdrawal || Withdrawal::NotSignedUp === $withdrawal) {
             return;
@@ -71,7 +69,7 @@ final readonly class WithdrawMemberFromUpcomingRoundsHandler
             return;
         }
 
-        if (!$wasStaffed || $round->staffingRule()->isStaffedBy($round->walkerCount())) {
+        if (Withdrawal::DroppedBelowMinimum !== $withdrawal) {
             return;
         }
 

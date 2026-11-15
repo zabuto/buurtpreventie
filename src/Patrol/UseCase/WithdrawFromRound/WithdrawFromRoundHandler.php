@@ -49,7 +49,6 @@ final readonly class WithdrawFromRoundHandler
 
         $this->transaction->run(function () use ($input, $memberId, $actorId): void {
             $round = $this->rounds->getForUpdate(Uuid::fromString($input->roundId));
-            $wasStaffed = $round->staffingRule()->isStaffedBy($round->walkerCount());
 
             $withdrawal = $round->withdraw($memberId, $this->clock->now());
             if (Withdrawal::NotSignedUp === $withdrawal) {
@@ -68,7 +67,7 @@ final readonly class WithdrawFromRoundHandler
                 return;
             }
 
-            if ($wasStaffed && !$round->staffingRule()->isStaffedBy($round->walkerCount())) {
+            if (Withdrawal::DroppedBelowMinimum === $withdrawal) {
                 $this->tellRemainingWalkers($round);
             }
         });

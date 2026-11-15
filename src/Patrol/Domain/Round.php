@@ -245,9 +245,14 @@ final class Round
             return Withdrawal::NotSignedUp;
         }
 
+        $wasStaffed = $this->staffingRule->isStaffedBy($this->walkerCount());
         $this->participations->removeElement($participation);
 
-        return 0 === $this->walkerCount() ? Withdrawal::LastWalkerLeft : Withdrawal::Withdrawn;
+        return match (true) {
+            0 === $this->walkerCount() => Withdrawal::LastWalkerLeft,
+            $wasStaffed && !$this->staffingRule->isStaffedBy($this->walkerCount()) => Withdrawal::DroppedBelowMinimum,
+            default => Withdrawal::Withdrawn,
+        };
     }
 
     /**
