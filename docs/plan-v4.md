@@ -56,7 +56,7 @@ Een buurtpreventie-loopgroep bestaat uit tientallen vrijwillige lopers met een o
 Wat dat vraagt van de software:
 
 - **Kleine schaal, weinig beheer.** Tientallen gebruikers, één of twee beheerders. Simpel installeren en bijwerken weegt zwaarder dan schaalbaarheid. Lopers verschillen sterk in digitale vaardigheid en gebruiken niet altijd een nieuw toestel; de app moet werken voor de minst ervaren loper.
-- **Zelf inroosteren, altijd met loopmaatje.** Elke loper kan een ronde aanmaken. Die staat op "zoekt loopmaatje" tot een tweede loper zich aanmeldt. Het minimum (nu 2) is instelbaar. Een ronde zonder loopmaatje wordt niet gelopen en krijgt geen terugmelding.
+- **Zelf inroosteren, altijd met loopmaatje.** Elke loper kan een ronde aanmaken. Die staat op "zoekt loopmaatje" tot een tweede loper zich aanmeldt. Het minimum (standaard 2) is instelbaar, net als een maximum (standaard 7), zodat een groep niet te groot wordt. Een ronde zonder loopmaatje wordt niet gelopen en krijgt geen terugmelding.
 - **Loopmaatjes vinden is de kern.** Rondes die een loopmaatje zoeken staan bovenaan. Lopers kunnen zich laten mailen bij een nieuwe open ronde (later ook pushmelding). Wie zich afmeldt waardoor een ander alleen komt te staan, krijgt een waarschuwing, en de achterblijver krijgt bericht. Meldt de laatste loper zich af, dan vervalt de ronde (zoals in v3). Later kan een loper een vast loopmaatje gericht uitnodigen, als die dat zelf heeft toegestaan (fase 9).
 - **Route en startpunt vrij.** Die spreken lopers onderling af. De app biedt een optioneel startpunt en opmerkingen bij de ronde, maar legt in de basis geen routes vast. Route opnemen en een pin bij een incident kan later als losse uitbreiding (fase 12), alleen met toestemming van de loper.
 - **Terugkoppeling na de ronde.** Uitkomst kiezen (geen bijzonderheden / bijzonderheden / incident) plus vrije notitie; dit is wat de coördinator doorgeeft aan politie en gemeente.
@@ -277,7 +277,7 @@ Het project krijgt verzonnen voorbeelddata die altijd actueel ogen: alle datums 
 
 - **Een verzonnen vereniging** "Buurtpreventie Voorbeeldwijk" met neutrale branding, een paar startpunten en de standaarduitkomsten.
 - **Hooguit 20 leden** met elke rol (vooral lopers; hooguit drie leden met een andere rol: één coördinator die ook loopt, en één analist en één beheerder die niet per se lopen), wisselende toestemming voor contactgegevens, een gedeactiveerd lid en een lid met een API-token. Alleen adressen op `example.org` en verzonnen telefoonnummers.
-- **Rondes van drie maanden terug tot zes weken vooruit**, met het patroon uit de echte loopschema's: vooral avonden, soms ochtend of middag, ruim een kwart zonder loopmaatje, af en toe een incident, terugmeldingen bij gelopen rondes en een paar zonder.
+- **Rondes van drie maanden terug tot zes weken vooruit**, met het patroon uit de echte loopschema's: vooral avonden, soms ochtend of middag, ruim een kwart zonder loopmaatje, soms een volle ronde, af en toe een incident, terugmeldingen bij gelopen rondes en een paar zonder.
 - **Auditlog-regels** die bij die rondes passen, zodat het scherm Auditlog meteen iets laat zien.
 
 **Andere sets.**
@@ -286,7 +286,7 @@ Het project krijgt verzonnen voorbeelddata die altijd actueel ogen: alle datums 
 | --- | --- | --- |
 | `demo` | Ontwikkelen, schermafbeeldingen, proefinstallatie | Zie hierboven |
 | `test` | Automatische tests | Minimaal; elke test bouwt zelf wat hij nodig heeft |
-| `edge` | Lastige gevallen | Ronde rond de zomer-/wintertijdwissel, laatste loper die zich afmeldt, verwijderd lid in de historie, lid zonder toestemming, ronde net onder het minimum |
+| `edge` | Lastige gevallen | Ronde rond de zomer-/wintertijdwissel, laatste loper die zich afmeldt, verwijderd lid in de historie, lid zonder toestemming, ronde net onder het minimum, ronde op het maximum, twee leden met dezelfde naam |
 | `v3` | Test van de conversie | Een kleine, verzonnen v3-database, nooit echte data |
 
 **Zo blijven ze bruikbaar.**
@@ -296,7 +296,7 @@ Het project krijgt verzonnen voorbeelddata die altijd actueel ogen: alle datums 
 - **CI laadt elke set** en doet een korte rooktest; zo merkt niemand pas bij een demo dat de voorbeelddata stuk zijn.
 - **Eén commando:** `bin/console app:fixtures:load demo`, ook onderdeel van het startcommando uit `docs/getting-started.md`.
 - **Nooit in productie:** fixtures zitten niet in de release-zip. Alleen een proefinstallatie kan in de web-installer kiezen voor "voorbeelddata laden", met een knop "voorbeelddata wissen" in Onderhoud.
-- **Gebruik `doctrine/doctrine-fixtures-bundle`** (stond al in v3) met eigen kleine factories per module, alleen als dev-afhankelijkheid.
+- **Gebruik `doctrine/data-fixtures`** (de bibliotheek onder de bundle uit v3) met een eigen commando en kleine factories per module, alleen als dev-afhankelijkheid; de bundle voegt alleen toe wat dit project niet gebruikt.
 
 ## Frontend: PWA, responsive en toegankelijk
 
@@ -395,7 +395,7 @@ Het domeinmodel wordt verbeterd waar dat de app helderder en eenvoudiger maakt; 
 | --- | --- | --- | --- |
 | `Account` | Identity | deel van `User` | Alleen inloggen: e-mail, wachtwoordhash, laatste login, inloglinks. Los van het profiel, zodat de v3-`User` geen god object meer is |
 | `Member` | Membership | deel van `User` | Naam, telefoon, adres, rollen, `consentContactShare` (was `permitted`), `certified` (was `credited`), `active`, `notifyOpenRounds` |
-| `Round` | Patrol | `Round` | `startsAt`, aangemaakt door een loper, optioneel `meetingPoint` en vrije tekst `startNote`; status en dagdeel afgeleid |
+| `Round` | Patrol | `Round` | `startsAt`, aangemaakt door een loper, optioneel `meetingPoint` en vrije tekst `startNote`; `minimumWalkers` en `maximumWalkers` vastgelegd bij aanmaken; status, open plekken en dagdeel afgeleid |
 | `Participation` | Patrol | `RoundWalker` | Aanmelding: lid, `joinedAt`, `remindedAt`, `onBehalfOf` (als de coördinator aanmeldde); ronde + lid is uniek |
 | `RoundReport` | Patrol | `RoundResult` | Terugmelding per loper: uitkomst + notitie; alleen bij een gelopen ronde |
 | `Outcome` | Patrol | `Result` | Eén veld `kind` (`nothing_to_report`, `remarks`, `incident`) in plaats van twee vinkjes die elkaar konden tegenspreken; `archived` in plaats van soft delete |
@@ -413,11 +413,13 @@ Verbeteringen ten opzichte van v3:
 - **Tijd zonder verrassingen:** `startsAt` in UTC opgeslagen, getoond in Europe/Amsterdam, met Symfony Clock zodat tests de tijd vastzetten.
 - **Value objects** voor wat regels heeft: `EmailAddress`, `PhoneNumber`, `Daypart`, `RoundStatus`, `StaffingRule`.
 
-**Status van een ronde** wordt afgeleid, niet opgeslagen: `seeking_buddy` (minder lopers dan het minimum), `staffed` (minimum gehaald), `walked` (voorbij en gehaald) en `not_walked` (voorbij zonder loopmaatje). Elke ronde in API en MCP bevat `status`, `walkerCount`, `minimumWalkers` en `daypart`: `morning` vóór 12:00, `afternoon` tot 18:00, `evening` vanaf 18:00, zoals de v3-kalender ze al indeelt.
+**Status van een ronde** wordt afgeleid, niet opgeslagen: `seeking_buddy` (minder lopers dan het minimum), `staffed` (minimum gehaald), `walked` (voorbij en gehaald) en `not_walked` (voorbij zonder loopmaatje). "Vol" is geen status maar een veld: `openSpots` is het maximum min het aantal lopers zolang de ronde niet begonnen is, en 0 vanaf de start; een volle ronde is `staffed`. Elke ronde in API en MCP bevat `status`, `walkerCount`, `minimumWalkers`, `maximumWalkers`, `openSpots` en `daypart`: `morning` vóór 12:00, `afternoon` tot 18:00, `evening` vanaf 18:00, zoals de v3-kalender ze al indeelt.
 
 Regels die daaruit volgen:
 
 - Terugmelden kan alleen bij `walked`.
+- Minimum en maximum (maximum ≥ minimum) komen bij aanmaken uit de instellingen en gelden voor die ronde; een gewijzigde instelling geldt alleen voor nieuwe rondes.
+- Aanmelden bij een volle ronde wordt geweigerd, ook namens; wie al aangemeld is, krijgt geen fout.
 - Meldt de laatste loper zich af, dan vervalt de ronde (zoals in v3).
 - Wordt een ronde door een afmelding weer `seeking_buddy`, dan ziet de afmelder vooraf een waarschuwing en krijgt de overgebleven loper een e-mail.
 - Bij een nieuwe ronde die een loopmaatje zoekt, mailt de app de lopers met `notifyOpenRounds` aan; niet vaker dan één mail per ronde.
@@ -429,7 +431,7 @@ Regels die daaruit volgen:
 
 | Groep | Endpoints | Wie |
 | --- | --- | --- |
-| Publiek | `GET /config` (branding, teksten, minimumaantal lopers) | iedereen |
+| Publiek | `GET /config` (branding, teksten, minimum- en maximumaantal lopers) | iedereen |
 | Sessie | `POST /auth/login`, `POST /auth/logout`, `POST /auth/password-reset`, `POST /auth/password-reset/{token}` | iedereen |
 | Eigen account | `GET/PATCH /me`, `PUT /me/password`, `GET/POST/DELETE /me/tokens` | lid |
 | Rondes | `GET /rounds?from=&to=&status=`, `GET /rounds/{id}`, `POST /rounds`, `PATCH /rounds/{id}`, `DELETE /rounds/{id}` | lid leest; loper maakt aan; coördinator wijzigt/verwijdert |
@@ -456,7 +458,7 @@ Regels die daaruit volgen:
 **Conversie v3 → v4.**
 
 - `bin/console app:import-v3` leest de v3-database via een tweede, alleen-lezen databaseverbinding en vult de lege v4-database. Ook te starten vanuit de web-installer, voor hosts zonder SSH.
-- Eerst `--dry-run`: rapport met aantallen per soort en waarschuwingen, zoals een lid zonder e-mail, dubbele e-mailadressen, een ronde zonder lopers of een terugmelding bij een niet-gelopen ronde.
+- Eerst `--dry-run`: rapport met aantallen per soort en waarschuwingen, zoals een lid zonder e-mail, dubbele e-mailadressen, een ronde zonder lopers, een ronde met meer lopers dan het maximum (die krijgt het aantal lopers als maximum) of een terugmelding bij een niet-gelopen ronde.
 - Wachtwoorden gaan mee: v3 bewaart hashes via Symfony's `auto`-hasher, die v4 ook kan controleren. Lopers loggen in met hun bestaande wachtwoord; de hash wordt bij inloggen zo nodig vernieuwd.
 - Verwijderde rondes en catalogusitems uit v3 gaan niet mee. Verwijderde leden die nog in de historie voorkomen, worden "verwijderd lid".
 - De v3-blamevelden worden startregels in het auditlog, gemarkeerd "uit v3".
@@ -483,7 +485,7 @@ De MCP-server is een dunne laag op `/mcp` die dezelfde use cases en Voters aanro
 | `list_meeting_points`, `list_outcomes` | Keuzelijsten | `read` | lid |
 | `round_statistics` | Aantallen gepland, gelopen, niet gelopen (geen loopmaatje) en incidenten, per maand, weekdag of dagdeel, met percentages en vergelijking met de vorige periode | `read` | analist, coördinator |
 
-**Resources:** `buurtpreventie://config` (naam, minimumaantal lopers, startpunten, uitkomsten). **Prompts:** `monthly_report` (maandoverzicht voor politie/gemeente uit `report_summary`) en `plan_week` (open plekken komende week).
+**Resources:** `buurtpreventie://config` (naam, minimum- en maximumaantal lopers, startpunten, uitkomsten). **Prompts:** `monthly_report` (maandoverzicht voor politie/gemeente uit `report_summary`) en `plan_week` (open plekken komende week).
 
 **Voorbeeldvragen.** De tools leveren exacte aantallen uit de database; de AI-client maakt er een samenvatting van, zoals de analyse van de loopschema's in dit plan.
 
@@ -635,7 +637,7 @@ De repo bevat geen enkele verwijzing naar een specifieke vereniging: technische 
 | Afzender e-mail en ondertekening | `Setting` | valt terug op `.env` |
 | Contact coördinator (naam, e-mail, telefoon) | `Setting` | leeg |
 | Teksten: welkom, "wat te doen bij spoed" (112, 14040, app), privacyverklaring-URL | `Setting` (Markdown, per taal) | neutrale Nederlandse standaardtekst |
-| Minimumaantal lopers, herinnering N dagen vooraf | `Setting` | 2 en 1 |
+| Minimum- en maximumaantal lopers, herinnering N dagen vooraf | `Setting` | 2, 7 en 1 |
 | Taal, tijdzone | `Setting` | `nl`, `Europe/Amsterdam` |
 
 Hoe het doorwerkt:
@@ -747,7 +749,7 @@ Fase 3, 4 en 5 hangen alleen van de API af; wie het frontend het eerst nodig hee
 - [ ] Entiteiten in `src/*/Domain` met Doctrine-mapping volgens het verbeterde model, en het conversiecommando app:import-v3 met dry-run; nieuw zijn ook `ApiToken`/`Setting`.
 - [ ] Use cases in UseCase/ per module, elk met invoerklasse, handler en later de adapters (zie Codestructuur): `SignUpForRound`, `WithdrawFromRound`, `CreateRound`, `ChangeRound`, `ReportRoundResult`, `AddComment`, `SendReminders`, `NotifyBuddyNeeded`, …
 - [ ] Voters per onderwerp en de module Audit (elke schrijvende handler legt een auditregel vast, met test); regels uit de oude `WalkService` (minimum lopers, inactieve lopers uit toekomstige rondes, eigen melding verwijderen) als unit tests vastgelegd; fixture-sets demo, test, edge en v3 (zie Voorbeelddata).
-- [ ] Database: lokaal MariaDB 10.11 (`compose.yaml`), omdat shared hosting meestal MariaDB biedt. CI draait de migraties vanaf een lege database en de databasetests op MariaDB 10.11 én MySQL 8.4, omdat niet elke hoster MariaDB heeft en Doctrine niet alles gelijktrekt: gegenereerde migraties, collation en gelijktijdige schrijfacties kunnen per database verschillen. Standaard-tabelopties in `doctrine.yaml`: `utf8mb4` met `utf8mb4_unicode_ci`, dat op beide bestaat. Wat mensen intypen en waarop de app zoekt (e-mailadressen, codes, namen) is hoofdletterongevoelig: `Anke@example.org` en `anke@example.org` zijn hetzelfde adres. De app zet zulke waarden in PHP om naar kleine letters, vóór opslag en vóór het zoeken, zodat unieke sleutels niet van de collation afhangen. Geheime tokens (inloglink, wachtwoord-reset, API-token) zijn de uitzondering: die worden exact vergeleken, als hash. Geen eigen SQL, behalve in een repositorymethode met een integratietest op beide. Coördinaten zijn twee getallen in WGS84 (`DECIMAL(9,6)`), geen spatial types.
+- [ ] Database: lokaal MariaDB 10.11 (`compose.yaml`), omdat shared hosting meestal MariaDB biedt. CI draait de migraties vanaf een lege database en de databasetests op MariaDB 10.11 én MySQL 8.4, omdat niet elke hoster MariaDB heeft en Doctrine niet alles gelijktrekt: gegenereerde migraties, collation en gelijktijdige schrijfacties kunnen per database verschillen. Standaard-tabelopties in `doctrine.yaml`: `utf8mb4` met `utf8mb4_unicode_ci`, dat op beide bestaat. Wat mensen intypen en waarop de app zoekt (e-mailadressen, namen) is hoofdletterongevoelig: `Anke@example.org` en `anke@example.org` zijn hetzelfde adres. Namen zijn ook accentongevoelig: zoeken op "Jose" vindt "José". De app maakt in PHP een zoeksleutel, vóór opslag en vóór het zoeken, zodat zoeken en unieke sleutels niet van de collation afhangen; de weergave blijft zoals getypt. Bij leden is alleen het e-mailadres uniek: twee leden mogen dezelfde naam hebben. Geheime tokens (inloglink, wachtwoord-reset, API-token) zijn de uitzondering: die worden exact vergeleken, als hash. Geen eigen SQL, behalve in een repositorymethode met een integratietest op beide. Coördinaten zijn twee getallen in WGS84 (`DECIMAL(9,6)`), geen spatial types.
 
 **Klaar als:** alle domeinregels uit de oude app hebben een test; conversie draait foutloos op de verzonnen v3-fixture-set, de aantallen kloppen en voorbeeldlopers loggen in met hun v3-wachtwoord.
 
@@ -1131,7 +1133,7 @@ Alleen rapporteren, niets wijzigen.
 
 **Review-focus** — invoer die geen enkele fasetest vanzelf raakt en die lopers het eerst zullen merken. Elk punt krijgt een test in de genoemde fase:
 
-1. **Twee lopers melden tegelijk aan** voor de laatste plek of de eerste aanmelding: geen dubbele `Participation`, minimumstatus klopt (unique constraint + test, fase 1).
+1. **Twee lopers melden tegelijk aan** voor de laatste plek of de eerste aanmelding: geen dubbele `Participation`, nooit meer lopers dan het maximum (de ander krijgt "ronde is vol"), minimumstatus klopt (slot op de ronde, unique constraint + test, fase 1).
 2. **Rondes rond de zomer-/wintertijdwissel**: een ronde om 22:00 blijft 22:00 lokale tijd in kalender, API, MCP en herinnering (fase 1 en 2).
 3. **Lid zonder toestemming** verschijnt in `/members`, `get_round` of een e-mail: nooit telefoon, e-mail of adres (fase 2 en 5).
 4. **Gedeactiveerd of verwijderd lid** in toekomstige rondes, ledenlijst of als token-eigenaar: wordt uitgeschreven, en het token werkt meteen niet meer (fase 1 en 2).

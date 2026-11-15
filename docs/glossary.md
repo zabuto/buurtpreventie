@@ -36,7 +36,10 @@ dezelfde naam.
 | Analist | `analyst` | Rol: ziet terugmeldingen en statistieken |
 | Beheerder | `admin` | Rol: leden, instellingen, onderhoud |
 | Dagdeel | `Daypart` | `morning` (voor 12:00), `afternoon` (tot 18:00), `evening` (vanaf 18:00) |
-| Minimumaantal lopers | `StaffingRule`, `minimumWalkers` | Standaard 2 |
+| Minimumaantal lopers | `StaffingRule`, `minimumWalkers` | Standaard 2, vastgelegd per ronde |
+| Maximumaantal lopers | `StaffingRule`, `maximumWalkers` | Standaard 7, vastgelegd per ronde; nooit lager dan het minimum |
+| Open plekken | `openSpots` | Hoeveel lopers zich nog kunnen aanmelden; 0 als de ronde vol is of begonnen |
+| Vol | `openSpots` is 0 | Geen status: een volle ronde is `staffed` |
 | Zoekt loopmaatje | `seeking_buddy` | Status: minder lopers dan het minimum |
 | Bezet | `staffed` | Status: minimum gehaald |
 | Gelopen | `walked` | Status: voorbij en minimum gehaald |
