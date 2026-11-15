@@ -2,7 +2,7 @@
 
 Status: opgeleverd in pull request #1, aangevuld in #7 tot en met #14.
 
-Bron: `docs/plan-v4.md` (Samenvatting, Uitgangspunten, Licentie, Codestructuur, Overdraagbaarheid,
+Bron: `docs/plans/plan.md` (Samenvatting, Uitgangspunten, Licentie, Codestructuur, Overdraagbaarheid,
 Overstap naar Symfony 8.4 LTS, Fase 0) en `AGENTS.md`.
 
 ## Doel en klaar-criterium

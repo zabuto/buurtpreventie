@@ -1054,7 +1054,7 @@ git switch -c develop && git push -u origin develop
 gh repo edit zabuto/buurtpreventie --default-branch develop
 ```
 
-Daarna dit plan exporteren als Markdown naar `docs/plan-v4.md` in de nieuwe repo en committen op `develop`. Claude Code starten met de oude repo erbij als naslag:
+Daarna dit plan exporteren als Markdown naar `docs/plans/plan.md` in de nieuwe repo en committen op `develop`. Claude Code starten met de oude repo erbij als naslag:
 
 ```bash
 cd ~/Sites/buurtpreventie
@@ -1068,7 +1068,7 @@ claude --add-dir ../buurtpreventie-legacy
 Fase 0 — basis:
 
 ```text
-Lees AGENTS.md en docs/plan-v4.md, vooral Samenvatting, Uitgangspunten, Licentie,
+Lees AGENTS.md en docs/plans/plan.md, vooral Samenvatting, Uitgangspunten, Licentie,
 Codestructuur, Overdraagbaarheid en Fase 0. v3 staat in ../buurtpreventie-legacy (alleen lezen).
 Maak eerst een taakplan in docs/plans/phase-0.md en wacht op mijn akkoord.
 
@@ -1091,7 +1091,7 @@ alle PHPat-regels doorstaat. Daarna een pull request naar develop.
 Fase 1 — domein en use cases:
 
 ```text
-Fase 1 uit docs/plan-v4.md. Taakplan eerst in docs/plans/phase-1.md, wacht op akkoord.
+Fase 1 uit docs/plans/plan.md. Taakplan eerst in docs/plans/phase-1.md, wacht op akkoord.
 Lees ../buurtpreventie-legacy/src/Entity, src/Service/WalkService.php en migrations/.
 Leg elke domeinregel uit v3 eerst vast als test, bouw dan Patrol, Membership, Identity
 en Audit volgens Codestructuur. Verbeter het domeinmodel volgens het plan (v3 is geen keurslijf); de conversie
@@ -1102,7 +1102,7 @@ Vergeet de review-focuspunten 1, 2 en 4 uit het plan niet.
 Fase 2 — REST-API:
 
 ```text
-Fase 2 uit docs/plan-v4.md. Taakplan eerst, wacht op akkoord.
+Fase 2 uit docs/plans/plan.md. Taakplan eerst, wacht op akkoord.
 Bouw de endpoints uit Domeinmodel en API-ontwerp als …Controller in UseCase/<Naam>/: json_login
 + CSRF, access_token-authenticator met gehashte tokens en scopes, problem+json,
 OpenAPI via NelmioApiDocBundle. Per endpoint een functionele test, plus één matrixtest
@@ -1112,7 +1112,7 @@ rol × actie. Contactgegevens alleen bij toestemming (review-focus 3).
 Fase 3 — branding en configuratie:
 
 ```text
-Fase 3 uit docs/plan-v4.md. Taakplan eerst, wacht op akkoord.
+Fase 3 uit docs/plans/plan.md. Taakplan eerst, wacht op akkoord.
 Module Settings met standaardwaarden zonder verenigingsnaam, /admin/settings, logo-upload,
 GET /config, manifest.webmanifest, contrastcontrole bij opslaan, e-mailtemplates nl/en.
 Neem de teksten uit ../buurtpreventie-legacy/translations als startpunt.
@@ -1122,7 +1122,7 @@ Links in e-mails moeten werken in een submap (review-focus 5).
 Fase 4 — MCP:
 
 ```text
-Fase 4 uit docs/plan-v4.md. Taakplan eerst, wacht op akkoord.
+Fase 4 uit docs/plans/plan.md. Taakplan eerst, wacht op akkoord.
 symfony/mcp-bundle + mcp/sdk (minor vastgepind), stateless HTTP op /mcp, tools uit de
 sectie MCP-server als dunne wrappers om bestaande handlers. Scopes, rate limit, kanaal
 "mcp" in het auditlog. Test elke tool met de SDK-client, ook geweigerd zonder scope of rol.
@@ -1131,7 +1131,7 @@ sectie MCP-server als dunne wrappers om bestaande handlers. Scopes, rate limit, 
 Fase 5 — frontend:
 
 ```text
-Fase 5 uit docs/plan-v4.md, met de sectie Frontend: PWA, responsive en toegankelijk.
+Fase 5 uit docs/plans/plan.md, met de sectie Frontend: PWA, responsive en toegankelijk.
 Taakplan eerst, wacht op akkoord.
 Bouw frontend/ buildless met de gevendorde Lit-bundel (geen importmap), alleen tegen
 /api/v1. Doelgroep: lopers van elk digitaal niveau, ook op iOS 15; zie die alinea. Gebruik
@@ -1142,7 +1142,7 @@ WCAG 2.2 AA, formulieren in light DOM, service worker op het basispad, axe-core 
 Fase 5b — conversie v3 → v4:
 
 ```text
-Fase 5b uit docs/plan-v4.md, met de conversiebeslissingen uit docs/plans/phase-1.md. Taakplan eerst.
+Fase 5b uit docs/plans/plan.md, met de conversiebeslissingen uit docs/plans/phase-1.md. Taakplan eerst.
 Lees ../buurtpreventie-legacy/src/Entity en migrations/. Bouw de fixture-set v3 en app:import-v3
 met --dry-run, test op MariaDB en MySQL; echte data hoort bij het overstapproject.
 ```
@@ -1150,7 +1150,7 @@ met --dry-run, test op MariaDB en MySQL; echte data hoort bij het overstapprojec
 Fase 6a en 6b — installeren, releasen en bijwerken:
 
 ```text
-Fase 6a en daarna 6b uit docs/plan-v4.md, met Hosting en Beveiligingsupdates. De overstap van
+Fase 6a en daarna 6b uit docs/plans/plan.md, met Hosting en Beveiligingsupdates. De overstap van
 bestaande installaties hoort er niet bij; die is een apart project. Taakplan eerst.
 Release-workflow met ondertekende zip, web-installer, scherm Onderhoud met updater en
 terugzetten (releases/ + shared/), .htaccess voor submap en Authorization-header, tick.
@@ -1160,7 +1160,7 @@ Schrijf docs/admin-guide/ in gewone taal voor een webbeheerder zonder dev-achter
 Uitbreiding U1 — vast loopmaatje uitnodigen:
 
 ```text
-Uitbreiding U1 uit docs/plan-v4.md. Taakplan eerst, wacht op akkoord.
+Uitbreiding U1 uit docs/plans/plan.md. Taakplan eerst, wacht op akkoord.
 BuddyPermission en BuddyInvite in Patrol, opt-in per persoon, intrekken en pauzeren zonder
 bericht aan de ander, suggesties uit gezamenlijke rondes, limieten (1 per ronde, 2 per week),
 mail met "Ik loop mee"/"Kan deze keer niet". Test vooral: zonder toestemming nooit een
@@ -1170,7 +1170,7 @@ uitnodiging, en de uitnodiger ziet nooit een weigering van toestemming. Niet via
 Uitbreiding U5 — statistieken voor analist:
 
 ```text
-Uitbreiding U5 uit docs/plan-v4.md. Taakplan eerst, wacht op akkoord.
+Uitbreiding U5 uit docs/plans/plan.md. Taakplan eerst, wacht op akkoord.
 Use cases en endpoints voor statistieken per maand, weekdag, dagdeel en uitkomst, met
 SQL-aggregaties en een dagcache. Scherm Statistieken in de frontend met eigen SVG-
 componenten in Lit, elk met conclusie-titel en tabelweergave. Geen cijfers per loper.
@@ -1180,7 +1180,7 @@ Controleer de uitkomsten tegen een handtelling op de demo-fixtures.
 Uitbreiding U9 — route en incidentkaart:
 
 ```text
-Uitbreiding U9 uit docs/plan-v4.md. Taakplan eerst, wacht op akkoord.
+Uitbreiding U9 uit docs/plans/plan.md. Taakplan eerst, wacht op akkoord.
 Module Tracking, standaard uit via een instelling. Toestemming per loper, route opnemen
 alleen met app open, route achteraf intekenen als alternatief, pin bij terugmelding.
 Leaflet gevendord, kaartondergrond instelbaar (PDOK BRT-Achtergrondkaart als standaard).
@@ -1191,7 +1191,7 @@ loper zonder toestemming nergens locatiegegevens achterlaat.
 **Na elke fase:**
 
 ```text
-Review de branch tegen docs/plan-v4.md: wat ontbreekt uit deze fase, welke uitgangspunten
+Review de branch tegen docs/plans/plan.md: wat ontbreekt uit deze fase, welke uitgangspunten
 of PHPat-regels worden geschonden, welke review-focuspunten hebben nog geen test?
 Alleen rapporteren, niets wijzigen.
 ```

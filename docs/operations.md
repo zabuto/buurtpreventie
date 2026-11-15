@@ -6,7 +6,7 @@ phase 6.
 ## GitHub repository
 
 - Repository: `zabuto/buurtpreventie`. The original developer owns it; a handover goes through a fork
-  (see Overdraagbaarheid in [plan-v4.md](plan-v4.md)).
+  (see Overdraagbaarheid in [plans/plan.md](plans/plan.md)).
 - Branches: `develop` is the default branch until v4.0.0; work arrives there through pull requests
   from `feature/<short-name>`. `main` holds released versions only, tagged `vX.Y.Z`. Urgent fixes go
   through `hotfix/<short-name>` from `main`, back into `main` and `develop`.
@@ -113,7 +113,7 @@ the error response keeps it.
 v4 runs on Symfony 7.4 LTS (bug fixes until November 2028, security fixes until November 2029), for
 the reasons in [ADR 0002](adr/0002-symfony-lts-and-php-minimum.md). The move to 8.4 LTS is planned
 for early 2028, together with PHP 8.5; the steps are in
-[plan-v4.md](plan-v4.md#overstap-naar-symfony-84-lts). The look-ahead job shows every week what
+[plans/plan.md](plans/plan.md#overstap-naar-symfony-84-lts). The look-ahead job shows every week what
 breaks on Symfony 8.
 
 ## Opengrep

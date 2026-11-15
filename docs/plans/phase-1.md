@@ -2,7 +2,7 @@
 
 Status: goedgekeurd op 15 november 2026.
 
-Bron: `docs/plan-v4.md` (Domeinmodel en API-ontwerp, Voorbeelddata, Auditlog, Privacy en AVG, Conversie
+Bron: `docs/plans/plan.md` (Domeinmodel en API-ontwerp, Voorbeelddata, Auditlog, Privacy en AVG, Conversie
 v3 → v4, Fase 1, Risico's en review-focus), `docs/plans/phase-0.md`, `docs/plans/phase-0-security-scanning.md`,
 ADR 0001 tot en met 0004, `AGENTS.md`, en uit `../buurtpreventie-legacy` (alleen gelezen): `src/Entity`,
 `src/Service/WalkService.php`, `migrations/`, met de plekken die `WalkService` aanroepen.
@@ -13,7 +13,7 @@ Het domein van v4 staat: de modules `Patrol`, `Membership`, `Identity` en `Audit
 use cases (invoer en handler), Voters en auditlog, opgeslagen in MariaDB en MySQL, met voorbeelddata.
 Controllers en tools volgen in fase 2 en 4.
 
-Gewijzigd op 15 november 2026, na T5: de conversie uit v3 is een eigen fase 5b in `docs/plan-v4.md`, vlak vóór
+Gewijzigd op 15 november 2026, na T5: de conversie uit v3 is een eigen fase 5b in `docs/plans/plan.md`, vlak vóór
 de installer van fase 6a, zodat ze het model volgt dat uitgebracht wordt. Daarheen gaan T13, de set `v3` uit
 T12, de conversietest uit T5 en beslissingen 26 tot en met 29 en 31; ze blijven hieronder staan als
 uitgangspunt voor dat taakplan. Beslissing 8 (anonimiseren) volgt met haar eerste gebruiker: de conversie of
@@ -487,7 +487,7 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
     is namens aanmelden: de eerste loper is de eigenaar, niet de coördinator;
   - één terugmelding per ronde, niet één per loper: een loper van die ronde of de coördinator meldt terug, en dat
     is genoeg. De eigenaar hoeft het niet te zijn. Reageren door de andere lopers volgt later (uitbreiding U3 in
-    `docs/plan-v4.md`);
+    `docs/plans/plan.md`);
   - een tweede terugmelding wordt geweigerd ("deze ronde heeft al een terugmelding"), zodat niemand ongemerkt de
     melding van een ander overschrijft. De auteur of de coördinator verwijdert de bestaande; daarna kan er een
     nieuwe komen. Er is geen use case om een terugmelding te wijzigen;
@@ -593,9 +593,9 @@ Per regel eerst het testbestand, dan de regel (beslissing 32).
 - `docs/getting-started.md`: fixtures laden;
   `docs/gotchas.md`: wat er tijdens deze fase opvalt.
 - `docs/glossary.md`: kanaal `console`, `LookupKey` (zoeksleutel), `walkersNeeded`, "verwijderd lid". `maximumWalkers`, `openSpots` en `displayName` staan er al in, net als in het
-  Domeinmodel van `docs/plan-v4.md`.
+  Domeinmodel van `docs/plans/plan.md`.
 - `docs/gotchas.md`: de momentopname van InnoDB bij `REPEATABLE READ` (beslissing 24).
-- `AGENTS.md` (Commands) en `CHANGELOG.md`; in `docs/plan-v4.md` de punten van Fase 1 afvinken.
+- `AGENTS.md` (Commands) en `CHANGELOG.md`; in `docs/plans/plan.md` de punten van Fase 1 afvinken.
 
 ### T16. Verifiëren en opleveren
 

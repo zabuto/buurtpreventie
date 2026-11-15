@@ -2,7 +2,7 @@
 
 Status: uitgevoerd op `feature/security-scanning`.
 
-Bron: `docs/plan-v4.md` (Fase 0, de twee open punten; Beveiligingsupdates en zelf bijwerken, Kant
+Bron: `docs/plans/plan.md` (Fase 0, de twee open punten; Beveiligingsupdates en zelf bijwerken, Kant
 ontwikkelaar; Risico's), ADR 0002 en 0003, en `AGENTS.md`.
 
 ## Doel en klaar-criterium
@@ -137,7 +137,7 @@ faalt, daarna groen zonder.
 - `docs/testing.md`: wat de scan doet, en hoe je een regel met regeltest toevoegt.
 - `docs/getting-started.md` en `AGENTS.md`: `composer check` dekt alles behalve de scan.
 - `CHANGELOG.md`: regels onder Unreleased.
-- `docs/plan-v4.md`: de twee open punten van Fase 0 afvinken.
+- `docs/plans/plan.md`: de twee open punten van Fase 0 afvinken.
 
 ### T7. Verifiëren en opleveren
 

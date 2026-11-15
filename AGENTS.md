@@ -1,6 +1,6 @@
 # Buurtpreventie v4
 
-The plan lives in docs/plan-v4.md and is leading. Read it before every phase.
+The plan lives in docs/plans/plan.md and is leading. Read it before every phase.
 
 ## Language and naming
 
@@ -9,7 +9,7 @@ The plan lives in docs/plan-v4.md and is leading. Read it before every phase.
 - AGENTS.md and CLAUDE.md: English.
 - README: English, with a short Dutch summary. docs/, CHANGELOG.md and SECURITY.md: English,
   except docs/glossary.md (Dutch terms and their code names) and the Dutch plans
-  (docs/plan-v4.md, docs/plans/). UI texts: nl and en, through translation files.
+  (docs/plans/). UI texts: nl and en, through translation files.
 - Domain terms follow docs/glossary.md (loopronde = Round, loopmaatje = buddy, ...).
 - Every text (comments, test names, messages, docs, UI texts) follows docs/writing.md: UK English
   with US spelling for code vocabulary, no narrative, Dutch user texts at B1.
