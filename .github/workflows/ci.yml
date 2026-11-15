@@ -43,3 +43,63 @@ jobs:
       # The same script developers run locally; see docs/testing.md.
       - name: Run all checks
         run: composer check
+
+  security-scan:
+    name: Security scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: composer:v2
+
+      # The release script needs only the autoloader of tools/, so no package gets installed.
+      - name: Generate the autoloader
+        run: composer dump-autoload --dev --no-interaction
+
+      - name: Pick the Opengrep version
+        id: opengrep
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          version="$(php tools/opengrep-release.php select)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532 # v4.1.3
+
+      # Only a binary signed by the release workflow of opengrep/opengrep for exactly this version runs; the identity
+      # names the release branch of the version, so a binary signed by any other workflow or branch fails.
+      - name: Download and verify Opengrep
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.opengrep.outputs.version }}
+        run: |
+          dir="$RUNNER_TEMP/opengrep"
+          gh release download "v$VERSION" --repo opengrep/opengrep --dir "$dir" \
+            --pattern opengrep_manylinux_x86 --pattern opengrep_manylinux_x86.sig --pattern opengrep_manylinux_x86.cert
+          cosign verify-blob \
+            --cert "$dir/opengrep_manylinux_x86.cert" \
+            --signature "$dir/opengrep_manylinux_x86.sig" \
+            --certificate-identity "https://github.com/opengrep/opengrep/.github/workflows/rolling-release.yml@refs/heads/release-v$VERSION" \
+            --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+            "$dir/opengrep_manylinux_x86"
+          echo "Opengrep $VERSION, SHA-256 $(sha256sum "$dir/opengrep_manylinux_x86" | cut -d ' ' -f 1)"
+          install -m 0755 "$dir/opengrep_manylinux_x86" "$dir/opengrep"
+          echo "$dir" >> "$GITHUB_PATH"
+
+      - name: Run the rule tests
+        run: opengrep test .opengrep/rules
+
+      # Folders that do not exist yet, such as templates/, join the scan once they appear.
+      - name: Scan the code
+        run: |
+          targets=()
+          for folder in src config templates public bin tools; do
+            if [ -d "$folder" ]; then targets+=("$folder"); fi
+          done
+          opengrep scan --config .opengrep/rules --error "${targets[@]}"
