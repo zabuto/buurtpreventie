@@ -4,32 +4,24 @@ declare(strict_types=1);
 
 namespace App\Tests\Shared\Infrastructure\Http;
 
-use App\Shared\Infrastructure\Http\HidePhpVersion;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\HttpKernel\KernelEvents;
+use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 /**
- * PHP on the command line keeps no response headers, so a test cannot see the header disappear; it proves that
- * every response passes the listener.
+ * PHP on the command line keeps no response headers, so a test cannot see PHP's own header disappear; it proves
+ * that the response carries the fixed value instead.
  */
-#[Group('integration')]
-final class HidePhpVersionTest extends KernelTestCase
+#[Group('functional')]
+final class HidePhpVersionTest extends WebTestCase
 {
     #[Test]
-    public function it_runs_on_every_response(): void
+    public function it_names_the_stack_without_a_version(): void
     {
-        $dispatcher = self::getContainer()->get(EventDispatcherInterface::class);
-        // @phpstan-ignore method.alreadyNarrowedType (PHPStan reads the type from the container, Mago does not)
-        $this->assertInstanceOf(EventDispatcherInterface::class, $dispatcher);
+        $client = self::createClient();
 
-        $listeners = $dispatcher->getListeners(KernelEvents::RESPONSE);
+        $client->request('GET', '/api/v1/health');
 
-        $this->assertNotEmpty(\array_filter(
-            $listeners,
-            static fn(mixed $listener): bool => \is_array($listener) && $listener[0] instanceof HidePhpVersion,
-        ));
+        self::assertResponseHeaderSame('X-Powered-By', 'PHP Symfony');
     }
 }

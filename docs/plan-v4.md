@@ -604,6 +604,7 @@ De vereniging is verwerkingsverantwoordelijke: zij stelt de privacyverklaring, b
 **Beveiliging.**
 
 - Alleen HTTPS; de installer weigert zonder.
+- Beveiligingsheaders: de API stuurt een CSP die niets toestaat, `nosniff`, `Referrer-Policy: no-referrer` en `Cross-Origin-Opener-Policy: same-origin` (fase 1); de frontend krijgt een eigen CSP en `Permissions-Policy` (fase 4), HSTS volgt in fase 6a.
 - Wachtwoorden en tokens alleen gehasht opgeslagen.
 - Rechten via rollen en Voters, gecontroleerd met de matrixtest.
 - Opnieuw het wachtwoord invoeren bij gevoelige acties.
@@ -786,6 +787,7 @@ Fase 3, 4 en 5 hangen alleen van de API af; wie het frontend het eerst nodig hee
 - [ ] `frontend/`: buildless app (ES-modules, gevendorde Lit-bundel, geen importmap), die alleen `/api/v1` aanroept. Begin met een proef van één scherm (inloggen en "Zoekt een loopmaatje") om Lit te leren kennen, met de gebruikte patronen in docs/frontend.md.
 - [ ] Schermen: inloggen/wachtwoord, kalender, ronde (aan-/afmelden), gelopen rondes + terugmelding, account/toestemming/tokens, leden, analyse, beheer.
 - [ ] Mobiel eerst en WCAG 2.2 AA (zie Frontend); PWA met manifest, service worker en offline lezen; axe-core in CI.
+- [ ] Beveiligingsheaders voor de statische frontend via `.htaccess`: CSP `default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'`, en `Permissions-Policy: camera=(), microphone=(), geolocation=()`. Geen inline scripts of stijlen, dus ook geen `'unsafe-inline'`.
 
 **Klaar als:** elk scherm van de oude app een tegenhanger heeft en een loper op een telefoon in drie tikken kan aanmelden, ook op een iPhone met iOS 15, en de minst ervaren testloper dat zonder hulp doet. De evaluatie van Lit staat in een ADR.
 
@@ -815,6 +817,7 @@ Na fase 2 tot en met 5 staat het model dat uitgebracht wordt; de conversie volgt
 - [ ] Release-workflow: zip met `vendor/`, frontend en `.htaccess` (pad of subdomein, `Authorization`-header) bij elke GitHub Release, met SHA-256 en libsodium-handtekening; patchversies automatisch na een samengevoegde fix.
 - [ ] Web-installer (eenmalig token): controle op HTTPS, PHP-versie, schrijfrechten en een map binnen een andere applicatie; daarna migraties, eerste beheerder en optioneel voorbeelddata.
 - [ ] Mapindeling `releases/` + `shared/`; `bin/scheduler.php` voor cron en `POST /api/v1/system/tick`, voor herinneringen, mails over open rondes en opruimen volgens bewaartermijnen.
+- [ ] HSTS (`Strict-Transport-Security: max-age=31536000`) zodra de installer HTTPS heeft gecontroleerd, zonder `includeSubDomains`: de app staat vaak op een subdomein van een domein met andere sites, die anders ook HTTPS moeten hebben.
 - [ ] Proefinstallatie op shared hosting, op een subdomein én in een pad, zonder SSH, met cron en testmail.
 
 **Klaar als:** installatie volgens `docs/getting-started.md` lukt op shared hosting zonder SSH, op een subdomein en in een pad; herinneringen gaan via cron of tick; de testmail komt aan.
@@ -905,6 +908,7 @@ Een loper kan iemand met wie hij vaak loopt vragen of die weer meeloopt, maar al
 Een losse uitbreiding die pas start als fase 0 t/m 6 draaien. Standaard staat hij uit; een vereniging zet hem aan in de instellingen, en daarna kiest elke loper zelf of hij meedoet.
 
 - [ ] **Toestemming per loper:** apart vinkje "mijn route mag worden vastgelegd", standaard uit en altijd in te trekken. Pas na toestemming verschijnt de knop "Route opnemen".
+- [ ] **Locatie in `Permissions-Policy`:** `geolocation=(self)` alleen als de uitbreiding aan staat; uit fase 4 staat locatie uit.
 - [ ] **Route opnemen tijdens de ronde** via de locatie van de browser, alleen zolang de app open en het scherm aan is: een webapp kan niet betrouwbaar op de achtergrond volgen. Duidelijke melding "Route wordt opgenomen" met een stopknop.
 - [ ] **Alternatief zonder volgen:** de route achteraf op de kaart intekenen of alleen de gelopen straten aantikken. Werkt ook op oude telefoons en kost geen batterij.
 - [ ] **Pin bij een melding:** bij een terugmelding "Locatie toevoegen", met de huidige plek of door op de kaart te tikken, zodat de coördinator weet waar het was.

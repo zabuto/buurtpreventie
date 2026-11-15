@@ -90,9 +90,23 @@ hosting panel can switch them off; Composer's runtime check then refuses to star
 
 With `expose_php` on, PHP names its exact version in an `X-Powered-By` header, which tells an
 attacker which known vulnerabilities to try. Set `expose_php = Off` in `php.ini` where the host
-allows it. The app removes the header from every response it handles (`HidePhpVersion`), and
-`public/.htaccess` removes it on Apache with `mod_headers`, also for a response that never reaches
-the app's response handling.
+allows it. The app replaces the header with `PHP Symfony`, without a version, on every response it
+handles (`HidePhpVersion`), and `public/.htaccess` does the same on Apache with `mod_headers`, also
+for a response that never reaches the app's response handling.
+
+## Security headers
+
+Every response under `/api/` carries (`ApiSecurityHeaders`):
+
+| Header | Value | Why |
+| --- | --- | --- |
+| `Content-Security-Policy` | `default-src 'none'; frame-ancestors 'none'` | The API answers with JSON: a browser that renders a response loads, runs and frames nothing |
+| `X-Content-Type-Options` | `nosniff` | A browser never reads JSON as HTML or script |
+| `Referrer-Policy` | `no-referrer` | No API URL leaks to another site |
+| `Cross-Origin-Opener-Policy` | `same-origin` | Another site that opens the API in a window cannot reach it |
+
+In debug mode Symfony drops the policy from an error page, so its exception page can show; in `prod`
+the error response keeps it.
 
 ## Symfony 8.4 LTS
 

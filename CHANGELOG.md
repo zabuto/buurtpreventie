@@ -45,4 +45,6 @@ versions follow [Semantic Versioning](https://semver.org/).
   member list that shows full names only to coordinators and admins.
 - Identity: accounts with a password that accepts v3 hashes, and API tokens stored as a hash with
   scopes, expiry and revocation. Settings: the default minimum and maximum walkers of a new round.
-- Responses do not name the PHP version: the app and `public/.htaccess` remove `X-Powered-By`.
+- Responses do not name the PHP version: the app and `public/.htaccess` set `X-Powered-By` to `PHP Symfony`.
+- API responses carry a Content-Security-Policy that allows nothing, `nosniff`, `Referrer-Policy: no-referrer`
+  and `Cross-Origin-Opener-Policy: same-origin`.
