@@ -21,6 +21,7 @@ Deze staan niet in bestanden en moeten bij een fork opnieuw:
 | Allow auto-merge | Settings → General | Nodig voor het samenvoegen van patch-updates van Dependabot |
 | Private vulnerability reporting | Settings → Code security | Meldingen volgens `SECURITY.md` |
 | Dependabot alerts en security updates | Settings → Code security | Beveiligingsupdates voor Composer en Actions |
+| Automatically delete head branches | Settings → General | Een branch verdwijnt van GitHub zodra zijn pull request is gemerged |
 
 ## CI
 
@@ -39,6 +40,11 @@ issue. Actions staan vast op een commit-SHA; Dependabot werkt ze bij.
 `.github/dependabot.yml`: wekelijks Composer en GitHub Actions, gericht op `develop`. Patch-updates
 van Composer komen samen in één pull request en worden automatisch samengevoegd als CI groen is;
 minor- en major-updates beoordeelt de ontwikkelaar. Beveiligingsupdates gaan naar de standaardbranch.
+
+Major-updates van Symfony-pakketten (`symfony/*`) slaat Dependabot over. v4 blijft op 7.4 LTS tot de
+geplande overstap naar 8.4 LTS; een losse Symfony 8-versie zoals 8.1 krijgt maar een paar maanden
+onderhoud, en één pakket op 8 naast de rest op 7.4 ondersteunt Symfony niet. Wat er op Symfony 8
+breekt, laat de look-ahead-job zien.
 
 ## Geheimen
 

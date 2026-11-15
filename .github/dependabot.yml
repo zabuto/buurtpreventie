@@ -8,6 +8,10 @@ updates:
     groups:
       patch:
         update-types: [patch]
+    ignore:
+      # v4 stays on Symfony 7.4 LTS until the planned move to 8.4 LTS; the weekly look-ahead job covers Symfony 8.
+      - dependency-name: 'symfony/*'
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: github-actions
     directory: /

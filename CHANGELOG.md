@@ -15,5 +15,6 @@ versies volgens [Semantic Versioning](https://semver.org/lang/nl/).
 - Controles met `composer check`: PHPStan level max, PHP-CS-Fixer, Rector, PHPUnit, `composer audit`
   en deprecations.
 - GitHub Actions voor CI, een wekelijkse audit en een wekelijkse vooruitblik op Symfony 8 en PHP 8.5;
-  Dependabot met automatisch samenvoegen van patch-updates.
+  Dependabot met automatisch samenvoegen van patch-updates; major-updates van Symfony slaat Dependabot
+  over, zodat v4 op 7.4 LTS blijft.
 - `SECURITY.md` en documentatie in `docs/`.
