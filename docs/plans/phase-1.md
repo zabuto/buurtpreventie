@@ -490,8 +490,13 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
     aan de coördinator;
   - de laatste beheerder kan zijn rol niet kwijtraken en niet gedeactiveerd of gewist worden; `ChangeMemberRoles`,
     `DeactivateMember` en `EraseMember` weigeren dat met een eigen fout;
-  - `NotifyBuddyNeeded` stuurt één bericht per ronde, op het moment dat ze "zoekt loopmaatje" wordt, aan actieve
-    lopers met `notifyOpenRounds` die er nog niet in zitten;
+  - `NotifyBuddyNeeded` stuurt één bericht per ronde, aan actieve lopers met `notifyOpenRounds` die er nog niet in
+    zitten, en alleen als de ronde dan nog een loopmaatje zoekt. Niet bij het aanmaken: lopers krijgen eerst de tijd
+    om zich zelf aan te melden. Het moment is het eerste van 5, 3 of 1 dag vóór de start dat na het aanmaken valt;
+    is de ronde minder dan een dag vooruit aangemaakt, dan meteen. Dagen tellen in `Europe/Amsterdam`, zodat de
+    melding op dezelfde kloktijd valt, ook over een wissel van zomer- en wintertijd. De scheduler verstuurt de
+    geplande meldingen; de melding "meteen" verstuurt `CreateRound` zelf, zodat die ook zonder cron aankomt. De ronde
+    onthoudt dat de melding verstuurd is, dus een loopmaatje dat zich aan- en weer afmeldt, geeft geen tweede;
   - de analist schrijft niets, behalve eigen toestemming, eigen tokens en een opmerking als loper van de ronde.
 - Wie de actie uitvoert (besloten op 15 november 2026):
   - één bron: de token-opslag van Symfony. `ExecutionContext` leest het token; `SymfonyAuthorization` leest via de
