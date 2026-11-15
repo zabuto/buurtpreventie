@@ -373,10 +373,20 @@ Per regel eerst het testbestand, dan de regel (beslissing 34). Lokaal gedraaid z
 ## Afspraken
 
 1. Claude commit in deze privérepo, in kleine commits. Push, pull request en merge alleen na akkoord.
-2. De database start de ontwikkelaar. Draait hij niet, dan meldt Claude dat en draait de databasetests niet.
+   - De commit-guard van de anke-plugin laat `git add` en `git commit` alleen toe als de werkmap een repo van
+     `github.com/zabuto` is en het commando zelf niet van map wisselt: geen `cd`, `pushd`, `-C`, `--git-dir`,
+     `--work-tree` of `GIT_DIR=` in dezelfde aanroep. `cd` gaat dus in een eigen Bash-aanroep.
+   - Alleen de bestanden van die commit stagen, met letterlijke paden; daarna `git show --stat HEAD` om te zien dat er
+     niets anders in zit. `git mv` en `git rm` zetten een wijziging direct in de index.
+   - Push, pull request en merge als squash pas na akkoord, en de merge pas als CI groen is.
+2. `.env`, `.env.dev` en `.env.test` staan in de publieke repo en bevatten geen geheimen: lezen en wijzigen mag. De
+   sandbox weigert elk bestand dat op `.env*` lijkt, dus lezen gaat met `git show HEAD:.env` (of `HEAD:.env.test`).
+   `git status` meldt daarom "Operation not permitted" voor die drie; de uitkomst klopt. `.env.local`, `.env.*.local`
+   en `shared/.env.local` nooit lezen of committen.
+3. De database start de ontwikkelaar. Draait hij niet, dan meldt Claude dat en draait de databasetests niet.
    Voorbeelddata in de dev-database alleen na vragen.
-3. Nieuwe afhankelijkheden pas na akkoord op de tabel hierboven.
-4. Na elke taak wordt de tabel "Fasen en stand" in `docs/plans/plan.md` bijgewerkt.
+4. Nieuwe afhankelijkheden pas na akkoord op de tabel hierboven.
+5. Na elke taak wordt de tabel "Fasen en stand" in `docs/plans/plan.md` bijgewerkt.
 
 ## Open punten uit het plan
 
