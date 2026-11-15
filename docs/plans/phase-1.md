@@ -478,6 +478,18 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
   nodig heeft, krijgt ook de rol coördinator (besloten op 15 november 2026).
 
 - De bewakingstest uit beslissing 14.
+- Rechten en use cases (besloten op 15 november 2026):
+  - namens aanmelden kan alleen voor een actief lid met de rol loper; Patrol vraagt dat via een interface in
+    `Shared\Domain`, zoals `MemberNames`;
+  - een ronde aanmaken vraagt de rol loper, ook voor een coördinator, want de maker wordt meteen loper;
+  - terugmelden alleen door lopers van die ronde, niet namens;
+  - `GetRound` toont het telefoonnummer van een loper met toestemming alleen aan de andere lopers van die ronde en
+    aan de coördinator;
+  - de laatste beheerder kan zijn rol niet kwijtraken en niet gedeactiveerd of gewist worden; `ChangeMemberRoles`,
+    `DeactivateMember` en `EraseMember` weigeren dat met een eigen fout;
+  - `NotifyBuddyNeeded` stuurt één bericht per ronde, op het moment dat ze "zoekt loopmaatje" wordt, aan actieve
+    lopers met `notifyOpenRounds` die er nog niet in zitten;
+  - de analist schrijft niets, behalve eigen toestemming, eigen tokens en een opmerking als loper van de ronde.
 - Wie de actie uitvoert (besloten op 15 november 2026):
   - één bron: de token-opslag van Symfony. `ExecutionContext` leest het token; `SymfonyAuthorization` leest via de
     `AuthorizationChecker` hetzelfde token, dus handler en Voters zien altijd dezelfde uitvoerder;
