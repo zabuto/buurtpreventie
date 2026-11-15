@@ -43,6 +43,12 @@ many clients look for a socket) on the port that `docker compose port database 3
 the user, password and database from `compose.yaml`. The port changes when the container starts
 again.
 
+Create the tables, and bring them up to date after every pull that adds a migration:
+
+```bash
+symfony console doctrine:migrations:migrate
+```
+
 Tests use `buurtpreventie_test`, and the v3 conversion reads `buurtpreventie_legacy`, both on the
 same server. On an empty data volume, `docker/database/grant-prefixed-databases.sh` gives the
 database user every database starting with `buurtpreventie_`. A volume created before that script

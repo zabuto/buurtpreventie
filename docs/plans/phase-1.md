@@ -377,6 +377,8 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
   `evening`; de herinnering valt op de goede kalenderdag.
 - Database (beide): dezelfde rondes heen en terug via de repository, met `startsAt` exact gelijk.
 - Conversie: een v3-tijd in het dubbele uur geeft een waarschuwing en een vaste keuze (de eerste, zomertijd).
+  Deze test komt met de conversie in T13; de databasetest brengt de Patrol-repository en de eerste migratie
+  naar voren, de andere modules volgen in T10.
   Fase 2 test dezelfde rondes via de API.
 
 ### T6. Membership, Identity, Settings (test eerst)
