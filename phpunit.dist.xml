@@ -34,6 +34,7 @@
     </testsuites>
 
     <extensions>
+        <bootstrap class="App\Tests\Database\DatabaseSchemaExtension" />
         <bootstrap class="DAMA\DoctrineTestBundle\PHPUnit\PHPUnitExtension" />
     </extensions>
 

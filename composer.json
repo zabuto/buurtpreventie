@@ -86,7 +86,7 @@
             "@php vendor/bin/phpunit"
         ],
         "test:unit": [
-            "@php vendor/bin/phpunit --exclude-group integration --exclude-group functional"
+            "@php vendor/bin/phpunit --exclude-group integration --exclude-group functional --exclude-group database"
         ],
         "check": [
             "@composer validate --strict",
