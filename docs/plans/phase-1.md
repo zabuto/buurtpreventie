@@ -415,6 +415,14 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
 - Een gewist lid staat in historie en auditlog als "verwijderd lid", zonder contactgegevens.
 - Fase 2 test dat de token-authenticator een ingetrokken token meteen weigert en dat de ledenlijst
   gedeactiveerde leden weglaat.
+- Uitgevoerd op 15 november 2026, met deze keuzes:
+  - "account uit" is het lid zelf: `Account` krijgt geen eigen vlag, want de authenticator van fase 2 weigert
+    al op een gedeactiveerd of gewist lid. Eén bron, net als het e-mailadres; het wachtwoord blijft;
+  - `WithdrawMemberFromUpcomingRounds` komt uit T9 naar voren. De beheerder roept hem aan via `DeactivateMember`
+    en `EraseMember`; de Voter (T9) staat hem dus toe aan de beheerder, als deel van ledenbeheer;
+  - bericht gaat alleen uit als de ronde door het uitschrijven onder het minimum zakt, niet als ze er al onder
+    zat;
+  - "verwijderd lid" in auditlog en historie volgt met `EraseActorName` (T8) en `GetRound` (T9).
 
 ### T8. Audit (test eerst)
 

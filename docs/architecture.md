@@ -145,7 +145,7 @@ A handler reaches storage, rights, the audit log and messages only through inter
 | `ExecutionContext`, `Channel` | The member performing the action with their roles (an `Actor`), or none for the system, and the channel (`web`, `api`, `mcp`, `cron`, `console`) | the entry point: console commands and tests in phase 1, HTTP and MCP in phases 2 and 5 |
 | `AuditTrail`, `AuditedAction` | Records an action; time, actor and channel come from the clock and the execution context | the `Audit` module |
 | `Authorization`, `AccessDenied` | `denyUnlessGranted()` asks the voters of every module and throws `AccessDenied` on a refusal | `Shared\Infrastructure\Security\SymfonyAuthorization` |
-| `Notifier`, `Notification` | Sends a member a message by type and parameters; the domain holds no texts | a logging notifier in phase 1, e-mail in phase 3 |
+| `Notifier`, `Notification` | Sends a member a message by type and parameters; the domain holds no texts | `Shared\Infrastructure\Notification\LoggingNotifier` in phase 1, e-mail in phase 3 |
 | `Role`, `Actor` | The fixed roles `walker`, `coordinator`, `analyst` and `admin`, without inheritance, and a member with their roles, as the policies of every module decide on them | |
 | `NotFound` | No item of a kind has a given id; entry points turn it into their own answer, such as HTTP 404 | |
 | `LocalTime` | Converts an instant to `Europe/Amsterdam`, the clock of dayparts, calendar days and everything a walker reads | |
@@ -159,6 +159,10 @@ time zone of PHP.
 
 When an operation in `Transaction` throws, Doctrine rolls back and closes the entity manager. A
 process that handles more than one unit of work, such as a worker, resets it in between.
+
+A handler that calls the handler of another module, such as `DeactivateMember` calling
+`WithdrawMemberFromUpcomingRounds` and `RevokeMemberApiTokens`, runs that handler's transaction inside
+its own. Doctrine nests it with a savepoint, so a failure in either undoes both.
 
 ## Rules
 

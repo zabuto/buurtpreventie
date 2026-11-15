@@ -86,6 +86,50 @@ final class DoctrineRoundRepositoryTest extends KernelTestCase
         $this->repository->get(Uuid::v7());
     }
 
+    #[Test]
+    public function it_finds_only_the_rounds_of_the_member_that_have_not_started(): void
+    {
+        $member = Uuid::v7();
+        $now = new DateTimeImmutable('2026-11-15T12:00:00+00:00');
+        $started = $this->round(new DateTimeImmutable('2026-11-15T12:00:00+00:00'), $member);
+        $upcoming = $this->round(new DateTimeImmutable('2026-11-15T12:01:00+00:00'), $member);
+        $alsoUpcoming = $this->round(new DateTimeImmutable('2026-11-22T21:00:00+00:00'));
+        $alsoUpcoming->signUp($member, new DateTimeImmutable('2026-01-01T12:00:00+00:00'));
+        $withoutTheMember = $this->round(new DateTimeImmutable('2026-11-16T21:00:00+00:00'));
+        foreach ([$started, $upcoming, $alsoUpcoming, $withoutTheMember] as $round) {
+            $this->repository->add($round);
+        }
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+
+        $found = $this->entityManager->wrapInTransaction(fn(): array => $this->repository->upcomingWithWalker($member, $now));
+
+        $this->assertEqualsCanonicalizing(
+            [$upcoming->id()->toRfc4122(), $alsoUpcoming->id()->toRfc4122()],
+            \array_map(static fn(Round $round): string => $round->id()->toRfc4122(), $found),
+        );
+    }
+
+    #[Test]
+    public function it_loads_every_walker_of_a_round_it_finds(): void
+    {
+        $member = Uuid::v7();
+        $buddy = Uuid::v7();
+        $round = $this->round(new DateTimeImmutable('2026-11-22T21:00:00+00:00'), $member);
+        $round->signUp($buddy, new DateTimeImmutable('2026-01-01T12:00:00+00:00'));
+        $this->repository->add($round);
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+
+        $found = $this->entityManager->wrapInTransaction(fn(): array => $this->repository->upcomingWithWalker(
+            $member,
+            new DateTimeImmutable('2026-11-15T12:00:00+00:00'),
+        ));
+
+        $this->assertCount(1, $found);
+        $this->assertEqualsCanonicalizing([$member, $buddy], $found[0]->walkerIds());
+    }
+
     private function storeAndReadBack(Round $round): Round
     {
         $this->repository->add($round);

@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace App\Membership\UseCase\EraseMember;
 
+use App\Identity\UseCase\RevokeMemberApiTokens\RevokeMemberApiTokens;
+use App\Identity\UseCase\RevokeMemberApiTokens\RevokeMemberApiTokensHandler;
 use App\Membership\Domain\MemberRepository;
+use App\Patrol\UseCase\WithdrawMemberFromUpcomingRounds\WithdrawMemberFromUpcomingRounds;
+use App\Patrol\UseCase\WithdrawMemberFromUpcomingRounds\WithdrawMemberFromUpcomingRoundsHandler;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\AuditTrail;
 use App\Shared\Domain\Authorization;
@@ -13,6 +17,10 @@ use App\Shared\Domain\WriteAction;
 use Psr\Clock\ClockInterface;
 use Symfony\Component\Uid\Uuid;
 
+/**
+ * An erased member is deactivated as well: it leaves every round that has not started and loses every token, in the
+ * same transaction as the erasure.
+ */
 #[WriteAction(authorization: 'member.erase', audit: 'member.erased')]
 final readonly class EraseMemberHandler
 {
@@ -22,6 +30,8 @@ final readonly class EraseMemberHandler
         private AuditTrail $auditTrail,
         private Transaction $transaction,
         private ClockInterface $clock,
+        private WithdrawMemberFromUpcomingRoundsHandler $withdrawFromUpcomingRounds,
+        private RevokeMemberApiTokensHandler $revokeApiTokens,
     ) {
     }
 
@@ -33,6 +43,9 @@ final readonly class EraseMemberHandler
 
             $member->erase($this->clock->now());
             $this->auditTrail->record(new AuditedAction('member.erased', 'member', $member->id()));
+
+            ($this->withdrawFromUpcomingRounds)(new WithdrawMemberFromUpcomingRounds($input->memberId));
+            ($this->revokeApiTokens)(new RevokeMemberApiTokens($input->memberId));
         });
     }
 }

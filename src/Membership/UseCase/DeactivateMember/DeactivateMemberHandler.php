@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace App\Membership\UseCase\DeactivateMember;
 
+use App\Identity\UseCase\RevokeMemberApiTokens\RevokeMemberApiTokens;
+use App\Identity\UseCase\RevokeMemberApiTokens\RevokeMemberApiTokensHandler;
 use App\Membership\Domain\MemberRepository;
+use App\Patrol\UseCase\WithdrawMemberFromUpcomingRounds\WithdrawMemberFromUpcomingRounds;
+use App\Patrol\UseCase\WithdrawMemberFromUpcomingRounds\WithdrawMemberFromUpcomingRoundsHandler;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\AuditTrail;
 use App\Shared\Domain\Authorization;
@@ -12,6 +16,11 @@ use App\Shared\Domain\Transaction;
 use App\Shared\Domain\WriteAction;
 use Symfony\Component\Uid\Uuid;
 
+/**
+ * A deactivated member walks no more and logs in no more: it leaves every round that has not started and loses
+ * every token, in the same transaction, so no token keeps working after a failed deactivation. The password stays
+ * for a reactivation.
+ */
 #[WriteAction(authorization: 'member.deactivate', audit: 'member.deactivated')]
 final readonly class DeactivateMemberHandler
 {
@@ -20,6 +29,8 @@ final readonly class DeactivateMemberHandler
         private Authorization $authorization,
         private AuditTrail $auditTrail,
         private Transaction $transaction,
+        private WithdrawMemberFromUpcomingRoundsHandler $withdrawFromUpcomingRounds,
+        private RevokeMemberApiTokensHandler $revokeApiTokens,
     ) {
     }
 
@@ -31,6 +42,9 @@ final readonly class DeactivateMemberHandler
 
             $member->deactivate();
             $this->auditTrail->record(new AuditedAction('member.deactivated', 'member', $member->id()));
+
+            ($this->withdrawFromUpcomingRounds)(new WithdrawMemberFromUpcomingRounds($input->memberId));
+            ($this->revokeApiTokens)(new RevokeMemberApiTokens($input->memberId));
         });
     }
 }

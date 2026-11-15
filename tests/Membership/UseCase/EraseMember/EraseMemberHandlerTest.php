@@ -4,19 +4,26 @@ declare(strict_types=1);
 
 namespace App\Tests\Membership\UseCase\EraseMember;
 
+use App\Identity\UseCase\RevokeMemberApiTokens\RevokeMemberApiTokensHandler;
 use App\Membership\Domain\Member;
 use App\Membership\Domain\UniqueMemberDetails;
 use App\Membership\UseCase\AddMember\AddMember;
 use App\Membership\UseCase\AddMember\AddMemberHandler;
 use App\Membership\UseCase\EraseMember\EraseMember;
 use App\Membership\UseCase\EraseMember\EraseMemberHandler;
+use App\Patrol\UseCase\WithdrawMemberFromUpcomingRounds\WithdrawMemberFromUpcomingRoundsHandler;
 use App\Shared\Domain\AccessDenied;
 use App\Shared\Domain\AuditedAction;
+use App\Tests\Identity\Fake\ApiTokenFixture;
+use App\Tests\Identity\Fake\InMemoryApiTokenRepository;
 use App\Tests\Membership\Fake\InMemoryMemberRepository;
 use App\Tests\Membership\Fake\MemberFixture;
+use App\Tests\Patrol\Domain\RoundFixture;
+use App\Tests\Patrol\Fake\InMemoryRoundRepository;
 use App\Tests\Shared\Fake\FakeAuthorization;
 use App\Tests\Shared\Fake\ImmediateTransaction;
 use App\Tests\Shared\Fake\RecordingAuditTrail;
+use App\Tests\Shared\Fake\RecordingNotifier;
 use DateTimeImmutable;
 use Override;
 use PHPUnit\Framework\Attributes\Test;
@@ -28,14 +35,20 @@ final class EraseMemberHandlerTest extends TestCase
     private const string NOW = '2026-11-15T12:00:00+00:00';
 
     private InMemoryMemberRepository $members;
+    private InMemoryRoundRepository $rounds;
+    private InMemoryApiTokenRepository $tokens;
     private RecordingAuditTrail $auditTrail;
+    private ImmediateTransaction $transaction;
     private Member $jan;
 
     #[Override]
     protected function setUp(): void
     {
         $this->members = new InMemoryMemberRepository();
+        $this->rounds = new InMemoryRoundRepository();
+        $this->tokens = new InMemoryApiTokenRepository();
         $this->auditTrail = new RecordingAuditTrail();
+        $this->transaction = new ImmediateTransaction();
         $this->jan = MemberFixture::stored($this->members, 'jan@example.org', 'Jan Bakker', 'Jan B.');
     }
 
@@ -49,11 +62,53 @@ final class EraseMemberHandlerTest extends TestCase
     }
 
     #[Test]
-    public function it_records_the_erasure_without_personal_data(): void
+    public function it_withdraws_the_member_from_rounds_that_have_not_started(): void
+    {
+        $round = RoundFixture::withWalkers($this->jan->id(), 2);
+        $this->rounds->add($round);
+
+        $this->handler()(new EraseMember($this->jan->id()->toRfc4122()));
+
+        $this->assertFalse($round->isSignedUp($this->jan->id()));
+    }
+
+    #[Test]
+    public function it_revokes_every_token_of_the_member(): void
+    {
+        $token = ApiTokenFixture::stored($this->tokens, $this->jan->id());
+
+        $this->handler()(new EraseMember($this->jan->id()->toRfc4122()));
+
+        $this->assertFalse($token->isUsableAt(new DateTimeImmutable(self::NOW)));
+    }
+
+    #[Test]
+    public function it_runs_the_withdrawal_and_the_revocation_inside_its_own_transaction(): void
     {
         $this->handler()(new EraseMember($this->jan->id()->toRfc4122()));
 
-        $this->assertEquals([new AuditedAction('member.erased', 'member', $this->jan->id())], $this->auditTrail->recorded);
+        $this->assertSame([1, 2, 2], $this->transaction->depths);
+    }
+
+    #[Test]
+    public function it_records_the_erasure_without_personal_data_then_the_withdrawal_and_the_revocation(): void
+    {
+        $round = RoundFixture::withWalkers($this->jan->id(), 2);
+        $this->rounds->add($round);
+        $token = ApiTokenFixture::stored($this->tokens, $this->jan->id());
+
+        $this->handler()(new EraseMember($this->jan->id()->toRfc4122()));
+
+        $this->assertEquals(
+            [
+                new AuditedAction('member.erased', 'member', $this->jan->id()),
+                new AuditedAction('participation.withdrawn_automatically', 'round', $round->id(), [
+                    'walker' => ['old' => $this->jan->id()->toRfc4122(), 'new' => null],
+                ]),
+                new AuditedAction('api_token.revoked', 'api_token', $token->id()),
+            ],
+            $this->auditTrail->recorded,
+        );
     }
 
     #[Test]
@@ -88,6 +143,7 @@ final class EraseMemberHandlerTest extends TestCase
     #[Test]
     public function it_erases_nothing_when_access_is_denied(): void
     {
+        $token = ApiTokenFixture::stored($this->tokens, $this->jan->id());
         $refusal = null;
         try {
             $this->handler(FakeAuthorization::refusing())(new EraseMember($this->jan->id()->toRfc4122()));
@@ -96,17 +152,29 @@ final class EraseMemberHandlerTest extends TestCase
         }
 
         $this->assertInstanceOf(AccessDenied::class, $refusal);
-        $this->assertSame([false, []], [$this->jan->isErased(), $this->auditTrail->recorded]);
+        $this->assertSame([false, null, []], [$this->jan->isErased(), $token->revokedAt(), $this->auditTrail->recorded]);
     }
 
     private function handler(?FakeAuthorization $authorization = null): EraseMemberHandler
     {
+        $authorization ??= FakeAuthorization::granting();
+        $clock = new MockClock(self::NOW);
+
         return new EraseMemberHandler(
             $this->members,
-            $authorization ?? FakeAuthorization::granting(),
+            $authorization,
             $this->auditTrail,
-            new ImmediateTransaction(),
-            new MockClock(self::NOW),
+            $this->transaction,
+            $clock,
+            new WithdrawMemberFromUpcomingRoundsHandler(
+                $this->rounds,
+                $authorization,
+                $this->auditTrail,
+                new RecordingNotifier(),
+                $this->transaction,
+                $clock,
+            ),
+            new RevokeMemberApiTokensHandler($this->tokens, $authorization, $this->auditTrail, $this->transaction, $clock),
         );
     }
 }

@@ -8,18 +8,25 @@ use App\Shared\Domain\Transaction;
 use Override;
 
 /**
- * Runs the operation at once and counts the runs; whether a failed operation leaves no trace is DoctrineTransaction's
- * concern and has its own database test.
+ * Runs the operation at once and records the nesting depth of each run; whether a failed operation leaves no trace
+ * is DoctrineTransaction's concern and has its own database test.
  */
 final class ImmediateTransaction implements Transaction
 {
-    public int $runs = 0;
+    /** @var list<int> depth of each run in start order, 1 for an outermost run */
+    public array $depths = [];
+
+    private int $depth = 0;
 
     #[Override]
     public function run(callable $operation): mixed
     {
-        ++$this->runs;
+        $this->depths[] = ++$this->depth;
 
-        return $operation();
+        try {
+            return $operation();
+        } finally {
+            --$this->depth;
+        }
     }
 }

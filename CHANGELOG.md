@@ -43,6 +43,9 @@ versions follow [Semantic Versioning](https://semver.org/).
 - Membership: members with one e-mail address for mail and login, a unique display name and an
   erasure that keeps the member; adding, changing, roles, consent, (de)activating, erasing and a
   member list that shows full names only to coordinators and admins.
+- Deactivating or erasing a member withdraws it from every round that has not started and revokes its
+  tokens, in one transaction. A round left without walkers is deleted; walkers of a round that drops
+  below its minimum get a notification, which the log records.
 - Identity: accounts with a password that accepts v3 hashes, and API tokens stored as a hash with
   scopes, expiry and revocation. Settings: the default minimum and maximum walkers of a new round.
 - Responses do not name the PHP version: the app and `public/.htaccess` set `X-Powered-By` to `PHP Symfony`.

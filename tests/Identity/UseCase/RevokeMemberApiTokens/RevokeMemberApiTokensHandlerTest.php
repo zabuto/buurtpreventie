@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Identity\UseCase\RevokeMemberApiTokens;
 
-use App\Identity\Domain\ApiToken;
-use App\Identity\Domain\TokenScope;
-use App\Identity\Domain\TokenTerms;
 use App\Identity\UseCase\RevokeMemberApiTokens\RevokeMemberApiTokens;
 use App\Identity\UseCase\RevokeMemberApiTokens\RevokeMemberApiTokensHandler;
 use App\Shared\Domain\AccessDenied;
 use App\Shared\Domain\AuditedAction;
+use App\Tests\Identity\Fake\ApiTokenFixture;
 use App\Tests\Identity\Fake\InMemoryApiTokenRepository;
 use App\Tests\Shared\Fake\FakeAuthorization;
 use App\Tests\Shared\Fake\ImmediateTransaction;
@@ -41,9 +39,9 @@ final class RevokeMemberApiTokensHandlerTest extends TestCase
     #[Test]
     public function it_revokes_every_token_of_the_member_and_no_other(): void
     {
-        $first = $this->token($this->memberId);
-        $second = $this->token($this->memberId);
-        $other = $this->token(Uuid::v7());
+        $first = ApiTokenFixture::stored($this->tokens, $this->memberId);
+        $second = ApiTokenFixture::stored($this->tokens, $this->memberId);
+        $other = ApiTokenFixture::stored($this->tokens, Uuid::v7());
 
         $this->handler()(new RevokeMemberApiTokens($this->memberId->toRfc4122()));
 
@@ -57,8 +55,8 @@ final class RevokeMemberApiTokensHandlerTest extends TestCase
     #[Test]
     public function it_records_each_token_it_revoked(): void
     {
-        $active = $this->token($this->memberId);
-        $this->token($this->memberId)->revoke(new DateTimeImmutable('2026-11-10T12:00:00+00:00'));
+        $active = ApiTokenFixture::stored($this->tokens, $this->memberId);
+        ApiTokenFixture::stored($this->tokens, $this->memberId)->revoke(new DateTimeImmutable('2026-11-10T12:00:00+00:00'));
 
         $this->handler()(new RevokeMemberApiTokens($this->memberId->toRfc4122()));
 
@@ -68,7 +66,7 @@ final class RevokeMemberApiTokensHandlerTest extends TestCase
     #[Test]
     public function it_revokes_nothing_when_access_is_denied(): void
     {
-        $token = $this->token($this->memberId);
+        $token = ApiTokenFixture::stored($this->tokens, $this->memberId);
         $authorization = FakeAuthorization::refusing();
 
         $refusal = null;
@@ -81,19 +79,6 @@ final class RevokeMemberApiTokensHandlerTest extends TestCase
         $this->assertInstanceOf(AccessDenied::class, $refusal);
         $this->assertEquals([['api_token.revoke_all', $this->memberId]], $authorization->asked);
         $this->assertNull($token->revokedAt());
-    }
-
-    private function token(Uuid $memberId): ApiToken
-    {
-        $token = ApiToken::issue(
-            $memberId,
-            new TokenTerms('Script', [TokenScope::Read]),
-            'bpt_' . \bin2hex(\random_bytes(8)),
-            new DateTimeImmutable('2026-11-01T12:00:00+00:00'),
-        );
-        $this->tokens->add($token);
-
-        return $token;
     }
 
     private function handler(?FakeAuthorization $authorization = null): RevokeMemberApiTokensHandler
