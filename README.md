@@ -1,30 +1,32 @@
 # Buurtpreventie
 
-App voor buurtpreventie-teams: rondes plannen, een loopmaatje vinden en terugmelden.
-Versie 4 is in ontwikkeling op de branch `develop`; zie `docs/plan-v4.md`.
+A rota for neighbourhood watch teams: walkers plan patrol rounds, find a walking buddy and report back
+afterwards. Version 4 is being built on the `develop` branch; the plan is in `docs/plan-v4.md` (Dutch).
 
-De voorganger (v1 tot en met v3, MIT) staat op https://github.com/zabuto/buurtpreventie-v3.
+The predecessor (v1 to v3, MIT) lives at https://github.com/zabuto/buurtpreventie-v3.
 
-## Aan de slag
+## Getting started
 
-Zie [docs/getting-started.md](docs/getting-started.md). Een kwetsbaarheid meld je privé, zie
+See [docs/getting-started.md](docs/getting-started.md). Report a vulnerability privately, see
 [SECURITY.md](SECURITY.md).
 
-## Licentie
+## Licence
 
-Licentie: PolyForm Noncommercial 1.0.0, zie `LICENSE`.
+Licence: PolyForm Noncommercial 1.0.0, see `LICENSE`.
 Required Notice: Copyright (c) 2026 Anke Heijnen (https://github.com/zabuto)
 
-Buurtpreventie is vrij te gebruiken voor niet-commerciële doelen en bedoeld voor buurt- en
-bewonersverenigingen. Het is source-available, geen open source in de zin van de OSI. De software
-wordt geleverd zoals hij is, zonder garantie en zonder support.
+Buurtpreventie is free to use for non-commercial purposes and intended for neighbourhood and
+residents' associations. It is source-available, not open source in the OSI sense. The software is
+provided as is, without warranty or support.
 
-## In English
+## Nederlands
 
-Buurtpreventie helps neighbourhood watch teams plan patrol rounds, find a walking buddy and report
-back afterwards. Version 4 (Symfony 7.4 LTS, PHP 8.4) is being built on `develop`. The documentation
-in `docs/` is in English; start with [docs/getting-started.md](docs/getting-started.md). Report
-vulnerabilities privately, see [SECURITY.md](SECURITY.md).
+Buurtpreventie helpt buurtpreventieteams om rondes te plannen, een loopmaatje te vinden en na afloop
+terug te melden. Versie 4 wordt gebouwd op de branch `develop`; het plan staat in `docs/plan-v4.md`.
+De documentatie in `docs/` is in het Engels; begin bij
+[docs/getting-started.md](docs/getting-started.md). Een kwetsbaarheid meld je privé, zie
+[SECURITY.md](SECURITY.md).
 
-Free to use for non-commercial purposes under PolyForm Noncommercial 1.0.0, intended for
-neighbourhood and residents' associations. Provided as is, without warranty or support.
+Vrij te gebruiken voor niet-commerciële doelen onder PolyForm Noncommercial 1.0.0, bedoeld voor buurt-
+en bewonersverenigingen. Source-available, geen open source in de zin van de OSI. De software wordt
+geleverd zoals hij is, zonder garantie en zonder support.
