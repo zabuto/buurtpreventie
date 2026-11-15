@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Patrol\UseCase\CreateOutcome;
 
+use App\Patrol\Domain\OutcomeKind;
 use Symfony\Component\Validator\Constraints as Assert;
 
 final readonly class CreateOutcome
@@ -12,7 +13,7 @@ final readonly class CreateOutcome
         #[Assert\NotBlank]
         #[Assert\Length(max: 100)]
         public string $name,
-        #[Assert\Choice(choices: ['nothing_to_report', 'remarks', 'incident'])]
+        #[Assert\Choice(callback: [OutcomeKind::class, 'values'])]
         public string $kind,
     ) {
     }

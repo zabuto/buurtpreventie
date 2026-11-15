@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Membership\UseCase\AddMember;
 
+use App\Shared\Domain\Role;
 use Symfony\Component\Validator\Constraints as Assert;
 
 final readonly class AddMember
@@ -25,7 +26,7 @@ final readonly class AddMember
         public ?string $phone = null,
         #[Assert\Length(max: 255)]
         public ?string $address = null,
-        #[Assert\All([new Assert\Choice(choices: ['walker', 'coordinator', 'analyst', 'admin'])])]
+        #[Assert\All([new Assert\Choice(callback: [Role::class, 'values'])])]
         public array $roles = [],
     ) {
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Membership\UseCase\ChangeMemberRoles;
 
+use App\Shared\Domain\Role;
 use Symfony\Component\Validator\Constraints as Assert;
 
 final readonly class ChangeMemberRoles
@@ -14,7 +15,7 @@ final readonly class ChangeMemberRoles
     public function __construct(
         #[Assert\Uuid]
         public string $memberId,
-        #[Assert\All([new Assert\Choice(choices: ['walker', 'coordinator', 'analyst', 'admin'])])]
+        #[Assert\All([new Assert\Choice(callback: [Role::class, 'values'])])]
         public array $roles,
     ) {
     }

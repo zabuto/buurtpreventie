@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\Patrol\Domain;
 
+use App\Shared\Domain\BackedEnumValues;
+
 /**
  * Whether a round goes ahead. Derived, never stored: a full round is staffed, and "full" is the number of open spots.
  * A cancelled round started but was not walked, such as after a no-show or force majeure.
  */
 enum RoundStatus: string
 {
+    use BackedEnumValues;
+
     case SeekingBuddy = 'seeking_buddy';
     case Staffed = 'staffed';
     case Walked = 'walked';

@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Patrol\Domain;
 
+use App\Shared\Domain\BackedEnumValues;
+
 enum OutcomeKind: string
 {
+    use BackedEnumValues;
+
     case NothingToReport = 'nothing_to_report';
     case Remarks = 'remarks';
     case Incident = 'incident';

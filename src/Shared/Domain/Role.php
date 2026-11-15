@@ -9,6 +9,8 @@ namespace App\Shared\Domain;
  */
 enum Role: string
 {
+    use BackedEnumValues;
+
     case Walker = 'walker';
     case Coordinator = 'coordinator';
     case Analyst = 'analyst';

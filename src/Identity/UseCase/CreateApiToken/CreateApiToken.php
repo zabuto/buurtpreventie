@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Identity\UseCase\CreateApiToken;
 
+use App\Identity\Domain\TokenScope;
 use Symfony\Component\Validator\Constraints as Assert;
 
 final readonly class CreateApiToken
@@ -18,7 +19,7 @@ final readonly class CreateApiToken
         #[Assert\Length(max: 100)]
         public string $name,
         #[Assert\Count(min: 1)]
-        #[Assert\All([new Assert\Choice(choices: ['read', 'write', 'admin'])])]
+        #[Assert\All([new Assert\Choice(callback: [TokenScope::class, 'values'])])]
         public array $scopes,
         #[Assert\DateTime(format: \DATE_ATOM)]
         public ?string $expiresAt = null,
