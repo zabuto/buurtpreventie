@@ -10,8 +10,14 @@ ADR 0001 tot en met 0004, `AGENTS.md`, en uit `../buurtpreventie-legacy` (alleen
 ## Doel en klaar-criterium
 
 Het domein van v4 staat: de modules `Patrol`, `Membership`, `Identity` en `Audit` met entiteiten,
-use cases (invoer en handler), Voters en auditlog, opgeslagen in MariaDB en MySQL, met voorbeelddata en een
-conversie uit v3. Controllers en tools volgen in fase 2 en 5.
+use cases (invoer en handler), Voters en auditlog, opgeslagen in MariaDB en MySQL, met voorbeelddata.
+Controllers en tools volgen in fase 2 en 5.
+
+Gewijzigd op 15 november 2026, na T5: de conversie uit v3 is een eigen fase 5b in `docs/plan-v4.md`, vlak vóór
+de installer van fase 6a, zodat ze het model volgt dat uitgebracht wordt. Daarheen gaan T13, de set `v3` uit
+T12, de conversietest uit T5 en beslissingen 26 tot en met 29 en 31; ze blijven hieronder staan als
+uitgangspunt voor dat taakplan. Beslissing 8 (anonimiseren) volgt met haar eerste gebruiker: de conversie of
+het opruimen volgens bewaartermijnen in fase 6a.
 
 Klaar als:
 
@@ -21,9 +27,7 @@ Klaar als:
 - review-focus 1, 2 en 4 elk een test hebben die groen is (T10, T5, T7);
 - de migraties vanaf een lege database draaien en `doctrine:schema:validate` schoon is op MariaDB 10.11 én
   MySQL 8.4, en de databasetests op beide groen zijn;
-- `app:fixtures:load` de sets `demo`, `test`, `edge` en `v3` laadt, en CI elke set laadt met een rooktest;
-- `app:import-v3 --dry-run` en `app:import-v3` foutloos draaien op de verzonnen v3-set, de aantallen kloppen en
-  voorbeeldlopers hun v3-wachtwoord gebruiken (gecontroleerd met de wachtwoord-hasher; inloggen zelf is fase 2);
+- `app:fixtures:load` de sets `demo`, `test` en `edge` laadt, en CI elke set laadt met een rooktest;
 - ADR 0005 de database-aanpak vastlegt;
 - `composer check` lokaal groen is en de pull request naar `develop` groen en gemergd is.
 
@@ -210,6 +214,8 @@ Klaar als:
 
 ### Conversie en voorbeelddata
 
+Beslissingen 26 tot en met 29 en 31 gelden voor fase 5b; beslissing 30 voor T12.
+
 26. **`app:import-v3` vult alleen een lege v4-database** en weigert anders. De v3-database komt via een tweede
     verbinding `legacy` (`LEGACY_DATABASE_URL`), met alleen `SELECT`-rechten (staat in de handleiding) en een
     lezer die alleen vaste `SELECT`-query's kent.
@@ -253,8 +259,8 @@ Klaar als:
     - **`sql-built-from-strings` uitbreiden** met `select`, `addSelect`, `from`, `join`, `innerJoin`, `leftJoin`,
       `groupBy`, `addGroupBy` en `set` van de querybuilder;
     - **`sql-outside-repository`** (nieuw): `executeQuery`, `executeStatement`, `fetch*`, `createQuery`,
-      `createNativeQuery` en `createQueryBuilder` alleen in `src/*/Infrastructure/Persistence/` en in de
-      v3-lezer;
+      `createNativeQuery` en `createQueryBuilder` alleen in `src/*/Infrastructure/Persistence/` (fase 5b voegt
+      de v3-lezer toe);
     - **`weak-random-or-hash`** (nieuw): `md5`, `sha1`, `rand`, `mt_rand`, `uniqid`, `lcg_value` en
       `str_shuffle` niet in `src/` (v3 maakte tokens met `sha1(random_bytes(10))`); voor tokens `random_bytes` en
       `hash('sha256', ...)`;
@@ -377,7 +383,7 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
   `evening`; de herinnering valt op de goede kalenderdag.
 - Database (beide): dezelfde rondes heen en terug via de repository, met `startsAt` exact gelijk.
 - Conversie: een v3-tijd in het dubbele uur geeft een waarschuwing en een vaste keuze (de eerste, zomertijd).
-  Deze test komt met de conversie in T13; de databasetest brengt de Patrol-repository en de eerste migratie
+  Deze test komt met de conversie in fase 5b; de databasetest brengt de Patrol-repository en de eerste migratie
   naar voren, de andere modules volgen in T10.
   Fase 2 test dezelfde rondes via de API.
 
@@ -474,21 +480,22 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
 Job "Database (MariaDB 10.11)" en "Database (MySQL 8.4)" in `ci.yml` (matrix, services met healthcheck,
 database met `utf8mb4_unicode_ci`): migraties vanaf leeg, `doctrine:schema:validate`, `migrations:migrate
 first` en weer omhoog (alle `down()` werken), databasetests met `REQUIRE_DATABASE=1`, elke fixture-set laden
-met rooktest, conversie van de set `v3`. Actions vastgepind op SHA. De twee jobs worden verplichte checks op
+met rooktest. Actions vastgepind op SHA. De twee jobs worden verplichte checks op
 `develop`, na akkoord.
 
 ### T12. Voorbeelddata (test eerst)
 
-`app:fixtures:load <set>` (alleen `dev` en `test`, `#[When]`), sets `demo`, `test`, `edge`, `v3`, zoals in
-Voorbeelddata en beslissing 31. Tests: dezelfde seed geeft dezelfde mensen en hetzelfde patroon; de set `demo`
+`app:fixtures:load <set>` (alleen `dev` en `test`, `#[When]`), sets `demo`, `test` en `edge`, zoals in
+Voorbeelddata. Tests: dezelfde seed geeft dezelfde mensen en hetzelfde patroon; de set `demo`
 houdt zich aan hooguit 20 leden, drie met een andere rol dan loper, alleen `example.org`, ruim een kwart van
 de rondes zonder loopmaatje en een paar volle rondes; de set `edge` bevat elk geval uit het plan, plus een ronde
 op het maximum, een ronde met één plek over, en twee leden met dezelfde volledige naam, elk met een eigen
 weergavenaam.
 
-### T13. Conversie `app:import-v3` (test eerst)
+### T13. Conversie `app:import-v3`: naar fase 5b
 
-Integratietests op de set `v3`, op beide databases:
+De tests hieronder zijn het uitgangspunt voor het taakplan van fase 5b. Integratietests op de set `v3`, op
+beide databases:
 
 - dry-run: rapport met aantallen per soort en elke waarschuwing uit beslissing 29, en daarna een lege
   v4-database;
@@ -514,14 +521,11 @@ Per regel eerst het testbestand, dan de regel (beslissing 32).
   grens in de database (beslissing 4).
 - `docs/testing.md`: groep `database`, DAMA, de gelijktijdigheidstest, de matrix- en bewakingstest, en hoe je
   lokaal de database start voor tests.
-- `docs/configuration.md`: `LEGACY_DATABASE_URL`; `docs/getting-started.md`: fixtures laden;
+- `docs/getting-started.md`: fixtures laden;
   `docs/gotchas.md`: wat er tijdens deze fase opvalt.
-- `docs/glossary.md`: kanaal `console`, `anonymisedAt`, `LookupKey` (zoeksleutel), `walkersNeeded`,
-  `legacy_id_map`, "verwijderd lid". `maximumWalkers`, `openSpots` en `displayName` staan er al in, net als in het
+- `docs/glossary.md`: kanaal `console`, `LookupKey` (zoeksleutel), `walkersNeeded`, "verwijderd lid". `maximumWalkers`, `openSpots` en `displayName` staan er al in, net als in het
   Domeinmodel van `docs/plan-v4.md`.
 - `docs/gotchas.md`: de momentopname van InnoDB bij `REPEATABLE READ` (beslissing 24).
-- `docs/admin-guide/`: een korte pagina over de conversie (eerst `--dry-run`, alleen-lezen databasegebruiker,
-  kopie na afloop wissen).
 - `AGENTS.md` (Commands) en `CHANGELOG.md`; in `docs/plan-v4.md` de punten van Fase 1 afvinken.
 
 ### T16. Verifiëren en opleveren

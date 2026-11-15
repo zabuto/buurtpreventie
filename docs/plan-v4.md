@@ -746,12 +746,12 @@ Fase 3, 4 en 5 hangen alleen van de API af; wie het frontend het eerst nodig hee
 
 ### Fase 1 — Domein en use cases
 
-- [ ] Entiteiten in `src/*/Domain` met Doctrine-mapping volgens het verbeterde model, en het conversiecommando app:import-v3 met dry-run; nieuw zijn ook `ApiToken`/`Setting`.
+- [ ] Entiteiten in `src/*/Domain` met Doctrine-mapping volgens het verbeterde model; nieuw zijn ook `ApiToken`/`Setting`. De conversie uit v3 volgt in fase 5b.
 - [ ] Use cases in UseCase/ per module, elk met invoerklasse, handler en later de adapters (zie Codestructuur): `SignUpForRound`, `WithdrawFromRound`, `CreateRound`, `ChangeRound`, `ReportRoundResult`, `AddComment`, `SendReminders`, `NotifyBuddyNeeded`, …
-- [ ] Voters per onderwerp en de module Audit (elke schrijvende handler legt een auditregel vast, met test); regels uit de oude `WalkService` (minimum lopers, inactieve lopers uit toekomstige rondes, eigen melding verwijderen) als unit tests vastgelegd; fixture-sets demo, test, edge en v3 (zie Voorbeelddata).
+- [ ] Voters per onderwerp en de module Audit (elke schrijvende handler legt een auditregel vast, met test); regels uit de oude `WalkService` (minimum lopers, inactieve lopers uit toekomstige rondes, eigen melding verwijderen) als unit tests vastgelegd; fixture-sets demo, test en edge (zie Voorbeelddata); de set v3 volgt met de conversie in fase 5b.
 - [ ] Database: lokaal MariaDB 10.11 (`compose.yaml`), omdat shared hosting meestal MariaDB biedt. CI draait de migraties vanaf een lege database en de databasetests op MariaDB 10.11 én MySQL 8.4, omdat niet elke hoster MariaDB heeft en Doctrine niet alles gelijktrekt: gegenereerde migraties, collation en gelijktijdige schrijfacties kunnen per database verschillen. Standaard-tabelopties in `doctrine.yaml`: `utf8mb4` met `utf8mb4_unicode_ci`, dat op beide bestaat. Wat mensen intypen en waarop de app zoekt (e-mailadressen, namen) is hoofdletterongevoelig: `Anke@example.org` en `anke@example.org` zijn hetzelfde adres. Namen zijn ook accentongevoelig: zoeken op "Jose" vindt "José". De app maakt in PHP een zoeksleutel, vóór opslag en vóór het zoeken, zodat zoeken en unieke sleutels niet van de collation afhangen; de weergave blijft zoals getypt. Bij leden zijn e-mailadres en weergavenaam uniek: twee leden mogen dezelfde volledige naam hebben, maar in rondes en lijsten staan ze met een eigen weergavenaam ("Jan H." en "Jan B."). Geheime tokens (inloglink, wachtwoord-reset, API-token) zijn de uitzondering: die worden exact vergeleken, als hash. Geen eigen SQL, behalve in een repositorymethode met een integratietest op beide. Coördinaten zijn twee getallen in WGS84 (`DECIMAL(9,6)`), geen spatial types.
 
-**Klaar als:** alle domeinregels uit de oude app hebben een test; conversie draait foutloos op de verzonnen v3-fixture-set, de aantallen kloppen en voorbeeldlopers loggen in met hun v3-wachtwoord.
+**Klaar als:** alle domeinregels uit de oude app hebben een test, en de migraties en databasetests draaien op MariaDB 10.11 én MySQL 8.4.
 
 **Ter goedkeuring in het taakplan:** `dama/doctrine-test-bundle` als nieuwe dev-afhankelijkheid. Elke databasetest rolt dan terug, en controles filteren op het id van wat de test zelf aanmaakt, nooit op de hele tabel. De test voor twee lopers die tegelijk aanmelden (review-focus 1) zet DAMA voor zichzelf uit: hij werkt met twee eigen verbindingen die echt committen, en ruimt zijn rijen zelf op. Het schema staat er vóór de tests, omdat MariaDB bij DDL stil commit.
 
@@ -790,6 +790,17 @@ Fase 3, 4 en 5 hangen alleen van de API af; wie het frontend het eerst nodig hee
 - [ ] Tests met de SDK-client in PHPUnit: elke tool, en elke tool geweigerd zonder juiste scope of rol.
 
 **Klaar als:** de MCP Inspector alle tools ziet en Claude Code met een token `staffing_gaps` en `sign_up_for_round` kan gebruiken.
+
+### Fase 5b — Conversie v3 → v4
+
+Na fase 2 tot en met 5 staat het model dat uitgebracht wordt; de conversie volgt dat model, en de web-installer van fase 6a moet haar kunnen starten.
+
+- [ ] `app:import-v3` met `--dry-run`, volgens Conversie v3 → v4 in Domeinmodel en API-ontwerp, met de beslissingen uit het taakplan van fase 1 (tweede verbinding `legacy`, alleen een lege v4-database, dry-run in een teruggerolde transactie, koppeltabel `legacy_id_map`).
+- [ ] Fixture-set `v3`: een verzonnen v3-database met soft-deleted rijen, een verwijderd lid in de historie, een tijd rond de wintertijdwissel, leden met telefoon én mobiel, en een ronde boven het maximum.
+- [ ] Review-focus 2 voor de conversie: een v3-tijd in het dubbele uur geeft een waarschuwing en een vaste keuze.
+- [ ] Integratietests op MariaDB 10.11 en MySQL 8.4; CI converteert de set `v3`; een korte pagina in `docs/admin-guide/`.
+
+**Klaar als:** `app:import-v3 --dry-run` en `app:import-v3` foutloos draaien op de verzonnen v3-set, de aantallen kloppen, voorbeeldlopers inloggen met hun v3-wachtwoord, en een tweede conversie naar een lege database hetzelfde oplevert.
 
 ### Fase 6a — Installeren en releasen
 
@@ -928,7 +939,7 @@ Een loper zegt na de ronde wat er was, in plaats van te typen. Dat helpt onderwe
 
 ## Overstap van bestaande v3-installaties
 
-Een vereniging die nu op v3 draait, blijft dat doen tot de MVP klaar is (fase 0 tot en met 4 en 6a/6b). De overstap is per vereniging een apart project, buiten deze repo; de ontwikkeling van v4 wacht er niet op. De stappen in het kort:
+Een vereniging die nu op v3 draait, blijft dat doen tot de MVP klaar is (fase 0 tot en met 4, 5b en 6a/6b). De overstap is per vereniging een apart project, buiten deze repo; de ontwikkeling van v4 wacht er niet op. De stappen in het kort:
 
 1. **Voorbereiden:** subdomein en certificaat, PHP 8.4, cron, een mailadres voor de app.
 2. **Installeren en oefenen:** web-installer, cronregel, testmail; een generale repetitie van de conversie op een kopie van de database, eerst met `--dry-run`, en de kopie daarna wissen; testen met de coördinator en een paar lopers.
@@ -1023,8 +1034,8 @@ Fase 1 — domein en use cases:
 Fase 1 uit docs/plan-v4.md. Taakplan eerst in docs/plans/phase-1.md, wacht op akkoord.
 Lees ../buurtpreventie-legacy/src/Entity, src/Service/WalkService.php en migrations/.
 Leg elke domeinregel uit v3 eerst vast als test, bouw dan Patrol, Membership, Identity
-en Audit volgens Codestructuur. Verbeter het domeinmodel volgens het plan (v3 is geen keurslijf); schrijf app:import-v3 als
-conversie en test die op de verzonnen v3-fixture-set (echte data hoort bij het overstapproject).
+en Audit volgens Codestructuur. Verbeter het domeinmodel volgens het plan (v3 is geen keurslijf); de conversie
+uit v3 volgt in fase 5b.
 Vergeet de review-focuspunten 1, 2 en 4 uit het plan niet.
 ```
 
@@ -1066,6 +1077,14 @@ Fase 5 uit docs/plan-v4.md. Taakplan eerst, wacht op akkoord.
 symfony/mcp-bundle + mcp/sdk (minor vastgepind), stateless HTTP op /mcp, tools uit de
 sectie MCP-server als dunne wrappers om bestaande handlers. Scopes, rate limit, kanaal
 "mcp" in het auditlog. Test elke tool met de SDK-client, ook geweigerd zonder scope of rol.
+```
+
+Fase 5b — conversie v3 → v4:
+
+```text
+Fase 5b uit docs/plan-v4.md, met de conversiebeslissingen uit docs/plans/phase-1.md. Taakplan eerst.
+Lees ../buurtpreventie-legacy/src/Entity en migrations/. Bouw de fixture-set v3 en app:import-v3
+met --dry-run, test op MariaDB en MySQL; echte data hoort bij het overstapproject.
 ```
 
 Fase 6a en 6b — installeren, releasen en bijwerken:
