@@ -9,39 +9,38 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * What one walker reports after a walked round: an outcome and, unless there was nothing to report, a note.
+ * The one report of a walked round: an outcome and, unless there was nothing to report, a note. A walker of the
+ * round or a coordinator writes it; the author is fixed, so who may delete it never depends on who touched it last.
  */
 #[ORM\Entity]
-#[ORM\UniqueConstraint(name: 'round_report_round_member', columns: ['round_id', 'member_id'])]
-#[ORM\Index(name: 'round_report_member', columns: ['member_id'])]
+#[ORM\UniqueConstraint(name: 'round_report_round', columns: ['round_id'])]
+#[ORM\Index(name: 'round_report_author', columns: ['author_id'])]
 final class RoundReport
 {
     #[ORM\Id]
     #[ORM\Column(type: 'uuid')]
     private Uuid $id;
 
-    #[ORM\ManyToOne(targetEntity: Outcome::class)]
-    #[ORM\JoinColumn(nullable: false)]
-    private Outcome $outcome;
-
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $note;
-
-    #[ORM\Column(type: 'utc_datetime_immutable')]
-    private DateTimeImmutable $reportedAt;
 
     public function __construct(
         #[ORM\ManyToOne(targetEntity: Round::class, inversedBy: 'reports')]
         #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
         private Round $round,
         #[ORM\Column(type: 'uuid')]
-        private Uuid $memberId,
-        Outcome $outcome,
+        private Uuid $authorId,
+        #[ORM\ManyToOne(targetEntity: Outcome::class)]
+        #[ORM\JoinColumn(nullable: false)]
+        private Outcome $outcome,
         ?string $note,
-        DateTimeImmutable $now,
+        #[ORM\Column(type: 'utc_datetime_immutable')]
+        private DateTimeImmutable $reportedAt,
     ) {
+        $note = \trim($note ?? '');
+
         $this->id = Uuid::v7();
-        $this->revise($outcome, $note, $now);
+        $this->note = '' !== $note && $this->outcome->kind()->keepsNote() ? $note : null;
     }
 
     public function id(): Uuid
@@ -54,9 +53,9 @@ final class RoundReport
         return $this->round;
     }
 
-    public function memberId(): Uuid
+    public function authorId(): Uuid
     {
-        return $this->memberId;
+        return $this->authorId;
     }
 
     public function outcome(): Outcome
@@ -72,14 +71,5 @@ final class RoundReport
     public function reportedAt(): DateTimeImmutable
     {
         return $this->reportedAt;
-    }
-
-    public function revise(Outcome $outcome, ?string $note, DateTimeImmutable $now): void
-    {
-        $note = \trim($note ?? '');
-
-        $this->outcome = $outcome;
-        $this->note = '' !== $note && $outcome->kind()->keepsNote() ? $note : null;
-        $this->reportedAt = $now;
     }
 }

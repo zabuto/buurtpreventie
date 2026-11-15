@@ -69,12 +69,12 @@ final class DoctrineRoundRepositoryTest extends KernelTestCase
     #[Test]
     public function it_stores_the_walkers_and_the_staffing_rule_with_the_round(): void
     {
-        $creator = Uuid::v7();
-        $round = $this->round(new DateTimeImmutable('2026-11-20T21:00:00+00:00'), $creator);
+        $firstWalker = Uuid::v7();
+        $round = $this->round(new DateTimeImmutable('2026-11-20T21:00:00+00:00'), $firstWalker);
 
         $read = $this->storeAndReadBack($round);
 
-        $this->assertEquals([$creator], $read->walkerIds());
+        $this->assertEquals([$firstWalker], $read->walkerIds());
         $this->assertEquals(new StaffingRule(minimumWalkers: 2, maximumWalkers: 7), $read->staffingRule());
     }
 
@@ -139,11 +139,11 @@ final class DoctrineRoundRepositoryTest extends KernelTestCase
         return $this->repository->get($round->id());
     }
 
-    private function round(DateTimeImmutable $startsAt, ?Uuid $creator = null): Round
+    private function round(DateTimeImmutable $startsAt, ?Uuid $firstWalker = null): Round
     {
         return Round::plan(
             new RoundStart($startsAt),
-            $creator ?? Uuid::v7(),
+            $firstWalker ?? Uuid::v7(),
             new StaffingRule(minimumWalkers: 2, maximumWalkers: 7),
             new DateTimeImmutable('2026-01-01T12:00:00+00:00'),
         );

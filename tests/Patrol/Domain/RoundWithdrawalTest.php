@@ -17,18 +17,18 @@ use Symfony\Component\Uid\Uuid;
  */
 final class RoundWithdrawalTest extends TestCase
 {
-    private Uuid $creator;
+    private Uuid $firstWalker;
 
     #[Override]
     protected function setUp(): void
     {
-        $this->creator = Uuid::v7();
+        $this->firstWalker = Uuid::v7();
     }
 
     #[Test]
     public function it_lets_a_walker_withdraw_before_the_start(): void
     {
-        $round = RoundFixture::withWalkers($this->creator, 1);
+        $round = RoundFixture::withWalkers($this->firstWalker, 1);
         $walker = Uuid::v7();
         $round->signUp($walker, new DateTimeImmutable(RoundFixture::BEFORE_START));
 
@@ -42,7 +42,7 @@ final class RoundWithdrawalTest extends TestCase
     #[Test]
     public function it_ignores_a_withdrawal_of_a_member_who_is_not_signed_up(): void
     {
-        $round = RoundFixture::withWalkers($this->creator, 1);
+        $round = RoundFixture::withWalkers($this->firstWalker, 1);
 
         $withdrawal = $round->withdraw(Uuid::v7(), new DateTimeImmutable(RoundFixture::BEFORE_START));
 
@@ -53,9 +53,9 @@ final class RoundWithdrawalTest extends TestCase
     #[Test]
     public function it_asks_for_deletion_when_the_last_walker_withdraws(): void
     {
-        $round = RoundFixture::withWalkers($this->creator, 1);
+        $round = RoundFixture::withWalkers($this->firstWalker, 1);
 
-        $withdrawal = $round->withdraw($this->creator, new DateTimeImmutable(RoundFixture::BEFORE_START));
+        $withdrawal = $round->withdraw($this->firstWalker, new DateTimeImmutable(RoundFixture::BEFORE_START));
 
         $this->assertSame(Withdrawal::LastWalkerLeft, $withdrawal);
         $this->assertSame(0, $round->walkerCount());
@@ -64,17 +64,17 @@ final class RoundWithdrawalTest extends TestCase
     #[Test]
     public function it_refuses_a_withdrawal_after_the_start(): void
     {
-        $round = RoundFixture::withWalkers($this->creator, 2);
+        $round = RoundFixture::withWalkers($this->firstWalker, 2);
 
         $this->expectException(RoundHasStarted::class);
 
-        $round->withdraw($this->creator, new DateTimeImmutable(RoundFixture::AT_START));
+        $round->withdraw($this->firstWalker, new DateTimeImmutable(RoundFixture::AT_START));
     }
 
     #[Test]
     public function it_removes_an_inactive_member_from_rounds_that_have_not_started(): void
     {
-        $round = RoundFixture::withWalkers($this->creator, 1);
+        $round = RoundFixture::withWalkers($this->firstWalker, 1);
         $inactive = Uuid::v7();
         $round->signUp($inactive, new DateTimeImmutable(RoundFixture::BEFORE_START));
 
@@ -87,7 +87,7 @@ final class RoundWithdrawalTest extends TestCase
     #[Test]
     public function it_keeps_an_inactive_member_in_a_round_that_has_started(): void
     {
-        $round = RoundFixture::withWalkers($this->creator, 1);
+        $round = RoundFixture::withWalkers($this->firstWalker, 1);
         $inactive = Uuid::v7();
         $round->signUp($inactive, new DateTimeImmutable(RoundFixture::BEFORE_START));
 

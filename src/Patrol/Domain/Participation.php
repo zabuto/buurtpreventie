@@ -60,11 +60,44 @@ final class Participation
     }
 
     /**
-     * The coordinator who signed the walker up, or null when the walker did it.
+     * The coordinator who signed the walker up or created the round for them, or null when the walker did it.
      */
     public function onBehalfOf(): ?Uuid
     {
         return $this->onBehalfOf;
+    }
+
+    /**
+     * @param iterable<self> $participations
+     */
+    public static function earliest(iterable $participations): ?self
+    {
+        $earliest = null;
+        foreach ($participations as $participation) {
+            if (null !== $earliest && !$participation->joinedBefore($earliest)) {
+                continue;
+            }
+
+            $earliest = $participation;
+        }
+
+        return $earliest;
+    }
+
+    /**
+     * Joining earlier wins; for the same instant, the older id, as UUIDv7 ids sort by creation.
+     */
+    public function joinedBefore(self $other): bool
+    {
+        if ($this->joinedAt < $other->joinedAt) {
+            return true;
+        }
+
+        if ($this->joinedAt > $other->joinedAt) {
+            return false;
+        }
+
+        return \strcmp($this->id->toBinary(), $other->id->toBinary()) < 0;
     }
 
     public function remindedAt(): ?DateTimeImmutable

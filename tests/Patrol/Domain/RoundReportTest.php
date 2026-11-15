@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Patrol\Domain;
 
-use App\Patrol\Domain\NotAWalkerOfThisRound;
 use App\Patrol\Domain\Outcome;
 use App\Patrol\Domain\OutcomeKind;
+use App\Patrol\Domain\RoundAlreadyReported;
 use App\Patrol\Domain\RoundNotWalked;
 use DateTimeImmutable;
 use Override;
@@ -22,12 +22,12 @@ final class RoundReportTest extends TestCase
 {
     private const string AFTER_THE_ROUND = '2026-11-21T08:00:00+00:00';
 
-    private Uuid $creator;
+    private Uuid $firstWalker;
 
     #[Override]
     protected function setUp(): void
     {
-        $this->creator = Uuid::v7();
+        $this->firstWalker = Uuid::v7();
     }
 
     /**
@@ -44,9 +44,9 @@ final class RoundReportTest extends TestCase
     #[Test]
     public function it_drops_the_note_when_there_is_nothing_to_report(OutcomeKind $kind, ?string $expectedNote): void
     {
-        $round = RoundFixture::withWalkers($this->creator, 2);
+        $round = RoundFixture::withWalkers($this->firstWalker, 2);
 
-        $report = $round->report($this->creator, Outcome::create('Uitkomst', $kind), ' Lantaarnpaal kapot bij de school ', $this->afterTheRound());
+        $report = $round->submitReport($this->firstWalker, Outcome::create('Uitkomst', $kind), ' Lantaarnpaal kapot bij de school ', $this->afterTheRound());
 
         $this->assertSame($expectedNote, $report->note());
     }
@@ -54,9 +54,9 @@ final class RoundReportTest extends TestCase
     #[Test]
     public function it_stores_no_note_when_it_is_blank(): void
     {
-        $round = RoundFixture::withWalkers($this->creator, 2);
+        $round = RoundFixture::withWalkers($this->firstWalker, 2);
 
-        $report = $round->report($this->creator, Outcome::create('Opmerkingen', OutcomeKind::Remarks), "  \n ", $this->afterTheRound());
+        $report = $round->submitReport($this->firstWalker, Outcome::create('Opmerkingen', OutcomeKind::Remarks), "  \n ", $this->afterTheRound());
 
         $this->assertNull($report->note());
     }
@@ -74,50 +74,47 @@ final class RoundReportTest extends TestCase
     #[Test]
     public function it_refuses_a_report_for_a_round_that_was_not_walked(int $walkers, string $now): void
     {
-        $round = RoundFixture::withWalkers($this->creator, $walkers);
+        $round = RoundFixture::withWalkers($this->firstWalker, $walkers);
 
         $this->expectException(RoundNotWalked::class);
 
-        $round->report($this->creator, Outcome::create('Niets te melden', OutcomeKind::NothingToReport), null, new DateTimeImmutable($now));
+        $round->submitReport($this->firstWalker, Outcome::create('Niets te melden', OutcomeKind::NothingToReport), null, new DateTimeImmutable($now));
     }
 
     #[Test]
-    public function it_refuses_a_report_from_a_member_who_did_not_walk(): void
+    public function it_keeps_the_author_of_the_report(): void
     {
-        $round = RoundFixture::withWalkers($this->creator, 2);
+        $round = RoundFixture::withWalkers($this->firstWalker, 2);
+        $coordinator = Uuid::v7();
 
-        $this->expectException(NotAWalkerOfThisRound::class);
+        $report = $round->submitReport($coordinator, Outcome::create('Niets te melden', OutcomeKind::NothingToReport), null, $this->afterTheRound());
 
-        $round->report(Uuid::v7(), Outcome::create('Niets te melden', OutcomeKind::NothingToReport), null, $this->afterTheRound());
+        $this->assertEquals($coordinator, $report->authorId());
+        $this->assertSame($report, $round->report());
     }
 
     #[Test]
-    public function it_replaces_the_report_of_the_same_walker(): void
+    public function it_refuses_a_second_report(): void
     {
-        $round = RoundFixture::withWalkers($this->creator, 2);
+        $round = RoundFixture::withWalkers($this->firstWalker, 2);
+        $round->submitReport($this->firstWalker, Outcome::create('Niets te melden', OutcomeKind::NothingToReport), null, $this->afterTheRound());
+
+        $this->expectException(RoundAlreadyReported::class);
+
+        $round->submitReport(Uuid::v7(), Outcome::create('Incident', OutcomeKind::Incident), 'Inbraak gezien', $this->afterTheRound());
+    }
+
+    #[Test]
+    public function it_takes_a_new_report_once_the_old_one_is_removed(): void
+    {
+        $round = RoundFixture::withWalkers($this->firstWalker, 2);
+        $round->submitReport($this->firstWalker, Outcome::create('Niets te melden', OutcomeKind::NothingToReport), null, $this->afterTheRound());
+        $round->removeReport();
         $incident = Outcome::create('Incident', OutcomeKind::Incident);
-        $round->report($this->creator, Outcome::create('Niets te melden', OutcomeKind::NothingToReport), null, $this->afterTheRound());
 
-        $round->report($this->creator, $incident, 'Inbraak gezien', new DateTimeImmutable('2026-11-21T09:00:00+00:00'));
+        $report = $round->submitReport($this->firstWalker, $incident, 'Inbraak gezien', $this->afterTheRound());
 
-        $this->assertCount(1, $round->reports());
-        $report = $round->reportOf($this->creator);
-        $this->assertSame($incident, $report?->outcome());
-        $this->assertSame('Inbraak gezien', $report->note());
-        $this->assertEquals(new DateTimeImmutable('2026-11-21T09:00:00+00:00'), $report->reportedAt());
-    }
-
-    #[Test]
-    public function it_keeps_one_report_per_walker(): void
-    {
-        $round = RoundFixture::withWalkers($this->creator, 1);
-        $buddy = Uuid::v7();
-        $round->signUp($buddy, new DateTimeImmutable(RoundFixture::BEFORE_START));
-        $round->report($this->creator, Outcome::create('Niets te melden', OutcomeKind::NothingToReport), null, $this->afterTheRound());
-
-        $round->report($buddy, Outcome::create('Opmerkingen', OutcomeKind::Remarks), 'Hek open', $this->afterTheRound());
-
-        $this->assertCount(2, $round->reports());
+        $this->assertSame([$report, $incident], [$round->report(), $report->outcome()]);
     }
 
     private function afterTheRound(): DateTimeImmutable

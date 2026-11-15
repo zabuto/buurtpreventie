@@ -158,16 +158,16 @@ final class WithdrawMemberFromUpcomingRoundsHandlerTest extends TestCase
         $this->assertSame([true, [], []], [$round->isSignedUp($this->jan), $this->auditTrail->recorded, $this->notifier->sent]);
     }
 
-    private function round(string $startsAt, Uuid $creator, Uuid ...$others): Round
+    private function round(string $startsAt, Uuid $firstWalker, Uuid ...$others): Round
     {
-        return $this->roundWithMinimum($startsAt, 2, $creator, ...$others);
+        return $this->roundWithMinimum($startsAt, 2, $firstWalker, ...$others);
     }
 
-    private function roundWithMinimum(string $startsAt, int $minimum, Uuid $creator, Uuid ...$others): Round
+    private function roundWithMinimum(string $startsAt, int $minimum, Uuid $firstWalker, Uuid ...$others): Round
     {
         $round = Round::plan(
             new RoundStart(new DateTimeImmutable($startsAt)),
-            $creator,
+            $firstWalker,
             new StaffingRule(minimumWalkers: $minimum, maximumWalkers: 7),
             new DateTimeImmutable(self::CREATED_AT),
         );

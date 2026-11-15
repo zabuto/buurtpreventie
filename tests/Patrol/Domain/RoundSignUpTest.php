@@ -19,18 +19,18 @@ use Symfony\Component\Uid\Uuid;
  */
 final class RoundSignUpTest extends TestCase
 {
-    private Uuid $creator;
+    private Uuid $firstWalker;
 
     #[Override]
     protected function setUp(): void
     {
-        $this->creator = Uuid::v7();
+        $this->firstWalker = Uuid::v7();
     }
 
     #[Test]
     public function it_records_who_signed_a_walker_up_on_their_behalf(): void
     {
-        $round = RoundFixture::withWalkers($this->creator, 1);
+        $round = RoundFixture::withWalkers($this->firstWalker, 1);
         $walker = Uuid::v7();
         $coordinator = Uuid::v7();
 
@@ -42,7 +42,7 @@ final class RoundSignUpTest extends TestCase
     #[Test]
     public function it_ignores_a_second_sign_up_of_the_same_member(): void
     {
-        $round = RoundFixture::withWalkers($this->creator, 1);
+        $round = RoundFixture::withWalkers($this->firstWalker, 1);
         $walker = Uuid::v7();
         $round->signUp($walker, new DateTimeImmutable(RoundFixture::BEFORE_START));
 
@@ -55,7 +55,7 @@ final class RoundSignUpTest extends TestCase
     #[Test]
     public function it_refuses_a_sign_up_after_the_start(): void
     {
-        $round = RoundFixture::withWalkers($this->creator, 1);
+        $round = RoundFixture::withWalkers($this->firstWalker, 1);
 
         $this->expectException(RoundHasStarted::class);
 
@@ -65,7 +65,7 @@ final class RoundSignUpTest extends TestCase
     #[Test]
     public function it_refuses_a_sign_up_when_the_round_is_full(): void
     {
-        $round = RoundFixture::withWalkers($this->creator, 2, maximum: 2);
+        $round = RoundFixture::withWalkers($this->firstWalker, 2, maximum: 2);
 
         $this->expectException(RoundIsFull::class);
 
@@ -75,7 +75,7 @@ final class RoundSignUpTest extends TestCase
     #[Test]
     public function it_fills_the_last_open_spot(): void
     {
-        $round = RoundFixture::withWalkers($this->creator, 1, maximum: 2);
+        $round = RoundFixture::withWalkers($this->firstWalker, 1, maximum: 2);
 
         $joined = $round->signUp(Uuid::v7(), new DateTimeImmutable(RoundFixture::BEFORE_START));
 
@@ -86,7 +86,7 @@ final class RoundSignUpTest extends TestCase
     #[Test]
     public function it_ignores_a_second_sign_up_in_a_full_round(): void
     {
-        $round = RoundFixture::withWalkers($this->creator, 1, maximum: 2);
+        $round = RoundFixture::withWalkers($this->firstWalker, 1, maximum: 2);
         $walker = Uuid::v7();
         $round->signUp($walker, new DateTimeImmutable(RoundFixture::BEFORE_START));
 
@@ -108,7 +108,7 @@ final class RoundSignUpTest extends TestCase
     #[Test]
     public function it_has_no_open_spots_once_started(string $now, int $expected): void
     {
-        $round = RoundFixture::withWalkers($this->creator, 2, maximum: 7);
+        $round = RoundFixture::withWalkers($this->firstWalker, 2, maximum: 7);
 
         $this->assertSame($expected, $round->openSpots(new DateTimeImmutable($now)));
     }
@@ -116,7 +116,7 @@ final class RoundSignUpTest extends TestCase
     #[Test]
     public function it_reports_a_full_round_as_staffed(): void
     {
-        $round = RoundFixture::withWalkers($this->creator, 3, maximum: 3);
+        $round = RoundFixture::withWalkers($this->firstWalker, 3, maximum: 3);
 
         $this->assertSame(RoundStatus::Staffed, $round->status(new DateTimeImmutable(RoundFixture::BEFORE_START)));
         $this->assertSame(0, $round->openSpots(new DateTimeImmutable(RoundFixture::BEFORE_START)));

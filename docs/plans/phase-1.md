@@ -11,7 +11,7 @@ ADR 0001 tot en met 0004, `AGENTS.md`, en uit `../buurtpreventie-legacy` (alleen
 
 Het domein van v4 staat: de modules `Patrol`, `Membership`, `Identity` en `Audit` met entiteiten,
 use cases (invoer en handler), Voters en auditlog, opgeslagen in MariaDB en MySQL, met voorbeelddata.
-Controllers en tools volgen in fase 2 en 5.
+Controllers en tools volgen in fase 2 en 4.
 
 Gewijzigd op 15 november 2026, na T5: de conversie uit v3 is een eigen fase 5b in `docs/plan-v4.md`, vlak vóór
 de installer van fase 6a, zodat ze het model volgt dat uitgebracht wordt. Daarheen gaan T13, de set `v3` uit
@@ -85,7 +85,7 @@ Klaar als:
    database verwijderd: wissen (AVG) anonimiseert het lid, zodat elke `memberId` blijft verwijzen naar een
    bestaand lid. Binnen een module wel foreign keys.
    - Een verwijzing naar een andere module is altijd de UUID van het lid (`BINARY(16)`), nooit een oplopend id:
-     `Participation.memberId` en `onBehalfOf`, `RoundReport.memberId`, `RoundComment.authorId`,
+     `Participation.memberId` en `onBehalfOf`, `RoundReport.authorId`, `RoundComment.authorId`,
      `Account.memberId` en `AuditEntry.actorId`.
    - Elke zo'n kolom krijgt een eigen index, ook `Participation.memberId`: de unieke sleutel ronde + lid begint met
      de ronde en helpt dus niet bij "rondes van dit lid". Zonder foreign key maakt de database die index niet
@@ -117,7 +117,7 @@ Klaar als:
 12. **Tijd, kanaal en uitvoerder komen via `Shared\Domain`:**
     - domeinmethodes krijgen `DateTimeImmutable $now` mee, handlers krijgen `Psr\Clock\ClockInterface`;
     - `Shared\Domain\ExecutionContext` geeft het kanaal (`web`, `api`, `mcp`, `cron`, `console`) en het lid dat
-      de actie uitvoert. In fase 1 vullen console-commando's en tests het; fase 2 en 5 voegen HTTP en MCP toe.
+      de actie uitvoert. In fase 1 vullen console-commando's en tests het; fase 2 en 4 voegen HTTP en MCP toe.
       `console` is nieuw ten opzichte van de woordenlijst, voor conversie en voorbeelddata;
     - `Shared\Domain\Authorization::denyUnlessGranted()`, geïmplementeerd met Symfony's AccessDecisionManager
       en de Voters. Elke Voter staat in de `Infrastructure` van zijn module en volgt een regelklasse in `Domain`
@@ -347,21 +347,21 @@ Eerst de tests, in memory, met een vaste klok. Per v3-regel:
 | `getWalked` laat rondes onder het minimum weg | blijft, als status | `it_counts_a_past_round_below_the_minimum_as_not_walked` |
 | `inPast`: datum en `H:i` als tekst, serverklok | verbeterd: tijdstip in UTC tegen de klok | `it_starts_at_the_same_instant_in_every_time_zone` |
 | `getTimeOfDay`: < 12, < 18, anders avond | blijft, in `Europe/Amsterdam` | `it_takes_the_daypart_from_local_time` |
-| `addRound`: maker wordt meteen loper, memo wordt opmerking | blijft; de opmerking maakt `CreateRound` (T9) | `it_signs_up_the_creator_of_a_new_round` |
+| `addRound`: maker wordt meteen loper, memo wordt opmerking | blijft, als eerste loper en eigenaar; de opmerking maakt `CreateRound` (T9) | `it_signs_up_the_first_walker_of_a_new_round` |
 | `walkRound`: geen controle op dubbel | verbeterd: idempotent | `it_ignores_a_second_sign_up_of_the_same_member` |
 | `walkRound`: ook voor een voorbije ronde | verbeterd: alleen vóór de start | `it_refuses_a_sign_up_after_the_start` |
 | `exitRound`: laatste loper weg, ronde weg | blijft; het domein meldt het, de handler verwijdert (T9) | `it_asks_for_deletion_when_the_last_walker_withdraws` |
 | `exitRound`: ook na de start | verbeterd: alleen vóór de start | `it_refuses_a_withdrawal_after_the_start` |
 | `roundResult`: memo alleen bij `remarks` | verbeterd: notitie bij `remarks` en `incident` | `it_drops_the_note_when_there_is_nothing_to_report` |
-| `roundResult`: geen controle op status of loper | verbeterd: alleen `walked`, alleen lopers van die ronde | `it_refuses_a_report_for_a_round_that_was_not_walked` |
-| `roundResult`: meerdere per lid | verbeterd: één per lid per ronde | `it_replaces_the_report_of_the_same_walker` |
+| `roundResult`: geen controle op status of loper | verbeterd: alleen `walked`; een loper van die ronde of de coördinator (`RoundPolicy`) | `it_refuses_a_report_for_a_round_that_was_not_walked` |
+| `roundResult`: meerdere per lid | verbeterd: één per ronde, een tweede wordt geweigerd | `it_refuses_a_second_report` |
 | `isUserRoundResult`, `isUserComment`: eigenaar is `updatedBy ?? createdBy` | verbeterd: vaste auteur, plus coördinator | `it_lets_only_the_author_or_a_coordinator_delete_a_report` |
 | `walkerRemoveFromFutureRounds`: vanaf morgen | verbeterd: alles wat nog niet begonnen is | `it_removes_an_inactive_member_from_rounds_that_have_not_started` |
 | `getWalkers`/`getWalkedWith`: inactieve lopers als aantal | blijft, in de uitvoer van `GetRound` (T9): alleen Membership weet wie inactief is | `it_lists_inactive_walkers_as_a_count` (in `tests/Patrol/UseCase/GetRound/`) |
 | Herinnering één keer per lid per dag, alleen actieve lopers | blijft | `it_reminds_each_active_walker_once` |
 | `setActive(false)` wist wachtwoord en token | verbeterd: account uit, tokens ingetrokken, wachtwoord blijft voor heractiveren | `it_revokes_every_token_on_deactivation` (Membership/Identity) |
 | `erasePersonalInformation` | blijft, plus naam "verwijderd lid" in historie en auditlog | `it_erases_contact_details_and_the_name` |
-| Ronde wijzigen of verwijderen: coördinator of maker | verbeterd (beslissing 7) | `it_lets_the_creator_change_a_round_until_a_buddy_joins` |
+| Ronde wijzigen of verwijderen: coördinator of maker | verbeterd: coördinator, of de eigenaar zolang hij de enige loper is | `it_lets_the_owner_change_a_round_until_a_buddy_joins` |
 | Aanmelden: elke ingelogde gebruiker | verbeterd: rol `walker` | in de matrixtest |
 
 Nieuwe regels, die v3 niet had (beslissing 2):

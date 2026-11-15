@@ -77,11 +77,11 @@ final class ClockChangeTest extends TestCase
         ));
     }
 
-    private function roundAtTenInTheEvening(string $date, ?Uuid $creator = null): Round
+    private function roundAtTenInTheEvening(string $date, ?Uuid $firstWalker = null): Round
     {
         return Round::plan(
             new RoundStart(new DateTimeImmutable($date . 'T22:00:00', new DateTimeZone('Europe/Amsterdam'))),
-            $creator ?? Uuid::v7(),
+            $firstWalker ?? Uuid::v7(),
             new StaffingRule(minimumWalkers: 2, maximumWalkers: 7),
             new DateTimeImmutable('2026-01-01T12:00:00+00:00'),
         );

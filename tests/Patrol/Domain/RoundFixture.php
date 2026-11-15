@@ -21,13 +21,13 @@ final readonly class RoundFixture
     public const string CREATED_AT = '2026-11-10T09:00:00+00:00';
 
     /**
-     * @param int $walkers the creator included; the others sign up when the round is created
+     * @param int $walkers the first walker included; the others sign up when the round is created
      */
-    public static function withWalkers(Uuid $creator, int $walkers, int $maximum = 7): Round
+    public static function withWalkers(Uuid $firstWalker, int $walkers, int $maximum = 7): Round
     {
         $round = Round::plan(
             start: new RoundStart(new DateTimeImmutable(self::STARTS_AT)),
-            createdBy: $creator,
+            firstWalker: $firstWalker,
             staffingRule: new StaffingRule(minimumWalkers: 2, maximumWalkers: $maximum),
             now: new DateTimeImmutable(self::CREATED_AT),
         );

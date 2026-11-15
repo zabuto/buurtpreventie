@@ -73,11 +73,11 @@ final class RemindersTest extends TestCase
         );
     }
 
-    private function round(string $startsAt, Uuid $creator): Round
+    private function round(string $startsAt, Uuid $firstWalker): Round
     {
         return Round::plan(
             new RoundStart(new DateTimeImmutable($startsAt)),
-            $creator,
+            $firstWalker,
             new StaffingRule(minimumWalkers: 2, maximumWalkers: 7),
             new DateTimeImmutable(self::NOW),
         );

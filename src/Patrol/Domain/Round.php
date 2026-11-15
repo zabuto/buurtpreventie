@@ -18,7 +18,6 @@ use Symfony\Component\Uid\Uuid;
  */
 #[ORM\Entity]
 #[ORM\Index(name: 'round_starts_at', columns: ['starts_at'])]
-#[ORM\Index(name: 'round_created_by', columns: ['created_by'])]
 final class Round
 {
     #[ORM\Id]
@@ -38,16 +37,23 @@ final class Round
     #[ORM\OneToMany(targetEntity: Participation::class, mappedBy: 'round', cascade: ['persist'], orphanRemoval: true)]
     private Collection $participations;
 
-    /** @var Collection<int, RoundReport> */
+    /**
+     * Holds the one report of the round at most; a unique key on the round enforces it.
+     *
+     * @var Collection<int, RoundReport>
+     */
     #[ORM\OneToMany(targetEntity: RoundReport::class, mappedBy: 'round', cascade: ['persist'], orphanRemoval: true)]
     private Collection $reports;
 
+    #[ORM\Column(type: 'utc_datetime_immutable', nullable: true)]
+    private ?DateTimeImmutable $buddyCallSentAt = null;
+
     private function __construct(
         RoundStart $start,
-        #[ORM\Column(type: 'uuid')]
-        private Uuid $createdBy,
         #[ORM\Embedded(class: StaffingRule::class, columnPrefix: false)]
         private StaffingRule $staffingRule,
+        #[ORM\Column(type: 'utc_datetime_immutable')]
+        private DateTimeImmutable $createdAt,
     ) {
         $this->id = Uuid::v7();
         $this->change($start);
@@ -56,14 +62,21 @@ final class Round
     }
 
     /**
-     * A new round, with its creator as the first walker.
+     * A new round with its first walker, who owns it. Who created it is in the audit log: a coordinator may create
+     * it on behalf of the first walker.
      *
      * @param StaffingRule $staffingRule from the settings at this moment; it stays with the round
+     * @param Uuid|null $onBehalfOf the coordinator creating the round for the first walker
      */
-    public static function plan(RoundStart $start, Uuid $createdBy, StaffingRule $staffingRule, DateTimeImmutable $now): self
-    {
-        $round = new self($start, $createdBy, $staffingRule);
-        $round->participations->add(new Participation($round, $createdBy, $now));
+    public static function plan(
+        RoundStart $start,
+        Uuid $firstWalker,
+        StaffingRule $staffingRule,
+        DateTimeImmutable $now,
+        ?Uuid $onBehalfOf = null,
+    ): self {
+        $round = new self($start, $staffingRule, $now);
+        $round->participations->add(new Participation($round, $firstWalker, $now, $onBehalfOf));
 
         return $round;
     }
@@ -78,9 +91,20 @@ final class Round
         return $this->startsAt;
     }
 
-    public function createdBy(): Uuid
+    public function createdAt(): DateTimeImmutable
     {
-        return $this->createdBy;
+        return $this->createdAt;
+    }
+
+    /**
+     * The walker who joined first and is still signed up. Owning is not stored: when the owner withdraws, the next
+     * walker owns the round.
+     *
+     * @return Uuid|null null only for a round without walkers, which the handler deletes
+     */
+    public function ownerId(): ?Uuid
+    {
+        return Participation::earliest($this->participations)?->memberId();
     }
 
     public function staffingRule(): StaffingRule
@@ -231,46 +255,65 @@ final class Round
     }
 
     /**
-     * Records what a walker reports after the round. A second report of the same walker replaces the first.
+     * Records the one report of a walked round. A second report is refused rather than replacing the first, so
+     * nobody overwrites the report of someone else unnoticed; deleting the report makes room for a new one.
      *
      * @throws RoundNotWalked
-     * @throws NotAWalkerOfThisRound
+     * @throws RoundAlreadyReported
      */
-    public function report(Uuid $memberId, Outcome $outcome, ?string $note, DateTimeImmutable $now): RoundReport
+    public function submitReport(Uuid $authorId, Outcome $outcome, ?string $note, DateTimeImmutable $now): RoundReport
     {
         $status = $this->status($now);
         if (RoundStatus::Walked !== $status) {
             throw RoundNotWalked::forRound($this->id, $status);
         }
 
-        if (!$this->isSignedUp($memberId)) {
-            throw NotAWalkerOfThisRound::forMember($this->id, $memberId);
+        if (null !== $this->report()) {
+            throw RoundAlreadyReported::forRound($this->id);
         }
 
-        $report = $this->reportOf($memberId);
-        if (null !== $report) {
-            $report->revise($outcome, $note, $now);
-
-            return $report;
-        }
-
-        $report = new RoundReport($this, $memberId, $outcome, $note, $now);
+        $report = new RoundReport($this, $authorId, $outcome, $note, $now);
         $this->reports->add($report);
 
         return $report;
     }
 
-    public function reportOf(Uuid $memberId): ?RoundReport
+    public function report(): ?RoundReport
     {
-        return $this->reports->findFirst(static fn(int $key, RoundReport $report): bool => $report->memberId()->equals($memberId));
+        return $this->reports->findFirst(static fn(): bool => true);
+    }
+
+    public function removeReport(): void
+    {
+        $this->reports->clear();
+    }
+
+    public function buddyCallDueAt(): DateTimeImmutable
+    {
+        return BuddyCall::dueAt($this->createdAt, $this->startsAt);
     }
 
     /**
-     * @return list<RoundReport>
+     * Whether the buddy call goes out at this moment: once per round, only when due, before the start, and while
+     * the round seeks a buddy. A buddy who signs up and withdraws again causes no second call.
      */
-    public function reports(): array
+    public function needsBuddyCall(DateTimeImmutable $now): bool
     {
-        return \array_values($this->reports->toArray());
+        return (
+            null === $this->buddyCallSentAt
+                && $now >= $this->buddyCallDueAt()
+                && RoundStatus::SeekingBuddy === $this->status($now)
+        );
+    }
+
+    public function buddyCallSentAt(): ?DateTimeImmutable
+    {
+        return $this->buddyCallSentAt;
+    }
+
+    public function markBuddyCallSent(DateTimeImmutable $now): void
+    {
+        $this->buddyCallSentAt = $now;
     }
 
     /**
