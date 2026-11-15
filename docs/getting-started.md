@@ -41,6 +41,22 @@ php -S localhost:8000 -t public
 Then open `http://localhost:8000/api/v1/health` (the Symfony CLI prints its own address). The answer
 is `{"status":"ok"}`.
 
+### Local domain
+
+The Symfony CLI can serve the app on `https://buurtpreventie.wip` through its local proxy. Once per
+machine:
+
+```bash
+symfony server:ca:install
+symfony proxy:domain:attach buurtpreventie
+symfony proxy:start
+```
+
+The browser reaches `.wip` domains only when the system or browser proxy uses
+`http://127.0.0.1:7080/proxy.pac`; see
+[Setting up the local proxy](https://symfony.com/doc/current/setup/symfony_cli.html#setting-up-the-local-proxy).
+After `symfony server:start`, the health check answers on `https://buurtpreventie.wip/api/v1/health`.
+
 ## Test and check
 
 | Command | What it does |

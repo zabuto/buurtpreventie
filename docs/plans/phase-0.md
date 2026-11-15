@@ -1,6 +1,6 @@
 # Fase 0: taakplan
 
-Status: goedgekeurd.
+Status: opgeleverd in pull request #1, aangevuld in #7 tot en met #12.
 
 Bron: `docs/plan-v4.md` (Samenvatting, Uitgangspunten, Licentie, Codestructuur, Overdraagbaarheid,
 Overstap naar Symfony 8.4 LTS, Fase 0) en `AGENTS.md`.
@@ -13,12 +13,12 @@ start.
 
 Klaar als:
 
-- `composer check` lokaal groen is (CS-Fixer, PHPStan met PHPat, Rector, PHPUnit, deprecations);
+- `composer check` lokaal groen is (Mago, PHPStan met PHPat, Rector, PHPUnit, deprecations);
 - dezelfde controles op GitHub Actions groen zijn op de branch `feature/phase-0`;
 - één voorbeeld-use case, gemaakt met `bin/console app:make:use-case`, alle PHPat-regels doorstaat;
 - `docs/getting-started.md` een nieuwe ontwikkelaar in één keer tot een draaiende lokale omgeving
   brengt;
-- er een pull request naar `develop` openstaat.
+- de pull request naar `develop` groen is en gemergd.
 
 ## Al gedaan (eerste punt van Fase 0 in het plan)
 
@@ -67,8 +67,8 @@ Oude repo afgerond en hernoemd, nieuwe repo `zabuto/buurtpreventie` met `main` e
 8. **De docs uit het plan zijn leidend.** Naast wat de prompt noemt, komen ook `configuration.md`,
    `testing.md` en `gotchas.md` erin (Fase 0 in het plan noemt ze), kort en alleen met wat nu waar
    is. Verder `CHANGELOG.md`, omdat de klaar-afspraak er per taak een regel in vraagt.
-9. **SECURITY.md in het Nederlands met een korte Engelse alinea**, omdat melders van kwetsbaarheden
-   vaak geen Nederlands lezen.
+9. **SECURITY.md in het Engels**, zoals de rest van `docs/`, zodat ook melders die geen Nederlands
+   lezen hem begrijpen.
 
 ## Nieuwe afhankelijkheden (goedgekeurd)
 
@@ -80,12 +80,12 @@ Runtime (via het `symfony/skeleton` 7.4):
 
 Ontwikkeling:
 
-- `phpunit/phpunit` (nieuwste major die op PHP 8.4 draait), `symfony/browser-kit` (functionele test
+- `phpunit/phpunit` `^13` (nieuwste major die op PHP 8.4 draait), `symfony/browser-kit` (functionele test
   van het voorbeeld-endpoint).
 - `phpstan/phpstan`, `phpat/phpat`, `phpstan/phpstan-symfony`, `phpstan/phpstan-deprecation-rules`,
   `phpstan/phpstan-phpunit`. Extensies worden expliciet in de config geladen; geen
   `phpstan/extension-installer`, dus een Composer-plugin minder.
-- `friendsofphp/php-cs-fixer`, `rector/rector`.
+- `carthage-software/mago` (opmaak, lint en analyse), `rector/rector`.
 
 Bewust niet: `roave/security-advisories` (Composer blokkeert onveilige versies zelf en `composer
 audit` draait in CI), `symfony/phpunit-bridge` (PHPUnit vangt deprecations zelf via
@@ -103,7 +103,7 @@ Elke taak is één of enkele kleine commits. Tests komen in elke taak vóór de 
 
 - `symfony/skeleton` 7.4 aanmaken in een tijdelijke map en overzetten (de repo is niet leeg).
 - `composer.json`: naam `zabuto/buurtpreventie`, licentie `PolyForm-Noncommercial-1.0.0`,
-  `php: >=8.4`, `config.platform.php: 8.4`, `extra.symfony.require: 7.4.*`, `sort-packages`.
+  `php: >=8.4.27`, `config.platform.php: 8.4.27`, `extra.symfony.require: 7.4.*`, `sort-packages`.
 - `.editorconfig` (zoals v3), `.gitignore` aangevuld met cachemappen van de tools.
 - Routes: alle controllers onder `src/*/UseCase/` via attributen, met prefix `/api/v1`.
 
@@ -117,13 +117,13 @@ Elke taak is één of enkele kleine commits. Tests komen in elke taak vóór de 
 
 - `phpstan.dist.neon`: level max, `phpVersion: 80400`, paden `src`, `tests`, `config`, `public`,
   `bin`; Symfony-extensie met de container-XML, deprecation- en PHPUnit-regels, PHPat.
-- `.php-cs-fixer.dist.php`: `@PER-CS` en `@Symfony` met de risky-varianten, `declare_strict_types`.
+- `mago.toml`: opmaak, lint en analyse; de regels staan in `docs/code-style.md`.
 - `rector.php`: PHP 8.4-set, Symfony-sets op basis van `composer.json`, attributen-sets,
   dead code en type declarations.
 - `phpunit.dist.xml`: `failOnDeprecation`, `failOnNotice`, `failOnWarning`,
   `failOnPhpunitDeprecation`, `deprecationTrigger` voor `trigger_deprecation` en Doctrine.
-- Composer-scripts: `composer test` (PHPUnit), `composer check` (alles, zoals CI),
-  `composer fix` (CS-Fixer en Rector schrijvend).
+- Composer-scripts: `composer test` (PHPUnit), `composer test:unit` (alleen unit-tests),
+  `composer check` (alles, zoals CI), `composer fix` (Rector, dan Mago lint-fixes en Mago-opmaak).
 
 ### T5. Architectuurregels (test eerst)
 
@@ -171,25 +171,27 @@ via de generator doorstaat alle PHPat-regels" aantoonbaar in CI.
 
 ### T8. GitHub
 
-- `.github/workflows/ci.yml` (pull requests en pushes naar `develop` en `main`, PHP 8.4):
-  `composer validate --strict`, `composer audit`, CS-Fixer (`--dry-run`), PHPStan, Rector
-  (`--dry-run`), PHPUnit, en `bin/console debug:container --deprecations` dat faalt bij meldingen.
+- `.github/workflows/ci.yml` (pull requests en pushes naar `develop` en `main`, PHP 8.4) draait
+  `composer check`: `composer validate --strict`, `composer audit`, container- en YAML-lint,
+  `bin/console debug:container --deprecations` dat faalt bij meldingen, Mago (opmaak, lint,
+  analyse), Rector (`--dry-run`), PHPStan en PHPUnit.
   Minimale `permissions`, actions vastgepind op commit-SHA.
 - `.github/workflows/weekly.yml`:
   - `composer audit` op `develop`; opent of werkt een issue bij als er een advies is;
   - vooruitkijk-job met PHP 8.5 en de nieuwste Symfony 8: zet de `7.4.*`-eisen in de job om naar
     `8.*`, `composer update`, dan dezelfde controles; niet-blokkerend, opent een issue bij falen.
 - `.github/dependabot.yml`: Composer en GitHub Actions, wekelijks, `target-branch: develop`,
-  patch-updates gegroepeerd.
-- `.github/workflows/dependabot-automerge.yml`: zet automatisch samenvoegen aan voor
-  patch-updates van Dependabot. Werkt pas als `develop` beschermd is met verplichte CI-checks (zie
+  patch-updates gegroepeerd, geen major-updates van Symfony (v4 blijft op 7.4 LTS).
+- `.github/workflows/dependabot-automerge.yml`: zet automatisch samenvoegen aan voor patch- en
+  minor-updates van Dependabot, behalve minor-updates van pakketten onder 1.0. Werkt pas als `develop` beschermd is met verplichte CI-checks (zie
   Afspraken); anders zou GitHub zonder groene CI samenvoegen.
 - `SECURITY.md`: privé melden via GitHub, welke versies ondersteund worden, reactietermijn als
   inspanning, geen garantie (past bij "as is").
 
 ### T9. Documentatie
 
-Alles in het Nederlands, bestandsnamen in het Engels.
+Alles in het Engels, behalve `docs/glossary.md` (Nederlandse begrippen en hun codenamen) en de
+README (Nederlands met een korte Engelse samenvatting).
 
 - `docs/getting-started.md`: vereisten, installeren, starten, testen, controles, het recept voor een
   nieuwe use case.
@@ -231,7 +233,5 @@ Alles in het Nederlands, bestandsnamen in het Engels.
 
 ## Opgemerkt, buiten deze fase
 
-- `docs/plan-v4.md` regel 295 bevat een losse notitie: "waarom keuze voor Lit?". Laten staan, als
-  vraag uitwerken in de Lit-ADR na fase 4, of weghalen?
 - Fase 0 in het plan noemt docs (`configuration`, `testing`, `gotchas`) die niet in de prompt staan;
   ze zitten in dit taakplan (beslissing 8).
