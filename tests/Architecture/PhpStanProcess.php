@@ -25,7 +25,7 @@ final readonly class PhpStanProcess
     public static function analyse(string $configuration): self
     {
         $workDir = sys_get_temp_dir().'/phpstan-run-'.bin2hex(random_bytes(6));
-        mkdir($workDir.'/cache', 0o777, true);
+        mkdir($workDir.'/cache', 0o777, recursive: true);
 
         $wrapper = $workDir.'/phpstan.neon';
         file_put_contents($wrapper, \sprintf(

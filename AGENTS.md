@@ -29,6 +29,8 @@ The plan lives in docs/plan-v4.md and is leading. Read it before every phase.
 ## Definition of done for every task
 
 - Tests first, all green; PHPStan, PHPat and PHP-CS-Fixer clean; no new deprecations.
+  Tests follow Arrange-Act-Assert, check one behaviour each, are named test_<behaviour> in
+  snake_case, and stay in memory unless grouped integration or functional (docs/testing.md).
 - Every write action = audit entry + Voter + a row in the matrix test.
 - New texts in nl and en; screens checked with keyboard only and on a narrow screen.
 - Fixtures and glossary updated when the model changed.
@@ -56,7 +58,7 @@ The plan lives in docs/plan-v4.md and is leading. Read it before every phase.
 - Minimum PHP is 8.4.27 (PHP2Shell, CVE-2026-109618 and CVE-2026-109619); CI runs on 8.4.
 - Install: composer install
 - Start: symfony server:start, or php -S localhost:8000 -t public; check /api/v1/health.
-- Test: composer test
+- Test: composer test (all), composer test:unit (in-memory unit tests only)
 - All CI checks: composer check (validate, audit, container lint, deprecations, PHP-CS-Fixer,
   Rector dry run, PHPStan level max with PHPat, PHPUnit).
 - Fix style: composer fix (Rector, then PHP-CS-Fixer).

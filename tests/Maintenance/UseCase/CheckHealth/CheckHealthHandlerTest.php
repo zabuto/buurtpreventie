@@ -10,7 +10,7 @@ use PHPUnit\Framework\TestCase;
 
 final class CheckHealthHandlerTest extends TestCase
 {
-    public function testReportsOkWhileTheApplicationRuns(): void
+    public function test_reports_ok_while_the_application_runs(): void
     {
         $output = (new CheckHealthHandler())(new CheckHealth());
 

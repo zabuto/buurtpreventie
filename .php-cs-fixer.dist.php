@@ -20,6 +20,9 @@ return (new PhpCsFixer\Config())
         'declare_strict_types' => true,
         'strict_comparison' => true,
         'strict_param' => true,
+        // Test names are sentences; snake_case keeps them readable (docs/testing.md).
+        'php_unit_method_casing' => ['case' => 'snake_case'],
+        'php_unit_test_annotation' => ['style' => 'prefix'],
     ])
     ->setFinder($finder)
 ;

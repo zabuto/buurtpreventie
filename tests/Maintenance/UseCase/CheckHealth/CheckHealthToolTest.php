@@ -11,7 +11,7 @@ use PHPUnit\Framework\TestCase;
 
 final class CheckHealthToolTest extends TestCase
 {
-    public function testReturnsTheHandlerOutputUnchanged(): void
+    public function test_returns_the_handler_output_unchanged(): void
     {
         $handler = new CheckHealthHandler();
 
