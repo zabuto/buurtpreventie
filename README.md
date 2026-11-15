@@ -4,7 +4,7 @@ A rota for neighbourhood watch teams that patrol on foot (in Dutch: actieve buur
 plan rounds, find a walking buddy and report back afterwards. Version 4 is being built on the
 `develop` branch; the plan is in `docs/plan-v4.md` (Dutch).
 
-The predecessor (v1 to v3, MIT) lives at https://github.com/zabuto/buurtpreventie-v3.
+The predecessor (v1 to v3, MIT) lives at https://github.com/zabuto/buurtpreventie-legacy.
 
 ## Getting started
 

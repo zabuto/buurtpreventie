@@ -27,7 +27,7 @@ Buurtpreventie v4 wordt een Symfony 7.4 LTS-backend met een echte REST-API (`/ap
 
 ## Huidige code
 
-De huidige app is een nette maar monolithische Symfony 7.3-app (PHP 8.4, \~5.100 regels in `src/`) waarin Twig-pagina's, formulieren en een kleine JSON-"API" door elkaar lopen. Laatste commit: 28 mei 2026, MIT-licentie ([repo](https://github.com/zabuto/buurtpreventie-v3)).
+De huidige app is een nette maar monolithische Symfony 7.3-app (PHP 8.4, \~5.100 regels in `src/`) waarin Twig-pagina's, formulieren en een kleine JSON-"API" door elkaar lopen. Laatste commit: 28 mei 2026, MIT-licentie ([repo](https://github.com/zabuto/buurtpreventie-legacy)).
 
 | Onderdeel | Wat er nu is | Knelpunt voor de vernieuwing |
 | --- | --- | --- |
@@ -731,7 +731,7 @@ Fase 3, 4 en 5 hangen alleen van de API af; wie het frontend het eerst nodig hee
 
 ### Fase 0 — Basis
 
-- [x] Oude repo afgerond (verwijzing in de README, tag `v3-mit-final`, hernoemd naar `buurtpreventie-v3`); nieuwe repo `zabuto/buurtpreventie` met `main` en `develop` (zie Werkwijze), en `LICENSE` (PolyForm NC + `Required Notice:`) vanaf de eerste commit.
+- [x] Oude repo afgerond (verwijzing in de README, tag `v3-mit-final`, hernoemd naar `buurtpreventie-legacy`); nieuwe repo `zabuto/buurtpreventie` met `main` en `develop` (zie Werkwijze), en `LICENSE` (PolyForm NC + `Required Notice:`) vanaf de eerste commit.
 - [x] Symfony 7.4 LTS-skelet, PHP 8.4, modulaire mapindeling uit Codestructuur, PHPat-regels in PHPStan, docs/glossary.md, docs/architecture.md met voorbeeld, ADR 0001 over de structuur, en de generator app:make:use-case.
 - [x] CI (GitHub Actions): PHPStan level max, Mago (opmaak, lint en analyse), PHPUnit, `composer audit`, controle op deprecations, wekelijkse vooruitkijk-job met de nieuwste Symfony 8 en PHP 8.5, Rector met Symfony-regels; Dependabot met automatisch samenvoegen van groene patch- en minor-updates (minor niet onder 1.0), wekelijkse audit-run, SECURITY.md en privé melden van kwetsbaarheden aan.
 - [x] `AGENTS.md` + `CLAUDE.md`, en `docs/` met `getting-started`, `configuration`, `architecture`, `operations`, `testing`, `gotchas`, `writing`, `code-style`.
@@ -934,11 +934,11 @@ Een vereniging die nu op v3 draait, blijft dat doen tot de MVP klaar is (fase 0 
 
 ## Werkwijze: lokale opzet en Claude Code-prompts
 
-v4 komt in een **nieuwe repo** `zabuto/buurtpreventie`, met vanaf de eerste commit PolyForm Noncommercial en een schone branchindeling. De oude repo wordt hernoemd naar `zabuto/buurtpreventie-v3`; hij blijft MIT en houdt zijn branches `v1`, `v2` en `v3`. Lokaal staan beide naast elkaar:
+v4 komt in een **nieuwe repo** `zabuto/buurtpreventie`, met vanaf de eerste commit PolyForm Noncommercial en een schone branchindeling. De oude repo wordt hernoemd naar `zabuto/buurtpreventie-legacy`; hij blijft MIT en houdt zijn branches `v1`, `v2` en `v3`. Lokaal staan beide naast elkaar:
 
 | Map | Branch | Rol |
 | --- | --- | --- |
-| `~/Sites/buurtpreventie-v3` | `v3` (oude repo) | Naslag: blijft draaien en wordt niet aangeraakt |
+| `~/Sites/buurtpreventie-legacy` | `v3` (oude repo) | Naslag: blijft draaien en wordt niet aangeraakt |
 | `~/Sites/buurtpreventie` | `develop` (nieuwe repo) | Hier wordt gebouwd |
 
 **Oude repo afronden.** Op `v3` komt één laatste commit met bovenaan de README een verwijzing: v3 wordt niet verder ontwikkeld, de opvolger staat op `zabuto/buurtpreventie` onder PolyForm Noncommercial, en deze repo blijft MIT. Het `LICENSE`-bestand blijft ongewijzigd. Die commit krijgt de tag `v3-mit-final`. `v3` krijgt daarna alleen nog fixes zolang bestaande installaties erop draaien; na de overstap wordt de repo op GitHub gearchiveerd.
@@ -964,9 +964,9 @@ git fetch origin && git switch v3 && git pull --ff-only
 # README: verwijzing naar de opvolger bovenaan zetten, dan:
 git commit -am "docs: point to successor repository" && git push
 git tag v3-mit-final && git push origin v3-mit-final
-gh repo rename buurtpreventie-v3 --repo zabuto/buurtpreventie --yes
-git remote set-url origin git@github.com:zabuto/buurtpreventie-v3.git
-cd .. && mv buurtpreventie buurtpreventie-v3
+gh repo rename buurtpreventie-legacy --repo zabuto/buurtpreventie --yes
+git remote set-url origin git@github.com:zabuto/buurtpreventie-legacy.git
+cd .. && mv buurtpreventie buurtpreventie-legacy
 
 # Nieuwe repo met main en develop
 gh repo create zabuto/buurtpreventie --public
@@ -983,7 +983,7 @@ Daarna dit plan exporteren als Markdown naar `docs/plan-v4.md` in de nieuwe repo
 
 ```bash
 cd ~/Sites/buurtpreventie
-claude --add-dir ../buurtpreventie-v3
+claude --add-dir ../buurtpreventie-legacy
 ```
 
 **`AGENTS.md` en `CLAUDE.md`.** `AGENTS.md` bevat de regels voor iedereen, mens of AI-tool; `CLAUDE.md` verwijst ernaar. De geldende tekst staat in de repo; dit plan houdt er geen kopie van bij.
@@ -994,7 +994,7 @@ Fase 0 — basis:
 
 ```text
 Lees AGENTS.md en docs/plan-v4.md, vooral Samenvatting, Uitgangspunten, Licentie,
-Codestructuur, Overdraagbaarheid en Fase 0. v3 staat in ../buurtpreventie-v3 (alleen lezen).
+Codestructuur, Overdraagbaarheid en Fase 0. v3 staat in ../buurtpreventie-legacy (alleen lezen).
 Maak eerst een taakplan in docs/plans/phase-0.md en wacht op mijn akkoord.
 
 Daarna, op een branch feature/phase-0 vanaf develop:
@@ -1017,7 +1017,7 @@ Fase 1 — domein en use cases:
 
 ```text
 Fase 1 uit docs/plan-v4.md. Taakplan eerst in docs/plans/phase-1.md, wacht op akkoord.
-Lees ../buurtpreventie-v3/src/Entity, src/Service/WalkService.php en migrations/.
+Lees ../buurtpreventie-legacy/src/Entity, src/Service/WalkService.php en migrations/.
 Leg elke domeinregel uit v3 eerst vast als test, bouw dan Patrol, Membership, Identity
 en Audit volgens Codestructuur. Verbeter het domeinmodel volgens het plan (v3 is geen keurslijf); schrijf app:import-v3 als
 conversie en test die op de verzonnen v3-fixture-set (echte data hoort bij het overstapproject).
@@ -1040,7 +1040,7 @@ Fase 3 — branding en configuratie:
 Fase 3 uit docs/plan-v4.md. Taakplan eerst, wacht op akkoord.
 Module Settings met standaardwaarden zonder verenigingsnaam, /admin/settings, logo-upload,
 GET /config, manifest.webmanifest, contrastcontrole bij opslaan, e-mailtemplates nl/en.
-Neem de teksten uit ../buurtpreventie-v3/translations als startpunt.
+Neem de teksten uit ../buurtpreventie-legacy/translations als startpunt.
 Links in e-mails moeten werken in een submap (review-focus 5).
 ```
 
@@ -1051,7 +1051,7 @@ Fase 4 uit docs/plan-v4.md, met de sectie Frontend: PWA, responsive en toegankel
 Taakplan eerst, wacht op akkoord.
 Bouw frontend/ buildless met de gevendorde Lit-bundel (geen importmap), alleen tegen
 /api/v1. Doelgroep: lopers van elk digitaal niveau, ook op iOS 15; zie die alinea. Gebruik
-../buurtpreventie-v3/templates als lijst van schermen, niet als ontwerp. Mobiel eerst,
+../buurtpreventie-legacy/templates als lijst van schermen, niet als ontwerp. Mobiel eerst,
 WCAG 2.2 AA, formulieren in light DOM, service worker op het basispad, axe-core in CI.
 ```
 
