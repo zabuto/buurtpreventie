@@ -39,6 +39,8 @@ the next use case. What the templates contain is unit-tested in memory in `UseCa
 - **Independent tests.** A test builds everything it needs in its own Arrange step or in `setUp()`,
   and cleans up in `tearDown()`. No static properties, no cache filled by an earlier test, no
   `#[Depends]`: every test passes when it runs alone and in any order.
+- **Exact outcomes.** Assert the value the behaviour produces (an id, a status code, a count), not
+  only that something exists: `assertNotEmpty()` or a count above zero also passes on a wrong result.
 - **`$this->assert…()`** for assertions; Mago enforces the style.
 - **Real objects over test doubles.** Use the real class wherever it runs in memory. A mock or stub
   belongs only at a boundary the test cannot run, such as a third-party service.
