@@ -8,7 +8,9 @@ phase 6.
 - Repository: `zabuto/buurtpreventie`. The original developer owns it; a handover goes through a fork
   (see Overdraagbaarheid in [plans/plan.md](plans/plan.md)).
 - Branches: `develop` is the default branch until the first release; work arrives there through pull requests
-  from `feature/<short-name>`. `main` holds released versions only, tagged `vX.Y.Z`. Urgent fixes go
+  from `feature/<short-name>`, each merged as one squash commit. `main` holds released versions only,
+  tagged `vX.Y.Z`; a release merges `develop` into `main` with a merge commit, because a squash would
+  leave `main` with commits `develop` lacks and make every next release conflict. Urgent fixes go
   through `hotfix/<short-name>` from `main`, back into `main` and `develop`.
 
 ### Settings made by hand
@@ -18,6 +20,7 @@ These are not stored in files and must be set again on a fork or a recreated rep
 | Setting | Where | Why |
 | --- | --- | --- |
 | Branch protection on `develop`: pull request required, checks "Checks (PHP 8.4)" and "Security scan" required | Settings → Branches | Auto-merge would not wait for green CI otherwise |
+| Allow squash merging (default) and merge commits; no rebase merging | Settings → General | A pull request into `develop` lands as one commit; a release into `main` needs a merge commit |
 | Allow auto-merge | Settings → General | Needed to merge Dependabot updates automatically |
 | Automatically delete head branches | Settings → General | A branch disappears from GitHub once its pull request is merged |
 | Private vulnerability reporting | Settings → Code security | Reports as described in `SECURITY.md` |

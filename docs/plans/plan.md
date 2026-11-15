@@ -1036,8 +1036,8 @@ v4 komt in een **nieuwe repo** `zabuto/buurtpreventie`, met vanaf de eerste comm
 
 **Branches en versies in de nieuwe repo.**
 
-- **`develop`:** hier gebeurt het werk, en tot `v4.0.0` is dit de standaardbranch op GitHub. Elke taak krijgt een eigen branch `feature/<korte-naam>` en gaat via een pull request terug.
-- **`main`:** alleen uitgebrachte versies. Een release is een merge van `develop` naar `main` met een tag `vX.Y.Z`; die tag start de release-workflow. `v4.0.0` is de MVP; vanaf dan is `main` de standaardbranch.
+- **`develop`:** hier gebeurt het werk, en tot `v4.0.0` is dit de standaardbranch op GitHub. Elke taak krijgt een eigen branch `feature/<korte-naam>` en gaat via een pull request terug, altijd als squash merge: één commit per pull request.
+- **`main`:** alleen uitgebrachte versies. Een release is een merge van `develop` naar `main` (een merge commit, geen squash, zodat `main` de commits van `develop` houdt) met een tag `vX.Y.Z`; die tag start de release-workflow. `v4.0.0` is de MVP; vanaf dan is `main` de standaardbranch.
 - **Spoedfix:** `hotfix/<korte-naam>` vanaf `main`, terug naar `main` met een nieuwe patchtag, én naar `develop`.
 - **Dependabot:** gewone updates richten zich op `develop`; beveiligingsupdates gaan via de standaardbranch.
 
