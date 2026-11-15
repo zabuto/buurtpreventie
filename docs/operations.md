@@ -21,6 +21,7 @@ These are not stored in files and must be set again on a fork or a recreated rep
 | --- | --- | --- |
 | Branch protection on `develop`: pull request required, checks "Checks (PHP 8.4)" and "Security scan" required | Settings → Branches | Auto-merge would not wait for green CI otherwise |
 | Allow squash merging (default) and merge commits; no rebase merging | Settings → General | A pull request into `develop` lands as one commit; a release into `main` needs a merge commit |
+| Squash merge message: pull request title and description | Settings → General | The squash commit on `develop` carries the pull request title, which the commit convention expects, instead of the title of its first commit |
 | Allow auto-merge | Settings → General | Needed to merge Dependabot updates automatically |
 | Automatically delete head branches | Settings → General | A branch disappears from GitHub once its pull request is merged |
 | Private vulnerability reporting | Settings → Code security | Reports as described in `SECURITY.md` |
