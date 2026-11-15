@@ -8,6 +8,7 @@ use App\Audit\UseCase\EraseActorName\EraseActorName;
 use App\Audit\UseCase\EraseActorName\EraseActorNameHandler;
 use App\Identity\UseCase\RevokeMemberApiTokens\RevokeMemberApiTokens;
 use App\Identity\UseCase\RevokeMemberApiTokens\RevokeMemberApiTokensHandler;
+use App\Membership\Domain\LastAdminGuard;
 use App\Membership\Domain\MemberRepository;
 use App\Patrol\UseCase\WithdrawMemberFromUpcomingRounds\WithdrawMemberFromUpcomingRounds;
 use App\Patrol\UseCase\WithdrawMemberFromUpcomingRounds\WithdrawMemberFromUpcomingRoundsHandler;
@@ -32,6 +33,7 @@ final readonly class EraseMemberHandler
         private AuditTrail $auditTrail,
         private Transaction $transaction,
         private ClockInterface $clock,
+        private LastAdminGuard $lastAdmin,
         private WithdrawMemberFromUpcomingRoundsHandler $withdrawFromUpcomingRounds,
         private RevokeMemberApiTokensHandler $revokeApiTokens,
         private EraseActorNameHandler $eraseActorName,
@@ -43,6 +45,7 @@ final readonly class EraseMemberHandler
         $this->transaction->run(function () use ($input): void {
             $member = $this->members->get(Uuid::fromString($input->memberId));
             $this->authorization->denyUnlessGranted('member.erase', $member);
+            $this->lastAdmin->refuseToLose($member);
 
             $member->erase($this->clock->now());
             $this->auditTrail->record(new AuditedAction('member.erased', 'member', $member->id()));

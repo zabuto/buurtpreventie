@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Membership\UseCase\ChangeMemberRoles;
 
+use App\Membership\Domain\LastAdminGuard;
 use App\Membership\Domain\Member;
 use App\Membership\Domain\MemberRepository;
 use App\Shared\Domain\AuditedAction;
@@ -22,6 +23,7 @@ final readonly class ChangeMemberRolesHandler
         private Authorization $authorization,
         private AuditTrail $auditTrail,
         private Transaction $transaction,
+        private LastAdminGuard $lastAdmin,
     ) {
     }
 
@@ -31,8 +33,13 @@ final readonly class ChangeMemberRolesHandler
             $member = $this->members->get(Uuid::fromString($input->memberId));
             $this->authorization->denyUnlessGranted('member.change_roles', $member);
 
+            $roles = \array_map(Role::from(...), $input->roles);
+            if (!\in_array(Role::Admin, $roles, strict: true)) {
+                $this->lastAdmin->refuseToLose($member);
+            }
+
             $old = self::roles($member);
-            $member->changeRoles(\array_map(Role::from(...), $input->roles));
+            $member->changeRoles($roles);
             $this->auditTrail->record(new AuditedAction('member.roles_changed', 'member', $member->id(), [
                 'roles' => ['old' => $old, 'new' => self::roles($member)],
             ]));

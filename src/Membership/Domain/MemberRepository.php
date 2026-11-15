@@ -38,6 +38,14 @@ interface MemberRepository
      */
     public function activeWithOpenRoundNotifications(): array;
 
+    /**
+     * Locked for writing until the running transaction ends, so two admins taking each other's role at the same
+     * moment cannot both see the other as the admin who remains.
+     *
+     * @return list<Member>
+     */
+    public function activeAdminsForUpdate(): array;
+
     public function isEmailAddressTaken(EmailAddress $email, ?Uuid $except = null): bool;
 
     public function isDisplayNameTaken(LookupKey $displayName, ?Uuid $except = null): bool;

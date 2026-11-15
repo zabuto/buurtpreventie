@@ -9,6 +9,7 @@ use App\Membership\Domain\MemberRepository;
 use App\Shared\Domain\EmailAddress;
 use App\Shared\Domain\LookupKey;
 use App\Shared\Domain\NotFound;
+use App\Shared\Domain\Role;
 use Override;
 use Symfony\Component\Uid\Uuid;
 
@@ -49,6 +50,15 @@ final class InMemoryMemberRepository implements MemberRepository
         return \array_values(\array_filter(
             $this->members,
             static fn(Member $member): bool => $member->isActive() && $member->wantsOpenRoundNotifications(),
+        ));
+    }
+
+    #[Override]
+    public function activeAdminsForUpdate(): array
+    {
+        return \array_values(\array_filter(
+            $this->members,
+            static fn(Member $member): bool => $member->isActive() && $member->hasRole(Role::Admin),
         ));
     }
 

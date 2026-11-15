@@ -6,6 +6,7 @@ namespace App\Membership\UseCase\DeactivateMember;
 
 use App\Identity\UseCase\RevokeMemberApiTokens\RevokeMemberApiTokens;
 use App\Identity\UseCase\RevokeMemberApiTokens\RevokeMemberApiTokensHandler;
+use App\Membership\Domain\LastAdminGuard;
 use App\Membership\Domain\MemberRepository;
 use App\Patrol\UseCase\WithdrawMemberFromUpcomingRounds\WithdrawMemberFromUpcomingRounds;
 use App\Patrol\UseCase\WithdrawMemberFromUpcomingRounds\WithdrawMemberFromUpcomingRoundsHandler;
@@ -29,6 +30,7 @@ final readonly class DeactivateMemberHandler
         private Authorization $authorization,
         private AuditTrail $auditTrail,
         private Transaction $transaction,
+        private LastAdminGuard $lastAdmin,
         private WithdrawMemberFromUpcomingRoundsHandler $withdrawFromUpcomingRounds,
         private RevokeMemberApiTokensHandler $revokeApiTokens,
     ) {
@@ -39,6 +41,7 @@ final readonly class DeactivateMemberHandler
         $this->transaction->run(function () use ($input): void {
             $member = $this->members->get(Uuid::fromString($input->memberId));
             $this->authorization->denyUnlessGranted('member.deactivate', $member);
+            $this->lastAdmin->refuseToLose($member);
 
             $member->deactivate();
             $this->auditTrail->record(new AuditedAction('member.deactivated', 'member', $member->id()));

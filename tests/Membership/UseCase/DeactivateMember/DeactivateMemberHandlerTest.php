@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Tests\Membership\UseCase\DeactivateMember;
 
 use App\Identity\UseCase\RevokeMemberApiTokens\RevokeMemberApiTokensHandler;
+use App\Membership\Domain\LastAdmin;
+use App\Membership\Domain\LastAdminGuard;
 use App\Membership\Domain\Member;
 use App\Membership\UseCase\DeactivateMember\DeactivateMember;
 use App\Membership\UseCase\DeactivateMember\DeactivateMemberHandler;
@@ -12,6 +14,7 @@ use App\Patrol\Domain\Round;
 use App\Patrol\UseCase\WithdrawMemberFromUpcomingRounds\WithdrawMemberFromUpcomingRoundsHandler;
 use App\Shared\Domain\AccessDenied;
 use App\Shared\Domain\AuditedAction;
+use App\Shared\Domain\Role;
 use App\Tests\Identity\Fake\ApiTokenFixture;
 use App\Tests\Identity\Fake\InMemoryApiTokenRepository;
 use App\Tests\Membership\Fake\InMemoryMemberRepository;
@@ -140,6 +143,33 @@ final class DeactivateMemberHandlerTest extends TestCase
         return $round;
     }
 
+    #[Test]
+    public function it_refuses_to_deactivate_the_last_admin(): void
+    {
+        $this->jan->changeRoles([Role::Admin]);
+
+        $refusal = null;
+        try {
+            $this->handler()(new DeactivateMember($this->jan->id()->toRfc4122()));
+        } catch (LastAdmin $exception) {
+            $refusal = $exception;
+        }
+
+        $this->assertEquals(LastAdmin::forMember($this->jan->id()), $refusal);
+        $this->assertSame([false, []], [!$this->jan->isActive(), $this->auditTrail->recorded]);
+    }
+
+    #[Test]
+    public function it_deactivates_an_admin_when_another_active_admin_remains(): void
+    {
+        $this->jan->changeRoles([Role::Admin]);
+        MemberFixture::stored($this->members, 'piet@example.org', 'Piet de Vries', 'Piet V.', [Role::Admin]);
+
+        $this->handler()(new DeactivateMember($this->jan->id()->toRfc4122()));
+
+        $this->assertTrue(!$this->jan->isActive());
+    }
+
     private function handler(?FakeAuthorization $authorization = null): DeactivateMemberHandler
     {
         $authorization ??= FakeAuthorization::granting();
@@ -150,6 +180,7 @@ final class DeactivateMemberHandlerTest extends TestCase
             $authorization,
             $this->auditTrail,
             $this->transaction,
+            new LastAdminGuard($this->members),
             new WithdrawMemberFromUpcomingRoundsHandler(
                 $this->rounds,
                 $authorization,

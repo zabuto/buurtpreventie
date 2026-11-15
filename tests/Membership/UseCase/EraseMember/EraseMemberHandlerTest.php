@@ -6,6 +6,8 @@ namespace App\Tests\Membership\UseCase\EraseMember;
 
 use App\Audit\UseCase\EraseActorName\EraseActorNameHandler;
 use App\Identity\UseCase\RevokeMemberApiTokens\RevokeMemberApiTokensHandler;
+use App\Membership\Domain\LastAdmin;
+use App\Membership\Domain\LastAdminGuard;
 use App\Membership\Domain\Member;
 use App\Membership\Domain\UniqueMemberDetails;
 use App\Membership\UseCase\AddMember\AddMember;
@@ -15,6 +17,7 @@ use App\Membership\UseCase\EraseMember\EraseMemberHandler;
 use App\Patrol\UseCase\WithdrawMemberFromUpcomingRounds\WithdrawMemberFromUpcomingRoundsHandler;
 use App\Shared\Domain\AccessDenied;
 use App\Shared\Domain\AuditedAction;
+use App\Shared\Domain\Role;
 use App\Tests\Audit\Fake\RecordingAuditEntryRepository;
 use App\Tests\Identity\Fake\ApiTokenFixture;
 use App\Tests\Identity\Fake\InMemoryApiTokenRepository;
@@ -168,6 +171,33 @@ final class EraseMemberHandlerTest extends TestCase
         $this->assertSame([false, null, []], [$this->jan->isErased(), $token->revokedAt(), $this->auditTrail->recorded]);
     }
 
+    #[Test]
+    public function it_refuses_to_erase_the_last_admin(): void
+    {
+        $this->jan->changeRoles([Role::Admin]);
+
+        $refusal = null;
+        try {
+            $this->handler()(new EraseMember($this->jan->id()->toRfc4122()));
+        } catch (LastAdmin $exception) {
+            $refusal = $exception;
+        }
+
+        $this->assertEquals(LastAdmin::forMember($this->jan->id()), $refusal);
+        $this->assertSame([false, []], [$this->jan->isErased(), $this->auditTrail->recorded]);
+    }
+
+    #[Test]
+    public function it_erases_an_admin_when_another_active_admin_remains(): void
+    {
+        $this->jan->changeRoles([Role::Admin]);
+        MemberFixture::stored($this->members, 'piet@example.org', 'Piet de Vries', 'Piet V.', [Role::Admin]);
+
+        $this->handler()(new EraseMember($this->jan->id()->toRfc4122()));
+
+        $this->assertTrue($this->jan->isErased());
+    }
+
     private function handler(?FakeAuthorization $authorization = null): EraseMemberHandler
     {
         $authorization ??= FakeAuthorization::granting();
@@ -179,6 +209,7 @@ final class EraseMemberHandlerTest extends TestCase
             $this->auditTrail,
             $this->transaction,
             $clock,
+            new LastAdminGuard($this->members),
             new WithdrawMemberFromUpcomingRoundsHandler(
                 $this->rounds,
                 $authorization,
