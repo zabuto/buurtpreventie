@@ -431,6 +431,14 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
   tokens of volledige IP-adressen.
 - `DoctrineAuditTrail` schrijft in de lopende transactie; `EraseActorName` vervangt de naam van een gewist lid.
 - Geen use case om regels te wijzigen of te verwijderen. Lezen via API volgt in fase 2.
+- Uitgevoerd op 15 november 2026, met deze keuzes:
+  - de naam op dat moment komt uit `Shared\Domain\MemberNames`, die Membership implementeert; `Actor` en
+    `ExecutionContext` krijgen er geen veld bij;
+  - geen actor is "systeem", een actor zonder naam is "verwijderd lid"; `EraseMember` roept `EraseActorName`
+    aan in dezelfde transactie, en die wist de naam met één bulk-update;
+  - een veldnaam met `password`, `secret`, `token` of `hash` wordt geweigerd; een IP-adres heeft geen veld;
+  - de migratie voor `audit_entry` komt nu, omdat de databasetests de tabel nodig hebben; de andere modules volgen
+    in T10.
 
 ### T9. Patrol-use cases, Voters en matrixtest (test eerst)
 

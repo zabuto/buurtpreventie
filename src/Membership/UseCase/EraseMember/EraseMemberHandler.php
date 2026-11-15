@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Membership\UseCase\EraseMember;
 
+use App\Audit\UseCase\EraseActorName\EraseActorName;
+use App\Audit\UseCase\EraseActorName\EraseActorNameHandler;
 use App\Identity\UseCase\RevokeMemberApiTokens\RevokeMemberApiTokens;
 use App\Identity\UseCase\RevokeMemberApiTokens\RevokeMemberApiTokensHandler;
 use App\Membership\Domain\MemberRepository;
@@ -18,8 +20,8 @@ use Psr\Clock\ClockInterface;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * An erased member is deactivated as well: it leaves every round that has not started and loses every token, in the
- * same transaction as the erasure.
+ * An erased member is deactivated as well: it leaves every round that has not started, loses every token and shows
+ * in the audit log as "removed member", in the same transaction as the erasure.
  */
 #[WriteAction(authorization: 'member.erase', audit: 'member.erased')]
 final readonly class EraseMemberHandler
@@ -32,6 +34,7 @@ final readonly class EraseMemberHandler
         private ClockInterface $clock,
         private WithdrawMemberFromUpcomingRoundsHandler $withdrawFromUpcomingRounds,
         private RevokeMemberApiTokensHandler $revokeApiTokens,
+        private EraseActorNameHandler $eraseActorName,
     ) {
     }
 
@@ -46,6 +49,7 @@ final readonly class EraseMemberHandler
 
             ($this->withdrawFromUpcomingRounds)(new WithdrawMemberFromUpcomingRounds($input->memberId));
             ($this->revokeApiTokens)(new RevokeMemberApiTokens($input->memberId));
+            ($this->eraseActorName)(new EraseActorName($input->memberId));
         });
     }
 }

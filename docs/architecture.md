@@ -143,7 +143,8 @@ A handler reaches storage, rights, the audit log and messages only through inter
 | --- | --- | --- |
 | `Transaction` | Runs an operation as one unit: a change and its audit entry are stored together or not at all | `Shared\Infrastructure\Doctrine\DoctrineTransaction` |
 | `ExecutionContext`, `Channel` | The member performing the action with their roles (an `Actor`), or none for the system, and the channel (`web`, `api`, `mcp`, `cron`, `console`) | the entry point: console commands and tests in phase 1, HTTP and MCP in phases 2 and 5 |
-| `AuditTrail`, `AuditedAction` | Records an action; time, actor and channel come from the clock and the execution context | the `Audit` module |
+| `AuditTrail`, `AuditedAction` | Records an action; time, actor and channel come from the clock and the execution context | `Audit\Infrastructure\Persistence\DoctrineAuditTrail` |
+| `MemberNames` | The display name of a member, or none for an erased one, so another module can record or show who acted | `Membership\Infrastructure\RepositoryMemberNames` |
 | `Authorization`, `AccessDenied` | `denyUnlessGranted()` asks the voters of every module and throws `AccessDenied` on a refusal | `Shared\Infrastructure\Security\SymfonyAuthorization` |
 | `Notifier`, `Notification` | Sends a member a message by type and parameters; the domain holds no texts | `Shared\Infrastructure\Notification\LoggingNotifier` in phase 1, e-mail in phase 3 |
 | `Role`, `Actor` | The fixed roles `walker`, `coordinator`, `analyst` and `admin`, without inheritance, and a member with their roles, as the policies of every module decide on them | |
@@ -161,7 +162,7 @@ When an operation in `Transaction` throws, Doctrine rolls back and closes the en
 process that handles more than one unit of work, such as a worker, resets it in between.
 
 A handler that calls the handler of another module, such as `DeactivateMember` calling
-`WithdrawMemberFromUpcomingRounds` and `RevokeMemberApiTokens`, runs that handler's transaction inside
+`WithdrawMemberFromUpcomingRounds`, `RevokeMemberApiTokens` and `EraseActorName`, runs that handler's transaction inside
 its own. Doctrine nests it with a savepoint, so a failure in either undoes both.
 
 ## Rules

@@ -46,6 +46,9 @@ versions follow [Semantic Versioning](https://semver.org/).
 - Deactivating or erasing a member withdraws it from every round that has not started and revokes its
   tokens, in one transaction. A round left without walkers is deleted; walkers of a round that drops
   below its minimum get a notification, which the log records.
+- Audit log: every write action stores time, actor with their display name at that moment or the
+  system, channel and changed fields, never a field holding a password, token or other secret.
+  Erasing a member wipes its name from the log and keeps its actions.
 - Identity: accounts with a password that accepts v3 hashes, and API tokens stored as a hash with
   scopes, expiry and revocation. Settings: the default minimum and maximum walkers of a new round.
 - Responses do not name the PHP version: the app and `public/.htaccess` set `X-Powered-By` to `PHP Symfony`.
