@@ -19,7 +19,7 @@ use Symfony\Component\DependencyInjection\Attribute\When;
 #[AsCommand(
     name: 'app:make:use-case',
     description: 'Creates a use-case folder with input, handler, controller, tool and output',
-    help: 'Creates src/<Module>/UseCase/<Name>/ following docs/architecture.md#nieuwe-functie-toevoegen.',
+    help: 'Creates src/<Module>/UseCase/<Name>/ following docs/architecture.md#adding-a-feature.',
 )]
 #[When(env: 'dev')]
 #[When(env: 'test')]

@@ -1,24 +1,24 @@
-# Configuratie
+# Configuration
 
-Technische instellingen staan in omgevingsvariabelen. Instellingen die een vereniging zelf aanpast
-(naam, logo, teksten) komen in de database en het beheerscherm; die volgen in fase 3.
+Technical settings are environment variables. Settings an association changes itself (name, logo,
+texts) live in the database and the admin screens; those arrive in phase 3.
 
-## Bestanden
+## Files
 
-| Bestand | In Git | Inhoud |
+| File | In Git | Contents |
 | --- | --- | --- |
-| `.env` | ja | Standaardwaarden zonder geheimen |
-| `.env.dev`, `.env.test` | ja | Standaardwaarden per omgeving, alleen voor ontwikkelen en testen |
-| `.env.local` | nee | Instellingen en geheimen van deze machine of server |
-| `shared/.env.local` | nee | Instellingen en geheimen van een installatie op een server (fase 6) |
+| `.env` | yes | Defaults without secrets |
+| `.env.dev`, `.env.test` | yes | Defaults per environment, for development and tests only |
+| `.env.local` | no | Settings and secrets of this machine or server |
+| `shared/.env.local` | no | Settings and secrets of an installation on a server (phase 6) |
 
-Symfony leest ze in deze volgorde; een latere waarde gaat voor. Echte geheimen staan alleen in
-`.env.local` of `shared/.env.local`, nooit in een bestand in Git.
+Symfony reads them in this order; a later value wins. Real secrets live only in `.env.local` or
+`shared/.env.local`, never in a file in Git.
 
-## Variabelen
+## Variables
 
-| Variabele | Waarvoor | Standaard |
+| Variable | Purpose | Default |
 | --- | --- | --- |
-| `APP_ENV` | Omgeving: `dev`, `test` of `prod` | `dev` |
-| `APP_SECRET` | Sleutel voor ondertekende waarden zoals CSRF-tokens. Per installatie uniek en geheim | verplicht in productie, in `shared/.env.local` |
-| `DEFAULT_URI` | Basis-URL van de app voor links buiten een webverzoek, zoals in e-mails en vanuit de console. Een subdomein (`https://buurtpreventie.example.org`) of een pad (`https://example.org/buurtpreventie`), zonder `/public` | `http://localhost` (in `config/services.yaml`) |
+| `APP_ENV` | Environment: `dev`, `test` or `prod` | `dev` |
+| `APP_SECRET` | Key for signed values such as CSRF tokens. Unique and secret per installation | required in production, in `shared/.env.local` |
+| `DEFAULT_URI` | Base URL of the app for links outside a web request, such as in e-mails and from the console. A subdomain (`https://buurtpreventie.example.org`) or a path (`https://example.org/buurtpreventie`), without `/public` | `http://localhost` (in `config/services.yaml`) |

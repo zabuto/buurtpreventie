@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Shared\Infrastructure\Generator;
 
 /**
- * Plain PHP templates: Twig is reserved for e-mails and the installer (docs/architecture.md#regel-5-twig).
+ * Plain PHP templates: Twig is reserved for e-mails and the installer (docs/architecture.md#rule-5-twig).
  */
 final readonly class UseCaseTemplates
 {

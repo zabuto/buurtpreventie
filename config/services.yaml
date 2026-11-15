@@ -23,3 +23,9 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+when@test:
+    services:
+        # Tests assert behaviour; the default logger would print expected errors, such as a 405, between the results.
+        logger:
+            class: Psr\Log\NullLogger

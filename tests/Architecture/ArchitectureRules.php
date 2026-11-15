@@ -38,7 +38,7 @@ final readonly class ArchitectureRules
                 )
                 ->because(
                     'Domain code knows nothing about HTTP, MCP, storage or other modules, so domain rules can be tested'
-                    .' in isolation. '.self::DOCS.'regel-1-domein',
+                    .' in isolation. '.self::DOCS.'rule-1-domain',
                 );
         }
     }
@@ -58,7 +58,7 @@ final readonly class ArchitectureRules
             )
             ->because(
                 'REST and MCP call the same handler with the same input, so neither may know which transport called'
-                .' it. '.self::DOCS.'regel-2-invoer-en-handler',
+                .' it. '.self::DOCS.'rule-2-input-and-handler',
             );
     }
 
@@ -79,7 +79,7 @@ final readonly class ArchitectureRules
                 )
                 ->because(
                     'A controller is a thin adapter: it maps the request onto the input and calls the handler in its'
-                    .' own folder. '.self::DOCS.'regel-3-controller-tool-en-uitvoer',
+                    .' own folder. '.self::DOCS.'rule-3-controller-tool-and-output',
                 );
         }
     }
@@ -100,7 +100,7 @@ final readonly class ArchitectureRules
                 )
                 ->because(
                     'An MCP tool is a thin adapter: it maps the tool call onto the input and calls the handler in its'
-                    .' own folder. '.self::DOCS.'regel-3-controller-tool-en-uitvoer',
+                    .' own folder. '.self::DOCS.'rule-3-controller-tool-and-output',
                 );
         }
     }
@@ -113,7 +113,7 @@ final readonly class ArchitectureRules
             ->classes(Selector::classname('/^App\\\\\w+\\\\Domain\\\\/', true))
             ->because(
                 'Output is the public contract of REST and MCP; exposing entities would leak fields such as contact'
-                .' details that need consent. '.self::DOCS.'regel-3-controller-tool-en-uitvoer',
+                .' details that need consent. '.self::DOCS.'rule-3-controller-tool-and-output',
             );
     }
 
@@ -130,7 +130,7 @@ final readonly class ArchitectureRules
                 ->excluding(Selector::classname('/^App\\\\\w+\\\\UseCase\\\\(\w+)\\\\\1(Handler|Output)?$/', true))
                 ->because(
                     'Modules meet only through use cases or interfaces in Shared\Domain, so each module can change'
-                    .' its internals freely. '.self::DOCS.'regel-4-modules-onderling',
+                    .' its internals freely. '.self::DOCS.'rule-4-modules-and-shared',
                 );
         }
     }
@@ -143,7 +143,7 @@ final readonly class ArchitectureRules
             ->classes(Selector::classname('/^App\\\\(?!Shared\\\\)\w+\\\\/', true))
             ->because(
                 'Shared holds building blocks every module may use; depending on a module would create a cycle.'
-                .' '.self::DOCS.'regel-4-modules-onderling',
+                .' '.self::DOCS.'rule-4-modules-and-shared',
             );
     }
 
@@ -163,7 +163,7 @@ final readonly class ArchitectureRules
             )
             ->because(
                 'Screens live in frontend/ and talk to /api/v1 only; the backend renders e-mails and the installer.'
-                .' '.self::DOCS.'regel-5-twig',
+                .' '.self::DOCS.'rule-5-twig',
             );
     }
 

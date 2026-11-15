@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Shared\Infrastructure\Generator;
 
 use App\Shared\Infrastructure\Generator\MakeUseCaseCommand;
+use App\Tests\Architecture\PhpStanProcess;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;
@@ -122,20 +123,17 @@ final class MakeUseCaseCommandTest extends TestCase
             parameters:
                 level: max
                 phpVersion: 80400
-                tmpDir: {$this->sourceRoot}/../phpstan-cache
                 paths:
                     - {$this->sourceRoot}
                 architectureSourceRoot: {$this->sourceRoot}
             NEON);
 
-        exec(\sprintf(
-            'cd %s && %s vendor/bin/phpstan analyse --configuration=%s --error-format=raw --no-progress --memory-limit=512M 2>/dev/null',
-            escapeshellarg($projectRoot),
-            escapeshellarg(\PHP_BINARY),
-            escapeshellarg($config),
-        ), $output, $exitCode);
+        $phpstan = PhpStanProcess::analyse($config);
 
-        self::assertSame(0, $exitCode, implode("\n", $output));
+        self::assertSame(0, $phpstan->exitCode, $phpstan->describe());
+        $totals = $phpstan->report()['totals'] ?? null;
+        self::assertIsArray($totals, $phpstan->describe());
+        self::assertSame(0, $totals['file_errors'] ?? null, $phpstan->describe());
     }
 
     private function generate(string $module, string $name): CommandTester

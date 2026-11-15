@@ -7,7 +7,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  patch:
+  automerge:
     if: github.actor == 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
@@ -15,9 +15,21 @@ jobs:
         uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
 
       # Auto-merge waits for the required CI checks on develop; without branch protection GitHub would merge at once.
-      - name: Merge patch updates once CI is green
-        if: steps.metadata.outputs.update-type == 'version-update:semver-patch'
+      - name: Merge patch and minor updates once CI is green
+        if: >-
+          steps.metadata.outputs.update-type == 'version-update:semver-patch'
+          || steps.metadata.outputs.update-type == 'version-update:semver-minor'
         env:
           GH_TOKEN: ${{ github.token }}
           PR_URL: ${{ github.event.pull_request.html_url }}
-        run: gh pr merge --auto --squash "$PR_URL"
+          UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
+          DEPENDENCIES: ${{ steps.metadata.outputs.updated-dependencies-json }}
+        shell: bash
+        run: |
+          # Below 1.0 a minor release may break the API under semantic versioning, so those wait for review.
+          if [ "$UPDATE_TYPE" = 'version-update:semver-minor' ] \
+            && jq -e 'any(.[]; (.prevVersion // "") | test("^v?0\\."))' <<<"$DEPENDENCIES" >/dev/null; then
+            echo 'Minor update of a package below 1.0: left for review.'
+            exit 0
+          fi
+          gh pr merge --auto --squash "$PR_URL"
