@@ -23,7 +23,7 @@ final class MemberTest extends TestCase
     {
         $member = $this->member();
 
-        $this->assertSame(['josé jansen', 'jose jansen', 'José J.', 'jose j.'], [
+        $this->assertSame(['josé jansen', 'jose jansen', 'José J.', 'jose j'], [
             \mb_strtolower((string) $member->name()),
             $member->nameKey(),
             $member->displayName(),
@@ -56,7 +56,7 @@ final class MemberTest extends TestCase
 
         $member->change(new MemberDetails(EmailAddress::fromString('jan@example.org'), 'Jan Bakker', 'Jan B.'));
 
-        $this->assertSame(['jan@example.org', 'jan bakker', 'jan b.'], [$member->email()?->value, $member->nameKey(), $member->displayNameKey()]);
+        $this->assertSame(['jan@example.org', 'jan bakker', 'jan b'], [$member->email()?->value, $member->nameKey(), $member->displayNameKey()]);
     }
 
     #[Test]

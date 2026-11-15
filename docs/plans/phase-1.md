@@ -152,6 +152,7 @@ Klaar als:
       combinerende tekens weg (`\p{Mn}`), dan `mb_strtolower`. Letters die niet ontleden (`ø`, `ł`, `æ`, `ß`)
       blijven staan: "Søren" vindt "Soren" niet. Ongeldige UTF-8 wordt bij de invoer geweigerd, want `Normalizer`
       geeft dan `false`;
+      leestekens tellen als spatie (vastgelegd bij T6), anders botsen "Jan H." en "jan h" niet;
     - `EmailAddress` maakt `mb_strtolower(trim(...))` en haalt geen accenten weg: met en zonder accent zijn twee
       adressen. Het adres wordt alleen zo opgeslagen;
     - de sleutel staat in een eigen kolom met `utf8mb4_bin` en een index; de naam zoals getypt staat ernaast en is

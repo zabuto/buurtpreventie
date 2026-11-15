@@ -48,7 +48,26 @@ final class LookupKeyTest extends TestCase
     {
         $key = LookupKey::fromName($name);
 
-        $this->assertSame('jan h.', $key->value);
+        $this->assertSame('jan h', $key->value);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function spellingsOfJanH(): iterable
+    {
+        yield 'with a full stop' => ['Jan H.'];
+        yield 'without' => ['jan h'];
+        yield 'with a hyphen and an apostrophe' => ["Jan-'H"];
+    }
+
+    #[DataProvider('spellingsOfJanH')]
+    #[Test]
+    public function it_ignores_punctuation(string $name): void
+    {
+        $key = LookupKey::fromName($name);
+
+        $this->assertSame('jan h', $key->value);
     }
 
     #[Test]
@@ -74,11 +93,12 @@ final class LookupKeyTest extends TestCase
     {
         yield 'empty' => [''];
         yield 'only whitespace' => [" \t "];
+        yield 'only punctuation' => ['...'];
     }
 
     #[DataProvider('blankNames')]
     #[Test]
-    public function it_refuses_a_name_without_letters_to_key(string $name): void
+    public function it_refuses_a_name_without_anything_to_key(string $name): void
     {
         $this->expectException(InvalidArgumentException::class);
 

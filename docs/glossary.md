@@ -33,7 +33,7 @@ dezelfde naam.
 | Lid | `Member` | Profiel: naam, contactgegevens, rollen |
 | Volledige naam | `name` | Naam van een lid; doorzoekbaar, niet uniek |
 | Weergavenaam | `displayName` | Unieke naam in rondes, lijsten en auditlog, zoals "Jan H." |
-| Zoeksleutel | `LookupKey` | Naam zonder hoofdletters, accenten en dubbele spaties; zoeken en uniek zijn gaan hierop |
+| Zoeksleutel | `LookupKey` | Naam zonder hoofdletters, accenten, leestekens en dubbele spaties; zoeken en uniek zijn gaan hierop |
 | Account | `Account` | Inloggegevens van een lid |
 | Toestemming contactgegevens | `consentContactShare` | Andere leden zien telefoon en adres alleen hiermee |
 | Certificaat | `certified` | Lid heeft een certificaat (in v3: `credited`) |
