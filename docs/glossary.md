@@ -30,6 +30,7 @@ dezelfde naam.
 | Lid | `Member` | Profiel: naam, contactgegevens, rollen |
 | Volledige naam | `name` | Naam van een lid; doorzoekbaar, niet uniek |
 | Weergavenaam | `displayName` | Unieke naam in rondes, lijsten en auditlog, zoals "Jan H." |
+| Zoeksleutel | `LookupKey` | Naam zonder hoofdletters, accenten en dubbele spaties; zoeken en uniek zijn gaan hierop |
 | Account | `Account` | Inloggegevens van een lid |
 | Toestemming contactgegevens | `consentContactShare` | Andere leden zien telefoon en adres alleen hiermee |
 | Certificaat | `certified` | Lid heeft een certificaat (in v3: `credited`) |
@@ -47,7 +48,7 @@ dezelfde naam.
 | Gelopen | `walked` | Status: voorbij en minimum gehaald |
 | Niet gelopen | `not_walked` | Status: voorbij zonder loopmaatje |
 | Auditregel | `AuditEntry` | Eén regel in het auditlog |
-| Kanaal | channel: `web`, `api`, `mcp`, `cron` | Hoe een actie binnenkwam |
+| Kanaal | channel: `web`, `api`, `mcp`, `cron`, `console` | Hoe een actie binnenkwam; `console` voor conversie en voorbeelddata |
 | Instelling | `Setting` | Waarde die een vereniging zelf instelt |
 | API-token | `ApiToken` | Persoonlijke sleutel voor scripts en MCP |
 | Tijdtrigger, tick | `app:scheduler:run`, `POST /api/v1/system/tick` | Start taken op een vast moment |

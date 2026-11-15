@@ -18,8 +18,8 @@ src/
       <Name>/         one folder per use case, see below
     Infrastructure/   Doctrine repositories, e-mail, Symfony integrations, console commands
   Shared/
-    Domain/           building blocks for every module: clock, IDs, interfaces such as AuditTrail
-    Infrastructure/   shared technical code, such as the app:make:use-case generator
+    Domain/           building blocks for every module: value objects and interfaces such as AuditTrail
+    Infrastructure/   shared technical code: Doctrine types and transaction, Symfony authorization, the generator
   Kernel.php
 tests/                the same folders as src/, plus Architecture/
 ```
@@ -133,6 +133,29 @@ that `POST` is refused).
    no such entry point.
 6. Run `composer check`. An architecture error names the rule and links to the section below.
 7. Update `docs/` and `CHANGELOG.md`.
+
+## Shared building blocks
+
+A handler reaches storage, rights, the audit log and messages only through interfaces in
+`Shared\Domain`, so its tests run in memory with a small fake per interface.
+
+| `Shared\Domain` | What it does | Implementation |
+| --- | --- | --- |
+| `Transaction` | Runs an operation as one unit: a change and its audit entry are stored together or not at all | `Shared\Infrastructure\Doctrine\DoctrineTransaction` |
+| `ExecutionContext`, `Channel` | The member performing the action, or none for the system, and the channel (`web`, `api`, `mcp`, `cron`, `console`) | the entry point: console commands and tests in phase 1, HTTP and MCP in phases 2 and 5 |
+| `AuditTrail`, `AuditedAction` | Records an action; time, actor and channel come from the clock and the execution context | the `Audit` module |
+| `Authorization`, `AccessDenied` | `denyUnlessGranted()` asks the voters of every module and throws `AccessDenied` on a refusal | `Shared\Infrastructure\Security\SymfonyAuthorization` |
+| `Notifier`, `Notification` | Sends a member a message by type and parameters; the domain holds no texts | a logging notifier in phase 1, e-mail in phase 3 |
+| `EmailAddress` | An address trimmed and in lower case, with accents kept | |
+| `LookupKey` | The search and uniqueness key of a name: no case, accents or extra whitespace | |
+
+Time comes from `Psr\Clock\ClockInterface` in handlers and as a `DateTimeImmutable $now` argument in
+domain methods. Instants are stored with the Doctrine type `utc_datetime_immutable`
+(`Shared\Infrastructure\Doctrine\UtcDateTimeImmutableType`), which writes and reads UTC whatever the
+time zone of PHP.
+
+When an operation in `Transaction` throws, Doctrine rolls back and closes the entity manager. A
+process that handles more than one unit of work, such as a worker, resets it in between.
 
 ## Rules
 

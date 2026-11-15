@@ -38,6 +38,11 @@ Symfony CLI (`symfony server:start`, `symfony console`) the app gets `DATABASE_U
 container; `symfony var:export --multiline` shows it. `docker compose stop` stops the database and
 keeps the data; `docker compose down --volumes` removes the data as well.
 
+To look inside with a database client, connect to host `127.0.0.1` (not `localhost`, which makes
+many clients look for a socket) on the port that `docker compose port database 3306` prints, with
+the user, password and database from `compose.yaml`. The port changes when the container starts
+again.
+
 Tests use `buurtpreventie_test`, and the v3 conversion reads `buurtpreventie_legacy`, both on the
 same server. On an empty data volume, `docker/database/grant-prefixed-databases.sh` gives the
 database user every database starting with `buurtpreventie_`. A volume created before that script
@@ -80,7 +85,8 @@ After `symfony server:start`, the health check answers on `https://buurtpreventi
 
 | Command | What it does |
 | --- | --- |
-| `composer test` | All tests |
+| `composer test` | All tests; the database tests skip, since only the Symfony CLI knows the database |
+| `symfony composer test` | All tests, the database tests included |
 | `composer test:unit` | Only the in-memory unit tests |
 | `composer check` | Everything CI checks except the security scan: Composer, security advisories, container, deprecations, code style, Rector, PHPStan with the architecture rules, tests |
 | `composer fix` | Applies Rector, Mago lint fixes and Mago formatting |

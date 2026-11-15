@@ -9,6 +9,7 @@
 | --- | --- |
 | `tests/Architecture/` | The PHPat rules, the test that proves they fire, the folder layout test, and the test that every linked section of `architecture.md` exists |
 | `tests/Architecture/Fixtures/` | Deliberate violations; outside the regular PHPStan run and the autoloader |
+| `tests/Database/` | The PHPUnit extension that builds the test database before the database tests |
 | `tests/Dependencies/` | Every Symfony component in `composer.json` and `composer.lock` is on the release line in `extra.symfony.require` (7.4 LTS); the Dependabot and Composer cooldowns stay at their minimums without exemptions |
 | `tests/Tools/` | The development tools in `tools/`, such as the Opengrep version choice |
 
@@ -19,9 +20,31 @@
 | Unit | none | `PHPUnit\Framework\TestCase` | Handlers, domain rules, templates: in memory only, no files, network, database or real clock |
 | Integration | `integration` | `PHPUnit\Framework\TestCase` | Code that needs files or a process: the generator, the architecture rules, the dependency checks |
 | Functional | `functional` | `Symfony\Bundle\FrameworkBundle\Test\WebTestCase` | Endpoints through the kernel: route, status, JSON |
+| Database | `database` | `Symfony\Bundle\FrameworkBundle\Test\KernelTestCase` | Doctrine types, transactions and repository queries against MariaDB or MySQL |
 
 `composer test` runs all of them; `composer test:unit` runs only the unit tests, in about a second.
-A test class that leaves memory carries `#[Group('integration')]` or `#[Group('functional')]`.
+A test class that leaves memory carries `#[Group('integration')]`, `#[Group('functional')]` or
+`#[Group('database')]`.
+
+## Database tests
+
+Database tests run in `buurtpreventie_test`: the database name from `DATABASE_URL` plus `_test`.
+Locally, start the database as in [getting-started.md](getting-started.md#database) and run the
+tests through the Symfony CLI, which sets `DATABASE_URL`: `symfony composer test`.
+
+- **Schema from the migrations.** Before the first test of the group `database`,
+  `tests/Database/DatabaseSchemaExtension` drops and creates the test database and runs the
+  migrations, once per run. It uses `bin/console` in separate processes, because MariaDB and MySQL
+  commit every DDL statement at once, which would end the transaction of the test bundle.
+- **Every test rolls back.** `dama/doctrine-test-bundle` wraps each test in a transaction and rolls
+  it back afterwards. A test that needs a table of its own creates a `TEMPORARY` table, which
+  commits nothing.
+- **Skip or fail.** A database test calls `TestDatabase::require()` first in its `setUp()`. Without
+  a reachable database the test skips, with the reason; with `REQUIRE_DATABASE=1`, as in CI, it
+  fails instead. A failing migration, a database user without the right to create the test
+  database, or a test that lacks the group always fails.
+- **Without the Symfony CLI**, `.env.test` points at a port that never answers, so the kernel boots
+  and the database tests skip.
 
 `MakeUseCaseCommandTest` lets the generator create a use case in a temporary folder, checks that
 `mago format` would not change it, and runs PHPStan at level max with the architecture rules on it. A mistake in the templates thus breaks a test, not

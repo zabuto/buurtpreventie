@@ -29,3 +29,9 @@ versions follow [Semantic Versioning](https://semver.org/).
 - ADRs on Symfony 7.4 LTS and the PHP minimum, the licence, and supply-chain protection.
 - Doctrine ORM and Migrations on MariaDB and MySQL, with a second connection to the v3 database for
   the conversion; the PHP extensions `intl` and `mbstring` are required.
+- Shared building blocks for handlers: `Transaction`, `ExecutionContext`, `AuditTrail`,
+  `Authorization` and `Notifier`, the value objects `EmailAddress` and `LookupKey`, the Doctrine
+  type `utc_datetime_immutable`, and authorization through Symfony's voters.
+- Architecture rules: the domain may use Symfony Uid; input and handlers may not use Doctrine.
+- Database tests in the group `database`, on a test database built from the migrations once per
+  run; they skip without a database, unless `REQUIRE_DATABASE=1`.
