@@ -13,7 +13,7 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 final class OpenApiDocumentTest extends WebTestCase
 {
     #[Test]
-    public function it_serves_the_api_description_as_json_without_authentication(): void
+    public function it_serves_the_api_description_as_openapi_3_1_json_without_authentication(): void
     {
         $client = self::createClient();
 
@@ -21,7 +21,7 @@ final class OpenApiDocumentTest extends WebTestCase
 
         self::assertResponseIsSuccessful();
         self::assertResponseHeaderSame('Content-Type', 'application/json');
-        self::assertStringStartsWith('3.', self::stringAt(self::document($client), 'openapi'));
+        self::assertSame('3.1.0', self::stringAt(self::document($client), 'openapi'));
     }
 
     #[Test]
