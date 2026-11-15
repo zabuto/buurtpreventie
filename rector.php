@@ -12,6 +12,7 @@ return RectorConfig::configure()
         __DIR__.'/public',
         __DIR__.'/src',
         __DIR__.'/tests',
+        __DIR__.'/tools',
     ])
     ->withSkip([
         // Recipe files stay exactly as Symfony ships them, so a recipe update applies cleanly.

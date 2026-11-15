@@ -21,3 +21,9 @@ versions follow [Semantic Versioning](https://semver.org/).
   Symfony CLI.
 - Test suite in unit, integration and functional groups; `composer test:unit` runs the unit tests.
 - `SECURITY.md` and documentation in `docs/`, including the code style and writing guidelines.
+- Cooldowns against hijacked releases: Dependabot waits 7 days for a patch or minor and 14 for a
+  major (actions 7), Composer withholds releases younger than 24 hours. Security updates skip the
+  Dependabot cooldown.
+- Security scan in CI: Opengrep, verified with Cosign, with rules and rule tests in
+  `.opengrep/rules/`. A new Opengrep major is reported weekly and after `composer update`.
+- ADRs on Symfony 7.4 LTS and the PHP minimum, the licence, and supply-chain protection.

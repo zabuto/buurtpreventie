@@ -9,7 +9,8 @@
 | --- | --- |
 | `tests/Architecture/` | The PHPat rules, the test that proves they fire, the folder layout test, and the test that every linked section of `architecture.md` exists |
 | `tests/Architecture/Fixtures/` | Deliberate violations; outside the regular PHPStan run and the autoloader |
-| `tests/Dependencies/` | Every Symfony component in `composer.json` and `composer.lock` is on the release line in `extra.symfony.require` (7.4 LTS) |
+| `tests/Dependencies/` | Every Symfony component in `composer.json` and `composer.lock` is on the release line in `extra.symfony.require` (7.4 LTS); the Dependabot and Composer cooldowns stay at their minimums without exemptions |
+| `tests/Tools/` | The development tools in `tools/`, such as the Opengrep version choice |
 
 ## Kinds of tests
 
@@ -63,7 +64,7 @@ A test passes or fails for one reason only, every time:
 
 ## Checks
 
-`composer check` runs everything CI runs, in this order:
+`composer check` runs everything CI runs except the [security scan](#security-scan), in this order:
 
 | Check | Fails on |
 | --- | --- |
@@ -80,6 +81,18 @@ A test passes or fails for one reason only, every time:
 Locally you can also run them one by one: `composer test`, `vendor/bin/phpstan analyse`,
 `vendor/bin/mago format --dry-run`, `vendor/bin/mago lint`, `vendor/bin/mago analyze`,
 `vendor/bin/rector process --dry-run`.
+
+## Security scan
+
+The "Security scan" job in `ci.yml` runs Opengrep with the rules in `.opengrep/rules/`. It runs only
+in CI, because verifying the downloaded binary needs Cosign. It first runs the rule tests, then scans
+`src/`, `config/`, `templates/`, `public/`, `bin/` and `tools/`; any finding fails the job.
+
+A rule is a YAML file with a test file of the same name next to it: `.php`, or `.twig` for templates.
+In the test file, a comment `ruleid: <id>` marks the next line as one the rule must report and
+`ok: <id>` as one it must leave alone. Twig test files use HTML comments (`<!-- ruleid: <id> -->`),
+because Opengrep does not read `{# #}` as an annotation. Rules for functions also match the fully
+qualified call (`\exec()`), the form this code base writes.
 
 ## No deprecations
 

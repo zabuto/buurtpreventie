@@ -69,7 +69,8 @@ The plan lives in docs/plan-v4.md and is leading. Read it before every phase.
 - Start: symfony server:start, or php -S localhost:8000 -t public; check /api/v1/health.
 - Test: composer test (all), composer test:unit (in-memory unit tests only)
 - All CI checks: composer check (validate, audit, container lint, deprecations, Mago format,
-  lint and analyze, Rector dry run, PHPStan level max with PHPat, PHPUnit).
+  lint and analyze, Rector dry run, PHPStan level max with PHPat, PHPUnit). The Opengrep security
+  scan runs only in CI (docs/testing.md).
 - Fix style: composer fix (Rector, then Mago lint fixes and Mago format).
 - Single tools: vendor/bin/phpstan analyse, vendor/bin/mago format --dry-run, vendor/bin/mago lint,
   vendor/bin/mago analyze,
