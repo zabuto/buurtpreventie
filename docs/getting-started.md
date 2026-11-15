@@ -8,9 +8,9 @@ From a clean machine to a running local environment and a first change.
   Composer refuses to start the app on them. See [gotchas.md](gotchas.md).
 - Composer 2.
 - Git.
-- Optional: the [Symfony CLI](https://symfony.com/download) as a local web server.
-
-Phase 0 needs no database; it arrives in phase 1.
+- Docker with Compose, for the development database.
+- The [Symfony CLI](https://symfony.com/download) as a local web server; it hands the database
+  settings from Docker to the app.
 
 ## Install
 
@@ -23,6 +23,19 @@ composer install
 
 Local settings and secrets go in `.env.local`, which stays out of Git. See
 [configuration.md](configuration.md).
+
+## Database
+
+MariaDB runs in a container; the app uses it from phase 1 on.
+
+```bash
+docker compose up -d --wait
+```
+
+Docker publishes the database on a free port, so it does not clash with other projects. Through the
+Symfony CLI (`symfony server:start`, `symfony console`) the app gets `DATABASE_URL` from the running
+container; `symfony var:export --multiline` shows it. `docker compose stop` stops the database and
+keeps the data; `docker compose down --volumes` removes the data as well.
 
 ## Start
 
