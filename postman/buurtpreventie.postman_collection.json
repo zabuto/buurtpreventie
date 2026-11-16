@@ -643,6 +643,65 @@
           ]
         },
         {
+          "name": "Change own details with empty text",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "me"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Empty text clears nothing: null removes a phone number. Refused, so the profile stays as it is."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get('code')) {",
+                  "    console.log('Skipped: no code, so no session');",
+                  "    pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('answers 422 for the phone number', () => {",
+                  "    pm.response.to.have.status(422);",
+                  "    pm.expect(pm.response.json().violations.map((violation) => violation.field)).to.eql(['phone']);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "New password that is too short",
           "request": {
             "method": "PUT",
@@ -2152,6 +2211,71 @@
           ]
         },
         {
+          "name": "Change a member with null as name",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/members/{{memberId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "members",
+                "{{memberId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "A JSON Merge Patch: null on a required field is refused, so the member stays as it is."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get('password')) {",
+                  "    console.log('Skipped: no password set for this member');",
+                  "    pm.execution.skipRequest();",
+                  "}",
+                  "if (!pm.variables.get('memberId')) {",
+                  "    console.log('Skipped: no member listed');",
+                  "    pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('answers 422 for the name', () => {",
+                  "    pm.response.to.have.status(422);",
+                  "    pm.expect(pm.response.json().violations.map((violation) => violation.field)).to.eql(['name']);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Add a member with an invalid address",
           "request": {
             "method": "POST",
@@ -2522,6 +2646,67 @@
                   "    const problem = pm.response.json();",
                   "    pm.expect(problem.type).to.eql('urn:buurtpreventie:problem:outcome_name_taken');",
                   "    pm.expect(problem.existingId).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Change a meeting point with half a position",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/meeting-points/0193a3c0-0000-7000-8000-000000000001",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "meeting-points",
+                "0193a3c0-0000-7000-8000-000000000001"
+              ]
+            },
+            "description": "Latitude and longitude go as a pair. Refused before the meeting point is looked up, so nothing changes.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitude\": 52.1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get('password')) {",
+                  "    console.log('Skipped: no password set for this member');",
+                  "    pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('answers 422 invalid_coordinates', () => {",
+                  "    pm.response.to.have.status(422);",
+                  "    pm.expect(pm.response.json().type).to.eql('urn:buurtpreventie:problem:invalid_coordinates');",
                   "});"
                 ]
               }

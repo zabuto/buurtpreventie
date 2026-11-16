@@ -19,6 +19,7 @@ use App\Shared\Domain\AuditTrail;
 use App\Shared\Domain\Authorization;
 use App\Shared\Domain\ExecutionContext;
 use App\Shared\Domain\Transaction;
+use App\Shared\Domain\Unchanged;
 use App\Shared\Domain\WriteAction;
 use Symfony\Component\Uid\Uuid;
 
@@ -59,10 +60,10 @@ final readonly class ChangeOwnContactDetailsHandler
             $this->authorization->denyUnlessGranted('member.change_contact_details', $member);
 
             $this->changePhoneAndAddress($member, $input);
-            if (null !== $input->consentContactShare && $input->consentContactShare !== $member->consentsToContactShare()) {
+            if (!$input->consentContactShare instanceof Unchanged && $input->consentContactShare !== $member->consentsToContactShare()) {
                 ($this->changeContactConsent)(new ChangeContactConsent($member->id()->toRfc4122(), $input->consentContactShare));
             }
-            if (null !== $input->notifyOpenRounds && $input->notifyOpenRounds !== $member->wantsOpenRoundNotifications()) {
+            if (!$input->notifyOpenRounds instanceof Unchanged && $input->notifyOpenRounds !== $member->wantsOpenRoundNotifications()) {
                 ($this->changeOpenRoundNotifications)(new ChangeOpenRoundNotifications($member->id()->toRfc4122(), $input->notifyOpenRounds));
             }
         });
@@ -70,15 +71,15 @@ final readonly class ChangeOwnContactDetailsHandler
 
     private function changePhoneAndAddress(Member $member, ChangeOwnContactDetails $input): void
     {
-        if (null === $input->phone && null === $input->address) {
+        if ($input->phone instanceof Unchanged && $input->address instanceof Unchanged) {
             return;
         }
 
         $before = ['phone' => $member->phone()?->value, 'address' => $member->address()];
-        $phone = $input->phone ?? $before['phone'];
+        $phone = $input->phone instanceof Unchanged ? $before['phone'] : $input->phone;
         $member->changeContactDetails(
-            null === $phone || '' === \trim($phone) ? null : PhoneNumber::fromString($phone),
-            $input->address ?? $before['address'],
+            null === $phone ? null : PhoneNumber::fromString($phone),
+            $input->address instanceof Unchanged ? $before['address'] : $input->address,
         );
 
         $after = ['phone' => $member->phone()?->value, 'address' => $member->address()];

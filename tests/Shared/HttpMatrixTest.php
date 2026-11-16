@@ -167,16 +167,6 @@ final class HttpMatrixTest extends ApiTestCase
      */
     private static function adminRows(): array
     {
-        $meetingPoint = ['name' => 'Kerkplein', 'latitude' => null, 'longitude' => null];
-        $member = [
-            'email' => 'piet@example.org',
-            'name' => 'Piet de Vries',
-            'displayName' => 'Piet V.',
-            'phone' => null,
-            'address' => null,
-            'certified' => false,
-        ];
-
         return [
             'membership_list_members' => ['GET', '/api/v1/admin/members', null, ['admin']],
             'membership_get_member' => ['GET', '/api/v1/admin/members/{piet}', null, ['admin']],
@@ -186,15 +176,20 @@ final class HttpMatrixTest extends ApiTestCase
                 ['email' => 'kees@example.org', 'name' => 'Kees de Wit', 'displayName' => 'Kees W.'],
                 ['admin'],
             ],
-            'membership_change_member' => ['PATCH', '/api/v1/admin/members/{piet}', $member, ['admin']],
+            'membership_change_member' => ['PATCH', '/api/v1/admin/members/{piet}', ['certified' => true], ['admin']],
             'membership_change_member_roles' => ['PUT', '/api/v1/admin/members/{piet}/roles', ['roles' => ['walker']], ['admin']],
             'membership_deactivate_member' => ['POST', '/api/v1/admin/members/{piet}/deactivation', null, ['admin']],
             'membership_reactivate_member' => ['DELETE', '/api/v1/admin/members/{piet}/deactivation', null, ['admin']],
             'membership_erase_member' => ['DELETE', '/api/v1/admin/members/{piet}', null, ['admin']],
             'membership_invite_member' => ['POST', '/api/v1/admin/members/{piet}/invitation', null, ['coordinator', 'admin']],
             'patrol_list_all_meeting_points' => ['GET', '/api/v1/admin/meeting-points', null, ['admin']],
-            'patrol_create_meeting_point' => ['POST', '/api/v1/admin/meeting-points', $meetingPoint, ['admin']],
-            'patrol_change_meeting_point' => ['PATCH', '/api/v1/admin/meeting-points/{meetingPoint}', $meetingPoint, ['admin']],
+            'patrol_create_meeting_point' => [
+                'POST',
+                '/api/v1/admin/meeting-points',
+                ['name' => 'Kerkplein', 'latitude' => null, 'longitude' => null],
+                ['admin'],
+            ],
+            'patrol_change_meeting_point' => ['PATCH', '/api/v1/admin/meeting-points/{meetingPoint}', ['name' => 'Kerkplein'], ['admin']],
             'patrol_archive_meeting_point' => ['POST', '/api/v1/admin/meeting-points/{meetingPoint}/archive', null, ['admin']],
             'patrol_restore_meeting_point' => ['DELETE', '/api/v1/admin/meeting-points/{meetingPoint}/archive', null, ['admin']],
             'patrol_list_all_outcomes' => ['GET', '/api/v1/admin/outcomes', null, ['admin']],

@@ -459,7 +459,7 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
     en `ChangeOpenRoundNotifications` houden een verplicht `memberId`: ze hebben geen eigen endpoint, `PATCH /me`
     roept ze aan;
   - `PATCH /me` is `ChangeOwnContactDetails` (beslissing 27): telefoon, adres, toestemming en meldingen. Een veld dat
-    ontbreekt of `null` is, blijft; lege tekst wist telefoon of adres. Toestemming en meldingen gaan via hun eigen
+    ontbreekt of `null` is, blijft; lege tekst wist telefoon of adres (vervangen door JSON Merge Patch, T19). Toestemming en meldingen gaan via hun eigen
     use case, zodat de auditacties dezelfde blijven, en alleen als de waarde verandert (de frontend stuurt het hele
     formulier). Telefoon en adres krijgen `member.contact_details_changed` met de veldnamen zonder waarden, zoals
     `ChangeMember`. Voterattribuut `member.change_contact_details`, alleen voor het lid zelf;
@@ -504,8 +504,7 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
     `/walkers/{memberId}`), beide met 204, ook bij herhalen. Een tweede `DELETE` na de laatste loper geeft 404: de
     ronde is dan weg (beslissing uit fase 1, "meldt de laatste loper zich af, dan vervalt de ronde");
   - `PATCH /rounds/{id}` volgt `ChangeRound`: start, startpunt en startnotitie worden vervangen, een weggelaten veld
-    wordt leeg. Geen samenvoegen per veld, zoals bij `PATCH /me`; de frontend stuurt het hele formulier. Ter
-    goedkeuring: `PUT` past beter bij die betekenis, maar wijkt af van het API-ontwerp;
+    wordt leeg. Besloten op 16 november 2026: elke `PATCH` volgt JSON Merge Patch (T19);
   - het ronde-id komt alleen uit het pad: `ChangeRound` en `CancelRound` krijgen in de controller een leeg id via
     `default_constructor_arguments` van de serializer (een tekst, geen klasse van buiten regel 3), en de controller
     vervangt het door het id uit het pad; een id in de body telt niet. Geen aparte payloadklasse: een use-casemap
@@ -589,7 +588,7 @@ dagdeel `evening`, in `GET /rounds/{id}`, `GET /rounds` en `GET /me/rounds`.
   - `ChangeMemberRoles` en `EraseMember` eisen een recente aanmelding (beslissing 15), in de handler zoals
     `CreateApiToken`, met een test per handler en via de API;
   - `PATCH /admin/members/{id}` volgt `ChangeMember`: alle velden worden vervangen, een weggelaten telefoon of adres
-    wordt leeg. Ter goedkeuring, net als bij `PATCH /rounds/{id}` in T8;
+    wordt leeg. Besloten op 16 november 2026: JSON Merge Patch (T19);
   - de uitnodiging antwoordt 201 met `{secret}` in plaats van de link (beslissing 28): de link hoort bij de frontend
     (`#/welcome/<secret>`), die haar eigen adres kent. Het geheim is `null` voor een coördinator en voor een lid dat al
     eens inlogde. Ter goedkeuring;
@@ -613,7 +612,7 @@ geeft 409 met het bestaande item.
     `Shared\Domain\RuleViolationDetails` (een domeinfout geeft `details()`, nooit een geheim of gegevens van een ander),
     dat `ProblemResponder` meegeeft. Alleen `MeetingPointNameTaken` en `OutcomeNameTaken` gebruiken het;
   - `PATCH` vervangt alle velden, zoals de use cases (startpunt: naam en beide coördinaten; uitkomst: alleen de naam,
-    het soort blijft). Ter goedkeuring, zoals bij T8 en T11;
+    het soort blijft). Besloten op 16 november 2026: JSON Merge Patch (T19);
   - archiveren en terugzetten zijn `POST` en `DELETE` op `/{id}/archive`, 204, ook als het item al zo stond. Een
     startpunt met een ronde die nog moet beginnen geeft 409 `meeting_point_in_use`;
   - de Postman-collectie leest de vier lijsten, en controleert de 409 met een uitkomstnaam die al bestaat (zo komt er
@@ -765,6 +764,34 @@ Besloten op 16 november 2026:
   anders 422;
 - tests per endpoint voor de drie gevallen (weggelaten, `null`, waarde); `HttpMatrixTest`, Postman en docs
   bijwerken; de notities "ter goedkeuring" over `PATCH` in T8, T11 en T12 sluiten als besloten.
+
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - `Shared\Domain\Unchanged` is een enum met één geval, `Unchanged::Field`, de standaardwaarde van elk veld dat de
+    patch kan weglaten. De serializer laat een ontbrekend veld op die standaard; `null` op een veld zonder `null` in
+    het type geeft 422 met het veld in `violations`;
+  - validatie per veld: `Length`, `Uuid`, `Range` en `DateTime` kunnen `Unchanged` niet lezen, en `Assert\When` vraagt
+    `symfony/expression-language` (nieuwe afhankelijkheid) of een closure in een attribuut (PHP 8.5). Daarom staan de
+    constraints van een veld in een groep met de naam van dat veld, en is elke invoer een
+    `GroupSequenceProviderInterface` die alleen de groepen van de gestuurde velden valideert
+    (`Unchanged::fieldsSetIn()`). `getGroupSequence()` heeft `#[Ignore]`, zodat Nelmio het niet als veld ziet;
+  - `MergePatchFieldsProcessor` (nieuw, `Shared\Infrastructure\Http`) haalt `Unchanged` uit de OpenAPI-spec: Nelmio
+    maakte er een eigen schema van en een standaardwaarde die JSON niet kan bevatten, waardoor `docs.json` 500 gaf.
+    Een veld houdt een `oneOf` met wat een client stuurt (bijvoorbeeld `string` en `null`); de `oneOf` helemaal
+    weghalen kan alleen met het markeerteken van swagger-php, dat PHPStan weigert;
+  - de handlers passen alleen velden toe die niet `Unchanged` zijn en bouwen de rest uit de huidige waarden;
+    de auditregels vergeleken al voor en na, dus ze noemen alleen wat veranderde. `ChangeMember` op een gewist lid
+    geeft ook zonder velden 409 `member_erased`, en vraagt de Voter nu vóór het lezen van het e-mailadres;
+  - het coördinatenpaar staat in `ChangeMeetingPointHandler`: één weggelaten en één gestuurd geeft 422
+    `invalid_coordinates`, vóór het startpunt wordt opgezocht;
+  - **afwijking, ter goedkeuring**: ook `PATCH /admin/members/{id}` weigert lege tekst voor telefoon en adres (422),
+    zoals `PATCH /me`, zodat beide endpoints `null` gebruiken om te wissen. Een lege startnotitie bij een ronde wist
+    die notitie wel: het domein maakt van lege tekst geen notitie;
+  - tests: per endpoint een eigen endpointtest (`ChangeRoundEndpointTest`, `ChangeMemberEndpointTest`,
+    `ChangeMeetingPointEndpointTest`, `ChangeOutcomeEndpointTest`; `/me` in `OwnProfileEndpointsTest`) met
+    weggelaten, `null` en een waarde, plus handlertests en `UnchangedTest`. `HttpMatrixTest` stuurt bij de `PATCH` van
+    een lid en een startpunt een deel van de velden;
+  - de Postman-collectie controleert de 422 voor lege tekst in `PATCH /me`, voor `null` als naam van een lid en voor een
+    half coördinatenpaar bij een onbekend startpunt; geen van drieën wijzigt iets.
 
 ### T20. Formaat van het auditlog via de `Accept`-header (test eerst)
 

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Patrol\UseCase\ChangeMeetingPoint;
 
 use App\Patrol\Domain\Catalogue\Coordinates;
+use App\Patrol\Domain\Catalogue\InvalidCoordinates;
+use App\Patrol\Domain\Catalogue\MeetingPoint;
 use App\Patrol\Domain\Catalogue\MeetingPointNameTaken;
 use App\Patrol\Domain\Catalogue\MeetingPointRepository;
 use App\Patrol\Domain\Catalogue\UniqueCatalogueName;
@@ -13,8 +15,8 @@ use App\Shared\Domain\AuditTrail;
 use App\Shared\Domain\Authorization;
 use App\Shared\Domain\NotFound;
 use App\Shared\Domain\Transaction;
+use App\Shared\Domain\Unchanged;
 use App\Shared\Domain\WriteAction;
-use InvalidArgumentException;
 use Symfony\Component\Uid\Uuid;
 
 #[WriteAction(authorization: 'catalogue.manage', audit: 'meeting_point.changed')]
@@ -30,22 +32,23 @@ final readonly class ChangeMeetingPointHandler
     }
 
     /**
-     * @throws InvalidArgumentException for one coordinate without the other, or a point off the globe
+     * @throws InvalidCoordinates for one coordinate without the other, or a point off the globe
      * @throws MeetingPointNameTaken
      * @throws NotFound
      */
     public function __invoke(ChangeMeetingPoint $input): void
     {
         $this->authorization->denyUnlessGranted('catalogue.manage');
-        $coordinates = Coordinates::fromOptional($input->latitude, $input->longitude);
+        $coordinates = self::coordinates($input);
 
         $this->transaction->run(function () use ($input, $coordinates): void {
             $meetingPoint = $this->meetingPoints->get(Uuid::fromString($input->meetingPointId));
-            $this->uniqueName->ensureMeetingPointNameAvailable($input->name, $meetingPoint->id());
 
             $old = ['name' => $meetingPoint->name(), ...$this->position($meetingPoint->coordinates())];
-            $meetingPoint->rename($input->name);
-            $meetingPoint->placeAt($coordinates);
+            $this->rename($meetingPoint, $input->name);
+            if (!$coordinates instanceof Unchanged) {
+                $meetingPoint->placeAt($coordinates);
+            }
             $this->meetingPoints->update($meetingPoint);
             $new = ['name' => $meetingPoint->name(), ...$this->position($meetingPoint->coordinates())];
 
@@ -64,6 +67,32 @@ final readonly class ChangeMeetingPointHandler
 
             $this->auditTrail->record(new AuditedAction('meeting_point.changed', 'meeting_point', $meetingPoint->id(), $changes));
         });
+    }
+
+    /**
+     * @throws InvalidCoordinates for one coordinate left out and the other not
+     */
+    private static function coordinates(ChangeMeetingPoint $input): Coordinates|Unchanged|null
+    {
+        if ($input->latitude instanceof Unchanged && $input->longitude instanceof Unchanged) {
+            return Unchanged::Field;
+        }
+
+        if ($input->latitude instanceof Unchanged || $input->longitude instanceof Unchanged) {
+            throw new InvalidCoordinates('A meeting point takes both a latitude and a longitude, or neither.');
+        }
+
+        return Coordinates::fromOptional($input->latitude, $input->longitude);
+    }
+
+    private function rename(MeetingPoint $meetingPoint, string|Unchanged $name): void
+    {
+        if ($name instanceof Unchanged) {
+            return;
+        }
+
+        $this->uniqueName->ensureMeetingPointNameAvailable($name, $meetingPoint->id());
+        $meetingPoint->rename($name);
     }
 
     /**

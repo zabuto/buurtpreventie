@@ -68,6 +68,61 @@ final class OwnProfileEndpointsTest extends ApiTestCase
         ]);
     }
 
+    #[Test]
+    public function it_keeps_the_fields_left_out(): void
+    {
+        $client = self::createClient();
+        $member = self::actingAs($client);
+
+        $client->jsonRequest('PATCH', '/api/v1/me', ['notifyOpenRounds' => true]);
+
+        self::assertResponseStatusCodeSame(204);
+        self::assertSame(['06 1234 5678', 'Dorpsstraat 1', false, true], [
+            $member->phone()?->value,
+            $member->address(),
+            $member->consentsToContactShare(),
+            $member->wantsOpenRoundNotifications(),
+        ]);
+    }
+
+    #[Test]
+    public function it_clears_the_phone_number_and_address_set_to_null(): void
+    {
+        $client = self::createClient();
+        $member = self::actingAs($client);
+
+        $client->jsonRequest('PATCH', '/api/v1/me', ['phone' => null, 'address' => null]);
+
+        self::assertResponseStatusCodeSame(204);
+        self::assertSame([null, null], [$member->phone(), $member->address()]);
+    }
+
+    #[Test]
+    public function it_refuses_empty_text_for_the_phone_number_and_address(): void
+    {
+        $client = self::createClient();
+        $member = self::actingAs($client);
+
+        $client->jsonRequest('PATCH', '/api/v1/me', ['phone' => '', 'address' => '']);
+
+        self::assertResponseStatusCodeSame(422);
+        /** @var array{violations: list<array{field: string}>} $problem */
+        $problem = self::json($client);
+        self::assertSame(['phone', 'address'], \array_column($problem['violations'], 'field'));
+        self::assertSame(['06 1234 5678', 'Dorpsstraat 1'], [$member->phone()?->value, $member->address()]);
+    }
+
+    #[Test]
+    public function it_refuses_null_for_a_choice(): void
+    {
+        $client = self::createClient();
+        self::actingAs($client);
+
+        $client->jsonRequest('PATCH', '/api/v1/me', ['consentContactShare' => null]);
+
+        self::assertResponseStatusCodeSame(422);
+    }
+
     /**
      * A hijacked session could otherwise move the address a login code goes to.
      */

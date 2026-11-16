@@ -87,6 +87,31 @@ final class ChangeRoundHandlerTest extends TestCase
     }
 
     #[Test]
+    public function it_keeps_the_start_meeting_point_and_note_left_out(): void
+    {
+        $meetingPoint = $this->meetingPoint('Speeltuin');
+        $this->handler()(new ChangeRound($this->round->id()->toRfc4122(), self::SAME_START, $meetingPoint->id()->toRfc4122(), 'Bij het hek'));
+
+        $this->handler()(new ChangeRound($this->round->id()->toRfc4122()));
+
+        $this->assertSame(
+            [RoundFixture::STARTS_AT, $meetingPoint, 'Bij het hek'],
+            [$this->round->startsAt()->format(\DATE_ATOM), $this->round->meetingPoint(), $this->round->startNote()],
+        );
+    }
+
+    #[Test]
+    public function it_clears_the_meeting_point_and_note_given_as_null(): void
+    {
+        $meetingPoint = $this->meetingPoint('Speeltuin');
+        $this->handler()(new ChangeRound($this->round->id()->toRfc4122(), self::SAME_START, $meetingPoint->id()->toRfc4122(), 'Bij het hek'));
+
+        $this->handler()(new ChangeRound($this->round->id()->toRfc4122(), meetingPointId: null, startNote: null));
+
+        $this->assertSame([null, null], [$this->round->meetingPoint(), $this->round->startNote()]);
+    }
+
+    #[Test]
     public function it_records_nothing_when_nothing_changed(): void
     {
         $this->handler()(new ChangeRound($this->round->id()->toRfc4122(), self::SAME_START));

@@ -147,6 +147,9 @@ versions follow [Semantic Versioning](https://semver.org/).
 - Audit log for the admin: `GET /api/v1/admin/audit` narrowed by member, action and period, 50 entries a page, or
   every matching entry as a CSV file with `format=csv`, with a fixed column order and cells that a spreadsheet would
   run as a formula neutralised.
+- Every `PATCH` is a JSON Merge Patch: a field left out stays, null clears a field that may be empty, a value
+  replaces it, and null on a required field is refused. `PATCH /api/v1/me` refuses empty text for a phone number or
+  address; null removes it. A meeting point takes latitude and longitude as a pair.
 - The OpenAPI description covers every route, the login routes of the firewall included, and names the problem
   answers of every operation; a test holds it to the router and to the Postman collection. A controller may carry
   OpenAPI attributes to document its endpoint.

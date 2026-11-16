@@ -162,6 +162,7 @@ A handler reaches storage, rights, the audit log and messages only through inter
 | `LocalTime` | Converts an instant to `Europe/Amsterdam`, the clock of dayparts, calendar days and everything a walker reads | |
 | `LocalDay` | A calendar day on that clock, from midnight to midnight: 23 or 25 hours on the days the clock changes | |
 | `WriteAction`, `ReadAction` | Mark a handler as changing something, with its voter attribute and audit action, or as only reading | |
+| `Unchanged` | The default of an input field that a JSON Merge Patch leaves out, so a handler keeps the current value where null clears it; `fieldsSetIn()` gives the fields to validate | |
 | `BackedEnumValues` | Gives an enum `values()`, so an input constraint takes its choices from the enum (`Assert\Choice(callback: ...)`) | |
 | `EmailAddress` | An address trimmed and in lower case, with accents kept | |
 | `LookupKey` | The search and uniqueness key of a name: no case, accents or extra whitespace | |
@@ -266,8 +267,8 @@ allow an action. `TokenManagementGuard` refuses every token request under `/api/
 
 **Own account.** Everything under `/api/v1/me` is about the member logged in, and the controllers there pass no member
 id, so one in the body counts for nothing. `GET /me` (`GetOwnProfile`) shows the whole profile. `PATCH /me`
-(`ChangeOwnContactDetails`) takes phone number, address, consent and notifications about open rounds; a field left out
-stays, empty text removes a phone number or address. Consent and notifications go through `ChangeContactConsent` and
+(`ChangeOwnContactDetails`) takes phone number, address, consent and notifications about open rounds; null removes a
+phone number or address, empty text is refused. Consent and notifications go through `ChangeContactConsent` and
 `ChangeOpenRoundNotifications`, so they are the same audit actions wherever they change. Name, display name and
 e-mail address stay with the admin, so a hijacked session cannot move the address a login code goes to.
 `PUT /me/password` (`SetPassword`) and `POST /me/tokens` (`CreateApiToken`) need a recent login, otherwise the 403
@@ -280,6 +281,18 @@ member, such as a role an admin gave, it keeps the action but not who it was abo
 every activity entry through the use cases of each module, and of another member it holds a buddy's display name
 only.
 
+**Changes.** Every `PATCH` is a JSON Merge Patch (RFC 7396): a field left out stays, null clears a field that may be
+empty, a value replaces it. Null on a field that may not be empty, such as a name or the start of a round, is 422, and
+so is empty text for a phone number or address. `?string` cannot tell a field left out from null, so each field of
+the input is typed as, say, `string|null|Unchanged` with `Shared\Domain\Unchanged::Field` as its default: the
+serializer leaves a field it does not find at that default. The handler applies only the fields that are not
+`Unchanged`, and the audit entry names only what changed. A constraint such as `Length` cannot read `Unchanged`, so
+each field's constraints sit in a validation group named after the field, and the input is a
+`GroupSequenceProviderInterface` that validates only the groups of the fields sent (`Unchanged::fieldsSetIn()`).
+`MergePatchFieldsProcessor` describes such a field in the OpenAPI description by what a client sends, without
+`Unchanged`. Latitude and longitude of a meeting point go as a pair: both left out, both null or both a number,
+otherwise the 422 problem `invalid_coordinates`.
+
 **Rounds.** `GET /rounds?from=&to=&status=` (`ListRounds`) lists the rounds that start in a period of at most 93 days,
 otherwise the 422 problem `invalid_period`; a `+` in an offset reads as a space in a query string, so a client sends
 `%2B` or `Z`. `GET /rounds/{id}` (`GetRound`) shows one round with its walkers, report and comments; `GET
@@ -287,7 +300,7 @@ otherwise the 422 problem `invalid_period`; a `+` in an offset reads as a space 
 (`ListMyRounds`) the rounds of the member logged in, `walked=1` the walked ones with whether they have a report,
 `walked=0` the others. Every round in these answers has `status`, `walkerCount`, `minimumWalkers`, `maximumWalkers`,
 `openSpots` and `daypart`. `POST /rounds` (`CreateRound`) plans a round and answers 201 with its id; `PATCH
-/rounds/{id}` (`ChangeRound`) replaces start, meeting point and start note, so a field left out is cleared; `DELETE
+/rounds/{id}` (`ChangeRound`) changes start, meeting point and start note; `DELETE
 /rounds/{id}` (`DeleteRound`) deletes a round that has not started; `POST /rounds/{id}/cancellation` (`CancelRound`)
 records that a started round was not walked, with an optional reason. A round id comes from the path only: the
 controllers fill the one in the input with `default_constructor_arguments` and replace it, so one in the body
@@ -314,7 +327,7 @@ them, to everyone alike, and the e-mail address never does. Everything else abou
 for the admin (voter attribute `member.view` and the other `member.*` attributes): `GET` lists every member that is
 not erased, deactivated ones included, and `GET /admin/members/{id}` (`GetMember`) shows one, both with e-mail
 address, contact details, roles and choices (`ListMembers`); `POST` (`AddMember`) adds a member, `PATCH
-/admin/members/{id}` (`ChangeMember`) replaces name, display name, e-mail address, contact details and certificate,
+/admin/members/{id}` (`ChangeMember`) changes name, display name, e-mail address, contact details and certificate,
 `PUT /admin/members/{id}/roles` (`ChangeMemberRoles`) sets the roles, `POST` and `DELETE
 /admin/members/{id}/deactivation` (`DeactivateMember`, `ReactivateMember`) deactivate and reactivate, `DELETE
 /admin/members/{id}` (`EraseMember`) erases. Changing roles and erasing need a recent login, otherwise the 403 problem
@@ -325,8 +338,8 @@ makes the link of it.
 **Catalogues.** `GET /meeting-points` (`ListMeetingPoints`) and `GET /outcomes` (`ListOutcomes`) give every member the
 items to choose from, by name, without the archived ones (voter attribute `catalogue.list`); under
 `/admin/meeting-points` and `/admin/outcomes` the same use cases list the archived ones too, for the admin
-(`catalogue.manage`). There the admin adds an item with `POST` (`CreateMeetingPoint`, `CreateOutcome`), replaces it
-with `PATCH /{id}` (`ChangeMeetingPoint`: name and both coordinates; `ChangeOutcome`: the name only), archives it with
+(`catalogue.manage`). There the admin adds an item with `POST` (`CreateMeetingPoint`, `CreateOutcome`), changes it
+with `PATCH /{id}` (`ChangeMeetingPoint`: name and coordinates; `ChangeOutcome`: the name only), archives it with
 `POST /{id}/archive` and restores it with `DELETE /{id}/archive`. A name another item holds, archived or not, is the
 409 problem `meeting_point_name_taken` or `outcome_name_taken` with `existingId` and `existingArchived`, so the admin
 can restore that item instead of adding a look-alike. A domain error adds such members by implementing

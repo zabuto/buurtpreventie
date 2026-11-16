@@ -58,9 +58,9 @@ final class ChangeOwnContactDetailsHandlerTest extends TestCase
     }
 
     #[Test]
-    public function it_removes_a_phone_number_and_address_given_as_empty_text(): void
+    public function it_removes_a_phone_number_and_address_given_as_null(): void
     {
-        $this->handler()(new ChangeOwnContactDetails(phone: '', address: ''));
+        $this->handler()(new ChangeOwnContactDetails(phone: null, address: null));
 
         $this->assertSame([null, null], [$this->jan->phone(), $this->jan->address()]);
     }
