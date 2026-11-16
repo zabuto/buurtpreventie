@@ -43,7 +43,7 @@ Values in the code that no setting changes. A new limit gets a row here.
 | Walkers of one round | Minimum at least 1, maximum at least the minimum; fixed when the round is created | `StaffingRule` |
 | Dayparts | `morning` before 12:00, `afternoon` before 18:00, `evening` from 18:00 | `Daypart` |
 | Start of a round | After the moment it is created or moved; no change once started | `RoundStart`, `Round::change()` |
-| Round list | A period that ends after its start and lasts at most 93 days: a quarter in local time, the hour the clocks go back included | `ListRoundsHandler::MAXIMUM_PERIOD_IN_DAYS` |
+| Round and report lists | A period that ends after its start and lasts at most 93 days: a quarter in local time, the hour the clocks go back included | `ListingPeriod` |
 | Buddy call | Once per round, at the first of 5, 3 or 1 days before the start (local clock) that falls after the round was created; at once for a round created less than a day ahead | `BuddyCall::LEAD_DAYS` |
 | Reminder | One message per active walker per local calendar day, for all their rounds of that day | `Reminders` |
 
@@ -79,6 +79,7 @@ The input of a use case refuses a longer value; the column holds at least as muc
 | Login code requests | 3 per address and 10 per IP address in an hour, then 429 | `config/packages/rate_limiter.yaml` |
 | Invitation | `bpi_` and 64 hexadecimal characters, stored as SHA-256; 48 hours, once; a new invitation ends the earlier ones | `Invitation` |
 | Stay logged in | Cookie `bp_remember` for 90 days: `Secure`, `HttpOnly`, `SameSite=Lax`; ends with a new password | `config/packages/security.yaml` |
-| Recent login | 15 minutes after a login or confirmation; needed for a new password and a new API token. A console command run as a member counts as recent | `TokenRecentAuthentication`, `RunAs` |
+| Recent login | 15 minutes after a login or confirmation; needed for a new password, a new API token, changing roles and erasing a member. A console command run as a member counts as recent | `TokenRecentAuthentication`, `RunAs` |
 | Own activity | 50 entries per page, newest first | `ListOwnActivityHandler::PAGE_SIZE` |
+| Audit log of the admin | 50 entries per page, newest first; as CSV every matching entry, read 500 at a time | `ListAuditEntriesHandler` |
 | Audit fields | A field name containing `password`, `secret`, `token` or `hash` is refused | `AuditEntry` |

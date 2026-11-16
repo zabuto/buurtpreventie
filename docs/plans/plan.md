@@ -22,7 +22,7 @@ Buurtpreventie v4 wordt een Symfony 7.4 LTS-backend met een echte REST-API (`/ap
 | --- | --- | --- |
 | 0 | Basis: skelet, CI, docs, codescan | klaar, in `develop` |
 | 1 | Domein, use cases, Voters, auditlog, database, voorbeelddata | klaar, in `develop`; T13 naar fase 5b |
-| 2 | REST-API v1 met inloggen en API-tokens | bezig: T15 klaar; T16 overgeslagen (`docs/plans/phase-2.md`) |
+| 2 | REST-API v1 met inloggen en API-tokens | bezig: T17 klaar; T16 overgeslagen (`docs/plans/phase-2.md`) |
 | 3 | Branding en configuratie | open |
 | 4 | MCP-server | open |
 | 5 | Frontend (Lit, PWA, WCAG 2.2 AA) | open |
@@ -464,16 +464,17 @@ Regels die daaruit volgen:
 | Groep | Endpoints | Wie |
 | --- | --- | --- |
 | Publiek | `GET /config` (branding, teksten, minimum- en maximumaantal lopers) | iedereen |
-| Sessie | `POST /auth/login`, `POST /auth/logout`, `POST /auth/password-reset`, `POST /auth/password-reset/{token}` | iedereen |
+| Sessie | `POST /auth/login`, `POST /auth/logout`, `POST /auth/confirm` (opnieuw bevestigen; geen aparte wachtwoord-reset, zie Fase 2) | iedereen |
 | Eigen account | `GET/PATCH /me`, `PUT /me/password`, `GET/POST/DELETE /me/tokens` | lid |
-| Rondes | `GET /rounds?from=&to=&status=`, `GET /rounds/{id}`, `POST /rounds`, `PATCH /rounds/{id}`, `DELETE /rounds/{id}` | lid leest; loper maakt aan; coördinator wijzigt/verwijdert |
+| Rondes | `GET /rounds?from=&to=&status=`, `GET /rounds/{id}`, `POST /rounds`, `PATCH /rounds/{id}`, `DELETE /rounds/{id}`, `POST /rounds/{id}/cancellation`, `GET /staffing-gaps` | lid leest; loper maakt aan; coördinator wijzigt/verwijdert/annuleert |
 | Aanmelden | `PUT /rounds/{id}/walkers/me`, `DELETE /rounds/{id}/walkers/me` | loper |
 | Na de ronde | `GET /me/rounds?walked=1`, `POST /rounds/{id}/reports`, `DELETE /reports/{id}`, `POST /rounds/{id}/comments`, `DELETE /comments/{id}` | loper (eigen items), coördinator |
 | Leden | `GET /members` (contactgegevens alleen bij toestemming) | lid |
+| Keuzelijsten | `GET /meeting-points`, `GET /outcomes` (alleen niet gearchiveerd) | lid |
 | Analyse | `GET /reports?from=&to=&outcome=`, `GET /stats?period=` | analist |
-| Beheer | `/admin/members` (CRUD, herstellen, uitnodiging), `/admin/meeting-points`, `/admin/outcomes`, `/admin/settings` | beheerder |
+| Beheer | `/admin/members` (CRUD, rollen, (de)activeren, uitnodiging), `/admin/meeting-points`, `/admin/outcomes` (met archiveren en terugzetten), `/admin/settings` | beheerder; uitnodigen ook coördinator |
 | Systeem | `POST /system/tick` (geheime sleutel; draait herinneringen) | cron |
-| Inloggen per e-mail | `POST /auth/login-link`, `GET /auth/login-link/{token}` | iedereen |
+| Inloggen per e-mail | `POST /auth/login-code`, `POST /auth/login-code/verify` (code van zes cijfers), `POST /auth/invitation` (uitnodiging) | iedereen |
 | Namens een loper | `PUT /rounds/{id}/walkers/{memberId}`, `DELETE /rounds/{id}/walkers/{memberId}` | coördinator |
 | Auditlog | `GET /me/activity`, `GET /rounds/{id}/history`, `GET /admin/audit` | lid, coördinator, beheerder (zie Auditlog) |
 | Onderhoud | `GET /admin/maintenance`, `POST /admin/maintenance/update`, `POST /admin/maintenance/rollback`, `POST /admin/maintenance/backup` | beheerder |
@@ -482,10 +483,10 @@ Regels die daaruit volgen:
 
 **Rechten.** Eén Voter per onderwerp (`RoundVoter`, `ReportVoter`, `MemberVoter`, …) met de rollen walker, coordinator, analyst en admin. Rollen tellen op, en elke rol geeft alleen zijn eigen rechten. De beheerder (`admin`) beheert leden, catalogi, instellingen en onderhoud, en heeft geen rechten op de inhoud van rondes; wie dat nodig heeft, krijgt ook de rol coördinator. De analist leest alleen; loopt hij ook, dan krijgt hij de rol loper erbij. Controllers en MCP-tools roepen dezelfde Voters aan; een test controleert de volledige matrix rol × actie.
 
-**Authenticatie.**
+**Authenticatie.** Uitgewerkt en vastgelegd in fase 2 ([ADR 0006](../adr/0006-authentication.md)).
 
-- **Browser:** `json_login` met sessiecookie (`SameSite=Lax`, `HttpOnly`, `Secure`) en CSRF-bescherming op muterende verzoeken. Daarnaast inloggen via een link per e-mail (Symfony login link) en "ingelogd blijven" voor 90 dagen. Frontend en API staan op hetzelfde domein, dus geen CORS nodig.
-- **Scripts en MCP:** `Authorization: Bearer <token>` via Symfony's `access_token`-authenticator. Tokens worden alleen gehasht opgeslagen, eenmalig getoond, met scopes `read`, `write`, `admin` en een verloopdatum.
+- **Browser:** sessiecookie (`SameSite=Lax`, `HttpOnly`, `Secure`) met eigen authenticators voor wachtwoord, code per mail, uitnodiging en opnieuw bevestigen, CSRF op muterende verzoeken en "ingelogd blijven" voor 90 dagen. Frontend en API staan op hetzelfde domein, dus geen CORS nodig.
+- **Scripts en MCP:** `Authorization: Bearer <token>` via een eigen authenticator. Tokens worden alleen gehasht opgeslagen, eenmalig getoond, met scopes `read`, `write`, `admin` en een verloopdatum.
 
 **Conversie v3 → v4.**
 
@@ -791,18 +792,20 @@ Fase 3, 4 en 5 hangen alleen van de API af; MCP (fase 4) gaat vóór de frontend
 
 ### Fase 2 — REST-API v1
 
-- [ ] Auth: `json_login` + sessie + CSRF; authenticator voor API-tokens (zie hieronder); `/me/tokens`; inloglink per e-mail en ingelogd blijven (90 dagen); aan- en afmelden namens een loper (coördinator); auditlog-endpoints.
-- [ ] Authenticator voor `Authorization: Bearer <token>` (vastgelegd op 15 november 2026):
+- [x] Auth: sessie met eigen authenticators voor wachtwoord, code per mail en uitnodiging (geen `json_login` en geen inloglink), CSRF en ingelogd blijven (90 dagen); authenticator voor API-tokens (zie hieronder); `/me/tokens`; aan- en afmelden namens een loper (coördinator); auditlog-endpoints. Vastgelegd in [ADR 0006](../adr/0006-authentication.md); de uitwerking staat in `docs/plans/phase-2.md`.
+- [x] Authenticator voor `Authorization: Bearer <token>` (vastgelegd op 15 november 2026):
   - hij neemt elk verzoek op de API-firewall aan, zodat een ontbrekend token net zo geweigerd en gelogd wordt als een fout token;
   - hij zoekt het token op de SHA-256-hash; het token zelf staat nergens, en draagt geen inhoud en geen controlegetal;
   - één `match` met elke reden om te weigeren: onbekend, ingetrokken, verlopen, lid gedeactiveerd of gewist (review-focus 4: het token werkt meteen niet meer);
   - een weigering is een 401 zonder body, met `WWW-Authenticate: Bearer`; de reden gaat alleen naar ons log, in woorden die het datamodel niet prijsgeven, en de exceptie draagt een algemene melding;
-  - bij succes: `markUsed()` op het token, de scopes `read`, `write` en `admin` vertaald voor de Voters, en `ExecutionContext` gevuld met het lid, zijn rollen en kanaal `api` (of `mcp` in fase 4), zodat er één bron is voor wie de actie uitvoert;
+  - bij succes: `markUsed()` op het token en `ExecutionContext` gevuld met het lid, zijn rollen en kanaal `api` (of `mcp` in fase 4), zodat er één bron is voor wie de actie uitvoert;
   - geen JWT: dat is niet meteen in te trekken zonder toch bij elk verzoek op te zoeken, de inhoud is leesbaar, en één gelekte sleutel ondertekent elk token.
-  Of dit Symfony's `access_token`-authenticator met eigen handler wordt of een eigen authenticator, beslist het taakplan; het moet ook een ontbrekend token loggen.
-- [ ] Alle endpoints uit het API-ontwerp, `problem+json`-fouten, OpenAPI via NelmioApiDocBundle.
-- [ ] Functionele tests per endpoint plus één matrixtest rol × actie.
-- [ ] Opengrep-regelset uitgebreid voor wat deze fase toevoegt: verzoekinvoer naar SQL en bestandspaden, inloggen en CSRF; elke regel met een regeltest.
+  Het werd een eigen authenticator, geen `access_token` met handler: die slaat een verzoek zonder header over.
+- [x] **Afwijking: scopes per verzoek, niet in de Voters** (beslissing 17 van `phase-2.md`). Een listener op de tokenfirewall eist `read` voor `GET` en `HEAD`, `write` voor de andere methodes en `admin` voor `/api/v1/admin/`; de Voters gaan alleen over rollen. Rol én scope moeten kloppen, en één test dekt elke scope.
+- [x] **Afwijking: Identity vindt een lid via `Shared\Domain\MemberDirectory`, niet via een use case** (beslissing 4 van `phase-2.md`): een use case vraagt een Voter, en bij inloggen is nog niemand ingelogd. De user provider leest rollen en status bij elk verzoek opnieuw.
+- [x] Alle endpoints uit het API-ontwerp, `problem+json`-fouten, OpenAPI via NelmioApiDocBundle. De spec noemt per operatie de problem-antwoorden; de geslaagde antwoorden met hun uitvoer volgen (`phase-2.md`, T14).
+- [x] Functionele tests per endpoint plus één matrixtest rol × actie (`HttpMatrixTest`), naast de matrix op de Voters.
+- [ ] Opengrep-regelset uitgebreid voor wat deze fase toevoegt: verzoekinvoer naar SQL en bestandspaden, inloggen en CSRF; elke regel met een regeltest. Overgeslagen op verzoek; volgt later.
 
 **Klaar als:** de OpenAPI-spec dekt elk endpoint, de matrixtest is groen, en `curl` met een token kan een lid aanmelden voor een ronde.
 

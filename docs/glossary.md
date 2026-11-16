@@ -64,6 +64,9 @@ dezelfde naam.
 | Uitnodiging | `Invitation`, `IssueInvitation`, `InviteMember` | Link per mail die een lid één keer inlogt, 48 uur geldig |
 | Ingelogd blijven | `remember_me`, cookie `bp_remember` | 90 dagen ingelogd op een toestel; vervalt bij een nieuw wachtwoord |
 | Recent ingelogd | `RecentAuthentication` | In de laatste 15 minuten ingelogd of bevestigd; nodig voor gevoelige acties |
+| Scope | `TokenScope`: `read`, `write`, `admin` | Wat een API-token mag: lezen, wijzigen, of `/api/v1/admin/`; rol en scope moeten allebei kloppen |
+| Geschiedenis van een ronde | `GetRoundHistory` | De auditregels over één ronde, voor de coördinator |
+| Terugmeldingen | `ListRoundReports` | De terugmeldingen van een periode met notities, voor analist en coördinator |
 | API-token | `ApiToken` | Persoonlijke sleutel voor scripts en MCP, met scopes `read`, `write` en `admin`; alleen de hash wordt bewaard |
 | Tijdtrigger, tick | `app:scheduler:run`, `POST /api/v1/system/tick` | Start taken op een vast moment |
 | Gezondheidscheck | `CheckHealth`, `GET /api/v1/health` | Antwoordt `ok` als de app draait |

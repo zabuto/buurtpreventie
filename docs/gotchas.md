@@ -88,3 +88,14 @@ Things that are not obvious and cost time when you do not know them.
 - **`zircote/swagger-php` stays below 7.** NelmioApiDocBundle extends `OpenApi\Generator`, which swagger-php 7
   deprecates, so `composer deprecations` fails on 7. The `conflict` entry in `composer.json` holds the 6 line,
   which still gets releases; drop it once Nelmio builds on `OpenApi\Builder`.
+- **Nelmio adds request bodies and query parameters in swagger-php processors**, after every describer. A describer
+  therefore sees no input; `ProblemResponsesProcessor` is a processor for that reason.
+- **Nelmio does not read the output of a controller** that returns a `JsonResponse`: the spec lists no success
+  answer unless the controller carries an `#[OA\Response]`.
+- **`#[MapQueryString]` answers a validation failure with 404** unless the controller sets
+  `validationFailedStatusCode: 422`, as every controller here does.
+- **A `+` in a query string reads as a space**, so `?from=2026-11-16T00:00:00+01:00` fails validation. A client sends
+  `%2B` or an offset `Z`.
+- **A route parameter does not reach `#[MapRequestPayload]`.** For an id in the path, the controller fills the id of
+  the input with the serializer context `default_constructor_arguments` and replaces it with the one from the path,
+  so an id in the body counts for nothing.

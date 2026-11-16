@@ -719,6 +719,21 @@ Overgeslagen op verzoek; volgt later.
   uitnodiging, `LoginChallenge`, `Invitation`, scope, kanaal `web`; `docs/gotchas.md`: wat opvalt.
 - `docs/plans/plan.md`: Fase 2 afvinken, de endpointtabel bijwerken (beslissingen 10, 12, 25), de afwijkingen van
   beslissingen 4 en 17 in Fase 2; `CHANGELOG.md`; `AGENTS.md` (Commands) als er een commando bijkomt.
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - `docs/adr/0006-authentication.md` legt beslissingen 1 tot en met 19 vast zoals ze gebouwd zijn, met de
+    afwijkingen die al goedgekeurd waren (geen huidig wachtwoord bij een nieuw wachtwoord, beslissing 16) en die van
+    T11 (rollen wijzigen en wissen vragen ook een recente aanmelding);
+  - de meeste documenten zijn per taak bijgewerkt; nu aangevuld: `architecture.md` (verwijzing naar de ADR,
+    `RuleViolationDetails` in de tabel van bouwstenen), `configuration.md` (`ListingPeriod` voor ronde- en
+    terugmeldlijsten, recente aanmelding ook voor rollen en wissen, het auditlog van de beheerder), `testing.md`
+    (`TokenScopeTest`), `glossary.md` (scope, geschiedenis, terugmeldingen) en `gotchas.md` (Nelmio-processors,
+    geen uitvoer uit een `JsonResponse`, `#[MapQueryString]` met 404, de `+` in een querystring, een id uit het pad);
+  - `plan.md`: Fase 2 afgevinkt behalve de Opengrep-regels (overgeslagen), de afwijkingen van beslissingen 4 en 17
+    als eigen punt, de endpointtabel met de code per mail, de uitnodiging, `/auth/confirm`, annuleren, gaten en de
+    keuzelijsten, en de alinea Authenticatie naar wat gebouwd is;
+  - de nieuwe Opengrep-regels staan niet in `testing.md`: T16 is overgeslagen;
+  - **niet gedaan**: de geslaagde antwoorden in de OpenAPI-spec (zie T14), ter goedkeuring als eigen taak;
+  - geen nieuw commando, dus `AGENTS.md` blijft gelijk.
 
 ### T18. Verifiëren en opleveren
 

@@ -158,6 +158,7 @@ A handler reaches storage, rights, the audit log and messages only through inter
 | `Role`, `Actor` | The fixed roles `walker`, `coordinator`, `analyst` and `admin`, without inheritance, and a member with their roles, as the policies of every module decide on them | |
 | `NotFound` | No item of a kind has a given id; entry points turn it into their own answer, such as HTTP 404 | |
 | `RuleViolation`, `StateConflict`, `InvalidValue` | A domain rule refused the action: the state forbids it (`RoundIsFull`) or a value breaks a rule (`StartInPast`). Every domain exception is one of these or `NotFound`; its code is the short class name in snake case | |
+| `RuleViolationDetails` | A refusal that tells the client what it needs to act on it, such as the item that already holds a name; `ProblemResponder` adds its `details()` to the problem answer | |
 | `LocalTime` | Converts an instant to `Europe/Amsterdam`, the clock of dayparts, calendar days and everything a walker reads | |
 | `LocalDay` | A calendar day on that clock, from midnight to midnight: 23 or 25 hours on the days the clock changes | |
 | `WriteAction`, `ReadAction` | Mark a handler as changing something, with its voter attribute and audit action, or as only reading | |
@@ -193,7 +194,8 @@ its own. Doctrine nests it with a savepoint, so a failure in either undoes both.
 
 ## Authentication
 
-Two firewalls guard `/api/`, picked by the request:
+The reasons for this design are in [ADR 0006](adr/0006-authentication.md). Two firewalls guard `/api/`, picked by
+the request:
 
 | Firewall | Takes | Authenticator | Channel |
 | --- | --- | --- | --- |

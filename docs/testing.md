@@ -117,6 +117,9 @@ to `{{baseUrl}}` matches a path and method of the spec, a `{parameter}` standing
 
 ## Rights and write actions
 
+`tests/Identity/Infrastructure/Security/TokenScopeTest.php` sets every scope against a reading request, a changing
+request and one under `/api/v1/admin/`.
+
 `tests/Shared/HttpMatrixTest.php` runs every route against nobody logged in, a member without a role and a member
 with exactly one role, over HTTP on the in-memory kernel. Each request goes to data that exists, with a valid body,
 so only the rights can refuse it: a principal that may not act gets 401 (`unauthorized`) or 403 (`access_denied`),

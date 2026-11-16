@@ -154,3 +154,5 @@ versions follow [Semantic Versioning](https://semver.org/).
   member up with a personal API token alone, as curl would. In the `demo` sample set the walker who uses the API has
   a token that reads and writes, whose secret the fixture command shows; `docs/getting-started.md` walks through
   signing up with curl.
+- ADR 0006 on authentication: two firewalls, own authenticators, a hash for every secret, recent logins and scopes per
+  request.
