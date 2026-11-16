@@ -7,6 +7,10 @@ namespace App\Tests\Support;
 use App\Audit\Domain\AuditEntryRepository;
 use App\Identity\Domain\AccountRepository;
 use App\Identity\Domain\ApiTokenRepository;
+use App\Identity\Domain\InvitationRepository;
+use App\Identity\Domain\LoginChallengeRepository;
+use App\Identity\Domain\LoginCodeGenerator;
+use App\Identity\Domain\SecretGenerator;
 use App\Membership\Domain\MemberRepository;
 use App\Patrol\Domain\Catalogue\MeetingPointRepository;
 use App\Patrol\Domain\Catalogue\OutcomeRepository;
@@ -18,8 +22,12 @@ use App\Shared\Domain\AuditTrail;
 use App\Shared\Domain\Notifier;
 use App\Shared\Domain\Transaction;
 use App\Tests\Audit\Fake\RecordingAuditEntryRepository;
+use App\Tests\Identity\Fake\FixedLoginCodeGenerator;
+use App\Tests\Identity\Fake\FixedSecretGenerator;
 use App\Tests\Identity\Fake\InMemoryAccountRepository;
 use App\Tests\Identity\Fake\InMemoryApiTokenRepository;
+use App\Tests\Identity\Fake\InMemoryInvitationRepository;
+use App\Tests\Identity\Fake\InMemoryLoginChallengeRepository;
 use App\Tests\Membership\Fake\InMemoryMemberRepository;
 use App\Tests\Patrol\Fake\InMemoryMeetingPointRepository;
 use App\Tests\Patrol\Fake\InMemoryOutcomeRepository;
@@ -42,7 +50,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 
 /**
- * Replaces storage, transaction, audit trail and notifier with the fakes of the handler tests, stops the clock at
+ * Replaces storage, transaction, audit trail, notifier and the secret generators with the fakes of the handler tests, stops the clock at
  * NOW and lets the logger keep what it gets. Login attempts are counted in memory per kernel, so the attempts of one
  * test never throttle another; the pool is a plain ArrayAdapter, because a cache pool is emptied between two requests
  * of the same client. Each fake is public, so a test arranges and checks its data through
@@ -62,6 +70,10 @@ final readonly class InMemoryServices implements CompilerPassInterface
         MemberRepository::class => InMemoryMemberRepository::class,
         AccountRepository::class => InMemoryAccountRepository::class,
         ApiTokenRepository::class => InMemoryApiTokenRepository::class,
+        LoginChallengeRepository::class => InMemoryLoginChallengeRepository::class,
+        InvitationRepository::class => InMemoryInvitationRepository::class,
+        LoginCodeGenerator::class => FixedLoginCodeGenerator::class,
+        SecretGenerator::class => FixedSecretGenerator::class,
         SettingRepository::class => InMemorySettingRepository::class,
         AuditEntryRepository::class => RecordingAuditEntryRepository::class,
         Transaction::class => ImmediateTransaction::class,

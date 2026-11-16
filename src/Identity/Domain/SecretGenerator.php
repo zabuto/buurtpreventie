@@ -10,4 +10,9 @@ interface SecretGenerator
      * A new secret that nobody can guess, to hand out once.
      */
     public function newSecret(): string;
+
+    /**
+     * A new secret for an invitation link, to hand out once.
+     */
+    public function newInvitationSecret(): string;
 }

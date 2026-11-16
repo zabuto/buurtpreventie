@@ -31,8 +31,8 @@ A test class that leaves memory carries `#[Group('integration')]`, `#[Group('fun
 
 ## Endpoint tests
 
-`ApiTestCase` boots `InMemoryKernel`: the app with every repository, the transaction, the audit trail and the
-notifier replaced by the fakes from `tests/<Module>/Fake/` and `tests/Shared/Fake/`, the clock stopped at
+`ApiTestCase` boots `InMemoryKernel`: the app with every repository, the transaction, the audit trail, the
+notifier and the generators of secrets and login codes replaced by the fakes from `tests/<Module>/Fake/` and `tests/Shared/Fake/`, the clock stopped at
 `InMemoryKernel::NOW` and a `RecordingLogger` that keeps what the app logs; everything else is real, security and
 voters included. `InMemoryServices` makes the swap as a compiler pass, because `config/services.yaml` loads after
 anything registered next to it. Two probe controllers exist only in this kernel: one raises each kind of failure,

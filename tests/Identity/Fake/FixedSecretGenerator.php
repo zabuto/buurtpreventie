@@ -14,6 +14,9 @@ final readonly class FixedSecretGenerator implements SecretGenerator
         // @mago-expect lint:no-literal-password - a made-up secret the tests compare with
         #[SensitiveParameter]
         private string $secret = 'bpt_0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+        // @mago-expect lint:no-literal-password - a made-up secret the tests compare with
+        #[SensitiveParameter]
+        private string $invitationSecret = 'bpi_0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
     ) {
     }
 
@@ -21,5 +24,11 @@ final readonly class FixedSecretGenerator implements SecretGenerator
     public function newSecret(): string
     {
         return $this->secret;
+    }
+
+    #[Override]
+    public function newInvitationSecret(): string
+    {
+        return $this->invitationSecret;
     }
 }

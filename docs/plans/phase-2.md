@@ -391,6 +391,15 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
   nieuw wachtwoord werkt een onthouden apparaat niet meer; `remember_me` houdt een sessie 90 dagen vast maar telt
   niet als recent (beslissing 15).
 - `LoggingNotifier` zonder parameters; inlogcode en uitnodiging per mail, lokaal in Mailpit (beslissing 29).
+- Stand op 16 november 2026 (opslag klaar, de rest volgt):
+  - `LoginChallenge` (id van 128 willekeurige bits als 32 hex-tekens, `CodeAttempt` `Accepted`/`Wrong`/`Ended`,
+    `end()` voor een nieuwere aanvraag), `Invitation` (`bpi_`, `end()`), `LoginCode::typed()`/`shown()`,
+    `Account::changePassword()` met `credentialsChangedAt` en `renewPasswordHash()` voor een vernieuwde hash;
+  - `LoginCodeGenerator`, `LoginCodeHasher` (HMAC-SHA-256 met `APP_SECRET` over id en code),
+    `SecretGenerator::newInvitationSecret()`, Doctrine-repositories met een slot bij gebruik, fakes in `InMemoryKernel`
+    en migratie `Version20261116002055` (alleen toevoegen); `SetPassword` zet `credentialsChangedAt`;
+  - nog te doen: use cases en endpoints, `MailNotifier`, `RecentAuthentication`, ingelogd blijven, code-aanvragen
+    begrenzen, `SetPassword` volgens beslissingen 16 en 22.
 
 ### T7. Eigen account (test eerst)
 

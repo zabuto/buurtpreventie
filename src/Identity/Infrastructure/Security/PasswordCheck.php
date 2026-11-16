@@ -71,7 +71,7 @@ final readonly class PasswordCheck
 
         if ($this->passwordHasher->needsRehash($hash)) {
             $renewed = $this->passwordHasher->hash($password);
-            $this->transaction->run(static fn() => $account->changePasswordHash($renewed));
+            $this->transaction->run(static fn() => $account->renewPasswordHash($renewed));
         }
 
         return true;

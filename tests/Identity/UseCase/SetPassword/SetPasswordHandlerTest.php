@@ -13,9 +13,11 @@ use App\Tests\Identity\Fake\PasswordHashers;
 use App\Tests\Shared\Fake\FakeAuthorization;
 use App\Tests\Shared\Fake\ImmediateTransaction;
 use App\Tests\Shared\Fake\RecordingAuditTrail;
+use DateTimeImmutable;
 use Override;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Clock\MockClock;
 use Symfony\Component\Uid\Uuid;
 
 final class SetPasswordHandlerTest extends TestCase
@@ -57,6 +59,17 @@ final class SetPasswordHandlerTest extends TestCase
         ]);
     }
 
+    /**
+     * The moment is signed into every "stay logged in" cookie, so the new password ends them all.
+     */
+    #[Test]
+    public function it_notes_when_the_password_changed(): void
+    {
+        $this->handler()(new SetPassword($this->memberId->toRfc4122(), 'een lang voorbeeldwachtwoord'));
+
+        $this->assertEquals(new DateTimeImmutable('2026-11-16T10:00:00+00:00'), $this->accounts->ofMember($this->memberId)?->credentialsChangedAt());
+    }
+
     #[Test]
     public function it_records_the_change_without_the_password(): void
     {
@@ -90,6 +103,7 @@ final class SetPasswordHandlerTest extends TestCase
             $authorization ?? FakeAuthorization::granting(),
             $this->auditTrail,
             new ImmediateTransaction(),
+            new MockClock('2026-11-16T10:00:00+00:00'),
         );
     }
 }

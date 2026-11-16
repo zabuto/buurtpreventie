@@ -37,7 +37,7 @@ final class DoctrineAccountRepositoryTest extends KernelTestCase
     {
         $memberId = Uuid::v7();
         $account = Account::open($memberId);
-        $account->changePasswordHash('$2y$13$abcdefghijklmnopqrstuuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ012');
+        $account->renewPasswordHash('$2y$13$abcdefghijklmnopqrstuuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ012');
         $account->recordLogin(new DateTimeImmutable('2026-11-15T12:00:00+00:00'));
         $this->repository->add($account);
         $this->entityManager->flush();

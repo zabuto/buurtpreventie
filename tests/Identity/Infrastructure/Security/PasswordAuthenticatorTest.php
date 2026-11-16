@@ -288,7 +288,7 @@ final class PasswordAuthenticatorTest extends ApiTestCase
     ): Member {
         $member = MemberFixture::stored(self::service(InMemoryMemberRepository::class), $email, $name, $displayName);
         $account = Account::open($member->id());
-        $account->changePasswordHash($hash ?? self::service(PasswordHasher::class)->hash(self::PASSWORD));
+        $account->renewPasswordHash($hash ?? self::service(PasswordHasher::class)->hash(self::PASSWORD));
         self::service(InMemoryAccountRepository::class)->add($account);
 
         return $member;

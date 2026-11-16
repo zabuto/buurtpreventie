@@ -80,7 +80,7 @@ final class VerifyPasswordHandlerTest extends TestCase
     private function accountWithHash(string $hash): void
     {
         $account = Account::open($this->memberId);
-        $account->changePasswordHash($hash);
+        $account->renewPasswordHash($hash);
         $this->accounts->add($account);
     }
 
