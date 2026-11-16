@@ -194,9 +194,10 @@ npx newman run postman/buurtpreventie.postman_collection.json \
 ```
 
 It needs the app running under the Symfony CLI (hence `--insecure` for its local certificate), the database with
-sample data, and Mailpit. `email` is a member of the loaded set (`beheer@example.org` in `test` and `edge`). With
-`mailpitUrl` the collection reads the code from the newest mail; without it, a step that needs the code is skipped
-unless the variable `code` is set by hand. A step that needs a password is skipped without one. The app takes 3
+sample data, and Mailpit. `email` is a member of the loaded set (`beheer@example.org` in `test` and `edge`). Only the
+local environment sets `mailpitUrl`, for the request "Read the code from Mailpit (local only)", which takes the code
+from the newest mail; without it that request is skipped, and a step that needs the code runs only once the variable
+`code` is set by hand. A step that needs a password is skipped without one. The app takes 3
 requests for a code per address in an hour, so a fourth run within the hour answers 429.
 
 ## Security scan

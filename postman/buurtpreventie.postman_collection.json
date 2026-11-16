@@ -33,10 +33,6 @@
       "value": ""
     },
     {
-      "key": "mailpitUrl",
-      "value": ""
-    },
-    {
       "key": "language",
       "value": "nl"
     },
@@ -319,7 +315,7 @@
     },
     {
       "name": "Login with a code",
-      "description": "Mails a code to {{email}}. Without mailpitUrl, set the variable code by hand from the mail before the last steps. At most 3 requests per address in an hour.",
+      "description": "Mails a code to {{email}}. Locally the next step reads it from Mailpit; elsewhere set the variable code by hand from the mail before the last steps. At most 3 requests per address in an hour.",
       "item": [
         {
           "name": "Ask for a code",
@@ -420,6 +416,53 @@
           ]
         },
         {
+          "name": "Read the code from Mailpit (local only)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{mailpitUrl}}/api/v1/message/latest",
+              "host": [
+                "{{mailpitUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "message",
+                "latest"
+              ]
+            },
+            "description": "Development only: Mailpit catches the mail locally. Skipped without the variable mailpitUrl, which only the local environment sets."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get('mailpitUrl')) {",
+                  "    console.log('Skipped: no mailpitUrl, so not a local run');",
+                  "    pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const found = /(\\d{3} \\d{3})/.exec(pm.response.json().Text || '');",
+                  "pm.test('finds the code in the newest mail', () => pm.expect(found).to.not.equal(null));",
+                  "if (found) {",
+                  "    pm.collectionVariables.set('code', found[1]);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Right code",
           "request": {
             "method": "POST",
@@ -458,18 +501,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "// Reads the code from the newest mail in Mailpit when its address is known; Postman waits for the answer",
-                  "// before it sends this request. Without Mailpit, set the variable code by hand from the mail.",
-                  "const mailpit = pm.variables.get('mailpitUrl');",
-                  "if (mailpit) {",
-                  "    pm.sendRequest(mailpit.replace(/\\/$/, '') + '/api/v1/message/latest', (error, response) => {",
-                  "        const found = !error && /(\\d{3} \\d{3})/.exec(response.json().Text || '');",
-                  "        if (found) {",
-                  "            pm.collectionVariables.set('code', found[1]);",
-                  "        }",
-                  "    });",
-                  "} else if (!pm.variables.get('code')) {",
-                  "    console.log('Skipped: no code; set mailpitUrl or the variable code');",
+                  "if (!pm.variables.get('code')) {",
+                  "    console.log('Skipped: no code; set the variable code from the mail');",
                   "    pm.execution.skipRequest();",
                   "}"
                 ]
