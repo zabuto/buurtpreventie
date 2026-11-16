@@ -13,6 +13,7 @@ use App\Shared\Domain\LocalTime;
 use App\Shared\Domain\ReadAction;
 use DateTimeImmutable;
 use Generator;
+use Psr\Clock\ClockInterface;
 use Symfony\Component\Uid\Uuid;
 
 /**
@@ -34,6 +35,7 @@ final readonly class ListAuditEntriesHandler
     public function __construct(
         private AuditEntryRepository $entries,
         private Authorization $authorization,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -52,6 +54,7 @@ final readonly class ListAuditEntriesHandler
         );
 
         if ($input->allEntries) {
+            $filter = $this->endingBeforeThisSecond($filter);
             $count = $this->entries->countMatching($filter);
             if ($count > self::MOST_ENTRIES_AT_ONCE) {
                 throw TooManyEntries::counted($count, self::MOST_ENTRIES_AT_ONCE);
@@ -67,6 +70,22 @@ final readonly class ListAuditEntriesHandler
             \array_map(self::line(...), \array_slice($entries, 0, self::PAGE_SIZE)),
             \count($entries) > self::PAGE_SIZE ? $page + 1 : null,
         );
+    }
+
+    /**
+     * The file is read newest first in batches by offset, so an entry recorded while it streams would shift the
+     * batches and put one entry in twice. The log stores whole seconds: ending before the second of the request keeps
+     * out every entry of that second, also one recorded after the request started.
+     */
+    private function endingBeforeThisSecond(AuditFilter $filter): AuditFilter
+    {
+        $now = $this->clock->now();
+        $end = $now->setTime((int) $now->format('H'), (int) $now->format('i'), (int) $now->format('s'));
+        if (null !== $filter->to && $filter->to <= $end) {
+            return $filter;
+        }
+
+        return new AuditFilter($filter->member, $filter->action, $filter->from, $end);
     }
 
     /**

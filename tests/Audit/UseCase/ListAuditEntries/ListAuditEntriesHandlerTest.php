@@ -18,10 +18,16 @@ use DateTimeImmutable;
 use Override;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Clock\MockClock;
 use Symfony\Component\Uid\Uuid;
 
 final class ListAuditEntriesHandlerTest extends TestCase
 {
+    /**
+     * Half a second into the second, as a request rarely starts on a whole one.
+     */
+    private const string NOW = '2026-11-16T12:00:00.500000+00:00';
+
     private RecordingAuditEntryRepository $entries;
     private Uuid $jan;
 
@@ -137,6 +143,33 @@ final class ListAuditEntriesHandlerTest extends TestCase
         $this->assertSame([51, null], [\count(self::entries($output)), $output->nextPage]);
     }
 
+    /**
+     * The log is read newest first in batches; an entry recorded while the file streams would shift the batches and
+     * put one entry in the file twice. The log stores whole seconds, so the file ends before the second of the request.
+     */
+    #[Test]
+    public function it_leaves_out_of_the_file_what_is_recorded_from_the_second_of_the_request(): void
+    {
+        $before = $this->stored(new AuditedAction('round.created', 'round', Uuid::v7()), '2026-11-16T11:59:59+00:00');
+        $this->stored(new AuditedAction('round.created', 'round', Uuid::v7()), '2026-11-16T12:00:00+00:00');
+        $this->stored(new AuditedAction('round.created', 'round', Uuid::v7()), '2026-11-16T12:00:01+00:00');
+
+        $output = $this->handler()(new ListAuditEntries(allEntries: true));
+
+        $this->assertSame([$before->subjectId()->toRfc4122()], \array_column(self::entries($output), 'subjectId'));
+    }
+
+    #[Test]
+    public function it_keeps_an_end_before_the_request_for_the_file(): void
+    {
+        $inside = $this->stored(new AuditedAction('round.created', 'round', Uuid::v7()), '2026-11-13T12:00:00+00:00');
+        $this->stored(new AuditedAction('round.created', 'round', Uuid::v7()), '2026-11-14T12:00:00+00:00');
+
+        $output = $this->handler()(new ListAuditEntries(to: '2026-11-14T00:00:00+00:00', allEntries: true));
+
+        $this->assertSame([$inside->subjectId()->toRfc4122()], \array_column(self::entries($output), 'subjectId'));
+    }
+
     #[Test]
     public function it_gives_the_most_entries_it_allows_at_once(): void
     {
@@ -218,6 +251,6 @@ final class ListAuditEntriesHandlerTest extends TestCase
 
     private function handler(?FakeAuthorization $authorization = null): ListAuditEntriesHandler
     {
-        return new ListAuditEntriesHandler($this->entries, $authorization ?? FakeAuthorization::granting());
+        return new ListAuditEntriesHandler($this->entries, $authorization ?? FakeAuthorization::granting(), new MockClock(self::NOW));
     }
 }

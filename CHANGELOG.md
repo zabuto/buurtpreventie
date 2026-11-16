@@ -148,7 +148,8 @@ versions follow [Semantic Versioning](https://semver.org/).
   whether that one is archived.
 - Audit log for the admin: `GET /api/v1/admin/audit` narrowed by member, action and period, 50 entries a page as
   JSON, or with `Accept: text/csv` every matching entry as a streamed CSV file, with a fixed column order and cells
-  that a spreadsheet would run as a formula neutralised. A file holds at most 10,000 entries; more answers 422
+  that a spreadsheet would run as a formula neutralised. A file ends before the second of the request, so an entry
+  recorded while it streams never appears twice. A file holds at most 10,000 entries; more answers 422
   `too_many_entries` with their count. An Accept header that allows neither format answers 406.
 - JSON keys and query parameters are camelCase, codes and enum values snake_case; tests hold the OpenAPI description
   and the outputs to it.

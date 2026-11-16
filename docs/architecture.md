@@ -372,7 +372,10 @@ its actor as `member`, `removed_member` or `system`. The Accept header picks the
 or none gives the page as JSON, `text/csv` every matching entry at once as a file, and anything else the 406 problem
 `not_acceptable`; the query string cannot ask for a format (`allEntries` is `#[Ignore]`d). The file is streamed, read
 in batches of 500, with a fixed column order, the changes as JSON and every cell that starts with `=`, `+`, `-`, `@`,
-a tab or a carriage return prefixed with an apostrophe, so a spreadsheet never runs it as a formula. It holds at most
+a tab or a carriage return prefixed with an apostrophe, so a spreadsheet never runs it as a formula. The file ends
+before the second of the request (`to` is the start of that second, or stays when it is earlier): the batches are read
+by offset, newest first, so an entry recorded while the file streams would otherwise shift them and appear twice, and
+the log stores whole seconds. It holds at most
 10,000 entries: more is the 422 problem `too_many_entries` with their `count` (`AuditEntryRepository::countMatching()`),
 never a file cut short that would look complete. IP addresses
 are shortened when the entry is recorded, so the log never holds a full one.

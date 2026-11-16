@@ -669,7 +669,7 @@ volledig IP-adres in de uitvoer, CSV met een vaste kolomvolgorde en formules gen
     die attributen (geen overtreding) en een die `OpenApi\Generator` gebruikt (wel);
   - **niet gedaan: de geslaagde antwoorden.** Nelmio leest de `…Output`-klassen niet uit een `JsonResponse`, dus de
     spec noemt per operatie alleen de problem-antwoorden, zonder 200/201/204 en zonder uitvoerschema. Dat vraagt een
-    `#[OA\Response]` per controller (regel 3 staat dat nu toe). Ter goedkeuring: in T17 of een vervolg;
+    `#[OA\Response]` per controller (regel 3 staat dat nu toe). Uitgevoerd in T21;
   - geen nieuwe endpoints, dus geen nieuwe stap in de Postman-collectie.
 
 ### T15. HTTP-matrixtest en het `curl`-scenario (test eerst)
@@ -732,7 +732,7 @@ Overgeslagen op verzoek; volgt later.
     als eigen punt, de endpointtabel met de code per mail, de uitnodiging, `/auth/confirm`, annuleren, gaten en de
     keuzelijsten, en de alinea Authenticatie naar wat gebouwd is;
   - de nieuwe Opengrep-regels staan niet in `testing.md`: T16 is overgeslagen;
-  - **niet gedaan**: de geslaagde antwoorden in de OpenAPI-spec (zie T14), ter goedkeuring als eigen taak;
+  - **niet gedaan**: de geslaagde antwoorden in de OpenAPI-spec (zie T14); uitgevoerd in T21;
   - geen nieuw commando, dus `AGENTS.md` blijft gelijk.
 
 ### T18. Verifiëren en opleveren
@@ -784,7 +784,7 @@ Besloten op 16 november 2026:
     geeft ook zonder velden 409 `member_erased`, en vraagt de Voter nu vóór het lezen van het e-mailadres;
   - het coördinatenpaar staat in `ChangeMeetingPointHandler`: één weggelaten en één gestuurd geeft 422
     `invalid_coordinates`, vóór het startpunt wordt opgezocht;
-  - **afwijking, ter goedkeuring**: ook `PATCH /admin/members/{id}` weigert lege tekst voor telefoon en adres (422),
+  - afwijking, besloten op 16 november 2026: ook `PATCH /admin/members/{id}` weigert lege tekst voor telefoon en adres (422),
     zoals `PATCH /me`, zodat beide endpoints `null` gebruiken om te wissen. Een lege startnotitie bij een ronde wist
     die notitie wel: het domein maakt van lege tekst geen notitie;
   - tests: per endpoint een eigen endpointtest (`ChangeRoundEndpointTest`, `ChangeMemberEndpointTest`,
@@ -818,9 +818,11 @@ Besloten op 16 november 2026:
     `TooManyEntries` (Audit\Domain, `InvalidValue` met `count` als detail), anders leest hij lui per 500 in een
     generator, die `StreamedResponse` naar `php://output` schrijft. `ListAuditEntriesOutput::csv()` werd
     `writeCsv($file)`, en `entries` is `iterable`;
-  - open punt: het log wordt nieuwste eerst per 500 gelezen met een offset. Komt er tijdens het streamen een regel
-    bij, dan schuift de rest een plek op en staat één regel twee keer in het bestand. Dat gold al vóór deze taak; een
-    vaste bovengrens `to` (het moment van de aanvraag) lost het op;
+  - het log wordt nieuwste eerst per 500 gelezen met een offset; een regel die tijdens het streamen bijkomt, zou de
+    rest een plek opschuiven en één regel twee keer in het bestand zetten. Opgelost op 16 november 2026, na T24: het
+    bestand eindigt vóór de seconde van de aanvraag (`to` wordt het begin van die seconde, of blijft als het eerder
+    ligt). Het log slaat hele seconden op, dus zo valt ook een regel uit die seconde die na de aanvraag binnenkomt
+    erbuiten; die staat in het volgende bestand. De telling voor de grens van 10.000 gebruikt dezelfde eindtijd;
   - de OpenAPI-spec beschrijft de 200 met `application/json` (schema `ListAuditEntriesOutput`) en `text/csv`, en de
     406, en de 422 met `too_many_entries` (in T21 als eigen antwoord, na de reparatie van
     `ProblemResponsesProcessor`);
@@ -873,8 +875,8 @@ Besloten op 16 november 2026: `GET /me/rounds?view=upcoming|to_report|all` verva
     de query volgt `RoundStatus` voor "gelopen": gestart, niet geannuleerd en minstens het minimum aan lopers, dus een
     ronde die na de start onder het minimum zat, staat niet bij `to_report`. De fake leest dezelfde regel uit
     `WalkerRoundQuery::matches()`. `withWalker()` blijft voor de export van eigen gegevens;
-  - **ter goedkeuring**: zonder `view` is het `upcoming` (de taak noemt geen standaard; `all` kan niet zonder periode);
-  - **ter goedkeuring**: `from` en `to` gaan samen. Eén van beide zonder de ander is 422 `invalid_period`, net als
+  - besloten op 16 november 2026: zonder `view` is het `upcoming` (`all` kan niet zonder periode);
+  - besloten op 16 november 2026: `from` en `to` gaan samen. Eén van beide zonder de ander is 422 `invalid_period`, net als
     `all` zonder periode; de periode gaat over de start van de ronde, `to` niet meegerekend, zoals `GET /rounds`;
   - `order` geldt alleen bij `all`; bij `upcoming` en `to_report` ligt de volgorde vast en telt `order` niet. `limit`
     buiten 1 tot en met 200 is 422 `invalid_input`;
@@ -893,7 +895,7 @@ Besloten op 16 november 2026:
 - OpenAPI-schema's, tests en docs bijwerken.
 
 - Uitgevoerd op 16 november 2026, met deze keuzes:
-  - **afwijking, ter goedkeuring**: ook `name` staat in `/members` altijd, `null` voor een lezer die geen coördinator
+  - afwijking, besloten op 16 november 2026: ook `name` staat in `/members` altijd, `null` voor een lezer die geen coördinator
     of beheerder is, zoals bij de lopers van een ronde. Zo heeft elk lid in de lijst dezelfde vorm;
   - `GetMemberSummariesHandler` en `GetRoundHandler` bouwen elke regel met alle sleutels; de keuze wie wat ziet bleef
     gelijk (`maySeeFullNames`, `maySeeWalkerPhones`, toestemming in Membership). De tests van review-focus 3 eisen
