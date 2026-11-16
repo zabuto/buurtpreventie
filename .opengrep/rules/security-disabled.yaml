@@ -1,0 +1,25 @@
+rules:
+  - id: security-disabled
+    languages: [yaml]
+    severity: ERROR
+    message: >-
+      This switches off a protection for every request it covers: `security: false` lets them past every firewall,
+      authenticator and access rule, and without CSRF protection another site can make a logged-in member's browser
+      change data. Only the `dev` firewall, for the profiler and assets, goes without security.
+    pattern-either:
+      - patterns:
+          - pattern-inside: |
+              firewalls:
+                ...
+          - pattern: |
+              $FIREWALL:
+                ...
+                security: false
+          - metavariable-regex:
+              metavariable: $FIREWALL
+              regex: ^(?!dev$)
+      - pattern: "csrf_protection: false"
+      - pattern: |
+          csrf_protection:
+            ...
+            enabled: false

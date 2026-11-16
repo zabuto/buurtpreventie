@@ -1,0 +1,18 @@
+rules:
+  - id: insecure-session-cookie
+    languages: [yaml]
+    severity: ERROR
+    message: >-
+      Without `Secure` the session cookie also travels over plain HTTP, where anyone on the network can read it and
+      take over the session; with `SameSite=None` another site's requests carry it. Keep `cookie_secure: true` and
+      `cookie_samesite: lax`; only `when@test` may differ.
+    patterns:
+      - pattern-either:
+          - pattern: "cookie_secure: $VALUE"
+          - pattern: "cookie_samesite: $VALUE"
+      - metavariable-regex:
+          metavariable: $VALUE
+          regex: (?i)^["']?(false|none)["']?$
+      - pattern-not-inside: |
+          when@test:
+            ...

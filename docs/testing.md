@@ -257,11 +257,12 @@ The "Security scan" job in `ci.yml` runs Opengrep with the rules in `.opengrep/r
 in CI, because verifying the downloaded binary needs Cosign. It first runs the rule tests, then scans
 `src/`, `config/`, `templates/`, `public/`, `bin/` and `tools/`; any finding fails the job.
 
-A rule is a YAML file with a test file of the same name next to it: `.php`, or `.twig` for templates.
-In the test file, a comment `ruleid: <id>` marks the next line as one the rule must report and
-`ok: <id>` as one it must leave alone. Twig test files use HTML comments (`<!-- ruleid: <id> -->`),
-because Opengrep does not read `{# #}` as an annotation. Rules for functions also match the fully
-qualified call (`\exec()`), the form this code base writes.
+A rule is a YAML file with a test file of the same name next to it: `.php`, `.twig` for templates, or
+`.test.yaml` for configuration (Opengrep would read a plain `.yaml` as a rule). In the test file, a comment
+`ruleid: <id>` marks the next line as one the rule must report and `ok: <id>` as one it must leave alone. Twig test
+files use HTML comments (`<!-- ruleid: <id> -->`), because Opengrep does not read `{# #}` as an annotation. Rules for
+functions also match the fully qualified call (`\exec()`), the form this code base writes. A `metavariable-regex`
+matches from the start of the text, so a pattern that may match further on starts with `^.*`.
 
 | Rule | Refuses |
 | --- | --- |
@@ -269,7 +270,11 @@ qualified call (`\exec()`), the form this code base writes.
 | `unserialize` | `unserialize()` on anything but a literal string, unless `allowed_classes` is `false` |
 | `request-value-as-file-path` | A request value that reaches a file path |
 | `twig-raw-filter` | The `raw` filter in a template |
-| `sql-built-from-strings` | SQL or DQL built with concatenation, interpolation or `sprintf()`, also in the parts of the query builder (`select`, `from`, `join`, `where`, `groupBy`, the expression of `set`, ...). A `sprintf()` that fills in only class names (`Round::class`) stays a fixed text and is allowed |
+| `sql-built-from-strings` | SQL or DQL built with concatenation, interpolation or `sprintf()`, also in the parts of the query builder (`select`, `from`, `join`, `where`, `groupBy`, the expression of `set`, ...). A `sprintf()` that fills in only class names (`Round::class`) stays a fixed text and is allowed, as is the `set()` of a response's headers |
+| `request-value-in-query` | A request value (`get`, `query`, `request`, `attributes`, `getContent`, `toArray`, `getPayload`, the superglobals) that reaches the text of a query, also through the query builder; a value passed as a parameter, or cast to a number, is allowed. Only a receiver whose name ends in `request` counts as the request |
+| `secret-compared-with-equals` | `==`, `===`, `!=`, `!==` and `strcmp()` (and its variants) on a variable or property with `token`, `secret` or `hash` in its name; compare with `hash_equals()`. A check against `null`, a boolean, a literal or a constant is allowed |
+| `security-disabled` | `security: false` on any firewall but `dev`, and `csrf_protection: false` or `enabled: false` under it |
+| `insecure-session-cookie` | `cookie_secure: false` and `cookie_samesite: none` outside `when@test` |
 | `sql-outside-repository` | `executeQuery`, `executeStatement`, `fetch*`, `createQuery`, `createNativeQuery` and `createQueryBuilder` outside `src/*/Infrastructure/Persistence/` |
 | `weak-random-or-hash` | `md5`, `sha1`, `rand`, `mt_rand`, `uniqid`, `lcg_value` and `str_shuffle`, also `hash()`, `hash_file()` and `hash_hmac()` with `md5` or `sha1`; secrets come from `random_bytes()` and are hashed with SHA-256 |
 | `byte-lowercase` | `strtolower()` and `strtoupper()`, which leave `É` as it is; use `mb_strtolower()` or `LookupKey` |

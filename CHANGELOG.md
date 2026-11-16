@@ -166,3 +166,6 @@ versions follow [Semantic Versioning](https://semver.org/).
   signing up with curl.
 - ADR 0006 on authentication: two firewalls, own authenticators, a hash for every secret, recent logins and scopes per
   request.
+- Opengrep rules `request-value-in-query`, `secret-compared-with-equals`, `security-disabled` and
+  `insecure-session-cookie`, each with a rule test; `sql-built-from-strings` leaves the `set()` of response headers
+  alone.

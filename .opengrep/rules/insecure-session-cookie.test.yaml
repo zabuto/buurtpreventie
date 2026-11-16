@@ -1,0 +1,31 @@
+framework:
+    session:
+        name: bp_session
+        # ok: insecure-session-cookie
+        cookie_secure: true
+        # ok: insecure-session-cookie
+        cookie_samesite: lax
+
+when@dev:
+    framework:
+        session:
+            # ruleid: insecure-session-cookie
+            cookie_secure: false
+            # ruleid: insecure-session-cookie
+            cookie_samesite: none
+
+when@prod:
+    framework:
+        session:
+            # ruleid: insecure-session-cookie
+            cookie_samesite: 'None'
+            # ruleid: insecure-session-cookie
+            cookie_secure: "false"
+
+when@test:
+    framework:
+        session:
+            # ok: insecure-session-cookie
+            cookie_secure: false
+            # ok: insecure-session-cookie
+            cookie_samesite: none

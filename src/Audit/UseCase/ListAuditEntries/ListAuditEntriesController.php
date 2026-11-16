@@ -100,7 +100,7 @@ final readonly class ListAuditEntriesController
         }
 
         foreach (AcceptHeader::fromString($accept)->all() as $item) {
-            $format = self::FORMATS[\strtolower($item->getValue())] ?? null;
+            $format = self::FORMATS[\mb_strtolower($item->getValue())] ?? null;
             if (null !== $format && $item->getQuality() > 0) {
                 return $format;
             }

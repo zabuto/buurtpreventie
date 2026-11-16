@@ -22,7 +22,7 @@ Buurtpreventie v4 wordt een Symfony 7.4 LTS-backend met een echte REST-API (`/ap
 | --- | --- | --- |
 | 0 | Basis: skelet, CI, docs, codescan | klaar, in `develop` |
 | 1 | Domein, use cases, Voters, auditlog, database, voorbeelddata | klaar, in `develop`; T13 naar fase 5b |
-| 2 | REST-API v1 met inloggen en API-tokens | T1–T15 en T17 klaar, T16 overgeslagen; vervolgtaken T19–T24 klaar; push en pull request wachten op akkoord (`docs/plans/phase-2.md`) |
+| 2 | REST-API v1 met inloggen en API-tokens | T1–T17 klaar; vervolgtaken T19–T24 klaar; push en pull request wachten op akkoord (`docs/plans/phase-2.md`) |
 | 3 | Branding en configuratie | open |
 | 4 | MCP-server | open |
 | 5 | Frontend (Lit, PWA, WCAG 2.2 AA) | open |
@@ -805,7 +805,7 @@ Fase 3, 4 en 5 hangen alleen van de API af; MCP (fase 4) gaat vóór de frontend
 - [x] **Afwijking: Identity vindt een lid via `Shared\Domain\MemberDirectory`, niet via een use case** (beslissing 4 van `phase-2.md`): een use case vraagt een Voter, en bij inloggen is nog niemand ingelogd. De user provider leest rollen en status bij elk verzoek opnieuw.
 - [x] Alle endpoints uit het API-ontwerp, `problem+json`-fouten, OpenAPI via NelmioApiDocBundle. De spec noemt per operatie de problem-antwoorden; de geslaagde antwoorden met hun uitvoer volgen (`phase-2.md`, T14).
 - [x] Functionele tests per endpoint plus één matrixtest rol × actie (`HttpMatrixTest`), naast de matrix op de Voters.
-- [ ] Opengrep-regelset uitgebreid voor wat deze fase toevoegt: verzoekinvoer naar SQL en bestandspaden, inloggen en CSRF; elke regel met een regeltest. Overgeslagen op verzoek; volgt later.
+- [x] Opengrep-regelset uitgebreid voor wat deze fase toevoegt: verzoekinvoer naar SQL en bestandspaden, inloggen en CSRF; elke regel met een regeltest.
 
 **Klaar als:** de OpenAPI-spec dekt elk endpoint, de matrixtest is groen, en `curl` met een token kan een lid aanmelden voor een ronde.
 

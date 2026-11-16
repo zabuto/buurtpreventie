@@ -707,7 +707,24 @@ volledig IP-adres in de uitvoer, CSV met een vaste kolomvolgorde en formules gen
 
 Per regel eerst het testbestand, dan de regel (beslissing 34). Lokaal gedraaid zoals in T14 van fase 1.
 
-Overgeslagen op verzoek; volgt later.
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - `request-value-in-query` (taint) neemt dezelfde bronnen als `request-value-as-file-path`, maar alleen op een
+    ontvanger waarvan de naam op `request` eindigt; anders telde elke `get()` van een container of repository als
+    invoer. Een sink is de querytekst: het eerste argument van een verbinding of entity manager, en elk argument van
+    de delen van de querybuilder (`select`, `from`, `join`, `where`, `orderBy`, `set`, ...). `setParameter()` en de
+    parameters van een query zijn veilig, een cast naar een getal ook;
+  - `secret-compared-with-equals` vangt ook `!=` en `!==`, en `strcasecmp`, `strncmp` en `strncasecmp`. Alleen een
+    variabele of property telt, geen methode-aanroep (`$token->revokedAt()`); een vergelijking met `null`, een
+    boolean, een letterlijke waarde of een constante verraadt niets en mag;
+  - `security-disabled` vangt naast `csrf_protection: false` ook `enabled: false` eronder;
+  - `insecure-session-cookie` neemt `false` en `none` ook tussen aanhalingstekens en in hoofdletters;
+  - de testbestanden van de YAML-regels heten `<regel>.test.yaml`: een gewone `.yaml` leest Opengrep als regel;
+  - de scan vond twee bevindingen van bestaande regels in code van deze fase: `byte-lowercase` op het mediatype in
+    `ListAuditEntriesController` (nu `mb_strtolower`) en `sql-built-from-strings` op de HSTS-header in
+    `ApiSecurityHeaders`. Die regel slaat nu de `set()` van de headers van een antwoord over, met twee `ok`-regels in
+    zijn test;
+  - de regeltests en de scan zijn lokaal gedraaid met Opengrep 1.33.1, zoals in T14 van fase 1: 12 van 12 tests
+    groen, 0 bevindingen.
 
 ### T17. ADR 0006 en documentatie
 
@@ -731,7 +748,7 @@ Overgeslagen op verzoek; volgt later.
   - `plan.md`: Fase 2 afgevinkt behalve de Opengrep-regels (overgeslagen), de afwijkingen van beslissingen 4 en 17
     als eigen punt, de endpointtabel met de code per mail, de uitnodiging, `/auth/confirm`, annuleren, gaten en de
     keuzelijsten, en de alinea Authenticatie naar wat gebouwd is;
-  - de nieuwe Opengrep-regels staan niet in `testing.md`: T16 is overgeslagen;
+  - de nieuwe Opengrep-regels staan in `testing.md` sinds T16;
   - **niet gedaan**: de geslaagde antwoorden in de OpenAPI-spec (zie T14); uitgevoerd in T21;
   - geen nieuw commando, dus `AGENTS.md` blijft gelijk.
 
