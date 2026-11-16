@@ -467,7 +467,8 @@ interface in the module's `Domain`, and wrap a change and its audit entry in `Tr
 
 - A controller depends only on classes in its own use-case folder and on Symfony's HttpFoundation,
   `HttpKernel\Attribute`, `Routing\Attribute` and `Routing\Requirement` (such as `Requirement::UUID` for an id in
-  the path).
+  the path), and on `OpenApi\Attributes` and `Nelmio\ApiDocBundle\Attribute` to document the endpoint; the rest of
+  the OpenAPI library stays out.
 - A tool depends only on classes in its own use-case folder and on the MCP SDK.
 - An `Output` depends on no `Domain` at all.
 
@@ -503,3 +504,15 @@ installer, nothing else.
 
 The frontend calls only endpoints listed in the OpenAPI spec. This contract test arrives with the
 frontend in phase 5.
+
+The spec on `/api/v1/docs.json` comes from NelmioApiDocBundle: paths, path parameters, request bodies
+(`#[MapRequestPayload]`) and query parameters (`#[MapQueryString]`) from the controllers. The routes the firewall
+answers (`/auth/login`, `/auth/login-code/verify`, `/auth/invitation`, `/auth/confirm`, `/auth/logout`) and the
+`Problem` schema are written out in `config/packages/nelmio_api_doc.yaml`.
+`Shared\Infrastructure\Http\ProblemResponsesProcessor` gives every operation its problem answers: 401 and 403 off the
+public paths, 404 with an id in the path, 409 for a change, 422 with a body or query parameters. It is a swagger-php
+processor rather than a describer, because Nelmio adds bodies and query parameters in processors of its own, after
+every describer.
+
+**Why.** `OpenApiCoverageTest` holds the spec to the router and to the Postman collection, so neither drifts from the
+API.

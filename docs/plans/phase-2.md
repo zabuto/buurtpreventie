@@ -652,6 +652,25 @@ volledig IP-adres in de uitvoer, CSV met een vaste kolomvolgorde en formules gen
 - Elk request in `postman/buurtpreventie.postman_collection.json` (methode en pad onder `/api/v1`) staat in
   `docs.json`, zodat de collectie niet uit de pas loopt met de API; zonder nieuwe afhankelijkheid.
 - Regel 3 uitgebreid (beslissing 23) met een overtreding in de fixtures en een regel in `docs/architecture.md`.
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - `OpenApiCoverageTest` (functioneel, op de gewone testkernel, zonder probes): router en spec hebben precies
+    dezelfde methode-pad-paren onder `/api/v1` (behalve `docs.json`); elke operatie heeft haar problem-antwoorden;
+    elk verzoek uit de Postman-collectie naar `{{baseUrl}}` past op een pad en methode uit de spec, waarbij een
+    `{parameter}` voor één segment staat (`/rounds/{roundId}/walkers/me` past dus ook op `/walkers/{memberId}`);
+  - de vijf routes die de firewall beantwoordt (`/auth/login`, `/auth/login-code/verify`, `/auth/invitation`,
+    `/auth/confirm`, `/auth/logout`) en het schema `Problem` staan met de hand in `nelmio_api_doc.yaml`, met body,
+    204 en 401/429;
+  - de problem-antwoorden komen uit één `ProblemResponsesProcessor` in `Shared\Infrastructure\Http`, afgeleid van de
+    operatie: 401 en 403 buiten de publieke paden, 404 bij een id in het pad, 409 bij een wijziging, 422 bij een body
+    of queryparameters. Een processor van swagger-php, geen describer: Nelmio voegt body en queryparameters pas toe na
+    alle describers. Afgeleid, dus ruim: niet elke wijziging kan echt 409 geven. Een antwoord dat met de hand is
+    beschreven, blijft;
+  - regel 3 staat `OpenApi\Attributes` en `Nelmio\ApiDocBundle\Attribute` toe; de fixtures hebben een controller met
+    die attributen (geen overtreding) en een die `OpenApi\Generator` gebruikt (wel);
+  - **niet gedaan: de geslaagde antwoorden.** Nelmio leest de `…Output`-klassen niet uit een `JsonResponse`, dus de
+    spec noemt per operatie alleen de problem-antwoorden, zonder 200/201/204 en zonder uitvoerschema. Dat vraagt een
+    `#[OA\Response]` per controller (regel 3 staat dat nu toe). Ter goedkeuring: in T17 of een vervolg;
+  - geen nieuwe endpoints, dus geen nieuwe stap in de Postman-collectie.
 
 ### T15. HTTP-matrixtest en het `curl`-scenario (test eerst)
 

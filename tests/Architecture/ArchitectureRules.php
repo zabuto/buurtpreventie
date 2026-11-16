@@ -93,6 +93,8 @@ final readonly class ArchitectureRules
                     Selector::inNamespace('Symfony\Component\HttpKernel\Attribute'),
                     Selector::inNamespace('Symfony\Component\Routing\Attribute'),
                     Selector::inNamespace('Symfony\Component\Routing\Requirement'),
+                    Selector::inNamespace('OpenApi\Attributes'),
+                    Selector::inNamespace('Nelmio\ApiDocBundle\Attribute'),
                 )
                 ->because(
                     'A controller is a thin adapter: it maps the request onto the input and calls the handler in its'

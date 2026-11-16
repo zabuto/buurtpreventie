@@ -5,6 +5,117 @@ nelmio_api_doc:
             title: Buurtpreventie API
             description: Plan neighbourhood watch rounds, find a walking buddy and report back.
             version: v1
+        # The firewall answers these routes, so no controller describes them. Shared\Infrastructure\Http\
+        # ProblemResponsesProcessor adds the 422 for their body, as for every operation.
+        paths:
+            /api/v1/auth/login:
+                post:
+                    summary: Logs in with e-mail address and password and starts a session.
+                    operationId: post_auth_login
+                    requestBody:
+                        required: true
+                        content:
+                            application/json:
+                                schema: { $ref: '#/components/schemas/PasswordLogin' }
+                    responses:
+                        '204': { description: Logged in; the session cookie is set. }
+                        '401': &login_failed
+                            description: The address and password do not let anyone in (login_failed), whatever was wrong.
+                            content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+                        '429': &too_many
+                            description: Too many failed attempts; Retry-After says when to try again.
+                            content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+            /api/v1/auth/login-code/verify:
+                post:
+                    summary: Logs in with the code from the mail and the id of the request it belongs to.
+                    operationId: post_auth_login_code_verify
+                    requestBody:
+                        required: true
+                        content:
+                            application/json:
+                                schema: { $ref: '#/components/schemas/LoginCode' }
+                    responses:
+                        '204': { description: Logged in; the session cookie is set. }
+                        '401':
+                            description: A wrong code (login_code_wrong, with attemptsLeft), or a request that ended (login_code_ended).
+                            content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+                        '429': *too_many
+            /api/v1/auth/invitation:
+                post:
+                    summary: Logs a new member in once with the secret of an invitation.
+                    operationId: post_auth_invitation
+                    requestBody:
+                        required: true
+                        content:
+                            application/json:
+                                schema: { $ref: '#/components/schemas/InvitationLogin' }
+                    responses:
+                        '204': { description: Logged in; the session cookie is set. }
+                        '401':
+                            description: The invitation is unknown, used, expired or its member inactive (invitation_ended).
+                            content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+                        '429': *too_many
+            /api/v1/auth/confirm:
+                post:
+                    summary: Confirms the password, which makes the session recent for 15 minutes.
+                    operationId: post_auth_confirm
+                    requestBody:
+                        required: true
+                        content:
+                            application/json:
+                                schema: { $ref: '#/components/schemas/PasswordConfirmation' }
+                    responses:
+                        '204': { description: Confirmed. }
+                        '401': *login_failed
+                        '429': *too_many
+            /api/v1/auth/logout:
+                post:
+                    summary: Ends the session and forgets the device.
+                    operationId: post_auth_logout
+                    responses:
+                        '204': { description: Logged out; session and stay-logged-in cookies are cleared. }
+        components:
+            schemas:
+                Problem:
+                    type: object
+                    description: A refusal as application/problem+json (RFC 9457); some codes add members of their own, such as attemptsLeft or existingId.
+                    required: [type, title, status]
+                    properties:
+                        type: { type: string, example: 'urn:buurtpreventie:problem:round_is_full' }
+                        title: { type: string }
+                        status: { type: integer }
+                        violations:
+                            type: array
+                            items:
+                                type: object
+                                properties:
+                                    field: { type: string }
+                                    message: { type: string }
+                PasswordLogin:
+                    type: object
+                    required: [email, password]
+                    properties:
+                        email: { type: string, format: email }
+                        password: { type: string, format: password }
+                        rememberMe: { type: boolean, default: false }
+                LoginCode:
+                    type: object
+                    required: [challengeId, code]
+                    properties:
+                        challengeId: { type: string }
+                        code: { type: string, description: Six digits; spaces and dashes do not count. }
+                        rememberMe: { type: boolean, default: false }
+                InvitationLogin:
+                    type: object
+                    required: [secret]
+                    properties:
+                        secret: { type: string, description: The bpi_ secret from the link. }
+                        rememberMe: { type: boolean, default: false }
+                PasswordConfirmation:
+                    type: object
+                    required: [password]
+                    properties:
+                        password: { type: string, format: password }
     areas:
         default:
             path_patterns:
