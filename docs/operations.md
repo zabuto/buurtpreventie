@@ -90,9 +90,10 @@ version. A new critical PHP vulnerability raises this minimum, in `require.php` 
 `config.platform.php`, followed by a patch release. Dependabot does not watch PHP itself, so this
 takes following the PHP security announcements.
 
-The extensions `intl` and `mbstring` are required as well: search keys strip accents with
-`Normalizer` and lower-case with `mb_strtolower`. Shared hosting enables both by default, but a
-hosting panel can switch them off; Composer's runtime check then refuses to start the app.
+The extensions `intl`, `mbstring`, `gd` and `fileinfo` are required as well: search keys strip accents
+with `Normalizer` and lower-case with `mb_strtolower`, and an uploaded logo or icon is checked with
+`fileinfo` and redrawn with `gd`. Shared hosting enables all four by default, but a hosting panel can
+switch them off; Composer's runtime check then refuses to start the app.
 
 With `expose_php` on, PHP names its exact version in an `X-Powered-By` header, which tells an
 attacker which known vulnerabilities to try. Set `expose_php = Off` in `php.ini` where the host

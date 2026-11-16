@@ -341,6 +341,18 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
   `.env.test`; de databasejobs van CI maken hem per run.
 - Controleren dat de CI-image GD heeft (`setup-php` met `extensions`).
 - Test eerst: `SymfonyReleaseLineTest` dekt de nieuwe pakketten; `composer deprecations` blijft schoon.
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - geïnstalleerd: `symfony/twig-bundle` v7.4.21, `symfony/twig-bridge` v7.4.22 en `twig/twig` v3.30.0;
+    `ext-gd` en `ext-fileinfo` staan in `require`;
+  - `SymfonyReleaseLineTest` dekt elk `symfony/`-pakket al op naam, dus de nieuwe vallen er vanzelf onder; hij
+    bleef groen zonder wijziging;
+  - `config/packages/twig.yaml` zet `strict_variables` in elke omgeving, niet alleen in `test`: een ontbrekende
+    variabele laat een mail falen in plaats van hem met een gat te versturen. `templates/base.html.twig` uit het
+    recept is weg: een pagina-layout met scripts van een CDN, en de backend rendert geen pagina's (regel 5);
+  - `gd` en `fileinfo` staan bij elke `setup-php` in `ci.yml` en `weekly.yml`, en in de eisen van
+    `docs/getting-started.md` en `docs/operations.md`;
+  - `AUDIT_SECRET` en `UPLOAD_DIR` komen in de taak die ze gebruikt (T11 en T6), zodat config en docs geen
+    variabele noemen die nog niets doet.
 
 ### T3. Berichten na de commit (test eerst)
 

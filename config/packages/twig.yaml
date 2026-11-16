@@ -1,0 +1,4 @@
+twig:
+    file_name_pattern: '*.twig'
+    # Twig renders e-mails only (rule 5): a missing variable fails instead of sending a mail with a gap in it.
+    strict_variables: true

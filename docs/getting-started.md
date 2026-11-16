@@ -7,7 +7,7 @@ From a clean machine to a running local environment and a first change.
 - PHP 8.4 at the minimum in `composer.json` or later, or PHP 8.5. The minimum rises with every
   critical PHP vulnerability, and Composer refuses to start the app below it. See
   [gotchas.md](gotchas.md). With the extensions
-  `intl` and `mbstring`.
+  `intl`, `mbstring`, `gd` and `fileinfo`.
 - Composer 2.11 or later, which applies the 24-hour cooldown in `composer.json` to every update.
 - Git.
 - Docker with Compose, for the development database.
