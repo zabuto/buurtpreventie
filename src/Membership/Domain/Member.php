@@ -6,6 +6,7 @@ namespace App\Membership\Domain;
 
 use App\Shared\Domain\EmailAddress;
 use App\Shared\Domain\LookupKey;
+use App\Shared\Domain\PhoneNumber;
 use App\Shared\Domain\Role;
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;

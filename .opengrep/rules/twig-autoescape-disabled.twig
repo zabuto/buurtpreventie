@@ -1,0 +1,11 @@
+<!-- ruleid: twig-autoescape-disabled -->
+{% autoescape false %}{{ note }}{% endautoescape %}
+
+<!-- ruleid: twig-autoescape-disabled -->
+{%- autoescape   false -%}{{ note }}{%- endautoescape -%}
+
+<!-- ok: twig-autoescape-disabled -->
+{% autoescape 'html' %}{{ note }}{% endautoescape %}
+
+<!-- ok: twig-autoescape-disabled -->
+<p>{{ note }}</p>

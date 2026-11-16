@@ -6,8 +6,8 @@ namespace App\Tests\Membership\Fake;
 
 use App\Membership\Domain\Member;
 use App\Membership\Domain\MemberDetails;
-use App\Membership\Domain\PhoneNumber;
 use App\Shared\Domain\EmailAddress;
+use App\Shared\Domain\PhoneNumber;
 use App\Shared\Domain\Role;
 
 final readonly class MemberFixture

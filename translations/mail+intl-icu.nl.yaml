@@ -1,0 +1,39 @@
+# Mails to members, at B1. The login code stays out of the subject: a locked phone shows the subject. A mail names
+# no member, phone number, address or note: who walks is in the app.
+layout.from: Deze mail komt van de app van {name}.
+layout.reply: Heb je een vraag? Antwoord dan op deze mail.
+layout.no_reply: Je kunt niet op deze mail antwoorden.
+
+account.login_code.subject: Je inlogcode
+account.login_code.intro: 'Je inlogcode is:'
+account.login_code.use: Vul deze code in op het scherm waar je hem aanvroeg. De code werkt {minutes} minuten en één keer.
+account.login_code.ignore: Heb je geen code aangevraagd? Dan hoef je niets te doen.
+
+account.invitation.subject: Je bent uitgenodigd voor de app van {name}
+account.invitation.intro: Je bent uitgenodigd voor de app van {name}. Open de link om in te loggen.
+account.invitation.button: Inloggen
+account.invitation.valid: De link werkt {hours} uur en één keer. Werkt hij niet meer? Vraag dan op het inlogscherm een inlogcode aan met dit e-mailadres.
+
+round.line: '{date} om {time}, {daypart, select, morning {ochtendronde} afternoon {middagronde} other {avondronde}}.'
+round.line_with_meeting_point: '{date} om {time}, {daypart, select, morning {ochtendronde} afternoon {middagronde} other {avondronde}}, startpunt {meetingPoint}.'
+round.others: '{others, plural, =0 {Je loopt nog alleen.} one {Er loopt 1 ander mee.} other {Er lopen # anderen mee.}}'
+round.walkers: '{walkers, plural, one {Er is 1 loper aangemeld.} other {Er zijn # lopers aangemeld.}}'
+round.button: Bekijk de ronde
+
+round.reminder.subject: Je loopt {date}
+round.reminder.intro: '{rounds, plural, one {Je bent aangemeld voor deze ronde:} other {Je bent aangemeld voor deze rondes:}}'
+round.reminder.seeking_buddy: Deze ronde zoekt een loopmaatje.
+round.reminder.withdraw: Kun je toch niet? Meld je dan af in de app.
+
+round.buddy_needed.subject: Loop je mee op {date}?
+round.buddy_needed.intro: Deze ronde zoekt een loopmaatje. Loop je mee?
+round.buddy_needed.why: Je krijgt deze mail omdat je berichten wilt over rondes die een loopmaatje zoeken. Wil je dat niet meer? Zet het dan uit in de app, bij Account.
+round.buddy_needed.account: Naar je account
+
+round.walker_withdrawn.subject: Je ronde van {date} heeft te weinig lopers
+round.walker_withdrawn.intro: Een loper heeft zich afgemeld. Nu heeft deze ronde te weinig lopers.
+round.walker_withdrawn.ask: Ken je iemand die mee wil lopen? Vraag het dan. Kun je zelf ook niet meer? Meld je dan af in de app.
+
+round.cancelled.subject: De ronde van {date} gaat niet door
+round.cancelled.intro: De ronde van {date} om {time} gaat niet door. Hij staat niet meer in de planning. Je hoeft niets te doen.
+round.cancelled.button: Open de app

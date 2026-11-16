@@ -1,0 +1,4 @@
+{{ (round.meetingPoint is null ? 'round.line' : 'round.line_with_meeting_point')|trans({date: round.date, time: round.time, daypart: round.daypart, meetingPoint: round.meetingPoint ?? ''}, 'mail', locale) }}
+{{ (count == 'walkers' ? 'round.walkers' : 'round.others')|trans({walkers: round.walkers, others: round.others}, 'mail', locale) }}{% if round.seekingBuddy ?? false %} {{ 'round.reminder.seeking_buddy'|trans({}, 'mail', locale) }}{% endif %}
+
+{{ 'round.button'|trans({}, 'mail', locale) }}: {{ round.link }}

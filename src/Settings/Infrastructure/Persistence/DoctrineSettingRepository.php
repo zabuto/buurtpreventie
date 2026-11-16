@@ -23,8 +23,20 @@ final readonly class DoctrineSettingRepository implements SettingRepository
     }
 
     #[Override]
+    public function all(): array
+    {
+        return $this->entityManager->getRepository(Setting::class)->findAll();
+    }
+
+    #[Override]
     public function add(Setting $setting): void
     {
         $this->entityManager->persist($setting);
+    }
+
+    #[Override]
+    public function remove(Setting $setting): void
+    {
+        $this->entityManager->remove($setting);
     }
 }

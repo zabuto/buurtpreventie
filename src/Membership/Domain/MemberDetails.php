@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Membership\Domain;
 
 use App\Shared\Domain\EmailAddress;
+use App\Shared\Domain\PhoneNumber;
 
 /**
  * Who a member is and how to reach them. The e-mail address serves both mail and login.

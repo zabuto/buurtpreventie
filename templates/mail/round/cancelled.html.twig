@@ -1,0 +1,6 @@
+{% extends 'mail/layout.html.twig' %}
+
+{% block content %}
+<p style="margin:0;">{{ 'round.cancelled.intro'|trans({date: date, time: time}, 'mail', locale) }}</p>
+{{ include('mail/_button.html.twig', {href: link, label: 'round.cancelled.button'|trans({}, 'mail', locale)}) }}
+{% endblock %}

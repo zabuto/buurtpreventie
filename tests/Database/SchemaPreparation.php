@@ -30,6 +30,16 @@ final readonly class SchemaPreparation
     }
 
     /**
+     * Migrates the test database to a version, such as the one before a migration whose data step a test covers.
+     *
+     * @return string|null the output of a failed migration, on one line; null on success
+     */
+    public static function migrateTo(string $version): ?string
+    {
+        return self::console('doctrine:migrations:migrate', $version, '--allow-no-migration');
+    }
+
+    /**
      * @return string|null the output of a failed command, on one line; null on success
      */
     private static function console(string ...$arguments): ?string

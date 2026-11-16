@@ -1,0 +1,7 @@
+{% extends 'mail/layout.html.twig' %}
+
+{% block content %}
+<p style="margin:0;">{{ 'account.invitation.intro'|trans({name: brand.name}, 'mail', locale) }}</p>
+{{ include('mail/_button.html.twig', {href: link, label: 'account.invitation.button'|trans({}, 'mail', locale)}) }}
+<p style="margin:0;">{{ 'account.invitation.valid'|trans({hours: hours}, 'mail', locale) }}</p>
+{% endblock %}

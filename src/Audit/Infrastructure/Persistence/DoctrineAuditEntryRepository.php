@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App\Audit\Infrastructure\Persistence;
 
+use App\Audit\Domain\AuditChainMark;
 use App\Audit\Domain\AuditEntry;
 use App\Audit\Domain\AuditEntryRepository;
 use App\Audit\Domain\AuditFilter;
+use App\Audit\Domain\ChainLink;
+use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
+use LogicException;
 use Override;
 use Symfony\Component\Uid\Uuid;
 
@@ -115,5 +119,168 @@ final readonly class DoctrineAuditEntryRepository implements AuditEntryRepositor
             ->setParameter('member', $memberId, 'uuid')
             ->execute()
         ;
+    }
+
+    /**
+     * One bulk update, like erasing the name.
+     */
+    #[Override]
+    public function eraseChangesAbout(Uuid $memberId): void
+    {
+        $this->entityManager
+            ->createQuery(\sprintf(
+                "UPDATE %s e SET e.changes = NULL WHERE e.subjectType = 'member' AND e.subjectId = :member",
+                AuditEntry::class,
+            ))
+            ->setParameter('member', $memberId, 'uuid')
+            ->execute()
+        ;
+    }
+
+    #[Override]
+    public function lockHead(): ChainLink
+    {
+        return $this->lockedMark(AuditChainMark::HEAD)->link();
+    }
+
+    /**
+     * Flushed at once: the next lock in the same transaction refreshes the head from the database, and would read it
+     * unmoved otherwise.
+     */
+    #[Override]
+    public function append(AuditEntry $entry): void
+    {
+        $link = $entry->chainLink();
+        if (null === $link) {
+            throw new LogicException(\sprintf('Audit entry %s is not linked to the chain.', $entry->id()));
+        }
+
+        $head = $this->entityManager->find(AuditChainMark::class, AuditChainMark::HEAD);
+        if (null === $head) {
+            throw new LogicException('The head of the audit chain is not locked.');
+        }
+
+        $this->entityManager->persist($entry);
+        $head->moveTo($link);
+        $this->entityManager->flush();
+    }
+
+    #[Override]
+    public function head(): ChainLink
+    {
+        return $this->freshMark(AuditChainMark::HEAD);
+    }
+
+    #[Override]
+    public function anchor(): ChainLink
+    {
+        return $this->freshMark(AuditChainMark::ANCHOR);
+    }
+
+    /**
+     * Detached, so walking a long log does not keep every entry in memory.
+     */
+    #[Override]
+    public function chainAfter(int $position, int $limit): array
+    {
+        /** @var list<AuditEntry> $entries */
+        $entries = $this->entityManager
+            ->createQueryBuilder()
+            ->select('e')
+            ->from(AuditEntry::class, 'e')
+            ->where('e.chainPosition > :position')
+            ->setParameter('position', $position)
+            ->orderBy('e.chainPosition', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult()
+        ;
+        foreach ($entries as $entry) {
+            $this->entityManager->detach($entry);
+        }
+
+        return $entries;
+    }
+
+    #[Override]
+    public function countUnchainedThrough(int $position): int
+    {
+        return (int) $this->entityManager
+            ->createQueryBuilder()
+            ->select('COUNT(e.id)')
+            ->from(AuditEntry::class, 'e')
+            ->where('e.chainPosition <= :position')
+            ->andWhere('e.chainHash IS NULL')
+            ->setParameter('position', $position)
+            ->getQuery()
+            ->getSingleScalarResult()
+        ;
+    }
+
+    /**
+     * The anchor is locked first, so two prunes at once move it in turn rather than past each other, and flushed at
+     * once, as a later lock refreshes it from the database.
+     */
+    #[Override]
+    public function pruneThrough(int $position): void
+    {
+        $anchor = $this->lockedMark(AuditChainMark::ANCHOR);
+
+        if ($position > $anchor->link()->position) {
+            $last = $this->entityManager->getRepository(AuditEntry::class)->findOneBy(['chainPosition' => $position]);
+            $link = $last?->chainLink();
+            if (null === $link) {
+                throw new LogicException(\sprintf('No linked audit entry holds position %d.', $position));
+            }
+
+            $anchor->moveTo($link);
+            $this->entityManager->flush();
+        }
+
+        $this->entityManager
+            ->createQuery(\sprintf('DELETE FROM %s e WHERE e.chainPosition <= :position', AuditEntry::class))
+            ->setParameter('position', $position)
+            ->execute()
+        ;
+    }
+
+    /**
+     * A refresh with a lock reads the committed row with SELECT ... FOR UPDATE; the copy in the entity manager may
+     * be older, as another process may have moved the mark since this one read it.
+     *
+     * A mark that does not exist, after sample data emptied every table, starts at the start of the chain; the
+     * inserted row is locked until the commit like a read one.
+     *
+     * @param AuditChainMark::HEAD|AuditChainMark::ANCHOR $name
+     */
+    private function lockedMark(string $name): AuditChainMark
+    {
+        $mark = $this->entityManager->find(AuditChainMark::class, $name);
+        if (null === $mark) {
+            $mark = AuditChainMark::startOf($name);
+            $this->entityManager->persist($mark);
+            $this->entityManager->flush();
+
+            return $mark;
+        }
+
+        $this->entityManager->refresh($mark, LockMode::PESSIMISTIC_WRITE);
+
+        return $mark;
+    }
+
+    /**
+     * A missing row, after sample data emptied every table, is the start of the chain.
+     */
+    private function freshMark(string $name): ChainLink
+    {
+        $mark = $this->entityManager->find(AuditChainMark::class, $name);
+        if (null === $mark) {
+            return ChainLink::start();
+        }
+
+        $this->entityManager->refresh($mark);
+
+        return $mark->link();
     }
 }

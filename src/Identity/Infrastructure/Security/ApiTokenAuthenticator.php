@@ -8,6 +8,8 @@ use App\Identity\Domain\ApiToken;
 use App\Identity\Domain\ApiTokenRepository;
 use App\Identity\Domain\TokenRefusal;
 use App\Identity\Domain\TokenScope;
+use App\Settings\UseCase\GetApiTokenAccess\GetApiTokenAccess;
+use App\Settings\UseCase\GetApiTokenAccess\GetApiTokenAccessHandler;
 use App\Shared\Domain\Channel;
 use App\Shared\Domain\MemberDirectory;
 use App\Shared\Domain\Transaction;
@@ -29,7 +31,8 @@ use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPasspor
 /**
  * Authenticates every request on the token firewall by its `Authorization: Bearer` secret. It takes every request,
  * so a missing or broken token is refused and logged like a wrong one. The token is looked up by the hash of the
- * secret on every request, so a revocation or deactivation counts at once; the secret carries no content of its own.
+ * secret on every request, so a revocation, a deactivation or switching tokens off counts at once; the secret carries
+ * no content of its own.
  */
 final class ApiTokenAuthenticator extends AbstractAuthenticator
 {
@@ -43,6 +46,7 @@ final class ApiTokenAuthenticator extends AbstractAuthenticator
         private readonly Transaction $transaction,
         private readonly ClockInterface $clock,
         private readonly LoggerInterface $logger,
+        private readonly GetApiTokenAccessHandler $access,
     ) {
     }
 
@@ -55,6 +59,10 @@ final class ApiTokenAuthenticator extends AbstractAuthenticator
     #[Override]
     public function authenticate(Request $request): SelfValidatingPassport
     {
+        if (!($this->access)(new GetApiTokenAccess())->allowed) {
+            throw new ApiTokenRefused(TokenRefusal::TokensDisabled);
+        }
+
         $token = $this->tokenOf((string) $request->headers->get('Authorization'));
         $identity = $this->members->identity($token->memberId());
         $now = $this->clock->now();

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\SampleData\Infrastructure\Fixtures;
 
+use App\Settings\UseCase\ChangeSettings\ChangeSettings;
 use App\Shared\Domain\Role;
 use DateTimeImmutable;
 use LogicException;
@@ -13,7 +14,7 @@ use Random\Randomizer;
 use Symfony\Component\DependencyInjection\Attribute\When;
 
 /**
- * A made-up neighbourhood watch that looks in use: twenty members, rounds from three months back to six weeks ahead,
+ * A made-up neighbourhood watch that looks in use, with a name, colours, logo and contact of its own: twenty members, rounds from three months back to six weeks ahead,
  * mostly in the evening, more than a quarter without a buddy, a few full ones, reports with now and then an incident,
  * and a member erased after walking, so the history shows how an erased member looks.
  * A fixed seed gives the same people and pattern on every load; only the dates follow today.
@@ -24,6 +25,12 @@ final readonly class DemoSet implements FixtureSet
 {
     private const int SEED = 20_261_115;
 
+    /** Green and amber, each above the contrast its role needs against the light and the dark background. */
+    private const string PRIMARY = '#2f6b3a';
+    private const string ACCENT = '#a14f00';
+    private const string PRIMARY_DARK = '#9ad3a5';
+    private const string ACCENT_DARK = '#f0a04b';
+
     /**
      * The coordinator, who walks too: name, display name and e-mail address. A display name is the first name, with
      * an initial only where two share it, as in a group this size.
@@ -31,6 +38,8 @@ final readonly class DemoSet implements FixtureSet
      * @var array{string, string, string}
      */
     private const array COORDINATOR = ['Fatima el Amrani', 'Fatima', 'fatima.elamrani'];
+
+    private const string COORDINATOR_PHONE = '06 0000 0010';
 
     /** @var list<array{string, string, string}> */
     private const array WALKERS = [
@@ -74,6 +83,7 @@ final readonly class DemoSet implements FixtureSet
         private MemberSteps $members,
         private PatrolSteps $patrol,
         private DemoRounds $rounds,
+        private SettingsSteps $settings,
     ) {
     }
 
@@ -91,6 +101,7 @@ final readonly class DemoSet implements FixtureSet
         );
         $this->members->giveSamplePassword($analyst, $start);
         $people = $this->walkers($random, $admin, $start);
+        $this->brand($admin, $start);
         $neighbourhood = new Neighbourhood(
             $people['coordinator'],
             $people['walkers'],
@@ -123,6 +134,28 @@ final readonly class DemoSet implements FixtureSet
     }
 
     /**
+     * The coordinator is the contact members reach, with the address and number she has as a member.
+     */
+    private function brand(SampleMember $admin, DateTimeImmutable $at): void
+    {
+        [$name, , $address] = self::COORDINATOR;
+        $this->settings->change($admin, $at, new ChangeSettings(
+            associationName: 'Buurtpreventie Voorbeeldwijk',
+            associationShortName: 'Voorbeeldwijk',
+            primaryColor: self::PRIMARY,
+            accentColor: self::ACCENT,
+            primaryDarkColor: self::PRIMARY_DARK,
+            accentDarkColor: self::ACCENT_DARK,
+            contactName: $name,
+            contactEmail: $address . '@example.org',
+            contactPhone: self::COORDINATOR_PHONE,
+        ));
+        $brand = new SampleBrand(self::PRIMARY, self::ACCENT);
+        $this->settings->upload($admin, $at, 'logo', $brand->logo());
+        $this->settings->upload($admin, $at, 'icon', $brand->icon());
+    }
+
+    /**
      * @return array{
      *     coordinator: SampleMember,
      *     walkers: list<SampleMember>,
@@ -142,7 +175,7 @@ final readonly class DemoSet implements FixtureSet
                 $address . '@example.org',
                 $name,
                 $displayName,
-                '06 0000 0010',
+                self::COORDINATOR_PHONE,
                 [
                     Role::Walker,
                     Role::Coordinator,

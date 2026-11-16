@@ -1,0 +1,7 @@
+{% extends 'mail/layout.html.twig' %}
+
+{% block content %}
+<p style="margin:0;">{{ 'round.walker_withdrawn.intro'|trans({}, 'mail', locale) }}</p>
+{{ include('mail/round/_round.html.twig', {round: round, count: 'others'}) }}
+<p style="margin:0;">{{ 'round.walker_withdrawn.ask'|trans({}, 'mail', locale) }}</p>
+{% endblock %}

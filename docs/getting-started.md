@@ -7,7 +7,7 @@ From a clean machine to a running local environment and a first change.
 - PHP 8.4 at the minimum in `composer.json` or later, or PHP 8.5. The minimum rises with every
   critical PHP vulnerability, and Composer refuses to start the app below it. See
   [gotchas.md](gotchas.md). With the extensions
-  `intl` and `mbstring`.
+  `intl`, `mbstring`, `gd` and `fileinfo`.
 - Composer 2.11 or later, which applies the 24-hour cooldown in `composer.json` to every update.
 - Git.
 - Docker with Compose, for the development database.
@@ -65,7 +65,7 @@ Tests use `buurtpreventie_test` on the same server. On an empty data volume,
 
 ## Sample data
 
-Fill the development database with made-up members, rounds and reports:
+Fill the development database with a made-up association, its members, rounds and reports:
 
 ```bash
 symfony console app:fixtures:load demo
@@ -79,7 +79,8 @@ with the made-up password `voorbeeld-wachtwoord-buurt`, which the command shows.
 (`thomas.visser@example.org`), the coordinator (`fatima.elamrani@example.org`) and three walkers: `jan.bakker`, who
 shares his first name, `priya.sharma`, who uses the API, and `willem.dekker`, who stopped and is refused. Any other
 member logs in with a code by mail. In `demo`, `priya.sharma` also has an API token that reads and writes for 90
-days; the command shows its secret once, after loading.
+days; the command shows its secret once, after loading. Loading empties the audit log too, so its chain starts afresh
+and `symfony console app:audit:verify` reports it intact.
 
 ### Sign up with curl
 

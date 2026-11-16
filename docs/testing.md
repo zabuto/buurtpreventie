@@ -50,7 +50,7 @@ member lives in the fakes of the running kernel, so the session holds for one re
 authenticator. The session cookie of the test environment is `MOCKSESSID`, so a test ends a session by expiring that
 cookie. The identity probe also answers whether the proof is recent. Mail goes to the null transport in `test`
 (`config/packages/mailer.yaml`), where Symfony's mailer assertions see it; the kernel gives `MailNotifier` a fixed
-sender and base address. The kernel counts login attempts in a plain `ArrayAdapter` of its own: a cache pool is
+sender and `AppUrl` a base under a path, so every mail test proves a link keeps it. The kernel counts login attempts in a plain `ArrayAdapter` of its own: a cache pool is
 emptied between two requests of one client, and a pool in files would carry attempts from one test to the next.
 
 A few endpoint tests take the whole path through Doctrine, in the groups `database` and `functional`: they extend
@@ -88,8 +88,15 @@ database tests with `symfony php vendor/bin/phpunit --group database`.
 - **The schema.** `UuidColumnTest` keeps every UUID column `BINARY(16)`, also on MariaDB, which has a
   type of its own; `UuidColumnIndexTest` requires an index on every UUID column that is not a primary
   key, since no foreign key between modules adds one ([ADR 0005](adr/0005-database-approach.md)).
+- **The audit chain.** The chain runs over the whole log, so a test that checks it empties the log and sets head and
+  anchor to the start first, inside the rolled-back transaction. A test that locks the head opens a transaction of
+  its own: the test bundle keeps its transaction out of sight of the ORM, which refuses a locking read without one.
+  `AuditChainMigrationTest` migrates back to the version before the chain, stores entries as they were, migrates up
+  and checks their positions, head and anchor; it commits, so it leaves the schema at the latest version itself.
 - **The sample data.** `LoadFixturesCommandTest` loads every set and checks what it holds: the same
   people and pattern on any day, the limits of the `demo` set, every hard case in `edge`.
+  `LoadedSettingsAndChainTest` checks the branding of `demo`, the names of `edge` and an intact audit chain after
+  every set.
 
 ### Concurrency
 
@@ -105,6 +112,11 @@ query of another session that stays there waits for a lock. The process list nee
 privilege for the sessions of the own user, unlike the InnoDB lock tables. When the second process
 never waits within ten seconds, the test fails: without the lock on the round, or with a count that
 does not lock, the second sign-up joins next to the first.
+
+`ConcurrentAuditChainTest` uses the same order for the audit chain: two sign-ups for different rounds take
+consecutive positions in an intact chain, as the second waits for the lock on the head; and a sign-up that waits for
+the round held by the first finishes without a deadlock, as the first takes the head only as its last step. It empties
+the log before and after itself.
 
 `MakeUseCaseCommandTest` lets the generator create a use case in a temporary folder, checks that
 `mago format` would not change it, and runs PHPStan at level max with the architecture rules on it. A mistake in the templates thus breaks a test, not
@@ -137,10 +149,25 @@ for every route of the app, and no row without a route.
   and `#[ReadAction]`, the attribute of every write action has rows in the matrix, the test of every
   write handler has a test starting with `it_records_`, and the matrix asks every voter in `src/`.
 
+## Mail, images and the audit chain
+
+- **Every message has a mail.** `MailNotifierTest` holds every notification type in `src/` against the composers, and
+  `RoundMailsTest` renders each mail about a round in `nl` and `en` with the real Twig setup: the link stays under the
+  path of the base URL, and no name of another walker, phone number, address, e-mail address or note appears.
+  `TranslationKeysTest` requires the same keys in `nl` and `en` in every translation file.
+- **Nothing leaves before the commit.** `AfterCommitDeliveryTest` runs the notifier of the app against the real
+  `DoctrineTransaction`: a mail after the commit, none after a rollback.
+- **Images are made in the test.** `Settings\Fake\TestImages` draws PNGs and JPEGs with GD, a JPEG with a GPS location
+  and a PNG with a script after its end included, so no binary file sits in `tests/`.
+- **Tampering in memory.** `Audit\Fake\TamperedEntry` copies an entry with stored values replaced, through reflection,
+  as someone with access to the database would leave it; `ChainVerifierTest` points at every such change.
+  `VerifyAuditChainDatabaseTest` does the same with SQL.
+
 ## Sample data in CI
 
 The database jobs in `ci.yml` load every set with `app:fixtures:load <set> --no-interaction`, outside
-the test transaction, and fail when a set leaves no members or no audit entries. Locally,
+the test transaction, run `app:audit:verify` after each, and fail when a set leaves no members or no audit entries,
+or a chain that does not hold. Locally,
 `symfony console app:fixtures:load demo` empties the development database; see
 [getting-started.md](getting-started.md#sample-data).
 
@@ -209,7 +236,7 @@ and writes `var/coverage/coverage.txt`.
 ## Postman collection
 
 `postman/buurtpreventie.postman_collection.json` checks a running app from the outside: health, the OpenAPI
-description, the refusals of the login endpoints, a login with a code and, when a password is set, a login with the
+description, the configuration of a visitor without the contact or the group, the app icon it names and the web app manifest, the refusals of the login endpoints, a login with a code and, when a password is set, a login with the
 password. After the login with a code it walks the own account: profile, a change that changes nothing, the 422 for empty text as phone number, an API token
 created, listed, used, refused under `/me/tokens` and revoked, activity, export, and the 403 for a new token or
 password once only the stay-logged-in cookie is left. After the login with a password it reads the rounds of the
@@ -219,7 +246,7 @@ history of a round, and the 404 for a comment on, or deleting a report of, somet
 the member list in one shape without e-mail addresses, the admin list and one member, and checks the 422 for a new member with an
 invalid address, the 422 for null as the name of a member and the 404 for the roles of a member that does not exist. It lists the meeting points and outcomes,
 for members and as admin, and checks the 409 for an outcome under the name of one that exists and the 404 for
-archiving a meeting point that does not exist, and the 422 for half a position. It reads the audit log, as JSON with the login among the entries and as
+archiving a meeting point that does not exist, and the 422 for half a position. It reads the settings, sends a patch without fields, and checks the 422 for a primary colour without enough contrast and for text uploaded as a logo, both of which change nothing, and the 404 for a brand image no setting names. It reads the audit log, as JSON with the login among the entries and as
 CSV with its header (`Accept: text/csv`), and checks the 406 for another format. It never sets a valid new password, which would replace the one
 of the member in the local database, and the token it makes lives one day. It is no part of `composer check` or CI and adds no dependency: import it with
 `postman/local.postman_environment.json` into the Postman app, or run it with Newman:
@@ -258,7 +285,8 @@ in CI, because verifying the downloaded binary needs Cosign. It first runs the r
 `src/`, `config/`, `templates/`, `public/`, `bin/` and `tools/`; any finding fails the job.
 
 A rule is a YAML file with a test file of the same name next to it: `.php`, `.twig` for templates, or
-`.test.yaml` for configuration (Opengrep would read a plain `.yaml` as a rule). In the test file, a comment
+`.test.yaml` for configuration (Opengrep would read a plain `.yaml` as a rule). A rule that covers both templates and
+configuration has one of each, and Opengrep runs both. In the test file, a comment
 `ruleid: <id>` marks the next line as one the rule must report and `ok: <id>` as one it must leave alone. Twig test
 files use HTML comments (`<!-- ruleid: <id> -->`), because Opengrep does not read `{# #}` as an annotation. Rules for
 functions also match the fully qualified call (`\exec()`), the form this code base writes. A `metavariable-regex`
@@ -278,6 +306,9 @@ matches from the start of the text, so a pattern that may match further on start
 | `sql-outside-repository` | `executeQuery`, `executeStatement`, `fetch*`, `createQuery`, `createNativeQuery` and `createQueryBuilder` outside `src/*/Infrastructure/Persistence/` |
 | `weak-random-or-hash` | `md5`, `sha1`, `rand`, `mt_rand`, `uniqid`, `lcg_value` and `str_shuffle`, also `hash()`, `hash_file()` and `hash_hmac()` with `md5` or `sha1`; secrets come from `random_bytes()` and are hashed with SHA-256 |
 | `byte-lowercase` | `strtolower()` and `strtoupper()`, which leave `É` as it is; use `mb_strtolower()` or `LookupKey` |
+| `client-file-metadata` | `getClientOriginalName()`, `getClientOriginalExtension()`, `getClientMimeType()` and `guessClientExtension()`: the client picks name and type of an upload, so the format comes from the content |
+| `twig-autoescape-disabled` | `{% autoescape false %}` in a template and `autoescape: false` in the configuration; its tests are a `.twig` and a `.test.yaml` file |
+| `mailer-outside-notifier` | `send()` on a property or variable whose name holds `mailer`, outside `src/Shared/Infrastructure/Notification/`, so no mail goes around the queue that waits for the commit |
 
 ## No deprecations
 

@@ -12,6 +12,15 @@ Things that are not obvious and cost time when you do not know them.
   packages that run on 8.4 even when you have 8.5 locally. PHPStan checks with `phpVersion: 80400`
   that the code uses no syntax that only exists in 8.5. CI runs on 8.4.
 
+## PHPUnit
+
+- **Run the whole suite as `composer test`.** It needs more memory than PHP's default limit: Composer starts `@php`
+  with its own raised `memory_limit`, plain `vendor/bin/phpunit` stops with "Premature end of PHP process". A
+  filtered run that includes `OpenApiCoverageTest` needs `php -d memory_limit=-1 vendor/bin/phpunit --filter …`.
+- **The test bundle hides its transaction from the ORM.** A locking read (`LockMode::PESSIMISTIC_WRITE`, such as the
+  lock on the head of the audit chain) then throws "An open transaction is required"; a test that locks opens a
+  transaction on the connection first, which the test bundle rolls back with the rest.
+
 ## PHPStan
 
 - **PHPStan reads the Symfony container from `var/cache/dev/`.** After a new service or a config
@@ -26,6 +35,9 @@ Things that are not obvious and cost time when you do not know them.
   releases on GitHub. Without network access on a fresh install, the Mago checks cannot run.
 - **Recipe files are excluded** from Mago, PHPStan and Rector; see
   [code-style.md](code-style.md#symfony-recipe-files).
+- **`mago lint` fails on a warning, not only on an error**: an empty `catch` block, `?:`, a method with a high
+  Halstead difficulty or a class with too many branches or methods. Catch into a variable and assert on it, write
+  `false === $x ? [] : $x`, and split a method or a test class rather than silence the rule.
 - **Global functions and constants are written fully qualified**: `\sprintf()`, `\PHP_BINARY`. Mago
   fails the check on an unqualified call, because PHP first looks for the name in the current
   namespace.
@@ -35,6 +47,8 @@ Things that are not obvious and cost time when you do not know them.
 - **A handler keeps its input parameter, even while the input is empty.** Rector would remove an
   unused parameter; `rector.php` skips that rule for `src/*/UseCase/*`, because REST and MCP pass the
   same input.
+- **Rector cannot read a property on a `match` expression** (`match (...) { ... }->property`); put the `match` in a
+  variable first.
 - **The Rector cache can hide a finding.** Rector caches its result per file and only throws the cache
   away when that file, its configuration or the Symfony container XML (`var/cache/dev/...Container.xml`)
   changes. A rule that newly applies because of a change elsewhere stays silent until then. When a
@@ -47,6 +61,10 @@ Things that are not obvious and cost time when you do not know them.
   another object, so the refresh fails with "Attempting to change readonly property". A query with
   `Query::HINT_REFRESH`, such as `RoundRepository::getForUpdate()`, refreshes the round and its
   walkers, so `Round` and `Participation` keep writable properties.
+- **A refresh with a lock throws away what is not flushed.** `refresh($entity, LockMode::PESSIMISTIC_WRITE)` reads
+  the row and overwrites the managed entity; a change made earlier in the same transaction but not yet flushed is
+  gone. The audit chain flushes the head after each entry for that reason, or two entries in one transaction would
+  take the same position.
 - **A failed flush closes the entity manager.** After a unique index refuses a row, the entity manager
   accepts no further query; a repository that needs to know which row holds the value reads it through
   the connection. `DoctrineTransaction` resets the manager for the next use case.
@@ -76,6 +94,8 @@ Things that are not obvious and cost time when you do not know them.
 
 - **`DEFAULT_URI`** has a default in `config/services.yaml` (`http://localhost`). Without it,
   `cache:clear` fails with "Environment variable not found". Set the real base URL in `.env.local`.
+- **`AUDIT_SECRET` has no default.** Without it every write fails with "Environment variable not found:
+  AUDIT_SECRET", as no audit entry can be signed; add it to `.env.local` once, as for `APP_SECRET`.
 - **The Symfony CLI sets `DEFAULT_URI` and `MAILER_DSN`** when it runs a command, also for tests: its local domain
   and Mailpit. The test environment pins the mailer to `null://null`, and a test that checks a link sets the base
   address itself.

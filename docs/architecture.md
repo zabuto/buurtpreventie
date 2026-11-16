@@ -33,7 +33,7 @@ tests/                the same folders as src/, plus Architecture/, Database/, D
 | `Membership` | Members, roles, consent, certificate |
 | `Identity` | Login, login codes, invitations, passwords, API tokens |
 | `Audit` | Recording and showing the audit log |
-| `Settings` | The default minimum and maximum walkers of a new round; branding and texts from phase 3 |
+| `Settings` | What an association sets for itself: name, colours, logo and icon, contact, texts, walkers of a new round, reminder, language and access with API tokens |
 | `Maintenance` | Health check, updates, installer, legacy import |
 | `SampleData` | Made-up sample data, loaded through the use cases of the other modules; see [Sample data](#sample-data) |
 
@@ -154,13 +154,13 @@ A handler reaches storage, rights, the audit log and messages only through inter
 
 | `Shared\Domain` | What it does | Implementation |
 | --- | --- | --- |
-| `Transaction` | Runs an operation as one unit: a change and its audit entry are stored together or not at all | `Shared\Infrastructure\Doctrine\DoctrineTransaction` |
+| `Transaction` | Runs an operation as one unit: a change and its audit entry are stored together or not at all. `afterCommit()` holds a callback until the outermost run has committed and drops it when that run fails; `beforeCommit()` runs one as the last step inside the outermost run, for a lock that must come last | `Shared\Infrastructure\Doctrine\DoctrineTransaction` |
 | `ExecutionContext`, `Channel` | The member performing the action with their roles (an `Actor`), or none for the system, and the channel (`web`, `api`, `mcp`, `cron`, `console`) | `Shared\Infrastructure\Security\TokenExecutionContext`, which reads Symfony's token storage; `RunAs` fills it for console commands, fixtures and the scheduler, an authenticator for HTTP and MCP. A member run through `RunAs` counts as a recent login: whoever runs a console command proved who they are by reaching the server |
-| `AuditTrail`, `AuditedAction` | Records an action; time, actor and channel come from the clock and the execution context | `Audit\Infrastructure\Persistence\DoctrineAuditTrail` |
+| `AuditTrail`, `AuditedAction` | Records an action; time, actor and channel come from the clock and the execution context | `Audit\Infrastructure\ChainedAuditTrail`, which links the entry to the hash chain as the last step of the transaction |
 | `MemberNames` | The display name of a member, or none for an erased one, so another module can record or show who acted | `Membership\Infrastructure\RepositoryMemberNames` |
 | `MemberDirectory`, `MemberProfile`, `MemberIdentity` | Whether a member is active, who wants to hear about open rounds, a member's names and phone number (only with consent), the address mail goes to (none for an inactive member), and the identity the login works with, by id or e-mail address: id, current roles and whether the member may log in | `Membership\Infrastructure\RepositoryMemberDirectory` |
 | `Authorization`, `AccessDenied` | `denyUnlessGranted()` asks the voters of every module and throws `AccessDenied` on a refusal | `Shared\Infrastructure\Security\SymfonyAuthorization` |
-| `Notifier`, `Notification` | Sends a member a message by type and parameters; the domain holds no texts | `Shared\Infrastructure\Notification\MailNotifier`, which mails a login code or invitation as plain text from `translations/mail.<locale>.yaml` and hands any other type to `LoggingNotifier`; neither logs the parameters, which can hold a code or secret |
+| `Notifier`, `Notification` | Sends a member a message by type and parameters; the domain holds no texts | `Shared\Infrastructure\Notification\AfterCommitNotifier`, which hands each message on after the commit and logs a delivery that fails rather than throwing, as the change is stored by then; then `MailNotifier`, which mails every type in HTML and text through the `MailComposer` of its type; neither logs the parameters, which can hold a code or secret |
 | `RecentAuthentication`, `ReauthenticationRequired` | Whether the member acting proved who they are in the last 15 minutes (`@upgrade-8.4`, sudo mode), and the refusal of a sensitive action without that proof | `Shared\Infrastructure\Security\TokenRecentAuthentication`, which reads the token attribute `authenticated_at` |
 | `Role`, `Actor` | The fixed roles `walker`, `coordinator`, `analyst` and `admin`, without inheritance, and a member with their roles, as the policies of every module decide on them | |
 | `NotFound` | No item of a kind has a given id; entry points turn it into their own answer, such as HTTP 404 | |
@@ -171,7 +171,10 @@ A handler reaches storage, rights, the audit log and messages only through inter
 | `WriteAction`, `ReadAction` | Mark a handler as changing something, with its voter attribute and audit action, or as only reading | |
 | `Unchanged` | The default of an input field that a JSON Merge Patch leaves out, so a handler keeps the current value where null clears it; `fieldsSetIn()` gives the fields to validate | |
 | `BackedEnumValues` | Gives an enum `values()`, so an input constraint takes its choices from the enum (`Assert\Choice(callback: ...)`) | |
+| `Branding` | Name, sender name, primary colour for light and dark mode, language, mail logo and contact address of the association, read afresh for each mail | `Settings\Infrastructure\Branding\SettingsBranding` |
+| `AppUrl` | The base URL of the app from `DEFAULT_URI`, on a subdomain or under a path; `to('app/#/…')` makes every absolute link that leaves the app outside a request, such as in a mail, so the path of the installation is in each | |
 | `EmailAddress` | An address trimmed and in lower case, with accents kept | |
+| `PhoneNumber` | A phone number as a member types it, with whitespace tidied: digits, spaces, brackets and hyphens, an optional leading plus, at least six digits. Shared, as members and the contact of the association both have one | |
 | `LookupKey` | The search and uniqueness key of a name: no case, accents or extra whitespace | |
 
 Time comes from `Psr\Clock\ClockInterface` in handlers and as a `DateTimeImmutable $now` argument in
@@ -213,11 +216,13 @@ the request:
 The token firewall is stateless. Its authenticator takes every request, so a broken or unknown header is refused
 like a wrong token: an empty 401 with `WWW-Authenticate: Bearer`, and the reason only in the log. It looks the
 token up by the SHA-256 hash of the secret on every request, so a revocation or a deactivation counts at once.
-`ApiToken::refusalAt()` decides why a known token lets nobody in (revoked, expired, member inactive); the member
+Before that it reads the setting `apiAccess` through `GetApiTokenAccess`, one query: switched off, it refuses every
+token (`tokens_disabled`), and `CreateApiToken` refuses a new one with the 409 problem `api_tokens_disabled`, while
+listing and revoking keep working, since revoking is a step after a leak. `ApiToken::refusalAt()` decides why a known token lets nobody in (revoked, expired, member inactive); the member
 comes from `MemberDirectory::identity()`, read afresh, so a changed role counts on the next request.
 
-Under `/api/` a request needs a logged-in member, except `/api/v1/health`, `/api/v1/docs.json` and everything under
-`/api/v1/auth/`. Without one, `SessionEntryPoint` answers with the 401 problem `unauthorized` and logs the path.
+Under `/api/` a request needs a logged-in member, except `/api/v1/health`, `/api/v1/docs.json`, `/api/v1/config`,
+`/api/v1/manifest.webmanifest`, and everything under `/api/v1/auth/` and `/api/v1/media/brand/`. Without one, `SessionEntryPoint` answers with the 401 problem `unauthorized` and logs the path.
 
 `POST /api/v1/auth/login` takes `{email, password}` and answers 204 with a session cookie (`bp_session`); the session
 gets a new id at login. `PasswordCheck` runs as two steps of the passport, after Symfony's login throttling: it
@@ -380,6 +385,66 @@ the log stores whole seconds. It holds at most
 never a file cut short that would look complete. IP addresses
 are shortened when the entry is recorded, so the log never holds a full one.
 
+**Audit chain.** The reasons are in [ADR 0007](adr/0007-audit-hash-chain.md). Every entry takes the next position (`chain_position`) and a hash over what never changes: version,
+position, id, time in whole seconds (UTC), actor id, action, subject, channel, the hash of the changed fields and the
+hash of the entry before it (`AuditEntry::link()`). Both hashes are HMAC-SHA-256 with `AUDIT_SECRET`
+(`HmacChainHasher`), so whoever can change the database but not read that key cannot repair the chain after tampering,
+nor recover erased fields from their hash. The actor's name and the changed fields stay outside the chain hash, as
+erasing a member (`EraseActorName`) removes the name and the changed fields of every entry about the member.
+`ChainedAuditTrail` holds the entry until `Transaction::beforeCommit()`, then locks the head (`audit_chain`, row
+`head`) with `SELECT ... FOR UPDATE`, links the entry and moves the head; last, so a transaction never holds the head
+while it waits for another lock, such as that of a round. The row `anchor` keeps the last pruned entry
+(`AuditEntryRepository::pruneThrough()`), from where `app:audit:verify` (`VerifyAuditChain`, `audit.verify`, system
+only) walks the chain in batches of 500 inside one transaction. `ChainVerifier` reports the first position that does
+not hold: a changed value, a missing position, an entry inserted or moved, or a head that does not point at the last
+entry; an entry whose hash does not fit is judged by whether the next entry or the head links to its stored hash.
+Entries from before the chain have a position but no hash, and are counted apart. Whoever can change the database can
+still remove the newest entries and set the head back to an earlier one they know; the command shows the last
+position, so an admin can note it down elsewhere.
+
+**Settings.** `SettingName` is the one catalogue of what an association sets itself, with each type, default and
+rule; a setting is a row of name and text (`Setting`), so a new one needs no migration, and a stored name outside the
+catalogue counts for nothing. `Settings::with()` checks a change against the whole set, such as a maximum below the
+minimum. The colours follow `BrandPalette`: the primary colour carries text, links and buttons, so it needs 4.5:1, the
+accent marks borders and focus at 3:1 (WCAG 1.4.11), each against the fixed background of its mode, white
+(`LIGHT_BACKGROUND`) and `#121212` (`DARK_BACKGROUND`). The frontend uses those two backgrounds; a weaker colour is the
+422 problem `insufficient_contrast` with the measured and the required ratio. `ChangeSettings` records one
+`setting.changed` entry with old and new per changed name, except contact details, the group link and texts, recorded
+without a value (`SettingName::isAuditedWithValue()`). Other modules read a setting through a use case of Settings:
+`GetReminderLeadTime` for `SendReminders`, `GetApiTokenAccess` for the token authenticator.
+
+`GET` and `PATCH /admin/settings` (`GetSettings`, `ChangeSettings`) read and change every setting but
+the images, `PUT` and `DELETE /admin/settings/images/{logo|icon}` (`ChangeBrandImage`, `RemoveBrandImage`) the
+images, all for the admin (`settings.view`, `settings.change`). `BrandImages` stores every size of an upload before
+the setting names its version, and removes the previous files through `Transaction::afterCommit()`, so a reader
+always finds the files the setting names. `GET /media/brand/{file}` (`GetBrandImage`) is public: `BrandImageFile`
+reads kind, size and version from the name, and anything outside that pattern, or a version no setting names, is
+not found before a path is made; while no icon is uploaded, the version `BrandImageKind::defaultVersion()` names the
+neutral icon `DefaultBrandIcon` draws. The answer keeps `Cache-Control: public` for a logged-in member too, through
+the header Symfony reads to leave the cache headers of a session alone.
+
+`GET /config` (`GetPublicConfig`) gives the frontend name, colours, logo and icons, texts in the language of the
+association and the staffing defaults, to anyone; `contact` and `group` keep their keys with null unless a member is
+logged in, by session or token: the contact is personal data, and the group invitation lets anyone in to see the phone
+numbers of its members. `GET /manifest.webmanifest`
+(`GetWebManifest`) is the web app manifest, in the member names of its standard. Both give every link as a path from
+`AppUrl::pathTo()`, so the start of the app and every image follow the path of the base URL.
+
+**Mail.** Every type of message has a `MailComposer` in `<Module>\Infrastructure\Mail` of the module that sends it,
+as only that module can read what the ids in the message point at: `LoginCodeMail` and `InvitationMail` in Identity,
+`ReminderMail`, `BuddyNeededMail`, `WalkerWithdrawnMail` and `RoundCancelledMail` in Patrol. `MailComposers` finds it
+by type; a type without one is a `LogicException`, and `MailNotifierTest` holds every type in `src/` against the
+composers. `MailRenderer` renders `templates/mail/<name>.html.twig` and `.txt.twig` on one layout, with styles inline
+and the texts of `translations/mail+intl-icu.<locale>.yaml` in the language of the association; `LocalDateText` writes
+a moment out on the local clock. `MailNotifier` sends from `MAILER_FROM` under the sender name, replies go to the
+contact address, and the logo travels inside the mail (`cid:logo`); without it the layout shows the name. The colours
+are inline for light mode; a `prefers-color-scheme: dark` block with `!important` gives a mail program that follows dark
+mode a dark page, `#121212` behind the text, the dark primary colour for the name and links, and a white plate behind
+the logo, while the button keeps the light primary colour that white text needs. A mail about
+a round names date, time, daypart, meeting point and how many walk, never who, nor a phone number, address or note
+(`RoundFacts`); a link leads to the round in the app. A deleted round is gone when its mail is written, so
+`round.cancelled` carries the start.
+
 ## Handler and domain
 
 A handler orchestrates: it builds value objects from the input, asks `Authorization`, runs the change
@@ -467,9 +532,9 @@ secret of that token, which the app keeps only as a hash, for the curl scenario 
 
 | Set | Contents |
 | --- | --- |
-| `demo` | Twenty members with every role, rounds from three months back to six weeks ahead, mostly in the evening, more than a quarter without a buddy, a few full ones, reports with now and then an incident, a deactivated member and an erased member in the history |
+| `demo` | The association "Buurtpreventie Voorbeeldwijk" with colours of its own, a logo and icon that `SampleBrand` draws with GD, and the coordinator as contact, all through `ChangeSettings` and `ChangeBrandImage`; twenty members with every role, rounds from three months back to six weeks ahead, mostly in the evening, more than a quarter without a buddy, a few full ones, reports with now and then an incident, a deactivated member and an erased member in the history |
 | `test` | An admin, a meeting point and the standard outcomes; each test builds the rest |
-| `edge` | One of each hard case: rounds around the last clock change, a last walker who withdraws, an erased member in the history, a member without consent, rounds just under the minimum, at the maximum and with one spot left, two members who share their full name |
+| `edge` | One of each hard case: rounds around the last clock change, a last walker who withdraws, an erased member in the history, a member without consent, rounds just under the minimum, at the maximum and with one spot left, two members who share their full name, and an association name of exactly 100 characters, the limit, with the short name `BP` |
 
 A fixed seed gives the same people and pattern on every load; only the dates follow today. Names are
 made up and international, with letters the lookup key keeps (`ı`, `ł`); a display name is the first

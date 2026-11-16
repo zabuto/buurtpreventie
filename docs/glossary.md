@@ -11,7 +11,7 @@ dezelfde naam.
 | Ledenbeheer | `Membership` | Leden, rollen, toestemming, certificaat |
 | Inloggen | `Identity` | Accounts, inlogcodes, uitnodigingen, wachtwoorden, API-tokens |
 | Auditlog | `Audit` | Wie deed wat, wanneer en via welk kanaal |
-| Instellingen | `Settings` | Branding, teksten en het minimum- en maximumaantal lopers per vereniging |
+| Instellingen | `Settings` | Huisstijl, contact, teksten, lopers per ronde, herinnering, taal en de schakelaar voor API-tokens per vereniging |
 | Onderhoud | `Maintenance` | Gezondheidscheck, herinneringen, updates, installer, legacy-import |
 | Voorbeelddata | `SampleData` | Verzonnen leden, rondes en terugmeldingen: `app:fixtures:load demo`, `test` of `edge` |
 
@@ -59,7 +59,14 @@ dezelfde naam.
 | Auditregel | `AuditEntry` | Eén regel in het auditlog |
 | Kanaal | channel: `web`, `api`, `mcp`, `cron`, `console` | Hoe een actie binnenkwam; `console` voor console-commando's en voorbeelddata |
 | Systeem | `ROLE_SYSTEM`, `RunAs::system()` | Uitvoerder zonder lid, voor geplande taken, de eerste beheerder en voorbeelddata; een auditregel zonder lid |
-| Instelling | `Setting` | Waarde die een vereniging zelf instelt |
+| Instelling | `Setting`, `SettingName` | Waarde die een vereniging zelf instelt; `SettingName` is de lijst van alle instellingen, met standaard en regels |
+| Huisstijl | `BrandPalette`, `Branding`, `BrandImageKind` | Naam, kleuren, logo en app-icoon van de vereniging, in de app, het manifest en elke e-mail |
+| Contrast | `Color::contrastWith()`, `InsufficientContrast` | Verhouding tussen een kleur en de achtergrond (WCAG): 4,5 : 1 voor tekst, 3 : 1 voor randen en focus |
+| Groepslink | `community.group_url`, `GroupLink` | Uitnodiging voor de groep van de vereniging in WhatsApp of Signal; alleen voor ingelogde leden |
+| Hashketen | `chain_position`, `chain_hash`, `ChainVerifier` | Elke auditregel draagt een HMAC over zijn vaste velden en de hash van de vorige regel, zodat geknoei in de database opvalt |
+| Kop | `AuditChainMark::HEAD` | De laatste regel van de hashketen; wie een regel schrijft, vergrendelt de kop als laatste stap |
+| Anker | `AuditChainMark::ANCHOR` | Volgnummer en hash van de laatst opgeruimde regel; daar begint de controle |
+| Keten controleren | `VerifyAuditChain`, `app:audit:verify` | Meldt tot welke regel de hashketen klopt, of de eerste regel die niet klopt |
 | Inlogcode | `LoginChallenge`, `RequestLoginCode` | Code van zes cijfers per mail, 60 minuten geldig; werkt alleen samen met de aanvraag (`challengeId`) uit de browser die hem aanvroeg |
 | Uitnodiging | `Invitation`, `IssueInvitation`, `InviteMember` | Link per mail die een lid één keer inlogt, 48 uur geldig |
 | Ingelogd blijven | `remember_me`, cookie `bp_remember` | 90 dagen ingelogd op een toestel; vervalt bij een nieuw wachtwoord |

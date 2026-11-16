@@ -1,0 +1,9 @@
+{% extends 'mail/layout.txt.twig' %}
+
+{% block content -%}
+{{ 'account.invitation.intro'|trans({name: brand.name}, 'mail', locale) }}
+
+{{ link }}
+
+{{ 'account.invitation.valid'|trans({hours: hours}, 'mail', locale) }}
+{%- endblock %}

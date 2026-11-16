@@ -1,0 +1,12 @@
+# Standard texts for the text settings an association has not written itself; plain text, an empty line starts a
+# paragraph.
+text.welcome: |
+    Welcome to the neighbourhood watch. Here you see which rounds still need a buddy. Want to walk? Sign up for a round.
+text.emergency: |
+    Is there danger, or is something serious happening right now? Call 112.
+
+    No emergency, but you need the police? Call 0900-8844.
+
+    Something broken or dirty in the street? Report it to the municipality: call 14 followed by the area code of your municipality, or use the app of your municipality.
+
+    What you notice in the neighbourhood, share in the group chat of the neighbourhood. The neighbourhood watch app is not meant for that.

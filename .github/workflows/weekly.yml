@@ -30,7 +30,7 @@ jobs:
         with:
           php-version: '8.4'
           coverage: none
-          extensions: intl, mbstring
+          extensions: intl, mbstring, gd, fileinfo
           tools: composer:v2
 
       - name: Audit composer.lock
@@ -61,7 +61,7 @@ jobs:
         with:
           php-version: '8.5'
           coverage: none
-          extensions: intl, mbstring
+          extensions: intl, mbstring, gd, fileinfo
           tools: composer:v2
 
       # Only this job's checkout changes; the 7.4 constraints in the repository stay as they are.
@@ -102,7 +102,7 @@ jobs:
         with:
           php-version: '8.4'
           coverage: none
-          extensions: intl, mbstring
+          extensions: intl, mbstring, gd, fileinfo
           tools: composer:v2
 
       - name: Generate the autoloader

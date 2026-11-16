@@ -63,6 +63,9 @@ final class DeleteRoundHandlerTest extends TestCase
         $this->assertEquals([new AuditedAction('round.deleted', 'round', $round->id())], $this->auditTrail->recorded);
     }
 
+    /**
+     * The round is gone once the message leaves, so the message carries the start the mail names.
+     */
     #[Test]
     public function it_tells_every_walker_but_the_actor_that_the_round_is_cancelled(): void
     {
@@ -71,7 +74,10 @@ final class DeleteRoundHandlerTest extends TestCase
 
         $this->handler()(new DeleteRound($round->id()->toRfc4122()));
 
-        $this->assertEquals([new Notification($jan, 'round.cancelled', ['roundId' => $round->id()->toRfc4122()])], $this->notifier->sent);
+        $this->assertEquals([new Notification($jan, 'round.cancelled', [
+            'roundId' => $round->id()->toRfc4122(),
+            'startsAt' => $round->startsAt()->format(\DATE_ATOM),
+        ])], $this->notifier->sent);
     }
 
     /**

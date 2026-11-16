@@ -102,6 +102,39 @@ versions follow [Semantic Versioning](https://semver.org/).
 - Sample data: `app:fixtures:load demo|test|edge` in `dev` and `test`, built through the use cases with a fixed seed
   and dates from today. The first admin of every set, `beheer@example.org`, and in `demo` one member per role and
   three walkers log in with one made-up password, which the command shows.
+- Messages leave only once the change they are about is committed, never for a change that is rolled back; a
+  delivery that fails after the commit is logged and does not undo the change.
+- Settings of the association: `GET` and `PATCH /api/v1/admin/settings` for the admin, with name, short name, four
+  brand colours checked for contrast in light and dark mode, contact of the coordinator, a link to a group in
+  WhatsApp or Signal, sender name, welcome and emergency texts in Dutch and English with standard texts, privacy and
+  accessibility pages, walkers of new rounds, days ahead of the reminder, language, and access with API tokens.
+- Logo and app icon: `PUT` and `DELETE /api/v1/admin/settings/images/logo` and `/icon` for the admin take a PNG or
+  JPEG, checked by its content, and store every size the app uses as a fresh PNG without metadata in `UPLOAD_DIR`;
+  `GET /api/v1/media/brand/{file}` serves them to anyone, cached for a year.
+- `GET /api/v1/config` for the frontend, public: name, colours, logo and icons, texts in the language of the
+  association and the staffing defaults; the contact of the coordinator and the group link only for a member logged in. `GET /api/v1/manifest.webmanifest` lets a phone install the app under the name, colour and icon of the
+  association, started under the path of `DEFAULT_URI`. Without an uploaded icon the app draws a neutral one.
+- Every message is a mail in HTML and text, in Dutch or English as the association sets it, with its name, colour
+  and logo: login code, invitation, reminder, a round that seeks a buddy, a walker who withdrew and a cancelled
+  round. A mail names no member, phone number, address or note; replies go to the contact address of the
+  association. In dark mode a mail turns dark, with the dark primary colour of the association.
+- The reminder goes out as many days ahead as the setting `reminderDaysAhead` says, counted on the local clock.
+- With the setting `apiAccess` off, every API token is refused from its next request and no new token can be made
+  (409 `api_tokens_disabled`); members still list and revoke their tokens.
+- A hash chain over the audit log (HMAC-SHA-256 with the new required key `AUDIT_SECRET`) makes a change in the
+  database visible: each entry takes the next position as the last step of its transaction, under a lock on the head.
+  `symfony console app:audit:verify` reports the chain intact through an entry, or the first entry that was changed,
+  removed or inserted, and exits with 1 then. Erasing a member also removes the changed fields of every entry about
+  that member; the chain holds. Entries from before the chain get a position and stay unchecked.
+- The `demo` sample set is the association "Buurtpreventie Voorbeeldwijk", with colours, a drawn logo and icon, and
+  the coordinator as contact, all set through the settings and uploads; `edge` has a name at the limit of 100
+  characters and a short name of two letters. CI checks the audit chain after loading each set.
+- Opengrep rules `client-file-metadata`, `twig-autoescape-disabled` and `mailer-outside-notifier`, each with a rule
+  test.
+- ADR 0007 on the hash chain of the audit log, with what it does not cover; `docs/operations.md` on checking the chain
+  and keeping `AUDIT_SECRET`.
+- Every link in a mail starts at `DEFAULT_URI`, also when the app runs under a path such as
+  `https://example.org/buurtpreventie`, with or without a trailing slash.
 - Dependabot also updates the Mailpit image in `compose.yaml`, after the same 7-day cooldown.
 - A Postman collection in `postman/` that checks a running app, for the Postman app or Newman.
 - Test coverage per class in the summary of the CI job "Checks" (`composer test:coverage`), as information only.

@@ -10,6 +10,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use DomainException;
+use LogicException;
 use Override;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
@@ -105,6 +106,172 @@ final class DoctrineTransactionTest extends KernelTestCase
         $this->assertSame($refusal, $caught);
         $this->assertSame($level, $this->connection->getTransactionNestingLevel());
         $this->assertSame([], $this->connection->fetchFirstColumn('SELECT name FROM transaction_probe'));
+    }
+
+    /**
+     * A mail about a change must leave only once the change is stored: sent from inside the transaction, it goes out
+     * for a change that a later step still undoes.
+     */
+    #[Test]
+    public function it_runs_a_callback_once_the_outermost_run_has_committed(): void
+    {
+        $level = $this->connection->getTransactionNestingLevel();
+        $seen = [];
+
+        $this->transaction->run(function () use (&$seen): void {
+            $this->transaction->run(function () use (&$seen): void {
+                $this->connection->insert('transaction_probe', ['name' => 'stored']);
+                $this->transaction->afterCommit(function () use (&$seen): void {
+                    $seen[] = [$this->connection->getTransactionNestingLevel(), $this->connection->fetchFirstColumn('SELECT name FROM transaction_probe')];
+                });
+            });
+            $seen[] = 'inner run done';
+        });
+
+        $this->assertSame(['inner run done', [$level, ['stored']]], $seen);
+    }
+
+    #[Test]
+    public function it_drops_the_callbacks_of_a_run_that_fails(): void
+    {
+        $ran = false;
+        $refusal = new DomainException('The round is full.');
+
+        $caught = null;
+        try {
+            $this->transaction->run(function () use (&$ran, $refusal): never {
+                $this->transaction->afterCommit(static function () use (&$ran): void {
+                    $ran = true;
+                });
+
+                throw $refusal;
+            });
+        } catch (DomainException $exception) {
+            $caught = $exception;
+        }
+        $this->transaction->run(static fn(): null => null);
+
+        $this->assertSame([$refusal, false], [$caught, $ran]);
+    }
+
+    #[Test]
+    public function it_runs_a_callback_at_once_outside_a_run(): void
+    {
+        $ran = false;
+
+        $this->transaction->afterCommit(static function () use (&$ran): void {
+            $ran = true;
+        });
+
+        $this->assertTrue($ran);
+    }
+
+    /**
+     * The audit chain takes its lock here: taken earlier, a transaction would hold it while it waits for the lock on a
+     * round, and two such transactions could deadlock.
+     */
+    #[Test]
+    public function it_runs_a_callback_before_commit_as_the_last_step_of_the_outermost_run(): void
+    {
+        $level = $this->connection->getTransactionNestingLevel();
+        $seen = [];
+
+        $this->transaction->run(function () use (&$seen, $level): void {
+            $this->transaction->run(function () use (&$seen, $level): void {
+                $this->transaction->beforeCommit(function () use (&$seen, $level): void {
+                    $seen[] = ['before commit', $this->connection->getTransactionNestingLevel() - $level];
+                });
+            });
+            $seen[] = 'outer operation done';
+        });
+
+        $this->assertSame(['outer operation done', ['before commit', 1]], $seen);
+    }
+
+    #[Test]
+    public function it_commits_what_a_callback_before_commit_writes_together_with_the_operation(): void
+    {
+        $this->transaction->run(function (): void {
+            $this->connection->insert('transaction_probe', ['name' => 'change']);
+            $this->transaction->beforeCommit(function (): void {
+                $this->connection->insert('transaction_probe', ['name' => 'entry']);
+            });
+        });
+
+        $this->assertSame(['change', 'entry'], $this->connection->fetchFirstColumn('SELECT name FROM transaction_probe'));
+    }
+
+    #[Test]
+    public function it_runs_a_callback_before_commit_that_another_one_adds(): void
+    {
+        $seen = [];
+
+        $this->transaction->run(function () use (&$seen): void {
+            $this->transaction->beforeCommit(function () use (&$seen): void {
+                $seen[] = 'first';
+                $this->transaction->beforeCommit(static function () use (&$seen): void {
+                    $seen[] = 'added by the first';
+                });
+            });
+        });
+
+        $this->assertSame(['first', 'added by the first'], $seen);
+    }
+
+    #[Test]
+    public function it_undoes_the_run_when_a_callback_before_commit_fails(): void
+    {
+        $refusal = new DomainException('No audit secret.');
+        $afterCommit = false;
+
+        $caught = null;
+        try {
+            $this->transaction->run(function () use ($refusal, &$afterCommit): void {
+                $this->connection->insert('transaction_probe', ['name' => 'undone']);
+                $this->transaction->afterCommit(static function () use (&$afterCommit): void {
+                    $afterCommit = true;
+                });
+                $this->transaction->beforeCommit(static fn(): never => throw $refusal);
+            });
+        } catch (DomainException $exception) {
+            $caught = $exception;
+        }
+
+        $this->assertSame([$refusal, false, []], [$caught, $afterCommit, $this->connection->fetchFirstColumn('SELECT name FROM transaction_probe')]);
+    }
+
+    #[Test]
+    public function it_drops_the_callbacks_before_commit_of_a_run_that_fails(): void
+    {
+        $ran = false;
+        $refusal = new DomainException('The round is full.');
+
+        $caught = null;
+        try {
+            $this->transaction->run(function () use (&$ran, $refusal): never {
+                $this->transaction->beforeCommit(static function () use (&$ran): void {
+                    $ran = true;
+                });
+
+                throw $refusal;
+            });
+        } catch (DomainException $exception) {
+            $caught = $exception;
+        }
+        $this->transaction->run(static fn(): null => null);
+
+        $this->assertSame([$refusal, false], [$caught, $ran]);
+    }
+
+    /**
+     * Without a run there is no commit to precede, and a lock taken outside a transaction ends at once.
+     */
+    #[Test]
+    public function it_refuses_a_callback_before_commit_outside_a_run(): void
+    {
+        $this->expectException(LogicException::class);
+
+        $this->transaction->beforeCommit(static function (): void {});
     }
 
     /**

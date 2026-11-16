@@ -17,10 +17,13 @@ use App\Patrol\Domain\Catalogue\OutcomeRepository;
 use App\Patrol\Domain\Round\RoundCommentRepository;
 use App\Patrol\Domain\Round\RoundReportRepository;
 use App\Patrol\Domain\Round\RoundRepository;
+use App\Settings\Domain\BrandImages;
 use App\Settings\Domain\SettingRepository;
+use App\Shared\Domain\AppUrl;
 use App\Shared\Domain\AuditTrail;
 use App\Shared\Domain\Notifier;
 use App\Shared\Domain\Transaction;
+use App\Shared\Infrastructure\Mail\MailComposers;
 use App\Shared\Infrastructure\Notification\MailNotifier;
 use App\Tests\Audit\Fake\RecordingAuditEntryRepository;
 use App\Tests\Identity\Fake\FixedLoginCodeGenerator;
@@ -35,6 +38,7 @@ use App\Tests\Patrol\Fake\InMemoryOutcomeRepository;
 use App\Tests\Patrol\Fake\InMemoryRoundCommentRepository;
 use App\Tests\Patrol\Fake\InMemoryRoundReportRepository;
 use App\Tests\Patrol\Fake\InMemoryRoundRepository;
+use App\Tests\Settings\Fake\InMemoryBrandImages;
 use App\Tests\Settings\Fake\InMemorySettingRepository;
 use App\Tests\Shared\Fake\ImmediateTransaction;
 use App\Tests\Shared\Fake\RecordingAuditTrail;
@@ -76,6 +80,7 @@ final readonly class InMemoryServices implements CompilerPassInterface
         LoginCodeGenerator::class => FixedLoginCodeGenerator::class,
         SecretGenerator::class => FixedSecretGenerator::class,
         SettingRepository::class => InMemorySettingRepository::class,
+        BrandImages::class => InMemoryBrandImages::class,
         AuditEntryRepository::class => RecordingAuditEntryRepository::class,
         Transaction::class => ImmediateTransaction::class,
         AuditTrail::class => RecordingAuditTrail::class,
@@ -95,14 +100,16 @@ final readonly class InMemoryServices implements CompilerPassInterface
             $container->setAlias($clock, MockClock::class)->setPublic(true);
         }
 
-        // The notifier of the app is replaced, so its own test reaches it here, with a sender and base address that
-        // do not depend on the environment: the Symfony CLI sets DEFAULT_URI to its local domain.
+        // The notifier of the app is replaced, so its own test reaches it here, with a sender and base URL that do
+        // not depend on the environment: the Symfony CLI sets DEFAULT_URI to its local domain. The base URL has a path
+        // and a trailing slash, so every link proves it keeps the path and adds no slash of its own.
         $container
             ->getDefinition(MailNotifier::class)
             ->setPublic(true)
             ->setArgument('$from', 'noreply@example.org')
-            ->setArgument('$baseUri', 'https://buurt.example.org/')
         ;
+        $container->getDefinition(AppUrl::class)->setArguments(['https://example.org/buurtpreventie/']);
+        $container->getDefinition(MailComposers::class)->setPublic(true);
 
         $container->setDefinition('cache.login_attempts', new Definition(ArrayAdapter::class))->setPublic(true);
 

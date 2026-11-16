@@ -25,7 +25,7 @@ jobs:
         with:
           php-version: '8.4'
           coverage: pcov
-          extensions: intl, mbstring
+          extensions: intl, mbstring, gd, fileinfo
           tools: composer:v2
 
       - name: Locate Composer cache
@@ -119,7 +119,7 @@ jobs:
         with:
           php-version: '8.4'
           coverage: none
-          extensions: intl, mbstring, pdo_mysql
+          extensions: intl, mbstring, gd, fileinfo, pdo_mysql
           tools: composer:v2
 
       - name: Locate Composer cache
@@ -136,9 +136,12 @@ jobs:
         run: composer install --no-interaction --no-progress --prefer-dist
 
       # The console runs in dev, where the committed .env holds no APP_SECRET, and remember_me refuses to start
-      # without one; a fresh secret per run, as the installer writes one per installation.
-      - name: Generate APP_SECRET
-        run: echo "APP_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+      # without one; a fresh secret per run, as the installer writes one per installation. The sample data write audit
+      # entries, which need AUDIT_SECRET for the same reason.
+      - name: Generate APP_SECRET and AUDIT_SECRET
+        run: |
+          echo "APP_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+          echo "AUDIT_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
 
       - name: Run the migrations from an empty database
         run: php bin/console doctrine:migrations:migrate --no-interaction
@@ -156,7 +159,8 @@ jobs:
       - name: Run the database tests
         run: php vendor/bin/phpunit --group database
 
-      # Outside the test transaction, so every set commits for real; the database tests check what each set holds.
+      # Outside the test transaction, so every set commits for real; the database tests check what each set holds. The
+      # audit chain must hold after each set, as on an installation where the console wrote the entries.
       - name: Load every sample data set
         run: |
           query() {
@@ -164,6 +168,7 @@ jobs:
           }
           for set in demo test edge; do
             php bin/console app:fixtures:load "$set" --no-interaction
+            php bin/console app:audit:verify
             members="$(query 'SELECT COUNT(*) FROM member')"
             entries="$(query 'SELECT COUNT(*) FROM audit_entry')"
             echo "$set: $members members, $entries audit entries"
@@ -184,7 +189,7 @@ jobs:
         with:
           php-version: '8.4'
           coverage: none
-          extensions: intl, mbstring
+          extensions: intl, mbstring, gd, fileinfo
           tools: composer:v2
 
       # The release script needs only the autoloader of tools/, so no package gets installed.

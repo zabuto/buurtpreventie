@@ -1,7 +1,8 @@
 # Configuration
 
-Technical settings are environment variables. Settings an association changes itself (name, logo,
-texts) live in the database and the admin screens; those arrive in phase 3.
+Technical settings are environment variables. Settings an association changes itself (name, colours,
+contact, texts) live in the database; the admin reads them with `GET /api/v1/admin/settings` and changes them with
+`PATCH /api/v1/admin/settings`, a JSON Merge Patch where null restores the default.
 
 ## Files
 
@@ -25,11 +26,60 @@ Symfony reads them in this order; a later value wins. Real secrets live only in 
 | --- | --- | --- |
 | `APP_ENV` | Environment: `dev`, `test` or `prod` | `dev` |
 | `APP_SECRET` | Key for signed values such as CSRF tokens. Unique and secret per installation, and always generated, never typed: the installer writes it; locally `php -r 'echo bin2hex(random_bytes(32)), PHP_EOL;'` makes one for `.env.local` | required in production, in `shared/.env.local` |
+| `AUDIT_SECRET` | Key of the hash chain in the audit log (HMAC-SHA-256), apart from `APP_SECRET`, so replacing that leaves the chain intact. Generated like `APP_SECRET`. Without it the app writes no audit entry, so every change fails; a lost key leaves the chain impossible to check, so it belongs in the backup, kept apart from the database backup. Replacing it is not built | none: required everywhere, in `shared/.env.local`; in `test` a public value in `.env.test` |
 | `DATABASE_URL` | Database connection. Locally the Symfony CLI sets it from the `database` container in `compose.yaml`; on a server it goes in `shared/.env.local`, such as `mysql://db_user:db_password@localhost:3306/db_name?charset=utf8mb4` for MariaDB and MySQL alike. URL-encode special characters in the password (`@` becomes `%40`, `:` `%3A`, `/` `%2F`, `#` `%23`, `%` `%25`), or the connection fails with a misleading error. Leave out `serverVersion`: hosts upgrade without notice, and a stale version makes Doctrine generate SQL for the wrong platform; without it, DBAL reads the version when it connects. Tests add `_test` to the database name | none; in `test`, an unreachable address in `.env.test`, so the kernel boots and the database tests skip |
 | `MAILER_DSN` | How mail leaves the app, such as `smtp://user:password@smtp.example.org:587` on a server. Locally the Symfony CLI sets it from the `mailer` container (Mailpit) in `compose.yaml` | `null://null`, which sends nothing; always in `test` |
 | `MAILER_FROM` | Sender of every mail, an address the mail server may send from | `noreply@localhost` (in `config/services.yaml`) |
 | `HSTS_MAX_AGE` | Seconds a browser keeps to HTTPS for this host after an API answer over HTTPS (`Strict-Transport-Security`), such as `31536000` for a year. Opt-in per installation: set it only once HTTPS works there, because a browser that has it refuses the site over HTTP until the time runs out, also when the certificate is lost. Covers this host only, not other subdomains of the domain | `0`, which sends no HSTS (in `config/services.yaml`) |
-| `DEFAULT_URI` | Base URL of the app for links outside a web request, such as in e-mails and from the console. A subdomain (`https://buurtpreventie.example.org`) or a path (`https://example.org/buurtpreventie`), without `/public` | `http://localhost` (in `config/services.yaml`) |
+| `UPLOAD_DIR` | Absolute path of the folder for uploaded files, outside the web folder: the logo and icon go in `brand/` under it. The PHP user writes there, and a backup includes it | `var/uploads` in the project (in `config/services.yaml`) |
+| `DEFAULT_URI` | Base URL of the app for links outside a web request, such as in e-mails and from the console. A subdomain (`https://buurtpreventie.example.org`) or a path (`https://example.org/buurtpreventie`), without `/public`; a trailing slash makes no difference. Anything but an http or https address with a host and at most a path is an error as soon as the app sends a message | `http://localhost` (in `config/services.yaml`) |
+
+## Settings of the association
+
+Every setting, by its name in the API. The catalogue is `Settings\Domain\SettingName`; a value is stored once the
+admin sets it, also when it equals the default, and null removes it again.
+
+| Setting | Takes | Default |
+| --- | --- | --- |
+| `associationName` | Text, at most 100 characters | Buurtpreventie |
+| `associationShortName` | Text under the icon on a home screen, at most 30 characters | Buurtpreventie |
+| `primaryColor`, `accentColor` | `#rrggbb`; at least 4.5:1 and 3:1 against white | `#1f5f8b`, `#c2410c` |
+| `primaryDarkColor`, `accentDarkColor` | `#rrggbb`; at least 4.5:1 and 3:1 against `#121212`, the dark background | `#8cc4e8`, `#fb923c` |
+| `contactName`, `contactEmail`, `contactPhone` | The coordinator members can reach: at most 100 characters, an e-mail address, a phone number | none |
+| `groupUrl` | An invitation to a group in WhatsApp (`https://chat.whatsapp.com/…`) or Signal (`https://signal.group/#…`); `GET /api/v1/config` gives it to a logged-in member only | none |
+| `mailSenderName` | The name mails come from, at most 100 characters; the address stays `MAILER_FROM` | the name of the association |
+| `welcomeTextNl`, `welcomeTextEn`, `emergencyTextNl`, `emergencyTextEn` | Plain text, at most 2,000 characters; an empty line starts a paragraph | the standard text in `translations/settings.<locale>.yaml` |
+| `privacyUrl`, `accessibilityUrl` | An https address of a page of the association | none |
+| `minimumWalkers`, `maximumWalkers` | 1 to 20 and 1 to 50, the maximum at least the minimum; for new rounds only | 2 and 7 |
+| `reminderDaysAhead` | 1 to 7: the reminder covers the rounds of the local calendar day this many days ahead; a round signed up for later than that gets none | 1 |
+| `language` | `nl` or `en` | `nl` |
+| `apiAccess` | `true` or `false`: whether API tokens give access. `false` refuses every token from its next request (an empty 401, logged as `tokens_disabled`) and a new token (409 `api_tokens_disabled`); members still list and revoke their tokens | `true` |
+
+A colour is checked against the other colours and a minimum against the maximum as one set, so a refused value
+leaves every value of the patch unstored. The audit log names each setting that changed with its old and new value,
+except contact details, the group link and texts, which it names without a value.
+
+### Logo and icon
+
+The admin uploads them with `PUT /api/v1/admin/settings/images/logo` and `/icon`, the file itself as the body, and
+puts the default back with `DELETE`. What a file is follows from its content alone: name, extension and
+`Content-Type` count for nothing. A refused file is the 422 problem `unsupported_image` with the `condition` it breaks.
+
+| Condition | Logo | Icon |
+| --- | --- | --- |
+| `format` | PNG or JPEG | PNG or JPEG |
+| `file_size` | at most 2 MB | at most 2 MB |
+| `too_large`, `not_square`, `too_small` | at most 2048 × 2048 pixels, any proportion | square, from 512 × 512 to 2048 × 2048 pixels |
+| Stored as | PNG within 512 × 512 (screen) and within 512 × 128 (mail) | PNG of 512, 192, 180 (Apple) and 32 (favicon) pixels |
+
+Without an uploaded icon the app draws its own: a white house on the default primary colour. Without a logo the
+frontend shows the name of the association. `GET /api/v1/config` and the web app manifest give the paths of both.
+
+Every size is drawn afresh with GD, so only the pixels stay: no metadata such as the place a photo was taken, and
+nothing hidden after the image. A JPEG keeps the orientation of its pixels; GD ignores the rotation a phone notes
+in its metadata. The files are named `<kind>-<size>-<version>.png`, the version from the uploaded content, and
+`GET /api/v1/media/brand/<file>` serves, to anyone, only a file of the version a setting names, cached for a year.
+The files of the previous image go once the change is committed.
 
 ## Fixed limits
 
@@ -40,7 +90,7 @@ Values in the code that no setting changes. A new limit gets a row here.
 | Limit | Value | Where |
 | --- | --- | --- |
 | Local clock | `Europe/Amsterdam` for dayparts, calendar days, reminders and buddy calls; stored instants are UTC | `LocalTime::ZONE` |
-| Default walkers of a new round | Minimum 2, maximum 7, until an admin changes the settings `patrol.minimum_walkers` and `patrol.maximum_walkers` (screens in phase 3) | `StaffingDefaults` |
+| Default walkers of a new round | Minimum 2, maximum 7, until an admin changes the settings `minimumWalkers` and `maximumWalkers` | `StaffingDefaults` |
 | Walkers of one round | Minimum at least 1, maximum at least the minimum; fixed when the round is created | `StaffingRule` |
 | Dayparts | `morning` before 12:00, `afternoon` before 18:00, `evening` from 18:00 | `Daypart` |
 | Start of a round | After the moment it is created or moved; no change once started | `RoundStart`, `Round::change()` |

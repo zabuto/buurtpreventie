@@ -1,0 +1,764 @@
+# Fase 3: taakplan
+
+Status: goedgekeurd op 16 november 2026.
+
+Bron: `docs/plans/plan.md` (Samenvatting, Branding en configuratie, Privacy en AVG, Auditlog, Fase 3, Risico's en
+review-focus), `docs/plans/phase-2.md` (beslissingen en Open punten uit het plan), `docs/plans/phase-1.md`
+(beslissingen 15 en 16), `docs/architecture.md`, `docs/testing.md`, `docs/configuration.md`, ADR 0001 tot en met 0006,
+`AGENTS.md`, de e-mails in `../buurtpreventie-legacy/templates/emails/`, en de code op `develop` (`97a913b`).
+
+## Doel en klaar-criterium
+
+Een vereniging richt de app zelf in: naam, logo, app-icoon, kleuren, contact en teksten via `/admin/settings` en
+de upload van afbeeldingen, en de app gebruikt die inrichting in `GET /config`, het manifest en elke e-mail. E-mails
+gaan opgemaakt en in tekst, in `nl` of `en`, en pas na de commit. Het auditlog krijgt een hashketen die geknoei
+in de database zichtbaar maakt.
+
+Klaar als:
+
+- een tweede vereniging alleen via `PATCH /admin/settings` en de upload van logo en icoon een eigen naam, logo,
+  kleuren en teksten krijgt, zonder codewijziging, als functionele test en met de hand tegen de demo;
+- `GET /config` en `manifest.webmanifest` die inrichting tonen, en een kleur zonder voldoende contrast bij opslaan
+  geweigerd wordt;
+- elk bericht uit de code (zes typen, vastgesteld 2) een e-mail heeft, in HTML en tekst, in `nl` en `en`, zonder
+  telefoonnummer, adres of notitie;
+- een test bewijst dat een teruggedraaide wijziging niets verstuurt;
+- review-focus 5 een test heeft: met een basis-URL in een pad bevatten links in mails en het manifest dat pad, en
+  nooit `/public/`;
+- `app:audit:verify` een intacte keten meldt, en een gewijzigde, verwijderde of tussengevoegde regel aanwijst; wissen
+  en opruimen breken de keten niet; twee gelijktijdige schrijfacties op MariaDB en MySQL geven een kloppende keten;
+- de schakelaar voor API-tokens elk token meteen weigert;
+- elke nieuwe schrijvende handler een auditregel, een Voter en rijen in beide matrixtests heeft;
+- `symfony composer check` groen is, `composer test` zonder database ook, en de pull request naar `develop` groen en
+  gemergd is.
+
+## Vastgesteld in de code
+
+1. **`Setting` is een paar naam en tekst** (`Settings\Domain\Setting`, `VARCHAR(100)` en `TEXT`). Er zijn twee
+   namen in gebruik, `patrol.minimum_walkers` en `patrol.maximum_walkers`, gelezen door `GetStaffingDefaults`, een
+   publieke `#[ReadAction]` zonder Voter. Er is geen use case die een instelling schrijft. `SettingRepository` kent
+   alleen `find()` en `add()`.
+2. **Zes soorten berichten**, niet de vijf uit het plan: `account.login_code`, `account.invitation`,
+   `round.reminder`, `round.buddy_needed`, `round.walker_withdrawn` en `round.cancelled` (van `DeleteRound`). Een
+   `Notification` draagt alleen een type, een lid-id en ids als parameters; de tekst bepaalt de notifier.
+3. **Elke `send()` staat binnen `Transaction::run()`**: in `IssueInvitation`, `RequestLoginCode`, `DeleteRound`,
+   `WithdrawFromRound`, `WithdrawMemberFromUpcomingRounds`, `SendReminders` en via `BuddyCaller` in `CreateRound` en
+   `NotifyBuddyNeeded`. Een mailfout draait zo de wijziging terug, en een teruggedraaide wijziging kan al een mail
+   verstuurd hebben.
+4. **`DoctrineTransaction` kent geen moment na de commit.** Hij nest met een teller en `wrapInTransaction()`; de
+   testfake `ImmediateTransaction` voert alleen uit.
+5. **`MailNotifier` mailt alleen inlogcode en uitnodiging**, als platte tekst met vaste taal `nl` uit
+   `translations/mail.nl.yaml`, link `DEFAULT_URI` plus `/app/#/welcome/…`; de andere vier gaan naar de
+   `LoggingNotifier`. Hij staat in `Shared\Infrastructure\Notification`. Regel 5 staat Twig alleen toe in
+   `<Module>\Infrastructure\Mail` en de installer, en `Shared\Infrastructure` kent geen module (regel 4), dus de
+   notifier kan geen ronde opzoeken.
+6. **Er is geen Twig** in `composer.json`, geen `templates/` en geen `public/` buiten `index.php` en `bundles/`.
+7. **Drie repositories flushen midden in een transactie** (`DoctrineMeetingPointRepository`,
+   `DoctrineOutcomeRepository`, `DoctrineMemberRepository`, voor unieke namen), dus een auditregel die eerder in
+   dezelfde transactie is vastgelegd, staat dan al in de database.
+8. **`AuditEntry` heeft geen volgorde-kolom**: id UUIDv7, tijdstip in hele seconden, gewijzigde velden als
+   JSON-tekst. `eraseActorName()` wist alleen de naam van de uitvoerder; de gewijzigde velden blijven.
+   `member.added` legt de weergavenaam vast in die velden, dus na wissen staat de weergavenaam van een gewist lid
+   nog in het log. Contactgegevens staan er niet in: `member.changed` en `member.contact_details_changed` leggen
+   voor telefoon, adres, naam en e-mail alleen `null → null` vast.
+9. **Elke auditregel gaat via `Transaction`**, ook inloggen en een mislukte inlog (`LoginRecorder`).
+10. **De herinnering gaat vast over morgen** (`SendRemindersHandler`: `LocalDay::of($now)->next()`); het plan wil
+    N dagen vooraf als instelling.
+11. **De tijdzone ligt vast** in `LocalTime::ZONE` (`Europe/Amsterdam`) en wordt overal gebruikt: dagdelen,
+    kalenderdagen, herinneringen, oproepen voor een loopmaatje, `ListingPeriod`.
+12. **De taal van de API komt uit `Accept-Language`** (standaard `nl`); `MailNotifier` heeft een vaste `nl`.
+13. **De tokenauthenticator kent geen schakelaar**: hij weigert alleen om redenen van het token zelf
+    (`ApiToken::refusalAt()`) of een misvormde header.
+14. **`DEFAULT_URI` is de basis van elke link** buiten een verzoek (`config/services.yaml`, standaard
+    `http://localhost`); `docs/configuration.md` zegt "zonder `/public`", maar niets controleert dat.
+15. **De e-mails van v3** staan in `templates/emails/` (herinnering, wachtwoord-reset, welkom), elk in HTML en tekst.
+    De herinnering noemt de namen van de andere lopers. `translations/` van v3 heeft alleen `messages` en
+    `validators`.
+16. **`gd`, `fileinfo` en `sodium` zijn lokaal geladen**; `composer.json` vraagt alleen `ctype`, `iconv`, `intl` en
+    `mbstring`.
+
+## Voorgestelde beslissingen
+
+### Instellingen
+
+1. **Eén catalogus van instellingen in `Settings\Domain`**: een enum `SettingName` met per naam het type (tekst,
+   getal, kleur, aan/uit, URL, e-mailadres, telefoon), de standaardwaarde, de regels en of hij publiek is. De tabel
+   blijft naam en tekst (vastgesteld 1), zodat een nieuwe instelling geen migratie vraagt. Een onbekende naam bestaat
+   niet: de catalogus is de enige bron.
+
+   | Instelling | Standaard | Publiek in `/config` |
+   | --- | --- | --- |
+   | `association.name`, `association.short_name` | "Buurtpreventie", "Buurtpreventie" | ja |
+   | `brand.logo`, `brand.icon` (bestandsnaam, beslissing 8) | geen logo; neutraal icoon uit de repo | ja |
+   | `brand.primary`, `brand.accent`, `brand.primary_dark`, `brand.accent_dark` | neutrale kleuren die de contrastregels halen | ja |
+   | `contact.name`, `contact.email`, `contact.phone` | leeg | alleen ingelogd (beslissing 4) |
+   | `community.group_url` (beslissing 4a) | leeg | alleen ingelogd (beslissing 4a) |
+   | `mail.sender_name` | `association.name` | nee |
+   | `text.welcome.<taal>`, `text.emergency.<taal>` | neutrale tekst in `nl` en `en` | ja |
+   | `text.privacy_url`, `text.accessibility_url` | leeg | ja |
+   | `patrol.minimum_walkers`, `patrol.maximum_walkers` | 2 en 7 (bestaand) | ja |
+   | `patrol.reminder_days_ahead` | 1, van 1 tot en met 7 | nee |
+   | `app.language` | `nl` | ja |
+   | `integrations.api_tokens` | aan | nee |
+
+2. **De tijdzone wordt geen instelling.** Afwijking van het plan: `Europe/Amsterdam` zit in elke regel over
+   dagdelen en kalenderdagen (vastgesteld 11), en elke vereniging zit in Nederland. Een instelling vraagt dat elke
+   regel de zone als invoer krijgt, met tests rond de tijdwissel per zone, voor geen enkele gebruiker. Alternatief:
+   instelbaar, met die prijs.
+3. **Teksten zijn platte tekst, geen Markdown.** Afwijking van het plan: een lege regel is een nieuwe alinea, en de
+   frontend maakt van een URL, e-mailadres of telefoonnummer een link. Markdown vraagt een parser in PHP (voor de
+   mail) én in de frontend, of HTML uit de API die de frontend ongezien in de pagina zet; beide zijn een
+   afhankelijkheid of een XSS-risico voor wat een welkomsttekst en een spoedtekst nodig hebben. Alternatief:
+   `league/commonmark` met `html_input: strip`, en de API levert de HTML.
+4. **Contact van de coördinator alleen voor ingelogde leden.** `/config` is publiek, ook voor zoekmachines; een
+   naam, telefoonnummer en e-mailadres daar is een persoonsgegeven op internet. `GET /config` geeft `contact` met
+   vaste sleutels, `null` zonder sessie of token (zoals T23 van fase 2). Het plan noemt "contact coördinator op elke
+   pagina": dat zijn de pagina's na inloggen, en het inlogscherm toont de spoedtekst.
+4a. **Een link naar de groep van de vereniging in WhatsApp of Signal** (besloten op 16 november 2026), voor de
+    buurtsignalen die het plan bewust buiten de app houdt (Spoedmeldingen). Eén instelling `community.group_url`,
+    leeg of een uitnodigingslink:
+    - alleen `https://chat.whatsapp.com/<code>` of `https://signal.group/#<code>`; een andere host of `http` geeft
+      een veldfout. `/config` geeft de link met `service` (`whatsapp` of `signal`, afgeleid uit de host), zodat de
+      frontend het juiste woord en icoon toont;
+    - **alleen voor ingelogde leden in `/config`**, zoals het contact (beslissing 4; besloten op 16 november 2026,
+      na T9): wie de link heeft, kan de groep in, en dan zien alle leden van de groep zijn telefoonnummer. Een
+      bezoeker krijgt `group` met vaste sleutels en `null`. Verbergen alleen in de frontend beschermt niets, want
+      `/config` is publiek op te halen. Niet in een mail;
+    - de auditregel noemt de wijziging als `null → null`, zodat de link niet in het log staat;
+    - een vereniging die de link vervangt (omdat hij gelekt is), trekt de oude in de app van WhatsApp of Signal in;
+      de app kan dat niet. De beheerhandleiding van fase 6b zegt het.
+    Eén groep, geen twee: een vereniging met beide kiest er een, zodat lopers niet op twee plekken hoeven te kijken.
+    Alternatief: een vrije URL met een vrije naam, zonder controle op de host.
+5. **De privacyverklaring en de toegankelijkheidsverklaring zijn een URL**, geen tekst in de app (besloten op
+   16 november 2026). Fase 6b doet een voorstel voor een standaardtekst van beide, in `docs/privacy/`, die de
+   vereniging op haar eigen site zet. Zo bestaat er één versie van de verklaring, en houdt de app geen juridische
+   tekst bij.
+6. **Vertalingen overschrijven per vereniging valt af.** Het plan wil losse teksten laten overschrijven zonder
+   vertaalbestanden; de teksten die een vereniging wil aanpassen, zijn de instellingen hierboven. Een vrije
+   overschrijving van elke vertaalsleutel is een tweede bron voor elke tekst, die bij een update stil achterloopt.
+7. **Wijzigen in één `PATCH /admin/settings`** (JSON Merge Patch, T19 van fase 2): een weggelaten instelling blijft,
+   `null` zet de standaardwaarde terug, een waarde vervangt. `GET /admin/settings` toont elke instelling met haar
+   waarde en of het de standaard is. Alleen de beheerder (`settings.change`, `SettingsPolicy`). Eén auditregel
+   `setting.changed` per verzoek, met per naam oud → nieuw; een tekst als `null → null`, zoals contactgegevens, zodat
+   lange teksten het log niet vullen. Fouten per veld als 422 `invalid_input`.
+
+### Logo en icoon
+
+8. **Twee uploads: logo en app-icoon.** Afwijking van het plan (drie): de favicon komt uit het icoon.
+   `PUT /admin/settings/images/logo` en `/icon` met het bestand als body, geen multipart; `DELETE` zet de standaard
+   terug. Voorwaarden:
+
+   | Voorwaarde | Logo | Icoon |
+   | --- | --- | --- |
+   | Formaat | PNG of JPEG | PNG of JPEG |
+   | Bestandsgrootte | hooguit 2 MB | hooguit 2 MB |
+   | Afmetingen | hooguit 2048 × 2048, elke verhouding | vierkant, van 512 × 512 tot 2048 × 2048 |
+   | Wat de app opslaat | PNG binnen 512 × 512 (frontend) en 128 px hoog (mail) | PNG van 512, 192, 180 (Apple) en 32 (favicon) |
+
+   - **Het formaat volgt uit de inhoud**, met `getimagesize()` en `finfo`. Extensie, bestandsnaam en het type dat
+     de client noemt tellen niet: een `.png` die een JPEG is, gaat door als JPEG; een `.png` die geen beeld is,
+     wordt geweigerd.
+   - **Geweigerd:** SVG (kan script bevatten), GIF (animatie, en geen meerwaarde boven PNG), HEIC (GD kan het niet
+     lezen; een iPhone deelt een foto als JPEG), WebP en AVIF (GD leest ze alleen als het ermee gebouwd is, en dat
+     verschilt per host). Elke weigering is 422 `unsupported_image` met de voorwaarde die niet klopt.
+   - **De grenzen gelden vóór het decoderen**: GD zet een beeld volledig in het geheugen, en 2048² is al 16 MB.
+   - **Opnieuw opslaan met GD** haalt metadata (zoals de GPS-plek van een foto) en alles wat geen beeld is eruit,
+     ook een bestand dat tegelijk iets anders is. Transparantie in een PNG blijft.
+
+   Alternatief zonder GD: de beheerder levert elke maat zelf aan, en de app slaat alleen op wat hij controleerde.
+9. **`ext-gd` wordt een eis** in `composer.json`, naast `ext-fileinfo`; de installer van fase 6a controleert het.
+   Op shared hosting staat GD vrijwel altijd aan.
+10. **Opslag buiten de webmap**, in `UPLOAD_DIR` (nieuwe variabele, standaard `var/uploads`; fase 6a zet hem op
+    `shared/uploads`). De bestandsnaam is soort, maat en 16 hex-tekens van de SHA-256 van de inhoud
+    (`icon-192-3f2a….png`), dus een nieuwe versie heeft een nieuwe naam en mag een jaar in de cache.
+    `GET /api/v1/media/brand/{bestand}` geeft alleen een bestand dat een instelling noemt; een naam die niet op het
+    patroon past, is 404 vóór er een pad gemaakt wordt. Een oud bestand wordt na de commit verwijderd.
+
+### Kleuren en contrast
+
+11. **Vier kleuren: primair en accent, voor licht en donker.** Eén kleur kan niet tegelijk 4,5 : 1 halen tegen wit
+    en tegen een donkere achtergrond (tegen wit vraagt een relatieve luminantie van hooguit 0,18, tegen `#121212`
+    minstens 0,20). Regels bij opslaan, met de vaste achtergronden van de frontend (wit en `#121212`):
+    - primair: 4,5 : 1 tegen de achtergrond van zijn modus (tekst, links en knoppen met tekst in de
+      achtergrondkleur);
+    - accent: 3 : 1 tegen de achtergrond (randen en focus, WCAG 1.4.11);
+    - een kleur als `#rrggbb`; een te zwakke kleur geeft 422 `insufficient_contrast` met de gemeten en de vereiste
+      verhouding, zodat het beheerscherm het kan uitleggen.
+    Fase 5 gebruikt deze achtergronden; `docs/architecture.md` legt dat vast. Alternatief: één kleur per rol, en de
+    frontend rekent een donkere variant uit; dan is het resultaat niet gecontroleerd bij opslaan.
+
+### Publieke configuratie en manifest
+
+12. **`GET /api/v1/config`** (publiek): naam, korte naam, kleuren, URL's van logo en iconen, taal, teksten in de taal
+    van de vereniging, privacy- en toegankelijkheids-URL, minimum en maximum lopers, en `contact` en `group`
+    (beslissingen 4 en 4a, beide alleen voor een ingelogd lid).
+    Eén use case `GetPublicConfig` in Settings, die `GetStaffingDefaults` vervangt als bron voor de frontend.
+13. **`GET /api/v1/manifest.webmanifest`** (publiek, `application/manifest+json`): naam, korte naam, `theme_color`
+    (primair licht), `background_color` (wit), `display: standalone`, iconen 192 en 512, en `start_url` en `scope`
+    op `<pad van de basis-URL>/app/`. Onder `/api/v1`, zodat de frontend alleen de API aanroept; `start_url` en
+    `scope` volgen de basis-URL, niet de plek van het manifest.
+14. **De basis-URL wordt een waardeobject `AppUrl`** in `Shared\Domain`, uit `DEFAULT_URI`, zonder slash aan het
+    eind. Elke link in een mail en het manifest komt uit `AppUrl::to('app/#/…')`, zodat een pad in de basis-URL
+    overal meegaat (review-focus 5). Geen controle op `/public` bij het starten (besloten op 16 november 2026): de
+    app zet zelf nooit `/public` in een link, en een verkeerde `DEFAULT_URI` is een fout in de installatie, die de
+    installer van fase 6a voorkomt door de waarde zelf te schrijven uit het adres waarop hij draait.
+
+### E-mail
+
+15. **Berichten gaan pas na de commit uit.** `DoctrineTransaction` krijgt `afterCommit(callable)`: wat binnen een
+    transactie wordt aangemeld, wacht tot de buitenste transactie commit, en vervalt bij een rollback. De notifier
+    van de app (`AfterCommitNotifier`) zet elk bericht zo in de wachtrij; buiten een transactie verstuurt hij
+    meteen. Een fout bij het versturen na de commit gaat naar het log en breekt het verzoek niet: de wijziging staat
+    al (besloten op 16 november 2026). `ImmediateTransaction` in de tests krijgt dezelfde semantiek.
+    Alternatief: een outbox-tabel met de berichten in dezelfde transactie en versturen door de scheduler. Dat is
+    betrouwbaarder (geen mail kwijt bij een mailfout), maar een inlogcode moet binnen seconden aankomen, en zonder
+    cron komt de scheduler pas met een tick. Gevolg om te accepteren: een herinnering die na de commit faalt, staat
+    als verstuurd (`remindedAt`) en gaat niet opnieuw; het log toont de fout, en Onderhoud (fase 6b) de laatste.
+16. **Twig voor de e-mails, per module.** Afwijking van vastgesteld 5: elke module bouwt de mails van haar eigen
+    berichten in `<Module>\Infrastructure\Mail` (regel 5): Identity de inlogcode en uitnodiging, Patrol de vier
+    over rondes, met de ronde uit de eigen repository. Een interface `MailComposer` in `Shared\Infrastructure\Mail`
+    (type → onderwerp, HTML en tekst); `MailNotifier` kiest de composer op type en verstuurt. Een type zonder
+    composer is een fout, met een test die elk type uit `src/` naast een composer legt.
+17. **Branding in de mail via `Shared\Domain\Branding`**, geïmplementeerd door Settings: naam, kleuren, logo,
+    contact, taal en de naam van de afzender. Het afzenderadres blijft `MAILER_FROM`: alleen een adres dat de
+    mailserver mag gebruiken komt door SPF en DKIM, en dat beslist de beheerder van de server, niet een
+    instelling. `Reply-To` wordt het contactadres als dat er is. Afwijking van het plan ("afzender e-mail" als
+    instelling).
+18. **Elke mail in HTML en tekst**, uit één Twig-layout met stijlen inline, zonder CSS-inliner (een afhankelijkheid
+    voor een handvol regels). Het logo gaat als ingesloten bijlage (`cid:`), niet als externe afbeelding, zodat
+    geen mailprogramma iets ophaalt bij de server; zonder logo staat de naam er als tekst. Alles wat het logo zegt,
+    staat ook in tekst.
+19. **Zo min mogelijk persoonsgegevens.** Een mail noemt datum, tijd, dagdeel, startpunt en hoeveel anderen meelopen
+    ("Er lopen 2 anderen mee", of "Je loopt nog alleen"), en nooit een naam of weergavenaam van een andere loper
+    (afwijking van v3, vastgesteld 15; besloten op 16 november 2026), een telefoonnummer, een adres of een notitie.
+    Wie meeloopt, staat in de app; elke mail over een ronde heeft een knop naar die ronde. Een test zoekt in elke mail naar de
+    telefoon, het adres en het e-mailadres van de leden uit de opzet en eist dat ze er niet in staan
+    (review-focus 3).
+20. **Taal van de mail is `app.language`**, datums met `IntlDateFormatter` in `Europe/Amsterdam`, voluit
+    ("donderdag 24 oktober om 20:00"). Leden hebben geen eigen taal; dat volgt als iemand erom vraagt.
+21. **De mail "zoekt een loopmaatje"** zegt waarom het lid hem krijgt en waar het dat uitzet (Account in de app), met
+    een link. Een `List-Unsubscribe` met één klik vraagt een ondertekend endpoint zonder sessie; dat valt erbuiten.
+22. **Herinnering N dagen vooraf** (`patrol.reminder_days_ahead`): `SendReminders` leest de instelling via een use
+    case van Settings en kiest de kalenderdag `vandaag + N`. Standaard 1, zoals nu.
+
+### Schakelaar voor API-tokens
+
+23. **`integrations.api_tokens` aan of uit**, de schakelaar uit Datalek en Beveiligingsupdates. Uit: de
+    tokenauthenticator weigert elk token met reden `tokens_disabled` in het log (401 zonder body, zoals elke
+    weigering), `POST /me/tokens` geeft 409 `api_tokens_disabled`, en bekijken en intrekken van tokens werkt gewoon,
+    want intrekken hoort bij de stappen na een lek. MCP gebruikt dezelfde tokens, dus de schakelaar zet fase 4 mee
+    uit; fase 4 krijgt daarnaast `integrations.mcp`, standaard uit. De authenticator leest de instelling via een use
+    case van Settings, bij elk verzoek met een token (één query).
+
+### Hashketen in het auditlog
+
+Volgens Fase 3 in het plan (besloten op 16 november 2026); hieronder wat het plan open laat.
+
+24. **De regels wachten tot het einde van de buitenste transactie.** `DoctrineAuditTrail` houdt de regels van een
+    transactie in het geheugen. Vlak vóór de commit (een `beforeCommit`-stap van `DoctrineTransaction`, net als
+    beslissing 15) neemt de keten het slot op de kop, geeft elke regel een volgnummer en hash, en schrijft ze weg.
+    Zo is het slot altijd de laatste stap (plan), ook als een repository halverwege flusht (vastgesteld 7). Een
+    rollback gooit de wachtende regels weg.
+25. **Kolommen en tabel.** `audit_entry` krijgt `chain_position` (`BIGINT`, uniek), `changes_hash` (`BINARY(32)`,
+    leeg zonder gewijzigde velden) en `chain_hash` (`BINARY(32)`). Een nieuwe tabel `audit_chain` met twee rijen:
+    `head` (laatste volgnummer en hash, de rij met het slot) en `anchor` (volgnummer en hash van de laatst
+    opgeruimde regel, of 0 en 32 nulbytes).
+26. **Wat de hash dekt.** `chain_hash` = HMAC-SHA-256 met `AUDIT_SECRET` over een vaste JSON-lijst: versie `1`,
+    volgnummer, id, tijdstip in UTC (`Y-m-d\TH:i:s\Z`), lid-id of `null`, actie, soort en id van het onderwerp,
+    kanaal, `changes_hash` en de `chain_hash` van de vorige regel. Het volgnummer erin maakt verwisselen zichtbaar.
+    `changes_hash` = HMAC-SHA-256 met dezelfde sleutel over id en de JSON van de gewijzigde velden. Een HMAC, geen
+    gewone SHA-256: na wissen blijft de hash staan, en een gewone hash van `{"displayName":…}` is met een lijst namen
+    terug te rekenen. Zo blijft de gewiste inhoud ook voor wie de database heeft onvindbaar.
+27. **Wissen haalt ook de gewijzigde velden weg** (vastgesteld 8): `EraseActorName` wist de naam van de uitvoerder
+    (zoals nu) en de gewijzigde velden van elke regel over het gewiste lid (onderwerp `member`, dat lid). Dat
+    sluit het gat dat de weergavenaam na wissen in `member.added` blijft staan. `changes_hash` blijft, de keten
+    klopt.
+28. **`AUDIT_SECRET`** in `shared/.env.local` (lokaal `.env.local`, in `test` een publieke waarde in `.env.test`,
+    in de databasejobs van CI per run gemaakt, zoals `APP_SECRET`). Zonder sleutel start het schrijven van een
+    auditregel niet: geen stille regels zonder hash. Een verloren sleutel maakt de keten oncontroleerbaar, dus
+    `docs/operations.md` zet hem bij de back-up. Een sleutel vervangen kan niet in deze fase (open punt).
+29. **Bestaande regels** (alleen in ontwikkel- en testdatabases; productie heeft er nog geen) blijven buiten de keten:
+    de migratie nummert ze op tijdstip en id en zet het anker erachter, zonder hash. `app:audit:verify` meldt hun
+    aantal apart.
+30. **Opruimen** (de scheduler van fase 6a) loopt via `AuditEntryRepository::pruneThrough(int $position)`: het anker
+    krijgt volgnummer en hash van de laatste verwijderde regel, in dezelfde transactie. Deze fase bouwt de methode
+    met test; de bewaartermijnen en de planning volgen in 6a.
+31. **Controle: `app:audit:verify`** (use case `VerifyAuditChain` in Audit, alleen voor het systeem en de console)
+    leest vanaf het anker per 500 op volgnummer en meldt "intact tot en met regel N (tijdstip)" of de eerste regel
+    die niet klopt, met de reden: inhoud gewijzigd, regel ontbreekt (gat in de nummering), regel tussengevoegd of
+    vorige hash klopt niet, kop wijst niet naar de laatste regel. Een regel met gewiste inhoud telt als intact.
+    Exitcode 0 of 1. Onderhoud (fase 6b) toont hetzelfde.
+32. **Grens, eerlijk in `docs/`:** wie de database kan wijzigen, kan de nieuwste regels weghalen en de kop terugzetten
+    naar een eerdere regel die hij kent; dat is zonder kopie buiten de database niet te zien. `app:audit:verify`
+    toont daarom het laatste volgnummer, zodat een beheerder het kan noteren.
+
+### Testen
+
+33. **In memory waar het kan**: catalogus, contrast, `AppUrl`, beeldbewerking (met kleine PNG's en JPEG's in
+    `tests/`), mails (gerenderd met de echte Twig-omgeving, met een in-memory mailer), keten (met een in-memory
+    repository). **Databasetests** voor de keten (gelijktijdig, op MariaDB en MySQL), het slot en de migratie van
+    bestaande regels, en voor "teruggedraaid verstuurt niets" met de echte `DoctrineTransaction`.
+34. **Matrixtests**: `settings.change`, het lezen van `/admin/settings` en de uploads in `AuthorizationMatrixTest` en
+    `HttpMatrixTest`; `/config`, het manifest en `/media/brand/…` als publieke rijen. De Postman-collectie krijgt de
+    nieuwe endpoints.
+
+### Opengrep-regels voor deze fase
+
+35. Elke regel met een regeltest:
+    - **`client-file-metadata`**: `getClientOriginalName()`, `getClientOriginalExtension()`,
+      `getClientMimeType()` en `guessClientExtension()`; de client bepaalt naam en type van een upload niet;
+    - **`twig-autoescape-disabled`**: `{% autoescape false %}` in een template en `autoescape: false` in de
+      configuratie;
+    - **`mailer-outside-notifier`**: `MailerInterface::send()` buiten `Shared\Infrastructure\Notification`, zodat
+      geen mail om de wachtrij na de commit heen gaat.
+
+## Nieuwe afhankelijkheden (goedgekeurd op 16 november 2026)
+
+Versies en datums van Packagist op 16 november 2026. De Composer-cooldown van 24 uur geldt.
+
+| Pakket | Waarvoor | Licentie | Soort | Releaseritme | Nu |
+| --- | --- | --- | --- | --- | --- |
+| `symfony/twig-bundle` (+ `symfony/twig-bridge`) | Twig in Symfony, voor de e-mails (beslissing 16) | MIT | runtime | Symfony 7.4 LTS, patch ongeveer maandelijks | v7.4.21 (9 okt), bridge v7.4.22 (15 okt) |
+| `twig/twig` (via de bundle) | Templates met automatisch escapen | BSD-3-Clause | runtime | Minor elke paar maanden; 4.0 staat in alpha, de 3-lijn krijgt releases | v3.30.0 (25 sep) |
+| `symfony/filesystem` (goedgekeurd bij T6) | Afbeeldingen schrijven (tijdelijk bestand en `rename()`) en verwijderen | MIT | runtime | Symfony 7.4 LTS, patch ongeveer maandelijks | v7.4.23 (4 nov), stond er al als indirecte afhankelijkheid |
+| `ext-gd` (PHP-extensie, geen pakket) | Logo en icoon controleren, verkleinen en opnieuw opslaan (beslissing 8) | PHP | platform | Met PHP | lokaal geladen |
+
+`symfony/mime` (al runtime via `symfony/mailer`) en `ext-fileinfo` (standaard in PHP) komen niet nieuw mee.
+`SymfonyReleaseLineTest` dekt de nieuwe Symfony-pakketten. Alternatief zonder Twig: mails opbouwen in PHP met
+`htmlspecialchars()` per waarde. Dat is geen afhankelijkheid, maar elke vergeten escape is HTML-injectie in een
+mail, en het plan en regel 5 kiezen Twig.
+
+## Taken
+
+Elke taak is één of enkele kleine commits; tests komen vóór de code.
+
+### T1. Branch en taakplan
+
+`feature/phase-3` vanaf `develop`; dit plan. Bouwen pas na akkoord.
+
+### T2. Afhankelijkheden en configuratie
+
+- `composer require symfony/twig-bundle`, `ext-gd` en `ext-fileinfo` in `require`; recept nalopen
+  (`config/packages/twig.yaml` met `strict_variables`, `templates/` alleen voor mail), receptbestanden ongewijzigd.
+- `UPLOAD_DIR` en `AUDIT_SECRET` in `config/services.yaml` en `docs/configuration.md`; `AUDIT_SECRET` in
+  `.env.test`; de databasejobs van CI maken hem per run.
+- Controleren dat de CI-image GD heeft (`setup-php` met `extensions`).
+- Test eerst: `SymfonyReleaseLineTest` dekt de nieuwe pakketten; `composer deprecations` blijft schoon.
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - geïnstalleerd: `symfony/twig-bundle` v7.4.21, `symfony/twig-bridge` v7.4.22 en `twig/twig` v3.30.0;
+    `ext-gd` en `ext-fileinfo` staan in `require`;
+  - `SymfonyReleaseLineTest` dekt elk `symfony/`-pakket al op naam, dus de nieuwe vallen er vanzelf onder; hij
+    bleef groen zonder wijziging;
+  - `config/packages/twig.yaml` zet `strict_variables` in elke omgeving, niet alleen in `test`: een ontbrekende
+    variabele laat een mail falen in plaats van hem met een gat te versturen. `templates/base.html.twig` uit het
+    recept is weg: een pagina-layout met scripts van een CDN, en de backend rendert geen pagina's (regel 5);
+  - `gd` en `fileinfo` staan bij elke `setup-php` in `ci.yml` en `weekly.yml`, en in de eisen van
+    `docs/getting-started.md` en `docs/operations.md`;
+  - `AUDIT_SECRET` en `UPLOAD_DIR` komen in de taak die ze gebruikt (T11 en T6), zodat config en docs geen
+    variabele noemen die nog niets doet.
+
+### T3. Berichten na de commit (test eerst)
+
+- Tests: binnen een transactie gaat er niets uit tot de commit; een rollback verstuurt niets (in memory én als
+  databasetest met `DoctrineTransaction`); een geneste transactie wacht op de buitenste; buiten een transactie gaat
+  een bericht meteen; een fout van de mailer na de commit komt in het log en geeft geen fout aan de aanroeper.
+- `DoctrineTransaction::afterCommit()` en `beforeCommit()` (beslissingen 15 en 24), `AfterCommitNotifier`,
+  `ImmediateTransaction` met dezelfde volgorde.
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - `afterCommit()` staat op `Shared\Domain\Transaction`, zodat de fake en de echte transactie hetzelfde contract
+    hebben; `beforeCommit()` komt in T11, met de keten die het gebruikt;
+  - een mislukte geneste run laat de buitenste altijd mislukken (Doctrine sluit de entity manager), dus de wachtrij
+    hoort bij de buitenste run en vervalt als die faalt. Een aparte wachtrij per geneste run zou code zijn voor een
+    situatie die niet kan bestaan;
+  - `AfterCommitNotifier` logt een mislukte levering als `error` met type, lid-id en de exceptie, en levert de
+    volgende berichten gewoon. De melding van de exceptie kan een e-mailadres bevatten (een SMTP-weigering noemt de
+    ontvanger); dat blijft in het serverlog, dat alleen de beheerder van de server ziet (geaccepteerd op 16 november
+    2026);
+  - `services.yaml`: `Notifier` is `AfterCommitNotifier`, die levert via `MailNotifier`;
+  - tests: `DoctrineTransactionTest` (na de buitenste commit, vervalt bij een fout, meteen buiten een run),
+    `AfterCommitNotifierTest` (in memory, ook de mislukte levering) en `AfterCommitDeliveryTest` (databasetest met
+    de bedrading van de app: mail na de commit, niets bij een rollback).
+
+### T4. Settings-catalogus en wijzigen (test eerst)
+
+- `SettingName` met typen, standaarden en regels (beslissing 1); `ContrastRatio` en de regels van beslissing 11.
+- Use cases: `GetSettings` (beheerder), `ChangeSettings` (`PATCH /admin/settings`, beslissing 7), `GetPublicConfig`
+  (beslissing 12), `GetReminderLeadTime`, `GetApiTokenAccess`.
+- Tests: elke instelling weigert een verkeerde waarde met een veldfout; `null` zet de standaard terug; minimum en
+  maximum samen (maximum ≥ minimum, ook als maar één van beide verandert); de groepslink neemt alleen de twee hosts
+  van beslissing 4a over `https`; elke standaardkleur haalt de regels; een
+  te zwakke kleur geeft 422 `insufficient_contrast` met de verhoudingen; contrast tegen bekende paren uit WCAG; de
+  auditregel noemt alleen wat veranderde, teksten als `null → null`.
+- Een gewijzigd minimum geldt alleen voor nieuwe rondes (bestaande test van fase 1 blijft groen).
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - `PhoneNumber` en `InvalidPhoneNumber` staan in `Shared\Domain` (eigen commit): het contactnummer van de
+    vereniging volgt dezelfde regel als dat van een lid, en een Domain mag geen andere module gebruiken (regel 1);
+  - domein: `SettingName` (de catalogus, 22 instellingen, met `field()` als naam in de API), `Settings` (de set met
+    standaarden, `with()` controleert een wijziging tegen de hele set), `SettingValue` (opschonen per instelling),
+    `Color` met de contrastverhouding van WCAG 2.2, `BrandPalette` (beslissing 11), `GroupLink` met `GroupService`
+    (beslissing 4a) en de fouten `InvalidSetting`, `InvalidColor`, `InsufficientContrast` (met `setting`, `ratio`
+    naar beneden afgerond en `required`) en `InvalidGroupLink`, met titels in `nl` en `en`;
+  - `ContrastRatio` werd `Color::contrastWith()`; de verwachte verhoudingen in de tests zijn met de hand
+    nagerekend, met de grijzen net boven en net onder elke grens;
+  - de toegang met API-tokens heet `integrations.api_access` (`apiAccess`): een veldnaam met `token` weigert het
+    auditlog (vastgesteld in `AuditEntry`);
+  - een opgeslagen naam die niet (meer) in de catalogus staat, telt niet mee; een onbekende naam in een wijziging is
+    `InvalidSetting`;
+  - `GET /admin/settings` geeft elke instelling met de waarde die geldt, en `defaults` met de namen die op hun
+    standaard staan. Een tekst zonder eigen waarde toont de standaardtekst uit `translations/settings.{nl,en}.yaml`
+    (`StandardTexts`, met `TranslatedStandardTexts` in Infrastructure), zodat de beheerder bewerkt wat leden zien.
+    De spoedtekst noemt 112, 0900-8844, 14 met het netnummer van de gemeente en de groepsapp van de buurt, zonder
+    een echte gemeente;
+  - `PATCH /admin/settings` (`settings.change`) en `GET /admin/settings` (`settings.view`), beide alleen de
+    beheerder (`SettingsPolicy`, `SettingsVoter`). Eén auditregel `setting.changed` op onderwerp `settings` met het
+    nul-UUID (één set per installatie); contact, groepslink en teksten als `null → null`;
+  - een waarde gelijk aan de standaard wordt wel opgeslagen; `null` haalt de rij weg. `SettingRepository` kreeg
+    `all()` en `remove()`, zonder eigen query, dus zonder integratietest;
+  - `GetPublicConfig` volgt in T7, `GetReminderLeadTime` in T9 en de toegangscontrole in T10, elk met de taak die
+    hem gebruikt. Tot T10 slaat `apiAccess` alleen de keuze op;
+  - Mago staat 20 cases per enum toe; `SettingName` heeft een `@mago-expect` met de reden: de catalogus is bewust één
+    lijst;
+  - de Postman-collectie leest de instellingen, stuurt een lege patch en controleert de 422 voor een te lichte
+    primaire kleur; `docs/configuration.md` heeft een tabel met elke instelling.
+
+### T5. Basis-URL (test eerst)
+
+- `AppUrl` (beslissing 14). Tests: subdomein en pad, met en zonder slash aan het eind, geven dezelfde links.
+- `MailNotifier` en het manifest gebruiken `AppUrl`; de uitnodigingslink van fase 2 ook.
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - `AppUrl::fromString()` weigert alles behalve een `http`- of `https`-adres met host en hooguit een pad: een query
+    of fragment zou midden in elke link komen. Een verkeerde `DEFAULT_URI` geeft zo een fout zodra de app een
+    bericht verstuurt, in plaats van een mail met een kapotte link. Geen controle op `/public` (beslissing 14);
+  - `to()` zet precies één slash tussen basis en pad, met of zonder slash aan het eind van de basis of het begin
+    van het pad;
+  - `AppUrl` is een service uit `DEFAULT_URI` (`config/services.yaml`); `MailNotifier` maakt de uitnodigingslink
+    ermee. De manifestlinks komen in T7, met het manifest;
+  - de testkernel zet de basis op `https://example.org/buurtpreventie/`, dus elke mailtest bewijst dat het pad
+    meegaat (review-focus 5).
+
+### T6. Logo en icoon (test eerst)
+
+- `PUT` en `DELETE /admin/settings/images/{logo|icon}`, `GET /media/brand/{bestand}` (beslissingen 8 tot en met 10).
+- Tests: PNG en JPEG geven de afgeleide maten als PNG; te groot in bytes of pixels, geen beeld, een GIF, een SVG,
+  een WebP en een PNG met iets erachter worden geweigerd of gestript; de GPS-gegevens van een JPEG zijn weg;
+  extensie en het type uit de header tellen niet; een niet-vierkant of te
+  klein icoon geeft 422; de bestandsnaam volgt de inhoud; een oud bestand verdwijnt na de commit en niet bij een
+  rollback; `/media/brand/` geeft alleen een bestand dat een instelling noemt, met `nosniff` en een cache van een
+  jaar; `../` of een andere naam is 404.
+- Auditregel `setting.image_changed` (soort, oude en nieuwe bestandsnaam).
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - domein: `BrandImageKind` (logo en icoon, met de grenzen van beslissing 8 en de maten), `Rendition` (een kader
+    waarin het beeld past, nooit vergroot), `ImageFacts` (wat de kop en de magische bytes zeggen), `BrandImageFile`
+    (naam ↔ soort, maat en versie) en `UnsupportedImage` met `condition` (`format`, `file_size`, `too_large`,
+    `not_square`, `too_small`); `BrandImages` als interface, `FileBrandImages` en `GdBrandImageConverter` in
+    Infrastructure;
+  - **één versie per upload**: de 16 hex-tekens komen van de SHA-256 van het geüploade bestand, en alle maten delen
+    die versie (`logo-512-<versie>.png`, `logo-128-<versie>.png`). De instelling bewaart alleen de versie. Kleine
+    afwijking van beslissing 10 (een hash per bestand): de namen blijven per upload nieuw, en de instelling hoeft
+    geen lijst namen te dragen;
+  - het maillogo past binnen 512 × 128, niet alleen 128 hoog: een heel breed logo blijft zo binnen een mail;
+  - `brand.logo` en `brand.icon` staan in de catalogus (`SettingName::isUploaded()`), maar alleen een upload zet
+    ze: `PATCH` kent ze niet, en `defaults` van `GET /admin/settings` noemt ze niet. `SettingValue` neemt alleen een
+    versie aan;
+  - de auditregel noemt per instelling de oude en nieuwe versie (`{"brand.logo": {"old": …, "new": …}}`); dezelfde
+    upload nog eens verandert niets en schrijft geen regel; `DELETE` zonder upload ook niet;
+  - de bestanden worden vóór de transactie geschreven en de vorige pas na de commit verwijderd. Een rollback laat
+    de nieuwe bestanden ongebruikt staan; `/media/brand/` geeft ze niet, omdat geen instelling ze noemt;
+  - `PUT` leest hooguit 2 MB plus één byte van de body; meer is `file_size` zonder de rest te lezen. Een andere
+    soort dan `logo` of `icon` is 404 op de route;
+  - `GET /media/brand/{bestand}` is publiek (`security.yaml`), met `Cache-Control: public, max-age=31536000,
+    immutable` ook voor een ingelogd lid (Symfony maakt een antwoord na een sessie anders privé) en `nosniff` van
+    `ApiSecurityHeaders`;
+  - `symfony/filesystem` is een eigen afhankelijkheid (goedgekeurd op 16 november 2026; hij stond er al
+    indirect): `dumpFile()` schrijft elke maat via een tijdelijk bestand, `remove()` haalt een versie weg;
+  - het standaardicoon uit de repo komt in T7, met `/config` en het manifest die het noemen;
+  - GD negeert de draaiing die een telefoon in de metadata van een JPEG zet; `docs/configuration.md` zegt het;
+  - `UPLOAD_DIR` staat in `config/services.yaml` (standaard `var/uploads` in het project) en
+    `docs/configuration.md`;
+  - tests: domein (`BrandImageKindTest`, `RenditionTest`, `BrandImageFileTest`), de converter in memory met GD
+    (afgeleide maten, transparantie, GPS en een script achter een PNG weg, elke weigering), `FileBrandImagesTest`
+    (integratie, tijdelijke map), de drie handlers (ook rollback en dezelfde upload twee keer), `BrandImageEndpointTest`
+    en rijen in `HttpMatrixTest` (die ook een ruwe body kan sturen); de Postman-collectie stuurt tekst als logo (422)
+    en vraagt een beeld dat geen instelling noemt (404).
+
+### T7. `/config` en manifest (test eerst)
+
+- Tests: `/config` zonder sessie heeft `contact` en `group` met `null`-waarden, met sessie of token de waarden, en
+  `group.service` volgt de host; teksten in de
+  taal van de vereniging; het manifest heeft `start_url` en `scope` op het pad van de basis-URL plus `/app/`,
+  zonder `/public/` (review-focus 5), iconen 192 en 512 en het juiste mediatype.
+- OpenAPI voor beide; `OpenApiCoverageTest` en de Postman-collectie.
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - **het standaardicoon tekent GD** (besloten op 16 november 2026): `GdDefaultBrandIcon` tekent een wit huisje op
+    de standaard primaire kleur, over het hele vlak (een telefoon snijdt het bij tot elke vorm), en de converter van
+    T6 maakt er de vier maten van. Geen binaire bestanden in Git. `/media/brand/` geeft het onder de vaste versie
+    `BrandImageKind::defaultVersion()` zolang er geen icoon is geüpload; die versie gaat omhoog als de tekening
+    verandert. Zonder logo is `logoUrl` null en toont de frontend de naam;
+  - `AppUrl::pathTo()` geeft een link als pad vanaf de root van de host (`/buurtpreventie/app/`): `/config` en het
+    manifest geven elk beeld en `start_url` en `scope` zo, dus ze werken op elke host die de app serveert;
+  - `/config` heeft de kleuren plat (`primaryColor` enz., zoals `/admin/settings`), `logoUrl`, `icons` (maat en pad),
+    `welcomeText` en `emergencyText` in de taal van de vereniging (zonder eigen tekst de standaardtekst), en
+    `contact` en `group` met vaste sleutels, beide alleen voor een ingelogd lid. `group` stond eerst voor iedereen
+    in `/config`; na T9 is dat teruggezet naar alleen ingelogd (beslissing 4a, besloten op 16 november 2026);
+  - het manifest heeft de sleutels van de W3C-standaard (`short_name`, `start_url`, …); de controller schrijft ze uit
+    een output in camelCase, en OpenAPI beschrijft het antwoord als object zonder eigenschappen, zodat
+    `OpenApiNamingTest` blijft gelden. Iconen 192 en 512, `background_color` wit, `theme_color` primair licht;
+  - `ProblemResponsesProcessor` en `OpenApiCoverageTest` kennen `/config`, het manifest en `/media/brand/` als
+    publiek, ook `/media/brand/` uit T6, waarvoor de beschrijving anders een 401 en 403 noemt die het nooit geeft;
+  - tests: `AppUrlTest` (pad), `GdDefaultBrandIconTest`, de handlers (bezoeker, sessie, taal, beelden),
+    `PublicConfigEndpointTest` (bezoeker, sessie, token, manifest onder het pad zonder `/public/`, en elk icoon uit
+    het manifest is op te halen) en rijen in `HttpMatrixTest`; de Postman-collectie leest `/config` als bezoeker,
+    het icoon dat het noemt en het manifest.
+
+### T8. E-mails (test eerst)
+
+- `MailComposer`, layout en een composer per type (beslissingen 16 tot en met 21), teksten in
+  `translations/mail.{nl,en}.yaml`, startpunt de v3-teksten (vastgesteld 15), Nederlands op B1.
+- Tests per type: onderwerp, HTML en tekst bestaan in `nl` en `en`; de link naar de ronde gebruikt `AppUrl` met een
+  basis in een pad (review-focus 5); geen namen van andere lopers, telefoon, adres of notitie (review-focus 3); de
+  inlogcode staat niet in het onderwerp; zonder logo de naam als tekst, met logo een `cid:`-bijlage; `Reply-To`
+  alleen met een contactadres; elk type uit `src/` heeft een composer.
+- Een nieuwe vertaling heeft een sleutel in beide talen (bestaande dekkingstest uitbreiden).
+- Met de hand: elke mail in Mailpit, licht en donker, op een smal scherm.
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - `Shared\Domain\Branding` (naam, afzendernaam, primaire kleur, taal, maillogo, contactadres), met
+    `SettingsBranding` in Settings; `MailComposer`, `MailComposers`, `MailRenderer`, `ComposedMail` en
+    `LocalDateText` in `Shared\Infrastructure\Mail` (regel 5 laat Twig daar toe); een composer per type in de module
+    die het bericht stuurt;
+  - `LoggingNotifier` is weg: elk type heeft een mail, en een type zonder composer is een `LogicException`, die
+    `AfterCommitNotifier` logt. `MailNotifierTest` legt elk type uit `src/` naast de composers;
+  - **`round.cancelled` krijgt `startsAt`** (kleine afwijking van vastgesteld 2, waar een bericht alleen ids
+    draagt): de ronde is verwijderd als de mail geschreven wordt;
+  - teksten in `translations/mail+intl-icu.{nl,en}.yaml` (ICU, voor het meervoud: "Er loopt 1 ander mee", "Er lopen
+    2 anderen mee"); `mail.{nl,en}.yaml` is weg. Startpunt de v3-teksten, zonder de namen van andere lopers
+    (beslissing 19). Datums voluit op de lokale klok: "vrijdag 20 november om 22:00";
+  - een herinnering noemt per ronde datum, tijd, dagdeel, startpunt en hoeveel anderen meelopen, en of de ronde
+    een loopmaatje zoekt; "zoekt een loopmaatje" noemt hoeveel lopers er zijn, waarom het lid de mail krijgt en
+    linkt naar `app/#/account`. Rondes linken naar `app/#/rounds/<id>`; die routes bouwt fase 5;
+  - layout: tabellen met stijlen inline, `color-scheme` licht en donker, knop in de primaire kleur met witte tekst
+    (dezelfde 4,5 : 1 als tekst op wit), logo als `cid:` met de naam als alt-tekst, zonder logo de naam als tekst.
+    De voettekst zegt van welke app de mail komt, en of je kunt antwoorden (alleen met een contactadres);
+  - `TranslationKeysTest` (nieuw, geen bestaande dekkingstest): elk vertaalbestand heeft in `nl` en `en` dezelfde
+    sleutels;
+  - tests: `MailNotifierTest` (inlogcode niet in het onderwerp, taal, afzender, `Reply-To`, logo of naam,
+    uitnodigingslink onder het pad, elk type heeft een mail) en `RoundMailsTest` (onderwerp en tijd in `nl` en `en`
+    per type, link onder het pad, geen namen, telefoon, adres, e-mailadres of notitie, aantallen);
+  - met de hand in Mailpit, licht en donker en smal: nog niet gedaan, hoort bij T15.
+
+### T9. Herinnering N dagen vooraf (test eerst)
+
+- `SendReminders` leest `GetReminderLeadTime` (beslissing 22). Tests: 1 en 3 dagen vooraf, en rond de tijdwissel
+  (review-focus 2: een ronde om 22:00 blijft 22:00 in de mail).
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - `GetReminderLeadTime` in Settings (zonder controller of tool, alleen voor andere modules), en
+    `SendRemindersHandler` telt zoveel `LocalDay::next()` vooruit;
+  - een deelname onthoudt haar herinnering, dus wie zich later aanmeldt dan N dagen vooraf, krijgt er geen.
+    `docs/configuration.md` zegt het; een tweede herinnering vlak voor de ronde valt buiten deze fase;
+  - tests: 1 dag (bestaand) en 3 dagen vooruit, 3 dagen vooruit over de zomertijdwissel van 28 maart 2027, en in
+    `RoundMailsTest` dat een ronde om 22:00 op die dag als 22:00 in de mail staat.
+
+### T10. Schakelaar voor API-tokens (test eerst)
+
+- Tests: uit weigert een geldig token bij het eerstvolgende verzoek, met reden in het log; uit weigert een nieuw
+  token met 409; intrekken en bekijken werken; aan werkt zoals ervoor (beslissing 23).
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - `GetApiTokenAccess` in Settings (zonder controller of tool, alleen voor andere modules, zonder Voter: hij wordt
+    gelezen vóór er iemand is ingelogd), met `allowed` uit `integrations.api_access`;
+  - `ApiTokenAuthenticator` leest de schakelaar als eerste stap, vóór het token wordt opgezocht: uit weigert hij elk
+    verzoek met reden `tokens_disabled` (nieuw in `TokenRefusal`), zonder `markUsed()`;
+  - `CreateApiToken` gooit `ApiTokensDisabled` (409 `api_tokens_disabled`, titel in `nl` en `en`) na de
+    Voter-controle en vóór de eis van een recente login, zodat een lid niet eerst opnieuw inlogt om dan een 409 te
+    krijgen. `ListApiTokens` en `RevokeApiToken` lezen de schakelaar niet;
+  - OpenAPI noemt de 409 bij `POST /me/tokens` vanzelf (`ProblemResponsesProcessor`); de Postman-collectie zet de
+    schakelaar niet om, omdat ze tegen de lokale database draait en een vergeten `true` elk token blokkeert;
+  - tests: `GetApiTokenAccessHandlerTest`, `CreateApiTokenHandlerTest` (uit maakt niets en schrijft geen
+    auditregel), `ApiTokenAuthenticatorTest` (uit weigert een geldig token, ook vanaf het eerstvolgende verzoek
+    in dezelfde client) en `ApiTokenEndpointsTest` (409, en lijst en intrekken werken als de schakelaar uit staat).
+
+### T11. Hashketen (test eerst)
+
+- Migratie (alleen toevoegen): kolommen, tabel `audit_chain`, bestaande regels genummerd achter het anker
+  (beslissingen 25 en 29); `down()` werkt.
+- Keten bij de commit, HMAC over de vaste lijst, wissen van gewijzigde velden, `pruneThrough()`, `VerifyAuditChain`
+  en `app:audit:verify` (beslissingen 24 tot en met 31).
+- Tests: een gewijzigde actie, tijdstip, uitvoerder, gewijzigd veld of hash wordt aangewezen; een verwijderde en een
+  tussengevoegde regel ook; een verwisselde volgorde; wissen breekt de keten niet en laat geen weergavenaam achter;
+  opruimen breekt de keten niet; een rollback laat geen volgnummer of regel achter; geen sleutel geeft een fout,
+  geen regel zonder hash; twee gelijktijdige schrijfacties (twee processen, zoals review-focus 1) geven aaneengesloten
+  nummers en een kloppende keten, op MariaDB en MySQL; een transactie die een ronde vergrendelt en een auditregel
+  schrijft, loopt niet vast tegen een tweede.
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - `Transaction::beforeCommit()` (eigen commit) draait als laatste stap binnen de buitenste run, vóór Doctrine
+    flusht; een callback die een andere toevoegt, draait mee, en buiten een run is het een `LogicException`, omdat
+    een slot daar meteen weer vrijkomt. `ImmediateTransaction` volgt dezelfde volgorde;
+  - **`DoctrineAuditTrail` heet `ChainedAuditTrail`** en staat in `Audit\Infrastructure` (kleine afwijking van
+    beslissing 24): hij gebruikt Doctrine niet meer zelf, maar de repository, `Transaction` en `ChainHasher`, zodat
+    hij in memory te testen is. Elke `record()` meldt één `beforeCommit`-stap aan: kop vergrendelen, regel koppelen,
+    opslaan. Zo is er geen lijst wachtende regels die na een rollback kan blijven hangen;
+  - domein: `ChainLink` (volgnummer en hash), `ChainHasher` (met `HmacChainHasher` in Infrastructure, compacte JSON),
+    `AuditEntry::link()`, `linksTo()`, `hasIntactChanges()` en `eraseChanges()`, en `ChainVerifier` met `ChainReport`,
+    `ChainBreak` en `ChainBreakReason` (`changed_content`, `missing_entry`, `inserted_or_relinked`, `head_mismatch`).
+    Een regel waarvan de hash niet past, beoordeelt de controle op de volgende regel of de kop: linkt die naar zijn
+    opgeslagen hash, dan veranderde een waarde; anders is hij tussengevoegd, hernummerd of verplaatst. Wie een regel
+    weghaalt, de rest hernummert en ook de kop bijwerkt, krijgt de melding "waarde veranderd" (het volgnummer is een
+    waarde); de regel die wordt aangewezen klopt in beide gevallen;
+  - `audit_chain` is een entiteit (`AuditChainMark`), zodat `doctrine:schema:validate` en het leegmaken door de
+    voorbeelddata de tabel kennen. Vergrendelen gaat met `refresh()` en `PESSIMISTIC_WRITE`, omdat de kopie in de
+    entity manager ouder kan zijn; `append()` en `pruneThrough()` flushen meteen, anders leest het volgende slot in
+    dezelfde transactie de kop van vóór de wijziging. Ontbreekt een rij (na het leegmaken door de voorbeelddata), dan
+    begint de keten opnieuw bij 0 (kleine afwijking: het plan noemt alleen de rijen uit de migratie);
+  - de migratie nummert bestaande regels met `ROW_NUMBER()` op tijdstip en id, zet anker en kop op de laatste, en
+    `down()` haalt kolommen en tabel weg. `AuditChainMigrationTest` dekt het, met de migraties in een eigen proces;
+  - `EraseActorName` wist naam en gewijzigde velden (`eraseChangesAbout()`); `VerifyAuditChain` (alleen het systeem,
+    `audit.verify`) leest kop, anker en regels in één transactie, dus uit één momentopname, per 500;
+  - `app:audit:verify` in `Audit\Infrastructure\Console` meldt "intact tot en met regel N (tijdstip)" of de eerste
+    breuk met de reden, het laatste volgnummer om te noteren (beslissing 32), en apart de regels met gewiste inhoud
+    en die van vóór de keten. Exitcode 0 of 1;
+  - `AUDIT_SECRET` staat in `config/services.yaml` zonder standaard; een lege sleutel is een `LogicException`, net als
+    bij `APP_SECRET` voor inlogcodes. `.env.test` heeft een publieke waarde (door de ontwikkelaar toegevoegd: de
+    rechten van Claude staan geen bewerking van `.env.test` toe), CI maakt hem per run;
+  - tests: domein (`ChainLinkTest`, `AuditEntryChainTest`, `ChainVerifierTest` met `TamperedEntry`, een kopie met
+    vervangen waarden via reflectie), `HmacChainHasherTest`, `ChainedAuditTrailTest` (in memory),
+    `VerifyAuditChainHandlerTest` (ook over de grens van een batch), `VerifyAuditChainCommandTest`, en als
+    databasetests `ChainedAuditTrailDatabaseTest`, `DoctrineAuditEntryRepositoryTest`, `AuditChainMigrationTest`,
+    `VerifyAuditChainDatabaseTest` (wijzigen en verwijderen met SQL, wissen, opruimen) en `ConcurrentAuditChainTest`.
+    Zonder het slot op de kop faalt die laatste (met de hand nagegaan); op MySQL draait hij alleen in CI;
+  - ADR 0007 volgt in T14; `app:audit:verify` na het laden van de voorbeelddata in T12.
+
+### T12. Voorbeelddata (test eerst)
+
+- `demo` krijgt de inrichting van "Buurtpreventie Voorbeeldwijk" via `ChangeSettings` (plan, Voorbeelddata), met
+  eigen kleuren en een verzonnen logo dat de fixture met GD tekent; `edge` krijgt een korte en een lange naam.
+- De rooktest per set blijft groen; na laden meldt `app:audit:verify` een intacte keten.
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - `SettingsSteps` voert `ChangeSettings` en `ChangeBrandImage` uit als de beheerder, op het moment van de tijdlijn,
+    zoals `MemberSteps` en `PatrolSteps` dat voor leden en rondes doen;
+  - `demo`: naam "Buurtpreventie Voorbeeldwijk", korte naam "Voorbeeldwijk", groen en amber (`#2f6b3a`, `#a14f00`,
+    donker `#9ad3a5`, `#f0a04b`; elk boven de vereiste verhouding) en de coördinator als contact. `SampleBrand` tekent
+    met GD een huis en een maansikkel: een breed logo met transparante achtergrond en een vierkant icoon. **Ook het
+    icoon wordt geüpload** (kleine aanvulling op het plan, dat alleen een logo noemt): anders toont het manifest het
+    standaardicoon in de standaardkleur naast de eigen kleuren. Geen groepslink: een verzonnen uitnodiging wijst toch
+    naar een echte dienst;
+  - `edge`: een naam van precies 100 tekens (de grens) en korte naam "BP";
+  - de keten na laden was al intact door T11 (leegmaken haalt kop en anker weg, de keten begint opnieuw); 
+    `LoadedSettingsAndChainTest` legt het per set vast, naast de inrichting van `demo` en de namen van `edge`, en CI draait `app:audit:verify` na elke
+    set. Het volgnummer volgt de volgorde van schrijven, niet de tijd: de laatste regel van `demo` is het API-token,
+    gedateerd aan het begin van de tijdlijn;
+  - de uploads uit de fixturetest komen in `UPLOAD_DIR`, ook in `test` (standaard `var/uploads`); de inhoud is vast,
+    dus het zijn steeds dezelfde bestanden als die van `demo` in `dev`.
+
+### T13. Opengrep-regels
+
+Per regel eerst het testbestand, dan de regel (beslissing 35). Lokaal gedraaid zoals in T16 van fase 2.
+
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - `client-file-metadata` vangt de vier methoden op elke ontvanger; `getClientIp()` blijft vrij;
+  - `twig-autoescape-disabled` is één generieke regel met een reguliere expressie voor `.twig`, `.yaml` en `.yml`:
+    `{% autoescape false %}` (ook met `-` en extra spaties) en `autoescape: false` (ook tussen aanhalingstekens of in
+    hoofdletters). Zijn tests staan in een `.twig`- en een `.test.yaml`-bestand; Opengrep draait beide (nagegaan door
+    het YAML-deel van de regel stuk te maken);
+  - `mailer-outside-notifier` herkent de mailer aan de naam: `send()` op een property of variabele met `mailer` in de
+    naam, buiten `src/Shared/Infrastructure/Notification/`. Op type matchen kan Opengrep in PHP niet; een mailer onder
+    een andere naam ontgaat de regel, wat de review moet vangen;
+  - de scan vond één bevinding van een bestaande regel in code van deze fase: `byte-lowercase` op `Color::fromHex()`
+    (T4), nu `mb_strtolower()`; een kleur is ASCII, de uitkomst is gelijk;
+  - lokaal met Opengrep 1.33.1 (de versie die `tools/opengrep-release.php select` kiest) voor macOS, zonder
+    Cosign-verificatie, in de scratchpad: 15 van 15 regeltests groen, 0 bevindingen over `src`, `config`,
+    `templates`, `public`, `bin` en `tools`.
+
+### T14. ADR 0007 en documentatie
+
+- `docs/adr/0007-audit-hash-chain.md`: beslissingen 24 tot en met 32, met de grens uit 32.
+- `docs/architecture.md`: Settings, `Branding`, `AppUrl`, `MailComposer`, berichten na de commit, de keten, de vaste
+  achtergronden voor het contrast; `docs/configuration.md`: `UPLOAD_DIR`, `AUDIT_SECRET`, de instellingen en hun
+  grenzen (afbeeldingen, contrast, herinnering); `docs/testing.md`: de nieuwe tests en regels;
+  `docs/operations.md`: `AUDIT_SECRET` bij de back-up, `app:audit:verify`; `docs/glossary.md`: instelling,
+  huisstijl, hashketen, anker; `docs/gotchas.md`: wat opvalt.
+- `docs/plans/plan.md`: Fase 3 afvinken, de afwijkingen (beslissingen 2, 3, 5, 6, 8 en 17) bij Branding en
+  configuratie, de endpointtabel; `CHANGELOG.md`; `AGENTS.md` (Commands) voor `app:audit:verify`.
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - ADR 0007 beschrijft de keten uit de code (beslissingen 24 tot en met 32), met als gevolgen wat hij niet dekt: de
+    nieuwste regels met een teruggezette kop, wie de sleutel kan lezen, en de inhoud van een gewiste regel;
+  - `architecture.md` kreeg een alinea over de catalogus, het contrast tegen de vaste achtergronden (wit en `#121212`)
+    en de use cases waarmee andere modules een instelling lezen, en een verwijzing naar ADR 0007; `Branding`,
+    `AppUrl`, `MailComposer`, berichten na de commit en de keten stonden er al sinds hun taak;
+  - `configuration.md` dekte `UPLOAD_DIR`, `AUDIT_SECRET`, de instellingen en hun grenzen al sinds hun taak;
+  - `operations.md` kreeg een paragraaf over `app:audit:verify`, het laatste volgnummer noteren en `AUDIT_SECRET` in
+    de back-up; `testing.md` een paragraaf over de bewakende tests van mail, beelden en de keten;
+  - `glossary.md`: instelling, huisstijl, contrast, groepslink, hashketen, kop, anker en keten controleren;
+  - `gotchas.md`: de geheugengrens van PHPUnit, de verborgen transactie van de testbundel bij een slot, Mago die op
+    een waarschuwing faalt, Rector en `match`, een refresh met slot die niet-geflushte wijzigingen weggooit, en
+    `AUDIT_SECRET` zonder standaard;
+  - `plan.md`: de tabel van Branding en configuratie volgt de code (ook `AUDIT_SECRET`, `UPLOAD_DIR`, de groepslink,
+    de verklaringen als URL en de schakelaar), met de afwijkingen eronder; de voorbeeldinrichting is de set `demo` in
+    plaats van `docs/examples/`, dat niet bestaat; de endpointtabel noemt het manifest en de uploads.
+
+### T15. Verifiëren en opleveren
+
+- `composer test` zonder database, `symfony composer test` met database, `symfony composer check`, de Opengrep-tests
+  en de scan; uitvoer in het verslag, met elke check die niet draaide.
+- Met de hand: inrichting wijzigen en upload via `curl` tegen de demo, `/config` en het manifest lezen, elke mail in
+  Mailpit, `app:audit:verify`.
+- Push en pull request naar `develop` na akkoord; CI groen (alle jobs); merge als squash na akkoord.
+- Uitgevoerd op 16 november 2026 (verifiëren; opleveren na CI):
+  - `symfony composer check`: groen (validate, audit, YAML lint, deprecations, Mago format, lint en analyze, Rector,
+    PHPStan met PHPat, PHPUnit met database: 2507 tests); `composer test` zonder database: groen, 145 overgeslagen;
+  - Opengrep 1.33.1 lokaal (T13): 15 van 15 regeltests groen, 0 bevindingen;
+  - met de hand tegen de demo in de dev-database (geladen met akkoord), met `curl`: `/config` als bezoeker (`contact`
+    en `group` met `null`) en met het token van de demo (contact gevuld), het manifest (`application/manifest+json`,
+    `start_url` en `scope` op `/app/`), een icoon (cache van een jaar, `nosniff`; een onbekende versie en `../` geven
+    404), tekst als logo (422 `unsupported_image`, `format`), een te lichte kleur (422 `insufficient_contrast`, 1,71
+    tegen 4,5), een nieuw logo met een verkeerd `Content-Type` (204; de oude bestanden weg na de commit), `DELETE`
+    (`logoUrl` null) en het demologo terug; drie auditregels `setting.image_changed`; `app:audit:verify` intact tot en
+    met regel 327;
+  - vijf van de zes mails in Mailpit (inlogcode, uitnodiging, zoekt een loopmaatje, loper afgemeld, ronde gaat niet
+    door), via de API nagekeken: HTML en tekst, logo als `cid:`, `Reply-To` het contactadres, links onder
+    `DEFAULT_URI`, geen telefoonnummer of naam van een ander lid, de code niet in het onderwerp. De herinnering heeft
+    nog geen ingang (de scheduler volgt in fase 6a) en is alleen in de tests gerenderd;
+  - niet gedaan: de mails bekijken in licht, donker en smal (aan de ontwikkelaar, in Mailpit), MySQL (alleen in CI),
+    de Postman-collectie met Newman;
+  - **donkere modus in de mail** (gevonden in Mailpit, opgelost): de layout noemde `color-scheme` licht en donker,
+    maar had alleen lichte kleuren inline, dus een mailprogramma in donkere modus liet de mail licht. Een blok
+    `prefers-color-scheme: dark` met `!important` geeft nu een donkere pagina, `#121212` achter de tekst, de donkere
+    primaire kleur (via `Branding::primaryDarkColor()`) voor naam en links en een wit vlak achter het logo; de knop
+    houdt de lichte primaire kleur. `MailNotifierTest` dekt het;
+  - gezien, niet opgelost: het laden van `demo` verstuurt twee mails "te weinig lopers" over rondes uit de nagespeelde
+    historie, omdat elk bericht in deze fase een mail is; en een teruggedraaide upload (zoals in de fixturetest) laat
+    ongebruikte bestanden in `UPLOAD_DIR` staan, die niemand opruimt. Beide als open punt hieronder.
+
+## Afspraken
+
+1. Claude commit in deze privérepo, in kleine commits. Push, pull request en merge alleen na akkoord.
+   - Geen `cd`, `pushd`, `-C`, `--git-dir`, `--work-tree` of `GIT_DIR=` in dezelfde aanroep als `git add` of
+     `git commit`.
+   - Alleen de bestanden van die commit stagen, met letterlijke paden; daarna `git show --stat HEAD`.
+   - Merge als squash pas als CI groen is.
+2. `.env`, `.env.dev` en `.env.test` alleen lezen met `git show HEAD:<bestand>`; `.env.local`, `.env.*.local` en
+   `shared/.env.local` nooit lezen of committen.
+3. PHPUnit, `symfony console`, Mago, Rector, PHPStan, Composer, `git push` en `gh` draaien buiten de sandbox; logs
+   in de scratchpad.
+4. Database, Mailpit en server start de ontwikkelaar. Draait er één niet, dan meldt Claude welke en draait de tests
+   die hem nodig hebben niet. Voorbeelddata in de dev-database alleen na vragen.
+5. Nieuwe afhankelijkheden pas na akkoord op de tabel hierboven.
+6. Na elke taak wordt de tabel "Fasen en stand" in `docs/plans/plan.md` bijgewerkt.
+
+## Open punten
+
+Gemeld, niet in deze fase opgelost:
+
+- **`AUDIT_SECRET` vervangen** (bijvoorbeeld na een lek van `shared/.env.local`) vraagt een sleutel-id per regel of
+  een nieuw anker met de oude sleutel; dat volgt als het nodig blijkt, uiterlijk met Onderhoud in fase 6b.
+- **Bewaartermijnen** als instelling en het opruimen zelf (auditlog, inlogregels, eenmalige links) horen bij de
+  scheduler in fase 6a; `pruneThrough()` staat klaar.
+- **De laatste mailfout** voor Onderhoud bewaren hoort bij fase 6b.
+- **`integrations.mcp`** komt in fase 4.
+- **Een voorstel voor de standaardteksten** van privacy- en toegankelijkheidsverklaring, en het verwerkingsregister,
+  in `docs/privacy/` horen bij fase 6b (beslissing 5).
+- **`anonymisedAt`** uit beslissing 8 van fase 1 volgt in fase 5b of 6a.
+- **`.htaccess`, `shared/` en HSTS bij installatie** volgen met de mapindeling in fase 6a; `UPLOAD_DIR` wijst dan
+  naar `shared/uploads`.
+- **Het beheerscherm** voor de instellingen en de contrastmelding in gewone taal bouwt fase 5 op deze endpoints.
+- **Voorbeelddata versturen mail**: het nagespelen van de historie van `demo` stuurt berichten (zoals "te weinig
+  lopers") naar `example.org`-adressen in Mailpit. Een notifier die tijdens het laden niets verstuurt, kan erbij.
+- **Ongebruikte afbeeldingen** na een teruggedraaide upload blijven in `UPLOAD_DIR`; opruimen hoort bij Onderhoud of
+  de scheduler (fase 6a of 6b).

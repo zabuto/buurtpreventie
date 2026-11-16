@@ -32,7 +32,7 @@ These are not stored in files and must be set again on a fork or a recreated rep
 | Workflow | When | What |
 | --- | --- | --- |
 | `ci.yml`, checks job | Every pull request, every push to `develop` and `main` | `composer check` on PHP 8.4; see [testing.md](testing.md) |
-| `ci.yml`, database jobs "Database (MariaDB 10.11)" and "Database (MySQL 8.4)" | Same | A fresh `APP_SECRET` per run, migrations from an empty database, `doctrine:schema:validate`, every `down()` and up again, the database tests with `REQUIRE_DATABASE=1`, and every sample data set; see [testing.md](testing.md#database-tests) |
+| `ci.yml`, database jobs "Database (MariaDB 10.11)" and "Database (MySQL 8.4)" | Same | A fresh `APP_SECRET` and `AUDIT_SECRET` per run, migrations from an empty database, `doctrine:schema:validate`, every `down()` and up again, the database tests with `REQUIRE_DATABASE=1`, and every sample data set; see [testing.md](testing.md#database-tests) |
 | `ci.yml`, security scan job | Same | Opengrep with the rules in `.opengrep/rules/`; see [testing.md](testing.md#security-scan) |
 | `weekly.yml`, audit job | Monday 05:00 UTC and by hand | `composer audit` on `develop`; opens an issue on an advisory |
 | `weekly.yml`, look-ahead job | Same | Newest Symfony 8 on PHP 8.5, all checks; opens an issue on failure. Blocks nothing |
@@ -79,8 +79,24 @@ Secrets never go into Git. Overview:
 | Secret | Where | Since |
 | --- | --- | --- |
 | `APP_SECRET` | `.env.local` locally, `shared/.env.local` on the server | phase 0 |
+| `AUDIT_SECRET` | `.env.local` locally, `shared/.env.local` on the server; in the backup, apart from the database backup, as without it the audit chain cannot be checked | phase 3 |
 
 Every new key (database, mail, tick, release signing) gets a row here.
+
+## Audit chain
+
+`symfony console app:audit:verify` checks that no entry in the audit log was changed, removed or inserted
+([ADR 0007](adr/0007-audit-hash-chain.md)). It reports the chain intact through an entry, or the first entry that does
+not hold with the reason, and exits with 1 then, so a cron job can mail a failure. On hosting without SSH, Maintenance
+(phase 6b) shows the same.
+
+- **Note the last position** the command prints, outside the server: someone who can change the database can remove
+  the newest entries and set the head back, which the chain itself cannot show.
+- **Keep `AUDIT_SECRET` in the backup**, apart from the database backup: without it the chain cannot be checked, and
+  with both in one place, whoever takes the backup can rebuild a chain that fits.
+- **Replacing the key is not built.** After a leak of `shared/.env.local`, the chain detects changes by anyone who
+  does not have the leaked key; replacing it needs a key id per entry or a new anchor.
+- Loading sample data empties the log and starts the chain afresh; that happens only in `dev` and `test`.
 
 ## PHP version
 
@@ -90,9 +106,10 @@ version. A new critical PHP vulnerability raises this minimum, in `require.php` 
 `config.platform.php`, followed by a patch release. Dependabot does not watch PHP itself, so this
 takes following the PHP security announcements.
 
-The extensions `intl` and `mbstring` are required as well: search keys strip accents with
-`Normalizer` and lower-case with `mb_strtolower`. Shared hosting enables both by default, but a
-hosting panel can switch them off; Composer's runtime check then refuses to start the app.
+The extensions `intl`, `mbstring`, `gd` and `fileinfo` are required as well: search keys strip accents
+with `Normalizer` and lower-case with `mb_strtolower`, and an uploaded logo or icon is checked with
+`fileinfo` and redrawn with `gd`. Shared hosting enables all four by default, but a hosting panel can
+switch them off; Composer's runtime check then refuses to start the app.
 
 With `expose_php` on, PHP names its exact version in an `X-Powered-By` header, which tells an
 attacker which known vulnerabilities to try. Set `expose_php = Off` in `php.ini` where the host

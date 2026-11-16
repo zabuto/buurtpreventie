@@ -23,7 +23,7 @@ Buurtpreventie v4 wordt een Symfony 7.4 LTS-backend met een echte REST-API (`/ap
 | 0 | Basis: skelet, CI, docs, codescan | klaar, in `develop` |
 | 1 | Domein, use cases, Voters, auditlog, database, voorbeelddata | klaar, in `develop`; T13 naar fase 5b |
 | 2 | REST-API v1 met inloggen en API-tokens | klaar, in `develop` |
-| 3 | Branding en configuratie | open |
+| 3 | Branding en configuratie | in uitvoering: T1–T14 klaar, T15 open (`docs/plans/phase-3.md`) |
 | 4 | MCP-server | open |
 | 5 | Frontend (Lit, PWA, WCAG 2.2 AA) | open |
 | 5b | Conversie v3 → v4 | open |
@@ -463,7 +463,7 @@ Regels die daaruit volgen:
 
 | Groep | Endpoints | Wie |
 | --- | --- | --- |
-| Publiek | `GET /config` (branding, teksten, minimum- en maximumaantal lopers) | iedereen |
+| Publiek | `GET /config` (huisstijl, teksten, minimum- en maximumaantal lopers; contact en groepslink alleen voor een ingelogd lid), `GET /manifest.webmanifest` | iedereen |
 | Sessie | `POST /auth/login`, `POST /auth/logout`, `POST /auth/confirm` (opnieuw bevestigen; geen aparte wachtwoord-reset, zie Fase 2) | iedereen |
 | Eigen account | `GET/PATCH /me`, `PUT /me/password`, `GET/POST/DELETE /me/tokens` | lid |
 | Rondes | `GET /rounds?from=&to=&status=`, `GET /rounds/{id}`, `POST /rounds`, `PATCH /rounds/{id}`, `DELETE /rounds/{id}`, `POST /rounds/{id}/cancellation`, `GET /staffing-gaps` | lid leest; loper maakt aan; coördinator wijzigt/verwijdert/annuleert |
@@ -472,7 +472,7 @@ Regels die daaruit volgen:
 | Leden | `GET /members` (contactgegevens alleen bij toestemming) | lid |
 | Keuzelijsten | `GET /meeting-points`, `GET /outcomes` (alleen niet gearchiveerd) | lid |
 | Analyse | `GET /reports?from=&to=&outcome=`, `GET /stats?period=` | analist |
-| Beheer | `/admin/members` (CRUD, rollen, (de)activeren, uitnodiging), `/admin/meeting-points`, `/admin/outcomes` (met archiveren en terugzetten), `/admin/settings` | beheerder; uitnodigen ook coördinator |
+| Beheer | `/admin/members` (CRUD, rollen, (de)activeren, uitnodiging), `/admin/meeting-points`, `/admin/outcomes` (met archiveren en terugzetten), `GET/PATCH /admin/settings`, `PUT/DELETE /admin/settings/images/{logo\|icon}` | beheerder; uitnodigen ook coördinator |
 | Systeem | `POST /system/tick` (geheime sleutel; draait herinneringen) | cron |
 | Inloggen per e-mail | `POST /auth/login-code`, `POST /auth/login-code/verify` (code van zes cijfers), `POST /auth/invitation` (uitnodiging) | iedereen |
 | Namens een loper | `PUT /rounds/{id}/walkers/{memberId}`, `DELETE /rounds/{id}/walkers/{memberId}` | coördinator |
@@ -665,23 +665,30 @@ De repo bevat geen enkele verwijzing naar een specifieke vereniging: technische 
 
 | Instelling | Waar | Voorbeeld / standaard |
 | --- | --- | --- |
-| Database, mail, geheime sleutels, basis-URL | `.env.local` | `DATABASE_URL`, `MAILER_DSN`, `APP_SECRET`, `TICK_SECRET` |
+| Database, mail, geheime sleutels, basis-URL | `.env.local` | `DATABASE_URL`, `MAILER_DSN`, `MAILER_FROM`, `APP_SECRET`, `AUDIT_SECRET`, `DEFAULT_URI`, `UPLOAD_DIR`, `TICK_SECRET` |
 | Naam vereniging, korte naam | `Setting` | "Buurtpreventie" |
-| Logo, favicon, app-icoon | `Setting` + upload naar `shared/uploads/brand/`, geserveerd via `GET /media/brand/{bestand}` | neutraal standaardlogo in repo |
-| Kleuren (primair, accent) | `Setting` → CSS custom properties | toegankelijk contrast gecontroleerd bij opslaan |
-| Afzender e-mail en ondertekening | `Setting` | valt terug op `.env` |
-| Contact coördinator (naam, e-mail, telefoon) | `Setting` | leeg |
-| Teksten: welkom, "wat te doen bij spoed" (112, 14040, app), privacyverklaring-URL | `Setting` (Markdown, per taal) | neutrale Nederlandse standaardtekst |
+| Logo en app-icoon (de favicon komt uit het icoon) | `Setting` + upload naar `UPLOAD_DIR` (`shared/uploads/brand/`), geserveerd via `GET /media/brand/{bestand}` | geen logo (de naam als tekst); een icoon dat de app zelf tekent |
+| Kleuren (primair en accent, voor licht en donker) | `Setting` → CSS custom properties | contrast gecontroleerd bij opslaan, tegen wit en `#121212` |
+| Afzendernaam van de e-mail | `Setting`; het afzenderadres blijft `MAILER_FROM` | de naam van de vereniging |
+| Contact coördinator (naam, e-mail, telefoon) en de groepslink (WhatsApp of Signal) | `Setting`, alleen voor ingelogde leden in `/config` | leeg |
+| Teksten: welkom, "wat te doen bij spoed" | `Setting` (platte tekst, per taal) | neutrale standaardtekst in `nl` en `en` |
+| Privacyverklaring en toegankelijkheidsverklaring | `Setting` (URL naar een pagina van de vereniging) | leeg |
 | Minimum- en maximumaantal lopers, herinnering N dagen vooraf | `Setting` | 2, 7 en 1 |
-| Taal, tijdzone | `Setting` | `nl`, `Europe/Amsterdam` |
+| Taal | `Setting` | `nl` |
+| API-tokens aan of uit | `Setting` | aan |
+
+Afwijkingen in fase 3 (`docs/plans/phase-3.md`, beslissingen 2, 3, 5, 6, 8 en 17): de tijdzone is geen instelling
+(elke regel over dagdelen en kalenderdagen rekent in `Europe/Amsterdam`); teksten zijn platte tekst, geen Markdown;
+privacy- en toegankelijkheidsverklaring zijn een URL; vertalingen overschrijven per vereniging valt af; twee uploads
+(logo en icoon) in plaats van drie; het afzenderadres is geen instelling, alleen de afzendernaam.
 
 Hoe het doorwerkt:
 
 - `GET /api/v1/config` levert het publieke deel; de frontend zet kleuren als CSS-variabelen en toont logo en teksten.
 - `manifest.webmanifest` wordt uit dezelfde instellingen gegenereerd (naam, icoon, themakleur), zodat de app op een telefoon met de eigen naam op het beginscherm komt.
 - E-mails blijven server-side Twig-templates met dezelfde branding.
-- Vertalingen: `nl` en `en` voor API-meldingen, e-mails en frontend; een vereniging kan losse teksten overschrijven zonder vertaalbestanden aan te passen.
-- Een voorbeeldconfiguratie staat in `docs/examples/`, niet in de code.
+- Vertalingen: `nl` en `en` voor API-meldingen, e-mails en frontend; wat een vereniging zelf wil zeggen, staat in de instellingen.
+- Een voorbeeldinrichting staat in de voorbeeldset `demo` ("Buurtpreventie Voorbeeldwijk"), gezet via dezelfde instellingen en uploads, niet in de code.
 
 ## Beveiligingsupdates en zelf bijwerken
 
@@ -811,10 +818,10 @@ Fase 3, 4 en 5 hangen alleen van de API af; MCP (fase 4) gaat vóór de frontend
 
 ### Fase 3 — Branding en configuratie
 
-- [ ] `Setting`-repository met standaardwaarden, `/admin/settings`, logo-upload, `GET /config`, `manifest.webmanifest`.
-- [ ] E-mailtemplates (uitnodiging, inlogcode, herinnering, nieuwe ronde zoekt loopmaatje, loopmaatje afgemeld) met branding en `nl`/`en`; altijd met een tekstversie, geen informatie die alleen in een afbeelding staat, en zo min mogelijk persoonsgegevens in de mail zelf.
-- [ ] Berichten gaan pas na de commit uit, niet binnen de transactie; een test bewijst dat een teruggedraaide wijziging niets verstuurt.
-- [ ] Hashketen in het auditlog (beslissing 16 van fase 1, besloten op 16 november 2026), vóór de conversie van fase 5b, die de eerste echte regels schrijft. Hij maakt geknoei zichtbaar voor wie de database kan wijzigen maar niet bij de bestanden kan, zoals bij een SQL-injectie of een gelekte databaselogin; wie ook bij de bestanden kan, houdt hij niet tegen.
+- [x] `Setting`-repository met standaardwaarden, `/admin/settings`, logo-upload, `GET /config`, `manifest.webmanifest`. De uitwerking staat in `docs/plans/phase-3.md`; de afwijkingen staan bij Branding en configuratie.
+- [x] E-mailtemplates (uitnodiging, inlogcode, herinnering, nieuwe ronde zoekt loopmaatje, loopmaatje afgemeld) met branding en `nl`/`en`; altijd met een tekstversie, geen informatie die alleen in een afbeelding staat, en zo min mogelijk persoonsgegevens in de mail zelf.
+- [x] Berichten gaan pas na de commit uit, niet binnen de transactie; een test bewijst dat een teruggedraaide wijziging niets verstuurt.
+- [x] Hashketen in het auditlog, vastgelegd in [ADR 0007](../adr/0007-audit-hash-chain.md) (beslissing 16 van fase 1, besloten op 16 november 2026), vóór de conversie van fase 5b, die de eerste echte regels schrijft. Hij maakt geknoei zichtbaar voor wie de database kan wijzigen maar niet bij de bestanden kan, zoals bij een SQL-injectie of een gelekte databaselogin; wie ook bij de bestanden kan, houdt hij niet tegen.
   - **HMAC-SHA-256 met een eigen sleutel** `AUDIT_SECRET` in `shared/.env.local`, buiten de database en los van `APP_SECRET`, zodat het vervangen van `APP_SECRET` de keten niet breekt. Zonder sleutel is een geldige keten niet na te maken. De installer van fase 6a maakt de sleutel aan, zoals de andere geheimen.
   - **De hash dekt alleen wat nooit verandert**: id, tijdstip, lid-id, actie, onderwerp en kanaal, plus de hash van de vorige regel. De naam van de uitvoerder valt erbuiten, zodat wissen hem kan vervangen door "verwijderd lid".
   - **De gewijzigde velden krijgen een eigen hash**, en de keten loopt over die hash. Wissen haalt de inhoud weg en laat de hash staan: van die regel is de inhoud dan niet meer te controleren, de keten wel.

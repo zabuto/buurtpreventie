@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Membership\UseCase\ChangeOwnContactDetails;
 
-use App\Membership\Domain\InvalidPhoneNumber;
 use App\Membership\Domain\Member;
 use App\Membership\UseCase\ChangeContactConsent\ChangeContactConsentHandler;
 use App\Membership\UseCase\ChangeOpenRoundNotifications\ChangeOpenRoundNotificationsHandler;
@@ -13,6 +12,7 @@ use App\Membership\UseCase\ChangeOwnContactDetails\ChangeOwnContactDetailsHandle
 use App\Shared\Domain\AccessDenied;
 use App\Shared\Domain\Actor;
 use App\Shared\Domain\AuditedAction;
+use App\Shared\Domain\InvalidPhoneNumber;
 use App\Tests\Membership\Fake\InMemoryMemberRepository;
 use App\Tests\Membership\Fake\MemberFixture;
 use App\Tests\Shared\Fake\FakeAuthorization;

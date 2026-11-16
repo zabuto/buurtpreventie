@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="{{ locale }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>{{ subject }}</title>
+{# Inline styles carry the light colours, as some mail programs drop a style block; programs that follow dark mode
+   read this block, and !important lets it win over the inline styles. #}
+<style>
+@media (prefers-color-scheme: dark) {
+  .bp-page { background:#000000 !important; }
+  .bp-card { background:#121212 !important; }
+  .bp-text { color:#e5e7eb !important; }
+  .bp-muted { color:#a1a1aa !important; border-top-color:#3f3f46 !important; }
+  .bp-brand { color:{{ brand.darkColor }} !important; }
+  .bp-logo { background:#ffffff !important; padding:8px !important; border-radius:6px !important; }
+}
+</style>
+</head>
+<body class="bp-page" style="margin:0;padding:0;background:#f4f4f5;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="bp-page" style="background:#f4f4f5;">
+<tr>
+<td align="center" style="padding:24px 12px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="bp-card" style="max-width:600px;background:#ffffff;border-radius:8px;">
+<tr>
+<td style="padding:24px 24px 0 24px;">
+{% if brand.hasLogo %}
+<img src="cid:logo" alt="{{ brand.name }}" class="bp-logo" style="display:block;max-width:100%;height:auto;max-height:64px;border:0;">
+{% else %}
+<p class="bp-brand" style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:20px;font-weight:bold;color:{{ brand.color }};">{{ brand.name }}</p>
+{% endif %}
+</td>
+</tr>
+<tr>
+<td class="bp-text" style="padding:16px 24px 24px 24px;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.5;color:#1f2937;">
+{% block content %}{% endblock %}
+</td>
+</tr>
+<tr>
+<td class="bp-muted" style="padding:16px 24px 24px 24px;border-top:1px solid #e5e7eb;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5;color:#4b5563;">
+<p style="margin:0;">{{ 'layout.from'|trans({name: brand.name}, 'mail', locale) }} {{ (brand.canReply ? 'layout.reply' : 'layout.no_reply')|trans({}, 'mail', locale) }}</p>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+</body>
+</html>

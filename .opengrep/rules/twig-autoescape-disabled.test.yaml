@@ -1,0 +1,14 @@
+twig:
+    # ruleid: twig-autoescape-disabled
+    autoescape: false
+    strict_variables: true
+
+when@prod:
+    twig:
+        # ruleid: twig-autoescape-disabled
+        autoescape: 'false'
+
+when@dev:
+    twig:
+        # ok: twig-autoescape-disabled
+        autoescape: name

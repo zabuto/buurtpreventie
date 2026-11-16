@@ -22,6 +22,8 @@ use App\Patrol\Infrastructure\Security\CommentVoter;
 use App\Patrol\Infrastructure\Security\ParticipationVoter;
 use App\Patrol\Infrastructure\Security\ReportVoter;
 use App\Patrol\Infrastructure\Security\RoundVoter;
+use App\Settings\Domain\SettingsPolicy;
+use App\Settings\Infrastructure\Security\SettingsVoter;
 use App\Shared\Domain\Role;
 use App\Shared\Infrastructure\Security\MemberUser;
 use App\Shared\Infrastructure\Security\SystemUser;
@@ -65,6 +67,9 @@ final class AuthorizationMatrixTest extends TestCase
         yield 'audit.erase_actor_name' => ['audit.erase_actor_name', static fn(Uuid $actor): Uuid => Uuid::v7(), ['admin']];
         yield 'audit.view_round_history' => ['audit.view_round_history', static fn(Uuid $actor): Uuid => Uuid::v7(), ['coordinator']];
         yield 'audit.view' => ['audit.view', static fn(Uuid $actor): null => null, ['admin']];
+        yield 'audit.verify' => ['audit.verify', static fn(Uuid $actor): null => null, ['system']];
+        yield 'settings.view' => ['settings.view', static fn(Uuid $actor): null => null, ['admin']];
+        yield 'settings.change' => ['settings.change', static fn(Uuid $actor): null => null, ['admin']];
     }
 
     /**
@@ -236,6 +241,7 @@ final class AuthorizationMatrixTest extends TestCase
             new ApiTokenVoter($credentialPolicy),
             new AccountVoter($credentialPolicy),
             new AuditVoter(new AuditPolicy()),
+            new SettingsVoter(new SettingsPolicy()),
         ];
     }
 

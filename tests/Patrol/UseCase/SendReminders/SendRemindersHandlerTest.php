@@ -10,11 +10,14 @@ use App\Patrol\Domain\Round\RoundStart;
 use App\Patrol\Domain\Round\StaffingRule;
 use App\Patrol\UseCase\SendReminders\SendReminders;
 use App\Patrol\UseCase\SendReminders\SendRemindersHandler;
+use App\Settings\Domain\Setting;
+use App\Settings\UseCase\GetReminderLeadTime\GetReminderLeadTimeHandler;
 use App\Shared\Domain\AccessDenied;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\MemberProfile;
 use App\Shared\Domain\Notification;
 use App\Tests\Patrol\Fake\InMemoryRoundRepository;
+use App\Tests\Settings\Fake\InMemorySettingRepository;
 use App\Tests\Shared\Fake\FakeAuthorization;
 use App\Tests\Shared\Fake\FixedMemberDirectory;
 use App\Tests\Shared\Fake\ImmediateTransaction;
@@ -39,6 +42,7 @@ final class SendRemindersHandlerTest extends TestCase
     private InMemoryRoundRepository $rounds;
     private RecordingAuditTrail $auditTrail;
     private RecordingNotifier $notifier;
+    private InMemorySettingRepository $settings;
     private Uuid $jan;
 
     #[Override]
@@ -47,7 +51,43 @@ final class SendRemindersHandlerTest extends TestCase
         $this->rounds = new InMemoryRoundRepository();
         $this->auditTrail = new RecordingAuditTrail();
         $this->notifier = new RecordingNotifier();
+        $this->settings = new InMemorySettingRepository();
         $this->jan = Uuid::v7();
+    }
+
+    #[Test]
+    public function it_reminds_as_many_days_ahead_as_the_association_set(): void
+    {
+        $this->settings->add(Setting::of('patrol.reminder_days_ahead', '3'));
+        $this->round('2026-11-16T20:00:00+00:00', 1, $this->jan);
+        $inThreeDays = $this->round('2026-11-18T20:00:00+00:00', 1, $this->jan);
+
+        $this->handler([$this->jan])(new SendReminders());
+
+        $this->assertEquals(
+            [new Notification($this->jan, 'round.reminder', ['roundIds' => $inThreeDays->id()->toRfc4122(), 'seekingBuddyRoundIds' => ''])],
+            $this->notifier->sent,
+        );
+    }
+
+    /**
+     * Review focus 2: three days ahead of 25 March 2027 is Sunday 28 March, the day the clock goes forward and lasts
+     * 23 hours; a round at 22:00 local starts at 20:00 UTC that day.
+     */
+    #[Test]
+    public function it_counts_days_ahead_on_the_local_clock_across_the_clock_change(): void
+    {
+        $this->settings->add(Setting::of('patrol.reminder_days_ahead', '3'));
+        $this->round('2027-03-27T22:59:00+00:00', 1, $this->jan);
+        $atTen = $this->round('2027-03-28T20:00:00+00:00', 1, $this->jan);
+        $this->round('2027-03-28T22:00:00+00:00', 1, $this->jan);
+
+        $this->handler([$this->jan], now: '2027-03-25T10:00:00+00:00')(new SendReminders());
+
+        $this->assertEquals(
+            [new Notification($this->jan, 'round.reminder', ['roundIds' => $atTen->id()->toRfc4122(), 'seekingBuddyRoundIds' => ''])],
+            $this->notifier->sent,
+        );
     }
 
     #[Test]
@@ -268,6 +308,7 @@ final class SendRemindersHandlerTest extends TestCase
             $this->notifier,
             new ImmediateTransaction(),
             new MockClock($now),
+            new GetReminderLeadTimeHandler($this->settings),
         );
     }
 }

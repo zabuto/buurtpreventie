@@ -1,0 +1,7 @@
+{{ brand.name }}
+
+{% block content %}{% endblock %}
+
+
+-- 
+{{ 'layout.from'|trans({name: brand.name}, 'mail', locale) }} {{ (brand.canReply ? 'layout.reply' : 'layout.no_reply')|trans({}, 'mail', locale) }}
