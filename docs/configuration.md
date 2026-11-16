@@ -44,6 +44,7 @@ Values in the code that no setting changes. A new limit gets a row here.
 | Dayparts | `morning` before 12:00, `afternoon` before 18:00, `evening` from 18:00 | `Daypart` |
 | Start of a round | After the moment it is created or moved; no change once started | `RoundStart`, `Round::change()` |
 | Round and report lists | A period that ends after its start and lasts at most 93 days: a quarter in local time, the hour the clocks go back included | `ListingPeriod` |
+| Own rounds | 50 by default, at most 200 per answer (`limit`) | `ListMyRounds` |
 | Buddy call | Once per round, at the first of 5, 3 or 1 days before the start (local clock) that falls after the round was created; at once for a round created less than a day ahead | `BuddyCall::LEAD_DAYS` |
 | Reminder | One message per active walker per local calendar day, for all their rounds of that day | `Reminders` |
 

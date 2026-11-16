@@ -124,7 +124,8 @@ versions follow [Semantic Versioning](https://semver.org/).
   `browser_only` there. Every API token expires; tokens without an end date get one 365 days after they were made.
 - Rounds: `GET /api/v1/rounds` for a period of at most 93 days, `GET /api/v1/rounds/{id}`, `POST /api/v1/rounds`,
   `PATCH` and `DELETE /api/v1/rounds/{id}`, `POST /api/v1/rounds/{id}/cancellation`, `GET /api/v1/staffing-gaps` and
-  `GET /api/v1/me/rounds?walked=`; every round carries its status, staffing, open spots and daypart. Signing up and
+  `GET /api/v1/me/rounds` with a view (`upcoming`, `to_report` or `all`), an optional period of at most 93 days that
+  `all` needs, an order for `all` and a limit of at most 200; every round carries its status, staffing, open spots and daypart. Signing up and
   withdrawing with `PUT` and `DELETE /api/v1/rounds/{id}/walkers/me`, or `/walkers/{memberId}` for a coordinator,
   answer the same when repeated.
 - Review focus 2 through the API: a round planned at 22:00 on the evenings around both clock changes, with the offset

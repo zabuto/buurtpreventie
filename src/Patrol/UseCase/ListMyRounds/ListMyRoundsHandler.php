@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Patrol\UseCase\ListMyRounds;
 
+use App\Patrol\Domain\Round\InvalidPeriod;
+use App\Patrol\Domain\Round\ListingPeriod;
 use App\Patrol\Domain\Round\Round;
 use App\Patrol\Domain\Round\RoundRepository;
-use App\Patrol\Domain\Round\RoundStatus;
+use App\Patrol\Domain\Round\WalkerRoundQuery;
+use App\Patrol\Domain\Round\WalkerRoundView;
 use App\Shared\Domain\AccessDenied;
 use App\Shared\Domain\ExecutionContext;
 use App\Shared\Domain\LocalTime;
@@ -15,8 +18,9 @@ use DateTimeImmutable;
 use Psr\Clock\ClockInterface;
 
 /**
- * Lists the rounds the member acting walks or walked, by start; the walked ones tell whether they have a report, so
- * the member sees what is left to report.
+ * Lists the rounds the member acting walks or walked, in one view: the ones still to walk, the walked ones without a
+ * report, or every round of a period. Each round tells whether it has a report, so the member sees what is left to
+ * report.
  */
 #[ReadAction]
 final readonly class ListMyRoundsHandler
@@ -30,18 +34,49 @@ final readonly class ListMyRoundsHandler
 
     /**
      * @throws AccessDenied when nobody acts
+     * @throws InvalidPeriod for half a period, one over 93 days, or every round without a period
      */
     public function __invoke(ListMyRounds $input): ListMyRoundsOutput
     {
         $memberId = $this->executionContext->actor()->memberId ?? throw AccessDenied::forAction('round.list_own');
 
-        $now = $this->clock->now();
-        $rounds = \array_filter(
-            $this->rounds->withWalker($memberId),
-            static fn(Round $round): bool => null === $input->walked || (RoundStatus::Walked === $round->status($now)) === $input->walked,
-        );
+        $view = WalkerRoundView::from($input->view);
+        $period = self::period($input);
+        if (WalkerRoundView::All === $view && null === $period) {
+            throw new InvalidPeriod('Every round of a member needs a period.');
+        }
 
-        return new ListMyRoundsOutput(\array_values(\array_map(static fn(Round $round): array => self::summary($round, $now), $rounds)));
+        $now = $this->clock->now();
+        $rounds = $this->rounds->forWalker(new WalkerRoundQuery(
+            $memberId,
+            $view,
+            $now,
+            $period,
+            match ($view) {
+                WalkerRoundView::Upcoming => false,
+                WalkerRoundView::ToReport => true,
+                WalkerRoundView::All => 'desc' === $input->order,
+            },
+            $input->limit,
+        ));
+
+        return new ListMyRoundsOutput(\array_map(static fn(Round $round): array => self::summary($round, $now), $rounds));
+    }
+
+    /**
+     * @throws InvalidPeriod for a start without an end or the other way round
+     */
+    private static function period(ListMyRounds $input): ?ListingPeriod
+    {
+        if (null === $input->from && null === $input->to) {
+            return null;
+        }
+
+        if (null === $input->from || null === $input->to) {
+            throw new InvalidPeriod('A period needs both a start and an end.');
+        }
+
+        return new ListingPeriod(new DateTimeImmutable($input->from), new DateTimeImmutable($input->to));
     }
 
     /**

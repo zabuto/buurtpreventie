@@ -231,7 +231,7 @@ final class RoundEndpointsTest extends ApiTestCase
     }
 
     #[Test]
-    public function it_lists_only_the_walked_rounds_of_the_member_when_asked(): void
+    public function it_lists_the_walked_rounds_of_the_member_that_wait_for_a_report(): void
     {
         $client = self::client();
         $member = self::actingAs($client);
@@ -239,12 +239,38 @@ final class RoundEndpointsTest extends ApiTestCase
         $walked->signUp(Uuid::v7(), new DateTimeImmutable(self::CREATED_AT));
         self::storedRound(self::UPCOMING, $member->id());
 
-        $client->request('GET', '/api/v1/me/rounds', ['walked' => '1']);
+        $client->request('GET', '/api/v1/me/rounds', ['view' => 'to_report']);
 
         self::assertResponseIsSuccessful();
         /** @var array{rounds: list<array{id: string}>} $answer */
         $answer = self::json($client);
         self::assertSame([$walked->id()->toRfc4122()], \array_column($answer['rounds'], 'id'));
+    }
+
+    /**
+     * @return iterable<string, array{array<string, string>}>
+     */
+    public static function invalidOwnRoundQueries(): iterable
+    {
+        yield 'every round without a period' => [['view' => 'all']];
+        yield 'a view that does not exist' => [['view' => 'walked']];
+        yield 'a limit above 200' => [['limit' => '201']];
+        yield 'an order that does not exist' => [['view' => 'all', 'order' => 'random']];
+    }
+
+    /**
+     * @param array<string, string> $query
+     */
+    #[DataProvider('invalidOwnRoundQueries')]
+    #[Test]
+    public function it_refuses_an_invalid_query_for_the_own_rounds(array $query): void
+    {
+        $client = self::client();
+        self::actingAs($client);
+
+        $client->request('GET', '/api/v1/me/rounds', $query);
+
+        self::assertResponseStatusCodeSame(422);
     }
 
     #[Test]

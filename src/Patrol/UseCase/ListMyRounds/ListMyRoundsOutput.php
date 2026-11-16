@@ -18,7 +18,7 @@ final readonly class ListMyRoundsOutput
      *     openSpots: int,
      *     meetingPoint: string|null,
      *     reported: bool,
-     * }> $rounds earliest start first
+     * }> $rounds in the order of the view: upcoming earliest first, to_report latest first, all as asked
      */
     public function __construct(
         public array $rounds,

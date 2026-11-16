@@ -81,7 +81,7 @@ final class ClockChangeDatabaseTest extends ApiTestCase
 
         self::service(EntityManagerInterface::class)->clear();
 
-        $client->request('GET', '/api/v1/me/rounds');
+        $client->request('GET', '/api/v1/me/rounds', ['view' => 'upcoming']);
         self::assertSame(self::asEvenings($expected), self::listed($client));
         foreach ($expected as $id => $startsAt) {
             $client->request('GET', '/api/v1/rounds/' . $id);

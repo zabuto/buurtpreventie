@@ -867,6 +867,22 @@ Besloten op 16 november 2026: `GET /me/rounds?view=upcoming|to_report|all` verva
 - `limit` bij elke weergave, standaard 50, hooguit 200;
 - repositoryquery's met integratietest; de tests van T9 (tijdwissel) blijven groen met de nieuwe parameters.
 
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - één repositorymethode, `RoundRepository::forWalker(WalkerRoundQuery)`, met een integratietest per weergave
+    (`DoctrineRoundRepositoryForWalkerTest`). `WalkerRoundQuery` en `WalkerRoundView` staan in Patrol\Domain\Round;
+    de query volgt `RoundStatus` voor "gelopen": gestart, niet geannuleerd en minstens het minimum aan lopers, dus een
+    ronde die na de start onder het minimum zat, staat niet bij `to_report`. De fake leest dezelfde regel uit
+    `WalkerRoundQuery::matches()`. `withWalker()` blijft voor de export van eigen gegevens;
+  - **ter goedkeuring**: zonder `view` is het `upcoming` (de taak noemt geen standaard; `all` kan niet zonder periode);
+  - **ter goedkeuring**: `from` en `to` gaan samen. Eén van beide zonder de ander is 422 `invalid_period`, net als
+    `all` zonder periode; de periode gaat over de start van de ronde, `to` niet meegerekend, zoals `GET /rounds`;
+  - `order` geldt alleen bij `all`; bij `upcoming` en `to_report` ligt de volgorde vast en telt `order` niet. `limit`
+    buiten 1 tot en met 200 is 422 `invalid_input`;
+  - de tests van T9 vragen `view=upcoming` expliciet, en de tijdwisseltest in memory leest elke avond ook terug in
+    `view=all` met de periode van die dag; de databasetest van T9 blijft groen;
+  - de Postman-collectie leest `view=to_report` (alleen gelopen zonder terugmelding, laatste eerst) en controleert de
+    422 voor `view=all` zonder periode.
+
 ### T23. Vast schema voor contactgegevens (test eerst)
 
 Besloten op 16 november 2026:

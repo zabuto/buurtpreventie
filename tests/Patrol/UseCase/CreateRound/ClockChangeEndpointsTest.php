@@ -51,11 +51,22 @@ final class ClockChangeEndpointsTest extends ApiTestCase
 
     #[DataProvider('starts')]
     #[Test]
-    public function it_shows_the_round_at_ten_in_the_evening_in_the_own_rounds(string $sent, string $expected): void
+    public function it_shows_the_round_at_ten_in_the_evening_in_the_own_rounds_still_to_walk(string $sent, string $expected): void
     {
         [$client, $id] = self::planned($sent);
 
-        $client->request('GET', '/api/v1/me/rounds');
+        $client->request('GET', '/api/v1/me/rounds', ['view' => 'upcoming']);
+
+        self::assertSame([[$id, $expected, 'evening']], self::listed($client));
+    }
+
+    #[DataProvider('starts')]
+    #[Test]
+    public function it_shows_the_round_at_ten_in_the_evening_in_every_own_round_of_its_day(string $sent, string $expected): void
+    {
+        [$client, $id] = self::planned($sent);
+
+        $client->request('GET', '/api/v1/me/rounds', ['view' => 'all', ...ClockChangeEvenings::dayAround($expected)]);
 
         self::assertSame([[$id, $expected, 'evening']], self::listed($client));
     }

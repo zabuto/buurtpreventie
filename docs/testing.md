@@ -211,7 +211,7 @@ description, the refusals of the login endpoints, a login with a code and, when 
 password. After the login with a code it walks the own account: profile, a change that changes nothing, the 422 for empty text as phone number, an API token
 created, listed, used, refused under `/me/tokens` and revoked, activity, export, and the 403 for a new token or
 password once only the stay-logged-in cookie is left. After the login with a password it reads the rounds of the
-coming week, one of them, the gaps and the own walked rounds, and checks the 422 for a period of more than 93 days and
+coming week, one of them, the gaps and the own rounds to report, and checks the 422 for every own round without a period, for a period of more than 93 days and
 the 404 for signing up for a round that does not exist. As the sample admin it gets the 403 for the reports and the
 history of a round, and the 404 for a comment on, or deleting a report of, something that does not exist. It reads
 the member list without e-mail addresses, the admin list and one member, and checks the 422 for a new member with an

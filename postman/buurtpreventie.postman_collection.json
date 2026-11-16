@@ -1703,12 +1703,12 @@
           ]
         },
         {
-          "name": "Own walked rounds",
+          "name": "Own rounds to report",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/me/rounds?walked=1",
+              "raw": "{{baseUrl}}/api/v1/me/rounds?view=to_report",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1720,8 +1720,8 @@
               ],
               "query": [
                 {
-                  "key": "walked",
-                  "value": "1"
+                  "key": "view",
+                  "value": "to_report"
                 }
               ]
             }
@@ -1744,11 +1744,65 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('lists only walked rounds', () => {",
+                  "pm.test('lists only walked rounds without a report, latest first', () => {",
                   "    pm.response.to.have.status(200);",
-                  "    for (const round of pm.response.json().rounds) {",
-                  "        pm.expect(round.status).to.eql('walked');",
+                  "    const rounds = pm.response.json().rounds;",
+                  "    for (const round of rounds) {",
+                  "        pm.expect([round.status, round.reported]).to.eql(['walked', false]);",
                   "    }",
+                  "    const starts = rounds.map((round) => Date.parse(round.startsAt));",
+                  "    pm.expect(starts).to.eql([...starts].sort((a, b) => b - a));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Every own round without a period",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/rounds?view=all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "me",
+                "rounds"
+              ],
+              "query": [
+                {
+                  "key": "view",
+                  "value": "all"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get('password')) {",
+                  "    console.log('Skipped: no password set for this member');",
+                  "    pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('answers 422 invalid_period', () => {",
+                  "    pm.response.to.have.status(422);",
+                  "    pm.expect(pm.response.json().type).to.eql('urn:buurtpreventie:problem:invalid_period');",
                   "});"
                 ]
               }

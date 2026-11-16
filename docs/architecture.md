@@ -303,9 +303,13 @@ otherwise the 422 problem `invalid_coordinates`.
 **Rounds.** `GET /rounds?from=&to=&status=` (`ListRounds`) lists the rounds that start in a period of at most 93 days,
 otherwise the 422 problem `invalid_period`; a `+` in an offset reads as a space in a query string, so a client sends
 `%2B` or `Z`. `GET /rounds/{id}` (`GetRound`) shows one round with its walkers, report and comments; `GET
-/staffing-gaps` (`FindStaffingGaps`) the rounds that have not started and seek a buddy; `GET /me/rounds?walked=`
-(`ListMyRounds`) the rounds of the member logged in, `walked=1` the walked ones with whether they have a report,
-`walked=0` the others. Every round in these answers has `status`, `walkerCount`, `minimumWalkers`, `maximumWalkers`,
+/staffing-gaps` (`FindStaffingGaps`) the rounds that have not started and seek a buddy; `GET
+/me/rounds?view=&from=&to=&order=&limit=` (`ListMyRounds`) the rounds of the member logged in, through
+`RoundRepository::forWalker()` with a `WalkerRoundQuery`: `upcoming` (the default) the ones that have not started,
+earliest first; `to_report` the walked ones without a report, latest first, where walked is what `RoundStatus` derives
+(started, staffed, not cancelled); `all` every round, `order=asc` (the default) or `desc`. A period (`from` and `to`
+together, at most 93 days by `ListingPeriod`) narrows any view and `all` needs one, otherwise the 422 problem
+`invalid_period`; `limit` is 50 by default and at most 200. Every round in these answers has `status`, `walkerCount`, `minimumWalkers`, `maximumWalkers`,
 `openSpots` and `daypart`. `POST /rounds` (`CreateRound`) plans a round and answers 201 with its id; `PATCH
 /rounds/{id}` (`ChangeRound`) changes start, meeting point and start note; `DELETE
 /rounds/{id}` (`DeleteRound`) deletes a round that has not started; `POST /rounds/{id}/cancellation` (`CancelRound`)
