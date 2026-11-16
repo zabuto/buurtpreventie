@@ -4,16 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Identity\Infrastructure\Security;
 
-use App\Identity\Domain\Account;
 use App\Identity\Domain\PasswordHasher;
-use App\Membership\Domain\Member;
 use App\Shared\Domain\AuditedAction;
-use App\Shared\Domain\Role;
-use App\Tests\Identity\Fake\InMemoryAccountRepository;
 use App\Tests\Membership\Fake\InMemoryMemberRepository;
 use App\Tests\Membership\Fake\MemberFixture;
 use App\Tests\Shared\Fake\RecordingAuditTrail;
-use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\InMemoryKernel;
 use App\Tests\Support\RecordingLogger;
 use DateTimeImmutable;
@@ -21,15 +16,10 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use SensitiveParameter;
-use Symfony\Bundle\FrameworkBundle\KernelBrowser;
-use Symfony\Component\Clock\MockClock;
 
 #[Group('functional')]
-final class PasswordAuthenticatorTest extends ApiTestCase
+final class PasswordAuthenticatorTest extends PasswordLoginTestCase
 {
-    // @mago-expect lint:no-literal-password - a made-up password the test logs in with
-    private const string PASSWORD = 'lantaarn-paal-42';
-
     private const array LOGIN_FAILED = [
         'type' => 'urn:buurtpreventie:problem:login_failed',
         'title' => 'The e-mail address or password is not correct.',
@@ -47,33 +37,6 @@ final class PasswordAuthenticatorTest extends ApiTestCase
         $client->request('GET', '/api/v1/_probe-identity');
 
         self::assertSame(['memberId' => $jan->id()->toRfc4122(), 'roles' => ['walker'], 'channel' => 'web', 'recent' => true], self::json($client));
-    }
-
-    /**
-     * @return iterable<string, array{string, bool}>
-     */
-    public static function momentsAfterTheLogin(): iterable
-    {
-        yield 'at 15 minutes' => ['+15 minutes', true];
-        yield 'a second later' => ['+15 minutes 1 second', false];
-    }
-
-    /**
-     * A sensitive action asks for a recent proof; the session itself holds on.
-     */
-    #[DataProvider('momentsAfterTheLogin')]
-    #[Test]
-    public function it_counts_the_login_as_recent_for_15_minutes(string $later, bool $recent): void
-    {
-        $client = self::client();
-        self::memberWithPassword();
-        self::logIn($client, 'jan@example.org', self::PASSWORD);
-
-        self::service(MockClock::class)->modify($later);
-        $client->request('GET', '/api/v1/_probe-identity');
-
-        self::assertResponseIsSuccessful();
-        self::assertSame($recent, self::json($client)['recent'] ?? null);
     }
 
     #[Test]
@@ -115,6 +78,44 @@ final class PasswordAuthenticatorTest extends ApiTestCase
         yield 'no address at all' => ['geen adres', self::PASSWORD, 'unknown_address'];
         yield 'deactivated member' => ['piet@example.org', self::PASSWORD, 'member_inactive'];
         yield 'member without a password' => ['kees@example.org', self::PASSWORD, 'no_password'];
+    }
+
+    /**
+     * @return iterable<string, array{array<string, mixed>}>
+     */
+    public static function bodiesWithoutAnAddress(): iterable
+    {
+        yield 'empty address' => [['email' => '', 'password' => self::PASSWORD]];
+        yield 'only spaces' => [['email' => '   ', 'password' => self::PASSWORD]];
+        yield 'no address field' => [['password' => self::PASSWORD]];
+        yield 'address not a text' => [['email' => 42, 'password' => self::PASSWORD]];
+    }
+
+    /**
+     * Symfony refuses an empty user identifier; the form shows a field error instead of a failed login.
+     *
+     * @param array<string, mixed> $body
+     */
+    #[DataProvider('bodiesWithoutAnAddress')]
+    #[Test]
+    public function it_refuses_a_login_without_an_address_as_invalid_input_with_a_field_error(array $body): void
+    {
+        $client = self::client();
+        self::memberWithPassword();
+
+        $client->jsonRequest('POST', '/api/v1/auth/login', $body);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSame(
+            [
+                'type' => 'urn:buurtpreventie:problem:invalid_input',
+                'title' => 'Not all details are valid.',
+                'status' => 422,
+                'violations' => [['field' => 'email', 'message' => 'This value should not be blank.']],
+            ],
+            self::json($client),
+        );
+        self::assertSame([], self::service(RecordingAuditTrail::class)->recorded);
     }
 
     #[DataProvider('attemptsThatFail')]
@@ -241,99 +242,6 @@ final class PasswordAuthenticatorTest extends ApiTestCase
         $hasher = self::service(PasswordHasher::class);
         self::assertTrue($hasher->verify($hash, self::PASSWORD));
         self::assertFalse($hasher->needsRehash($hash));
-    }
-
-    #[Test]
-    public function it_logs_out_a_member_who_was_deactivated_on_the_next_request(): void
-    {
-        $client = self::client();
-        $jan = self::memberWithPassword();
-        self::logIn($client, 'jan@example.org', self::PASSWORD);
-
-        $jan->deactivate();
-        $client->request('GET', '/api/v1/_probe-identity');
-
-        self::assertResponseStatusCodeSame(401);
-    }
-
-    #[Test]
-    public function it_applies_a_changed_role_on_the_next_request_without_logging_out(): void
-    {
-        $client = self::client();
-        $jan = self::memberWithPassword();
-        self::logIn($client, 'jan@example.org', self::PASSWORD);
-
-        $jan->changeRoles([Role::Walker, Role::Coordinator]);
-        $client->request('GET', '/api/v1/_probe-identity');
-
-        self::assertSame(['walker', 'coordinator'], self::json($client)['roles'] ?? null);
-    }
-
-    #[Test]
-    public function it_ends_the_session_and_clears_its_cookie_at_logout(): void
-    {
-        $client = self::client();
-        self::memberWithPassword();
-        self::logIn($client, 'jan@example.org', self::PASSWORD);
-
-        $client->request('POST', '/api/v1/auth/logout');
-
-        self::assertResponseStatusCodeSame(204);
-        self::assertStringContainsString('bp_session=deleted', (string) $client->getResponse()->headers->get('Set-Cookie'));
-        $client->request('GET', '/api/v1/_probe-identity');
-        self::assertResponseStatusCodeSame(401);
-    }
-
-    #[Test]
-    public function it_has_no_logout_by_get(): void
-    {
-        $client = self::client();
-        self::memberWithPassword();
-        self::logIn($client, 'jan@example.org', self::PASSWORD);
-
-        $client->request('GET', '/api/v1/auth/logout');
-
-        self::assertResponseStatusCodeSame(405);
-        $client->request('GET', '/api/v1/_probe-identity');
-        self::assertResponseIsSuccessful();
-    }
-
-    /**
-     * Every request of a test shares one kernel, so the session, the fakes and the login attempts carry over.
-     */
-    private static function client(): KernelBrowser
-    {
-        $client = self::createClient();
-        $client->disableReboot();
-
-        return $client;
-    }
-
-    private static function logIn(KernelBrowser $client, string $email, #[SensitiveParameter] string $password, string $ip = '127.0.0.1'): void
-    {
-        $client->jsonRequest('POST', '/api/v1/auth/login', ['email' => $email, 'password' => $password], ['REMOTE_ADDR' => $ip]);
-    }
-
-    private static function memberWithPassword(
-        string $email = 'jan@example.org',
-        string $name = 'Jan Bakker',
-        string $displayName = 'Jan B.',
-        ?string $hash = null,
-    ): Member {
-        $member = MemberFixture::stored(self::service(InMemoryMemberRepository::class), $email, $name, $displayName);
-        $account = Account::open($member->id());
-        $account->renewPasswordHash($hash ?? self::service(PasswordHasher::class)->hash(self::PASSWORD));
-        self::service(InMemoryAccountRepository::class)->add($account);
-
-        return $member;
-    }
-
-    private static function account(Member $member): Account
-    {
-        $account = self::service(InMemoryAccountRepository::class)->ofMember($member->id());
-        self::assertNotNull($account);
-
-        return $account;
     }
 
     /**

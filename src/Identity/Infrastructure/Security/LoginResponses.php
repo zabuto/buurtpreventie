@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Exception\TooManyLoginAttemptsAuthenticationException;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * What the browser authenticators share: the token they hand out, stamped as a recent proof (BrowserTokenChannel
@@ -28,6 +29,7 @@ final readonly class LoginResponses
         private ProblemResponses $problems,
         private LoggerInterface $logger,
         private ClockInterface $clock,
+        private TranslatorInterface $translator,
     ) {
     }
 
@@ -66,6 +68,13 @@ final readonly class LoginResponses
 
         $refusal = $exception instanceof LoginRefused ? $exception : new LoginRefused('failed');
         $this->logger->notice('Login refused: {reason}', ['reason' => $refusal->reason]);
+        if (null !== $refusal->blankField) {
+            return $this->problems->create(Response::HTTP_UNPROCESSABLE_ENTITY, 'invalid_input', violations: [[
+                'field' => $refusal->blankField,
+                'message' => $this->translator->trans('This value should not be blank.', domain: 'validators'),
+            ]]);
+        }
+
         if (null !== $refusal->memberId) {
             $this->recorder->failed($refusal->memberId, $request->getClientIp(), $method);
         }

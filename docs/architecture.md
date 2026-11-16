@@ -238,7 +238,9 @@ ones; only an admin inviting a member who never logged in gets the secret back.
 **Every browser login** answers 204, records `account.logged_in` or `account.login_failed` with the method
 (`password`, `code`, `invitation`), and counts in Symfony's login throttling. `"rememberMe": true` in the body sets
 the cookie `bp_remember` for 90 days, signed with `MemberUser::$credentialsVersion`, the moment of the member's last
-new password: a new password ends it on every device. A login stamps the token with `authenticated_at`, which makes
+new password. A new password ends every remembered device and every session, because `MemberUser` is the same user
+only while that version is; the session that set it stays (`CurrentSession`), and so does its cookie. A login without
+an e-mail address is the 422 problem `invalid_input` with a field error. A login stamps the token with `authenticated_at`, which makes
 it recent for 15 minutes (`RecentAuthentication`); a session from the cookie and an API token never are.
 `POST /api/v1/auth/confirm` takes `{password}` in an existing session and makes it recent; a refusal leaves the
 session as it was. `BrowserTokenChannel` puts the channel `web` on every token of the browser firewall. A request

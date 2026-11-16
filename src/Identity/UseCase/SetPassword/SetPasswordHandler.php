@@ -6,6 +6,7 @@ namespace App\Identity\UseCase\SetPassword;
 
 use App\Identity\Domain\Account;
 use App\Identity\Domain\AccountRepository;
+use App\Identity\Domain\CurrentSession;
 use App\Identity\Domain\PasswordHasher;
 use App\Shared\Domain\AccessDenied;
 use App\Shared\Domain\AuditedAction;
@@ -20,9 +21,10 @@ use Psr\Clock\ClockInterface;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * Sets a member's password, opening the account on first use. Every device that stays logged in is logged out. It
- * takes a recent login instead of the current password: POST /auth/confirm checks that behind the login throttling,
- * and a login with a code counts too, which is how a member replaces a forgotten password.
+ * Sets a member's password, opening the account on first use. Every other session and every device that stays
+ * logged in is logged out; the session that set it stays. It takes a recent login instead of the current password:
+ * POST /auth/confirm checks that behind the login throttling, and a login with a code counts too, which is how a
+ * member replaces a forgotten password.
  */
 #[WriteAction(authorization: 'account.set_password', audit: 'account.password_changed')]
 final readonly class SetPasswordHandler
@@ -33,6 +35,7 @@ final readonly class SetPasswordHandler
         private Authorization $authorization,
         private ExecutionContext $executionContext,
         private RecentAuthentication $recentAuthentication,
+        private CurrentSession $currentSession,
         private AuditTrail $auditTrail,
         private Transaction $transaction,
         private ClockInterface $clock,
@@ -66,5 +69,7 @@ final readonly class SetPasswordHandler
             $account->changePassword($hash, $this->clock->now());
             $this->auditTrail->record(new AuditedAction('account.password_changed', 'member', $memberId));
         });
+
+        $this->currentSession->keepAfterNewPassword($memberId);
     }
 }

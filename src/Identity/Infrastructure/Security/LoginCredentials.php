@@ -29,7 +29,8 @@ final readonly class LoginCredentials
 
     /**
      * @throws BadRequestHttpException for a body that is no JSON object
-     * @throws LoginRefused for a password too long to hash
+     * @throws LoginRefused for a password too long to hash, or without an address: Symfony takes no empty user
+     *                      identifier
      */
     public static function of(Request $request): self
     {
@@ -39,6 +40,11 @@ final readonly class LoginCredentials
             throw new LoginRefused('password_too_long');
         }
 
-        return new self(\trim($payload->text('email')), $password, $payload->rememberMe());
+        $email = \trim($payload->text('email'));
+        if ('' === $email) {
+            throw new LoginRefused('no_address', blankField: 'email');
+        }
+
+        return new self($email, $password, $payload->rememberMe());
     }
 }

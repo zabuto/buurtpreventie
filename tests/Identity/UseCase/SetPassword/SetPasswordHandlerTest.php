@@ -12,6 +12,7 @@ use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\ReauthenticationRequired;
 use App\Tests\Identity\Fake\InMemoryAccountRepository;
 use App\Tests\Identity\Fake\PasswordHashers;
+use App\Tests\Identity\Fake\RecordingCurrentSession;
 use App\Tests\Shared\Fake\FakeAuthorization;
 use App\Tests\Shared\Fake\FixedExecutionContext;
 use App\Tests\Shared\Fake\FixedRecentAuthentication;
@@ -28,6 +29,7 @@ final class SetPasswordHandlerTest extends TestCase
 {
     private InMemoryAccountRepository $accounts;
     private RecordingAuditTrail $auditTrail;
+    private RecordingCurrentSession $currentSession;
     private Uuid $memberId;
 
     #[Override]
@@ -35,6 +37,7 @@ final class SetPasswordHandlerTest extends TestCase
     {
         $this->accounts = new InMemoryAccountRepository();
         $this->auditTrail = new RecordingAuditTrail();
+        $this->currentSession = new RecordingCurrentSession();
         $this->memberId = Uuid::v7();
     }
 
@@ -99,6 +102,17 @@ final class SetPasswordHandlerTest extends TestCase
         $this->assertSame([null, []], [$this->accounts->ofMember($this->memberId), $this->auditTrail->recorded]);
     }
 
+    /**
+     * A new password ends every session of the member but the one that set it.
+     */
+    #[Test]
+    public function it_keeps_the_session_that_set_the_new_password(): void
+    {
+        $this->handler()(new SetPassword('een lang voorbeeldwachtwoord', $this->memberId->toRfc4122()));
+
+        $this->assertEquals([$this->memberId], $this->currentSession->kept);
+    }
+
     #[Test]
     public function it_sets_the_password_of_the_member_acting_when_no_member_is_named(): void
     {
@@ -126,7 +140,7 @@ final class SetPasswordHandlerTest extends TestCase
         }
 
         $this->assertInstanceOf(ReauthenticationRequired::class, $refusal);
-        $this->assertSame([null, []], [$this->accounts->ofMember($this->memberId), $this->auditTrail->recorded]);
+        $this->assertSame([null, [], []], [$this->accounts->ofMember($this->memberId), $this->auditTrail->recorded, $this->currentSession->kept]);
     }
 
     private function handler(?FakeAuthorization $authorization = null, bool $recent = true): SetPasswordHandler
@@ -137,6 +151,7 @@ final class SetPasswordHandlerTest extends TestCase
             $authorization ?? FakeAuthorization::granting(),
             new FixedExecutionContext(new Actor($this->memberId, [])),
             new FixedRecentAuthentication($recent),
+            $this->currentSession,
             $this->auditTrail,
             new ImmediateTransaction(),
             new MockClock('2026-11-16T10:00:00+00:00'),

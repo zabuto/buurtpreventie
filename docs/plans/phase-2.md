@@ -418,9 +418,14 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
   - `TokenExecutionContext` geeft kanaal `web` zonder actor voor een HTTP-verzoek zonder token;
   - `remember_me`: 90 dagen, cookie `bp_remember` (`Secure`, `HttpOnly`, `Lax`), aan met `"rememberMe": true`,
     ondertekend met `MemberUser::$credentialsVersion` (het moment van `credentialsChangedAt`). Het vinkje staat in de
-    frontend standaard uit: wie een gedeeld toestel gebruikt, kiest zelf (besloten op 16 november 2026). Een lopende
-    sessie op een ander toestel eindigt niet door een nieuw wachtwoord; alleen onthouden apparaten vallen af;
-  - **afwijking van beslissing 16**: `SetPassword` vraagt nooit het huidige wachtwoord, maar eist een recente sessie
+    frontend standaard uit: wie een gedeeld toestel gebruikt, kiest zelf (besloten op 16 november 2026);
+  - een nieuw wachtwoord beëindigt ook elke lopende sessie (besloten op 16 november 2026): `MemberUser::isEqualTo()`
+    vergelijkt ook de `credentialsVersion`. De sessie die het wachtwoord zette, blijft via `CurrentSession`
+    (`TokenCurrentSession`), en een onthoud-cookie van dat verzoek wordt opnieuw ondertekend. De hele weg via
+    `PUT /me/password` test T7;
+  - een inlog zonder e-mailadres geeft 422 `invalid_input` met een veldfout op `email`: Symfony neemt geen lege
+    gebruikersnaam;
+  - **afwijking van beslissing 16, goedgekeurd op 16 november 2026**: `SetPassword` vraagt nooit het huidige wachtwoord, maar eist een recente sessie
     (anders 403 `reauthentication_required`, `Shared\Domain\ReauthenticationRequired`). Het huidige wachtwoord gaat
     via `POST /auth/confirm`, achter de login throttling en met een auditregel bij falen; een controle in
     `SetPassword` zelf zou een onbegrensde manier zijn om wachtwoorden te raden. `memberId` is optioneel (beslissing 22);
