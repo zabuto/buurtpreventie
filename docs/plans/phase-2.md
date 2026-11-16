@@ -911,6 +911,17 @@ Besloten op 16 november 2026:
 - JSON-sleutels in camelCase, codes en enumwaarden in snake_case; vastgelegd in `docs/architecture.md`;
 - een test controleert elke property-naam in de OpenAPI-spec op camelCase.
 
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - de afspraak staat als "Naming" in `docs/architecture.md`, bij de beschrijving van de API;
+  - `OpenApiNamingTest` (functioneel) loopt elke `properties` in de spec door, op elke diepte, en elke parameter van
+    een operatie; alles was al camelCase, er hoefde niets te veranderen;
+  - **aanvulling**: Nelmio laat de array-shapes uit de docblocks van de outputs weg (T23), dus de sleutels van onder
+    meer de regels van het auditlog, de rondes en de terugmeldingen staan niet in de spec. `OutputKeyNamingTest` (in
+    memory) leest die sleutels uit de docblocks van elke `…Output`, met een tweede test die bewijst dat het patroon
+    een sleutel over meerdere regels vindt, zodat de eerste niet leeg slaagt. Het blijft een tekstpatroon op
+    docblocks: een sleutel die alleen in de code van een handler ontstaat, ziet het niet;
+  - geen nieuwe endpoints, dus geen nieuwe stap in de Postman-collectie.
+
 ## Afspraken
 
 1. Claude commit in deze privérepo, in kleine commits. Push, pull request en merge alleen na akkoord.

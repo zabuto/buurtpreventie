@@ -288,6 +288,12 @@ member, such as a role an admin gave, it keeps the action but not who it was abo
 every activity entry through the use cases of each module, and of another member it holds a buddy's display name
 only.
 
+**Naming.** Every JSON key, in a body, an answer or a problem, and every query parameter is camelCase
+(`walkerCount`, `existingId`, `allEntries`). Codes and enum values are snake_case (`round_is_full`, `seeking_buddy`,
+`to_report`): they are values a client compares, not keys. `OpenApiNamingTest` checks every property and query
+parameter of the OpenAPI description, and `OutputKeyNamingTest` the keys of the array shapes in the `…Output`
+docblocks, which Nelmio leaves out of the description.
+
 **Changes.** Every `PATCH` is a JSON Merge Patch (RFC 7396): a field left out stays, null clears a field that may be
 empty, a value replaces it. Null on a field that may not be empty, such as a name or the start of a round, is 422, and
 so is empty text for a phone number or address. `?string` cannot tell a field left out from null, so each field of

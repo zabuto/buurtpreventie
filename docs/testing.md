@@ -114,7 +114,9 @@ the next use case. What the templates contain is unit-tested in memory in `UseCa
 its method and nothing else is; every operation names its successful answer (204 without a body, any other with a
 schema for each media type) and the problem answers it can give (401 and 403 off the public
 paths, 404 with an id in the path, 422 with a body or query parameters); and every request of the Postman collection
-to `{{baseUrl}}` matches a path and method of the spec, a `{parameter}` standing for one segment.
+to `{{baseUrl}}` matches a path and method of the spec, a `{parameter}` standing for one segment. `OpenApiNamingTest`
+holds every property and query parameter of the spec to camelCase, and `OutputKeyNamingTest` (in memory) the keys of
+the array shapes in the outputs.
 
 ## Rights and write actions
 

@@ -150,6 +150,8 @@ versions follow [Semantic Versioning](https://semver.org/).
   JSON, or with `Accept: text/csv` every matching entry as a streamed CSV file, with a fixed column order and cells
   that a spreadsheet would run as a formula neutralised. A file holds at most 10,000 entries; more answers 422
   `too_many_entries` with their count. An Accept header that allows neither format answers 406.
+- JSON keys and query parameters are camelCase, codes and enum values snake_case; tests hold the OpenAPI description
+  and the outputs to it.
 - Every `PATCH` is a JSON Merge Patch: a field left out stays, null clears a field that may be empty, a value
   replaces it, and null on a required field is refused. `PATCH /api/v1/me` refuses empty text for a phone number or
   address; null removes it. A meeting point takes latitude and longitude as a pair.
