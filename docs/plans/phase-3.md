@@ -1,6 +1,7 @@
 # Fase 3: taakplan
 
-Status: ter goedkeuring.
+Status: ter goedkeuring. Besloten op 16 november 2026: beslissingen 2, 3, 4, 5, 8, 11, 14, 15, 17 en 19, en de zes
+soorten berichten (vastgesteld 2).
 
 Bron: `docs/plans/plan.md` (Samenvatting, Branding en configuratie, Privacy en AVG, Auditlog, Fase 3, Risico's en
 review-focus), `docs/plans/phase-2.md` (beslissingen en Open punten uit het plan), `docs/plans/phase-1.md`
@@ -113,11 +114,10 @@ Klaar als:
    naam, telefoonnummer en e-mailadres daar is een persoonsgegeven op internet. `GET /config` geeft `contact` met
    vaste sleutels, `null` zonder sessie of token (zoals T23 van fase 2). Het plan noemt "contact coördinator op elke
    pagina": dat zijn de pagina's na inloggen, en het inlogscherm toont de spoedtekst.
-5. **De privacyverklaring en de toegankelijkheidsverklaring zijn een URL**, geen tekst in de app. Een standaardtekst
-   voor beide hoort bij `docs/privacy/` en de beheerhandleiding van fase 6b, die de vereniging op haar eigen site
-   zet. Zo bestaat er één versie van de verklaring, en houdt de app geen juridische tekst bij. Alternatief: de
-   tekst als instelling met een standaardtekst in de app, zoals het plan zegt (een lange tekst in twee talen die
-   deze fase moet schrijven).
+5. **De privacyverklaring en de toegankelijkheidsverklaring zijn een URL**, geen tekst in de app (besloten op
+   16 november 2026). Fase 6b doet een voorstel voor een standaardtekst van beide, in `docs/privacy/`, die de
+   vereniging op haar eigen site zet. Zo bestaat er één versie van de verklaring, en houdt de app geen juridische
+   tekst bij.
 6. **Vertalingen overschrijven per vereniging valt af.** Het plan wil losse teksten laten overschrijven zonder
    vertaalbestanden; de teksten die een vereniging wil aanpassen, zijn de instellingen hierboven. Een vrije
    overschrijving van elke vertaalsleutel is een tweede bron voor elke tekst, die bij een update stil achterloopt.
@@ -130,15 +130,27 @@ Klaar als:
 ### Logo en icoon
 
 8. **Twee uploads: logo en app-icoon.** Afwijking van het plan (drie): de favicon komt uit het icoon.
-   `PUT /admin/settings/images/logo` en `/icon` met het bestand als body (`image/png` of `image/jpeg`), geen
-   multipart; `DELETE` zet de standaard terug. De app leest het bestand met `getimagesize()` en `finfo`, nooit met
-   wat de client noemt (naam, type), en maakt er met GD nieuwe PNG's van:
-   - logo: binnen 512 × 512 voor de frontend en 128 px hoog voor de mail;
-   - icoon: vierkant en minstens 512 × 512, verkleind tot 512, 192, 180 (Apple) en 32 (favicon).
-   Opnieuw opslaan haalt metadata en alles wat geen beeld is eruit, ook een bestand dat tegelijk iets anders is.
-   Hooguit 2 MB en 2048 × 2048 pixels, gecontroleerd vóór het decoderen: GD zet een beeld volledig in het geheugen,
-   en 2048² is al 16 MB. Geen SVG: dat kan script bevatten. Alternatief zonder GD: de beheerder levert elke maat
-   zelf aan, en de app slaat alleen op wat hij controleerde.
+   `PUT /admin/settings/images/logo` en `/icon` met het bestand als body, geen multipart; `DELETE` zet de standaard
+   terug. Voorwaarden:
+
+   | Voorwaarde | Logo | Icoon |
+   | --- | --- | --- |
+   | Formaat | PNG of JPEG | PNG of JPEG |
+   | Bestandsgrootte | hooguit 2 MB | hooguit 2 MB |
+   | Afmetingen | hooguit 2048 × 2048, elke verhouding | vierkant, van 512 × 512 tot 2048 × 2048 |
+   | Wat de app opslaat | PNG binnen 512 × 512 (frontend) en 128 px hoog (mail) | PNG van 512, 192, 180 (Apple) en 32 (favicon) |
+
+   - **Het formaat volgt uit de inhoud**, met `getimagesize()` en `finfo`. Extensie, bestandsnaam en het type dat
+     de client noemt tellen niet: een `.png` die een JPEG is, gaat door als JPEG; een `.png` die geen beeld is,
+     wordt geweigerd.
+   - **Geweigerd:** SVG (kan script bevatten), GIF (animatie, en geen meerwaarde boven PNG), HEIC (GD kan het niet
+     lezen; een iPhone deelt een foto als JPEG), WebP en AVIF (GD leest ze alleen als het ermee gebouwd is, en dat
+     verschilt per host). Elke weigering is 422 `unsupported_image` met de voorwaarde die niet klopt.
+   - **De grenzen gelden vóór het decoderen**: GD zet een beeld volledig in het geheugen, en 2048² is al 16 MB.
+   - **Opnieuw opslaan met GD** haalt metadata (zoals de GPS-plek van een foto) en alles wat geen beeld is eruit,
+     ook een bestand dat tegelijk iets anders is. Transparantie in een PNG blijft.
+
+   Alternatief zonder GD: de beheerder levert elke maat zelf aan, en de app slaat alleen op wat hij controleerde.
 9. **`ext-gd` wordt een eis** in `composer.json`, naast `ext-fileinfo`; de installer van fase 6a controleert het.
    Op shared hosting staat GD vrijwel altijd aan.
 10. **Opslag buiten de webmap**, in `UPLOAD_DIR` (nieuwe variabele, standaard `var/uploads`; fase 6a zet hem op
@@ -169,10 +181,11 @@ Klaar als:
     (primair licht), `background_color` (wit), `display: standalone`, iconen 192 en 512, en `start_url` en `scope`
     op `<pad van de basis-URL>/app/`. Onder `/api/v1`, zodat de frontend alleen de API aanroept; `start_url` en
     `scope` volgen de basis-URL, niet de plek van het manifest.
-14. **De basis-URL wordt een waardeobject `AppUrl`** in `Shared\Domain`, uit `DEFAULT_URI`: zonder slash aan het
-    eind, alleen `https` (of `http://localhost` in `dev` en `test`), en een pad dat op `/public` eindigt of het
-    bevat, laat de app niet starten. Elke link in een mail en het manifest komt uit `AppUrl::to('app/#/…')`
-    (review-focus 5).
+14. **De basis-URL wordt een waardeobject `AppUrl`** in `Shared\Domain`, uit `DEFAULT_URI`, zonder slash aan het
+    eind. Elke link in een mail en het manifest komt uit `AppUrl::to('app/#/…')`, zodat een pad in de basis-URL
+    overal meegaat (review-focus 5). Geen controle op `/public` bij het starten (besloten op 16 november 2026): de
+    app zet zelf nooit `/public` in een link, en een verkeerde `DEFAULT_URI` is een fout in de installatie, die de
+    installer van fase 6a voorkomt door de waarde zelf te schrijven uit het adres waarop hij draait.
 
 ### E-mail
 
@@ -180,7 +193,7 @@ Klaar als:
     transactie wordt aangemeld, wacht tot de buitenste transactie commit, en vervalt bij een rollback. De notifier
     van de app (`AfterCommitNotifier`) zet elk bericht zo in de wachtrij; buiten een transactie verstuurt hij
     meteen. Een fout bij het versturen na de commit gaat naar het log en breekt het verzoek niet: de wijziging staat
-    al. `ImmediateTransaction` in de tests krijgt dezelfde semantiek.
+    al (besloten op 16 november 2026). `ImmediateTransaction` in de tests krijgt dezelfde semantiek.
     Alternatief: een outbox-tabel met de berichten in dezelfde transactie en versturen door de scheduler. Dat is
     betrouwbaarder (geen mail kwijt bij een mailfout), maar een inlogcode moet binnen seconden aankomen, en zonder
     cron komt de scheduler pas met een tick. Gevolg om te accepteren: een herinnering die na de commit faalt, staat
@@ -199,9 +212,10 @@ Klaar als:
     voor een handvol regels). Het logo gaat als ingesloten bijlage (`cid:`), niet als externe afbeelding, zodat
     geen mailprogramma iets ophaalt bij de server; zonder logo staat de naam er als tekst. Alles wat het logo zegt,
     staat ook in tekst.
-19. **Zo min mogelijk persoonsgegevens.** Een mail noemt datum, tijd, dagdeel, startpunt en het aantal lopers, en
-    nooit de namen van andere lopers (afwijking van v3, vastgesteld 15), een telefoonnummer, een adres of een
-    notitie. Elke mail over een ronde heeft een knop naar die ronde in de app. Een test zoekt in elke mail naar de
+19. **Zo min mogelijk persoonsgegevens.** Een mail noemt datum, tijd, dagdeel, startpunt en hoeveel anderen meelopen
+    ("Er lopen 2 anderen mee", of "Je loopt nog alleen"), en nooit een naam of weergavenaam van een andere loper
+    (afwijking van v3, vastgesteld 15; besloten op 16 november 2026), een telefoonnummer, een adres of een notitie.
+    Wie meeloopt, staat in de app; elke mail over een ronde heeft een knop naar die ronde. Een test zoekt in elke mail naar de
     telefoon, het adres en het e-mailadres van de leden uit de opzet en eist dat ze er niet in staan
     (review-focus 3).
 20. **Taal van de mail is `app.language`**, datums met `IntlDateFormatter` in `Europe/Amsterdam`, voluit
@@ -335,15 +349,15 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
 
 ### T5. Basis-URL (test eerst)
 
-- `AppUrl` (beslissing 14). Tests: subdomein en pad, met en zonder slash aan het eind; `/public` in het pad
-  weigert; `http` alleen voor `localhost` in `dev` en `test`.
+- `AppUrl` (beslissing 14). Tests: subdomein en pad, met en zonder slash aan het eind, geven dezelfde links.
 - `MailNotifier` en het manifest gebruiken `AppUrl`; de uitnodigingslink van fase 2 ook.
 
 ### T6. Logo en icoon (test eerst)
 
 - `PUT` en `DELETE /admin/settings/images/{logo|icon}`, `GET /media/brand/{bestand}` (beslissingen 8 tot en met 10).
-- Tests: PNG en JPEG geven de afgeleide maten als PNG; te groot in bytes of pixels, geen beeld, een GIF, een SVG en
-  een PNG met iets erachter worden geweigerd of gestript; het type uit de header telt niet; een niet-vierkant of te
+- Tests: PNG en JPEG geven de afgeleide maten als PNG; te groot in bytes of pixels, geen beeld, een GIF, een SVG,
+  een WebP en een PNG met iets erachter worden geweigerd of gestript; de GPS-gegevens van een JPEG zijn weg;
+  extensie en het type uit de header tellen niet; een niet-vierkant of te
   klein icoon geeft 422; de bestandsnaam volgt de inhoud; een oud bestand verdwijnt na de commit en niet bij een
   rollback; `/media/brand/` geeft alleen een bestand dat een instelling noemt, met `nosniff` en een cache van een
   jaar; `../` of een andere naam is 404.
@@ -445,8 +459,8 @@ Gemeld, niet in deze fase opgelost:
   scheduler in fase 6a; `pruneThrough()` staat klaar.
 - **De laatste mailfout** voor Onderhoud bewaren hoort bij fase 6b.
 - **`integrations.mcp`** komt in fase 4.
-- **De standaardteksten** voor privacy- en toegankelijkheidsverklaring en het verwerkingsregister in `docs/privacy/`
-  horen bij fase 6b (beslissing 5).
+- **Een voorstel voor de standaardteksten** van privacy- en toegankelijkheidsverklaring, en het verwerkingsregister,
+  in `docs/privacy/` horen bij fase 6b (beslissing 5).
 - **`anonymisedAt`** uit beslissing 8 van fase 1 volgt in fase 5b of 6a.
 - **`.htaccess`, `shared/` en HSTS bij installatie** volgen met de mapindeling in fase 6a; `UPLOAD_DIR` wijst dan
   naar `shared/uploads`.
