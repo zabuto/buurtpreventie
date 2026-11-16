@@ -629,5 +629,5 @@ public paths, 404 with an id in the path, 409 for a change, 422 with a body or q
 processor rather than a describer, because Nelmio adds bodies and query parameters in processors of its own, after
 every describer. An answer a controller documents itself, such as the 404 of a repeated withdrawal, stays.
 
-**Why.** `OpenApiCoverageTest` holds the spec to the router and to the Postman collection, so neither drifts from the
+**Why.** `OpenApiCoverageTest` holds the spec to the router and to the Hurl files in `hurl/`, so neither drifts from the
 API.

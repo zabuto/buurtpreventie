@@ -136,7 +136,8 @@ versions follow [Semantic Versioning](https://semver.org/).
 - Every link in a mail starts at `DEFAULT_URI`, also when the app runs under a path such as
   `https://example.org/buurtpreventie`, with or without a trailing slash.
 - Dependabot also updates the Mailpit image in `compose.yaml`, after the same 7-day cooldown.
-- A Postman collection in `postman/` that checks a running app, for the Postman app or Newman.
+- Hurl files in `hurl/`, one per subject, that check a running app from the outside; each logs in by itself, so they
+  run in parallel.
 - Test coverage per class in the summary of the CI job "Checks" (`composer test:coverage`), as information only.
 - CI jobs on MariaDB 10.11 and MySQL 8.4: migrations from an empty database, schema validation, every `down()`,
   the database tests and every sample data set.
@@ -191,7 +192,7 @@ versions follow [Semantic Versioning](https://semver.org/).
   replaces it, and null on a required field is refused. `PATCH /api/v1/me` refuses empty text for a phone number or
   address; null removes it. A meeting point takes latitude and longitude as a pair.
 - The OpenAPI description covers every route, the login routes of the firewall included, and names the successful
-  answer, with the schema of its body, and the problem answers of every operation; a test holds it to the router and to the Postman collection. A controller may carry
+  answer, with the schema of its body, and the problem answers of every operation; a test holds it to the router and to the Hurl files. A controller may carry
   OpenAPI attributes to document its endpoint.
 - An HTTP matrix test runs every route against every role, next to the matrix of the voters, and a test signs a
   member up with a personal API token alone, as curl would. In the `demo` sample set the walker who uses the API has

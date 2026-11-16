@@ -299,7 +299,7 @@ Volgens Fase 3 in het plan (besloten op 16 november 2026); hieronder wat het pla
     repository). **Databasetests** voor de keten (gelijktijdig, op MariaDB en MySQL), het slot en de migratie van
     bestaande regels, en voor "teruggedraaid verstuurt niets" met de echte `DoctrineTransaction`.
 34. **Matrixtests**: `settings.change`, het lezen van `/admin/settings` en de uploads in `AuthorizationMatrixTest` en
-    `HttpMatrixTest`; `/config`, het manifest en `/media/brand/…` als publieke rijen. De Postman-collectie krijgt de
+    `HttpMatrixTest`; `/config`, het manifest en `/media/brand/…` als publieke rijen. De Hurl-bestanden krijgen de
     nieuwe endpoints.
 
 ### Opengrep-regels voor deze fase
@@ -418,7 +418,7 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
     hem gebruikt. Tot T10 slaat `apiAccess` alleen de keuze op;
   - Mago staat 20 cases per enum toe; `SettingName` heeft een `@mago-expect` met de reden: de catalogus is bewust één
     lijst;
-  - de Postman-collectie leest de instellingen, stuurt een lege patch en controleert de 422 voor een te lichte
+  - de Hurl-bestanden lezen de instellingen, sturen een lege patch en controleren de 422 voor een te lichte
     primaire kleur; `docs/configuration.md` heeft een tabel met elke instelling.
 
 ### T5. Basis-URL (test eerst)
@@ -478,8 +478,8 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
   - tests: domein (`BrandImageKindTest`, `RenditionTest`, `BrandImageFileTest`), de converter in memory met GD
     (afgeleide maten, transparantie, GPS en een script achter een PNG weg, elke weigering), `FileBrandImagesTest`
     (integratie, tijdelijke map), de drie handlers (ook rollback en dezelfde upload twee keer), `BrandImageEndpointTest`
-    en rijen in `HttpMatrixTest` (die ook een ruwe body kan sturen); de Postman-collectie stuurt tekst als logo (422)
-    en vraagt een beeld dat geen instelling noemt (404).
+    en rijen in `HttpMatrixTest` (die ook een ruwe body kan sturen); de Hurl-bestanden sturen tekst als logo (422)
+    en vragen een beeld dat geen instelling noemt (404).
 
 ### T7. `/config` en manifest (test eerst)
 
@@ -487,7 +487,7 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
   `group.service` volgt de host; teksten in de
   taal van de vereniging; het manifest heeft `start_url` en `scope` op het pad van de basis-URL plus `/app/`,
   zonder `/public/` (review-focus 5), iconen 192 en 512 en het juiste mediatype.
-- OpenAPI voor beide; `OpenApiCoverageTest` en de Postman-collectie.
+- OpenAPI voor beide; `OpenApiCoverageTest` en de Hurl-bestanden.
 - Uitgevoerd op 16 november 2026, met deze keuzes:
   - **het standaardicoon tekent GD** (besloten op 16 november 2026): `GdDefaultBrandIcon` tekent een wit huisje op
     de standaard primaire kleur, over het hele vlak (een telefoon snijdt het bij tot elke vorm), en de converter van
@@ -507,7 +507,7 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
     publiek, ook `/media/brand/` uit T6, waarvoor de beschrijving anders een 401 en 403 noemt die het nooit geeft;
   - tests: `AppUrlTest` (pad), `GdDefaultBrandIconTest`, de handlers (bezoeker, sessie, taal, beelden),
     `PublicConfigEndpointTest` (bezoeker, sessie, token, manifest onder het pad zonder `/public/`, en elk icoon uit
-    het manifest is op te halen) en rijen in `HttpMatrixTest`; de Postman-collectie leest `/config` als bezoeker,
+    het manifest is op te halen) en rijen in `HttpMatrixTest`; de Hurl-bestanden lezen `/config` als bezoeker,
     het icoon dat het noemt en het manifest.
 
 ### T8. E-mails (test eerst)
@@ -569,8 +569,8 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
   - `CreateApiToken` gooit `ApiTokensDisabled` (409 `api_tokens_disabled`, titel in `nl` en `en`) na de
     Voter-controle en vóór de eis van een recente login, zodat een lid niet eerst opnieuw inlogt om dan een 409 te
     krijgen. `ListApiTokens` en `RevokeApiToken` lezen de schakelaar niet;
-  - OpenAPI noemt de 409 bij `POST /me/tokens` vanzelf (`ProblemResponsesProcessor`); de Postman-collectie zet de
-    schakelaar niet om, omdat ze tegen de lokale database draait en een vergeten `true` elk token blokkeert;
+  - OpenAPI noemt de 409 bij `POST /me/tokens` vanzelf (`ProblemResponsesProcessor`); de Hurl-bestanden zetten de
+    schakelaar niet om, omdat ze tegen de lokale database draaien en een vergeten `true` elk token blokkeert;
   - tests: `GetApiTokenAccessHandlerTest`, `CreateApiTokenHandlerTest` (uit maakt niets en schrijft geen
     auditregel), `ApiTokenAuthenticatorTest` (uit weigert een geldig token, ook vanaf het eerstvolgende verzoek
     in dezelfde client) en `ApiTokenEndpointsTest` (409, en lijst en intrekken werken als de schakelaar uit staat).
@@ -716,7 +716,7 @@ Per regel eerst het testbestand, dan de regel (beslissing 35). Lokaal gedraaid z
     `DEFAULT_URI`, geen telefoonnummer of naam van een ander lid, de code niet in het onderwerp. De herinnering heeft
     nog geen ingang (de scheduler volgt in fase 6a) en is alleen in de tests gerenderd;
   - niet gedaan: de mails bekijken in licht, donker en smal (aan de ontwikkelaar, in Mailpit), MySQL (alleen in CI),
-    de Postman-collectie met Newman;
+    de Hurl-bestanden (aanvulling `phase-3-hurl.md`);
   - **donkere modus in de mail** (gevonden in Mailpit, opgelost): de layout noemde `color-scheme` licht en donker,
     maar had alleen lichte kleuren inline, dus een mailprogramma in donkere modus liet de mail licht. Een blok
     `prefers-color-scheme: dark` met `!important` geeft nu een donkere pagina, `#121212` achter de tekst, de donkere
