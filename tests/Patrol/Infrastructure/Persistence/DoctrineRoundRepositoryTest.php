@@ -211,6 +211,37 @@ final class DoctrineRoundRepositoryTest extends KernelTestCase
         $this->assertEquals([$atFrom, $between], $this->idsOf($found, $justBefore, $atFrom, $atTo, $between));
     }
 
+    /**
+     * The meeting point of a round found in a list loads only when read, and Doctrine then sets its id again; a
+     * readonly id refuses that, and every list with such a round fails.
+     */
+    #[Test]
+    public function it_loads_the_meeting_point_of_a_round_found_in_a_list_when_it_is_read(): void
+    {
+        $name = 'Speeltuin ' . Uuid::v7()->toRfc4122();
+        $meetingPoint = MeetingPoint::create($name);
+        $this->entityManager->persist($meetingPoint);
+        $round = Round::plan(
+            new RoundStart(new DateTimeImmutable('2026-11-19T20:00:00+00:00'), $meetingPoint),
+            Uuid::v7(),
+            new StaffingRule(minimumWalkers: 2, maximumWalkers: 7),
+            new DateTimeImmutable('2026-01-01T12:00:00+00:00'),
+        );
+        $this->repository->add($round);
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+
+        $found = $this->repository->between(new DateTimeImmutable('2026-11-19T19:00:00+00:00'), new DateTimeImmutable('2026-11-19T21:00:00+00:00'));
+
+        $names = [];
+        foreach ($found as $listed) {
+            if ($listed->id()->equals($round->id())) {
+                $names[] = $listed->meetingPoint()?->name();
+            }
+        }
+        $this->assertSame([$name], $names);
+    }
+
     #[Test]
     public function it_finds_the_rounds_that_have_not_started_by_start(): void
     {

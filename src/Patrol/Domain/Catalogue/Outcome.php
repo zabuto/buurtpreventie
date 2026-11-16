@@ -16,9 +16,13 @@ use Symfony\Component\Uid\Uuid;
 #[ORM\UniqueConstraint(name: 'outcome_name_key', columns: ['name_key'])]
 final class Outcome
 {
+    /**
+     * Not readonly: a round or report loads this entity only when it is read, and Doctrine then sets the id again
+     * as a new Uuid object with the same value; a readonly property accepts only the identical object.
+     */
     #[ORM\Id]
     #[ORM\Column(type: 'uuid')]
-    private readonly Uuid $id;
+    private Uuid $id;
 
     #[ORM\Column(length: 100)]
     private string $name;
