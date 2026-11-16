@@ -218,8 +218,11 @@ Klaar als:
     kan doorgeven als er geen mail is (plan, Afhankelijkheden). Voor elk ander lid zou dat de beheerder laten inloggen
     als dat lid. De coördinator kan een nieuwe uitnodiging laten sturen, maar ziet de link nooit; een lid dat al inlogde, vraagt
     zelf een code aan.
-29. **De `LoggingNotifier` logt type en ontvanger, geen parameters** (vastgesteld 12). In `dev` schrijft een aparte
-    `DevCodeNotifier` code en uitnodigingslink naar het log, zodat inloggen lokaal te testen is; nooit in `prod`.
+29. **De `LoggingNotifier` logt type en ontvanger, geen parameters** (vastgesteld 12). Inlogcode en uitnodiging gaan
+    als echte mail via `symfony/mailer`, in tekst zonder branding; de opgemaakte templates volgen in fase 3. Lokaal
+    vangt Mailpit (`axllent/mailpit`, vaste versie) in `compose.yaml` elke mail op, zodat inloggen met een code te
+    testen is zonder dat er iets het toestel verlaat. Besloten op 16 november 2026, in plaats van een `DevCodeNotifier`
+    die code en link naar het log schreef.
 30. **Inloggen met de demo** (vastgesteld 15): de sets `demo` en `edge` geven elk voorbeeldlid hetzelfde verzonnen
     wachtwoord, dat alleen in de fixture-code staat en dat het commando toont, net als het geheim van het token van het
     demolid. Alleen `dev` en `test`.
@@ -257,6 +260,7 @@ Versies en datums van Packagist op 15 november 2026. De Composer-cooldown van 24
 | `symfony/security-csrf` | CSRF voor de browser (beslissing 7) | MIT | runtime | Symfony 7.4 LTS; dit onderdeel verandert zelden | v7.4.8 (24 mrt) |
 | `symfony/rate-limiter` (+ `symfony/options-resolver`) | Inlogpogingen en link-aanvragen (beslissing 13); fase 4 gebruikt hem voor MCP | MIT | runtime | Symfony 7.4 LTS, patch ongeveer maandelijks | v7.4.23 (1 nov) |
 | `symfony/translation` | API-meldingen en validatorfouten in `nl` en `en` (beslissing 21) | MIT | runtime | Symfony 7.4 LTS | v7.4.23 (1 nov) |
+| `symfony/mailer` (+ `symfony/mime`, `egulias/email-validator`, `symfony/polyfill-intl-idn`) | Inlogcode en uitnodiging per mail (beslissing 29); goedgekeurd op 16 november 2026 | MIT | runtime | Symfony 7.4 LTS | v7.4.22 |
 
 `nikic/php-parser` (nu dev, via PHPStan en Rector) en `symfony/type-info` en `symfony/finder` (al runtime) komen
 mee. Nelmio en swagger-php zijn het zwaarste deel: samen een stuk of zes pakketten, waarvan swagger-php snel
@@ -386,7 +390,7 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
   alleen terug te rekenen is; na inloggen met een code zet het lid een nieuw wachtwoord zonder het oude; na een
   nieuw wachtwoord werkt een onthouden apparaat niet meer; `remember_me` houdt een sessie 90 dagen vast maar telt
   niet als recent (beslissing 15).
-- `LoggingNotifier` zonder parameters, `DevCodeNotifier` in `dev` (beslissing 29).
+- `LoggingNotifier` zonder parameters; inlogcode en uitnodiging per mail, lokaal in Mailpit (beslissing 29).
 
 ### T7. Eigen account (test eerst)
 

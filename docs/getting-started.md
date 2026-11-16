@@ -28,7 +28,7 @@ Local settings and secrets go in `.env.local`, which stays out of Git. See
 
 ## Database
 
-MariaDB runs in a container.
+MariaDB and Mailpit, which catches every mail the app sends, run in containers.
 
 ```bash
 docker compose up -d --wait
@@ -43,6 +43,10 @@ To look inside with a database client, connect to host `127.0.0.1` (not `localho
 many clients look for a socket) on the port that `docker compose port database 3306` prints, with
 the user, password and database from `compose.yaml`. The port changes when the container starts
 again.
+
+Mail never leaves the machine: Mailpit keeps it, and `symfony open:local:webmail` opens its web view. Through the
+Symfony CLI the app gets `MAILER_DSN` from the `mailer` container, as it gets `DATABASE_URL`. Without the CLI,
+`MAILER_DSN` is `null://null`, which drops every mail.
 
 Create the tables, and bring them up to date after every pull that adds a migration:
 

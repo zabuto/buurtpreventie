@@ -83,6 +83,7 @@ versions follow [Semantic Versioning](https://semver.org/).
   throttled with 429. An outdated password hash is renewed at login. A deactivated member is logged out on the next
   request, a changed role counts at once. Logins and failed attempts on a known member are in the audit log with a
   shortened IP address. Changing requests from the browser must come from the same origin.
+- Mail through Symfony Mailer (`MAILER_DSN`); in development Mailpit in `compose.yaml` catches every mail.
 - A member chooses to hear about rounds that seek a buddy (`ChangeOpenRoundNotifications`), only for themselves.
 - A round list covers at most 93 days.
 - Sample data: `app:fixtures:load demo|test|edge` in `dev` and `test`, built through the use cases with a fixed seed
