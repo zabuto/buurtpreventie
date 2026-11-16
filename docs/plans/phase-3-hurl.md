@@ -166,7 +166,13 @@ Postman, de Postman-app en Newman vervallen.
   - **een fout gevonden**: `GET /rounds` gaf 500 voor elke periode met een ronde op een ontmoetingspunt, en een
     terugmelding kon haar uitkomst niet laden. Doctrine laadt die pas bij lezen en zet dan het id opnieuw, als een
     nieuw `Uuid`-object met dezelfde waarde, wat een readonly id weigert. Hersteld in een eigen pull request (#29,
-    besloten op 17 november 2026), met twee databasetests.
+    besloten op 17 november 2026), met twee databasetests;
+  - "aanmelden voor een ronde die niet bestaat" verwachtte 404, maar de voorbeeldbeheerder heeft de rol loper niet en
+    krijgt eerst de 403 van de rechten. In de collectie kwam die stap na de 500 van de rondes en is hij nooit groen
+    gezien. `rounds.hurl` controleert de 403 `access_denied`, zoals de 403's voor terugmeldingen en geschiedenis;
+  - gedraaid tegen de demo: parallel en met `--jobs 1`, twee runs achter elkaar, 8 van 8 bestanden en 76 verzoeken
+    groen. Ervoor stond de teller van inlogcodes van eerdere proefruns op de grens (429); `cache:pool:clear
+    cache.login_attempts` zette hem terug, zoals `docs/testing.md` beschrijft.
 
 ### T4. Postman weghalen
 
@@ -201,6 +207,12 @@ Postman, de Postman-app en Newman vervallen.
 - `symfony composer check`, `composer test` zonder database, en `hurl --test` tegen de lokale app; elke check die
   niet draaide, melden.
 - `git grep -i -E 'postman|newman'` vindt alleen `docs/plans/phase-2.md` en dit plan.
+- Uitgevoerd op 17 november 2026:
+  - `symfony composer check`: groen (2515 tests met database), op een eigen testdatabase (`TEST_TOKEN=_hurl`), omdat
+    tegelijk een andere controle op de gedeelde draaide;
+  - `hurl --test`: 8 van 8 bestanden groen, parallel en met `--jobs 1` (zie T3); `hurlfmt --check` op elk bestand;
+  - `git grep -i -E 'postman|newman'` vindt alleen `docs/plans/phase-2.md` en dit plan;
+  - niet gedraaid: Hurl in CI (open punt).
 
 ## Open punten
 

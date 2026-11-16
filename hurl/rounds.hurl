@@ -75,10 +75,11 @@ HTTP 422
 [Asserts]
 jsonpath "$.type" == "urn:buurtpreventie:problem:invalid_period"
 
+# The admin walks no rounds: signing up is refused before the round is looked up.
 PUT {{baseUrl}}/api/v1/rounds/0193a3c0-0000-7000-8000-000000000001/walkers/me
-HTTP 404
+HTTP 403
 [Asserts]
-header "Content-Type" contains "application/problem+json"
+jsonpath "$.type" == "urn:buurtpreventie:problem:access_denied"
 
 # Only analysts and coordinators list the reports.
 GET {{baseUrl}}/api/v1/reports?from=2026-11-01T00:00:00Z&to=2026-12-01T00:00:00Z

@@ -243,7 +243,7 @@ needs no other, so Hurl runs them in parallel by default, and in any order with 
 | `public.hurl` | Health, the OpenAPI description, `/config` of a visitor with contact and group empty, the app icon it names, the web app manifest |
 | `refusals.hurl` | The 401 problems of the login endpoints |
 | `account.hurl` | A login with a code from Mailpit, the own profile and its 422, a password too short, an API token created, listed without its secret, used, refused under `/me/tokens` and revoked, activity, export, logout, and the same code once more |
-| `rounds.hurl` | The rounds of the coming week, one round with walkers, the gaps, the own rounds to report, the 422 for an open or too long period, the 404s, and the 403s of the admin for reports and history |
+| `rounds.hurl` | The rounds of the coming week, one round with walkers, the gaps, the own rounds to report, the 422 for an open or too long period, the 404s, and the 403s of the admin for signing up, reports and history |
 | `members.hurl` | The member list without e-mail addresses, the admin list, one member, and the 422s and 404 |
 | `meeting-points-and-outcomes.hurl` | The lists for members and the admin, the 409 for a name that is taken, the 422 for half a position, the 404 for archiving |
 | `settings.hurl` | The settings, a patch without fields, the 422 for a weak colour and for text as a logo, the 404 for an image no setting names |
