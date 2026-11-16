@@ -160,7 +160,7 @@ A handler reaches storage, rights, the audit log and messages only through inter
 | `MemberNames` | The display name of a member, or none for an erased one, so another module can record or show who acted | `Membership\Infrastructure\RepositoryMemberNames` |
 | `MemberDirectory`, `MemberProfile`, `MemberIdentity` | Whether a member is active, who wants to hear about open rounds, a member's names and phone number (only with consent), the address mail goes to (none for an inactive member), and the identity the login works with, by id or e-mail address: id, current roles and whether the member may log in | `Membership\Infrastructure\RepositoryMemberDirectory` |
 | `Authorization`, `AccessDenied` | `denyUnlessGranted()` asks the voters of every module and throws `AccessDenied` on a refusal | `Shared\Infrastructure\Security\SymfonyAuthorization` |
-| `Notifier`, `Notification` | Sends a member a message by type and parameters; the domain holds no texts | `Shared\Infrastructure\Notification\AfterCommitNotifier`, which hands each message on after the commit and logs a delivery that fails rather than throwing, as the change is stored by then; then `MailNotifier`, which mails a login code or invitation as plain text from `translations/mail.<locale>.yaml` and hands any other type to `LoggingNotifier`; neither logs the parameters, which can hold a code or secret |
+| `Notifier`, `Notification` | Sends a member a message by type and parameters; the domain holds no texts | `Shared\Infrastructure\Notification\AfterCommitNotifier`, which hands each message on after the commit and logs a delivery that fails rather than throwing, as the change is stored by then; then `MailNotifier`, which mails every type in HTML and text through the `MailComposer` of its type; neither logs the parameters, which can hold a code or secret |
 | `RecentAuthentication`, `ReauthenticationRequired` | Whether the member acting proved who they are in the last 15 minutes (`@upgrade-8.4`, sudo mode), and the refusal of a sensitive action without that proof | `Shared\Infrastructure\Security\TokenRecentAuthentication`, which reads the token attribute `authenticated_at` |
 | `Role`, `Actor` | The fixed roles `walker`, `coordinator`, `analyst` and `admin`, without inheritance, and a member with their roles, as the policies of every module decide on them | |
 | `NotFound` | No item of a kind has a given id; entry points turn it into their own answer, such as HTTP 404 | |
@@ -171,6 +171,7 @@ A handler reaches storage, rights, the audit log and messages only through inter
 | `WriteAction`, `ReadAction` | Mark a handler as changing something, with its voter attribute and audit action, or as only reading | |
 | `Unchanged` | The default of an input field that a JSON Merge Patch leaves out, so a handler keeps the current value where null clears it; `fieldsSetIn()` gives the fields to validate | |
 | `BackedEnumValues` | Gives an enum `values()`, so an input constraint takes its choices from the enum (`Assert\Choice(callback: ...)`) | |
+| `Branding` | Name, sender name, primary colour, language, mail logo and contact address of the association, read afresh for each mail | `Settings\Infrastructure\Branding\SettingsBranding` |
 | `AppUrl` | The base URL of the app from `DEFAULT_URI`, on a subdomain or under a path; `to('app/#/…')` makes every absolute link that leaves the app outside a request, such as in a mail, so the path of the installation is in each | |
 | `EmailAddress` | An address trimmed and in lower case, with accents kept | |
 | `PhoneNumber` | A phone number as a member types it, with whitespace tidied: digits, spaces, brackets and hyphens, an optional leading plus, at least six digits. Shared, as members and the contact of the association both have one | |
@@ -397,6 +398,18 @@ association, the group link with its service and the staffing defaults, to anyon
 unless a member is logged in, by session or token, since it holds personal data. `GET /manifest.webmanifest`
 (`GetWebManifest`) is the web app manifest, in the member names of its standard. Both give every link as a path from
 `AppUrl::pathTo()`, so the start of the app and every image follow the path of the base URL.
+
+**Mail.** Every type of message has a `MailComposer` in `<Module>\Infrastructure\Mail` of the module that sends it,
+as only that module can read what the ids in the message point at: `LoginCodeMail` and `InvitationMail` in Identity,
+`ReminderMail`, `BuddyNeededMail`, `WalkerWithdrawnMail` and `RoundCancelledMail` in Patrol. `MailComposers` finds it
+by type; a type without one is a `LogicException`, and `MailNotifierTest` holds every type in `src/` against the
+composers. `MailRenderer` renders `templates/mail/<name>.html.twig` and `.txt.twig` on one layout, with styles inline
+and the texts of `translations/mail+intl-icu.<locale>.yaml` in the language of the association; `LocalDateText` writes
+a moment out on the local clock. `MailNotifier` sends from `MAILER_FROM` under the sender name, replies go to the
+contact address, and the logo travels inside the mail (`cid:logo`); without it the layout shows the name. A mail about
+a round names date, time, daypart, meeting point and how many walk, never who, nor a phone number, address or note
+(`RoundFacts`); a link leads to the round in the app. A deleted round is gone when its mail is written, so
+`round.cancelled` carries the start.
 
 ## Handler and domain
 

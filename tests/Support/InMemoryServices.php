@@ -23,6 +23,7 @@ use App\Shared\Domain\AppUrl;
 use App\Shared\Domain\AuditTrail;
 use App\Shared\Domain\Notifier;
 use App\Shared\Domain\Transaction;
+use App\Shared\Infrastructure\Mail\MailComposers;
 use App\Shared\Infrastructure\Notification\MailNotifier;
 use App\Tests\Audit\Fake\RecordingAuditEntryRepository;
 use App\Tests\Identity\Fake\FixedLoginCodeGenerator;
@@ -108,6 +109,7 @@ final readonly class InMemoryServices implements CompilerPassInterface
             ->setArgument('$from', 'noreply@example.org')
         ;
         $container->getDefinition(AppUrl::class)->setArguments(['https://example.org/buurtpreventie/']);
+        $container->getDefinition(MailComposers::class)->setPublic(true);
 
         $container->setDefinition('cache.login_attempts', new Definition(ArrayAdapter::class))->setPublic(true);
 

@@ -1,0 +1,11 @@
+{% extends 'mail/layout.txt.twig' %}
+
+{% block content -%}
+{{ 'account.login_code.intro'|trans({}, 'mail', locale) }}
+
+    {{ code }}
+
+{{ 'account.login_code.use'|trans({minutes: minutes}, 'mail', locale) }}
+
+{{ 'account.login_code.ignore'|trans({}, 'mail', locale) }}
+{%- endblock %}

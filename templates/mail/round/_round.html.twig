@@ -1,0 +1,3 @@
+<p style="margin:16px 0 0 0;"><strong>{{ (round.meetingPoint is null ? 'round.line' : 'round.line_with_meeting_point')|trans({date: round.date, time: round.time, daypart: round.daypart, meetingPoint: round.meetingPoint ?? ''}, 'mail', locale) }}</strong><br>
+{{ (count == 'walkers' ? 'round.walkers' : 'round.others')|trans({walkers: round.walkers, others: round.others}, 'mail', locale) }}{% if round.seekingBuddy ?? false %} {{ 'round.reminder.seeking_buddy'|trans({}, 'mail', locale) }}{% endif %}</p>
+{{ include('mail/_button.html.twig', {href: round.link, label: 'round.button'|trans({}, 'mail', locale)}) }}

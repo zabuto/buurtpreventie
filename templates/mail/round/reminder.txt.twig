@@ -1,0 +1,11 @@
+{% extends 'mail/layout.txt.twig' %}
+
+{% block content -%}
+{{ 'round.reminder.intro'|trans({rounds: rounds|length}, 'mail', locale) }}
+{% for round in rounds %}
+
+{{ include('mail/round/_round.txt.twig', {round: round, count: 'others'}) -}}
+{% endfor %}
+
+{{ 'round.reminder.withdraw'|trans({}, 'mail', locale) }}
+{%- endblock %}

@@ -519,6 +519,30 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
   alleen met een contactadres; elk type uit `src/` heeft een composer.
 - Een nieuwe vertaling heeft een sleutel in beide talen (bestaande dekkingstest uitbreiden).
 - Met de hand: elke mail in Mailpit, licht en donker, op een smal scherm.
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - `Shared\Domain\Branding` (naam, afzendernaam, primaire kleur, taal, maillogo, contactadres), met
+    `SettingsBranding` in Settings; `MailComposer`, `MailComposers`, `MailRenderer`, `ComposedMail` en
+    `LocalDateText` in `Shared\Infrastructure\Mail` (regel 5 laat Twig daar toe); een composer per type in de module
+    die het bericht stuurt;
+  - `LoggingNotifier` is weg: elk type heeft een mail, en een type zonder composer is een `LogicException`, die
+    `AfterCommitNotifier` logt. `MailNotifierTest` legt elk type uit `src/` naast de composers;
+  - **`round.cancelled` krijgt `startsAt`** (kleine afwijking van vastgesteld 2, waar een bericht alleen ids
+    draagt): de ronde is verwijderd als de mail geschreven wordt;
+  - teksten in `translations/mail+intl-icu.{nl,en}.yaml` (ICU, voor het meervoud: "Er loopt 1 ander mee", "Er lopen
+    2 anderen mee"); `mail.{nl,en}.yaml` is weg. Startpunt de v3-teksten, zonder de namen van andere lopers
+    (beslissing 19). Datums voluit op de lokale klok: "vrijdag 20 november om 22:00";
+  - een herinnering noemt per ronde datum, tijd, dagdeel, startpunt en hoeveel anderen meelopen, en of de ronde
+    een loopmaatje zoekt; "zoekt een loopmaatje" noemt hoeveel lopers er zijn, waarom het lid de mail krijgt en
+    linkt naar `app/#/account`. Rondes linken naar `app/#/rounds/<id>`; die routes bouwt fase 5;
+  - layout: tabellen met stijlen inline, `color-scheme` licht en donker, knop in de primaire kleur met witte tekst
+    (dezelfde 4,5 : 1 als tekst op wit), logo als `cid:` met de naam als alt-tekst, zonder logo de naam als tekst.
+    De voettekst zegt van welke app de mail komt, en of je kunt antwoorden (alleen met een contactadres);
+  - `TranslationKeysTest` (nieuw, geen bestaande dekkingstest): elk vertaalbestand heeft in `nl` en `en` dezelfde
+    sleutels;
+  - tests: `MailNotifierTest` (inlogcode niet in het onderwerp, taal, afzender, `Reply-To`, logo of naam,
+    uitnodigingslink onder het pad, elk type heeft een mail) en `RoundMailsTest` (onderwerp en tijd in `nl` en `en`
+    per type, link onder het pad, geen namen, telefoon, adres, e-mailadres of notitie, aantallen);
+  - met de hand in Mailpit, licht en donker en smal: nog niet gedaan, hoort bij T15.
 
 ### T9. Herinnering N dagen vooraf (test eerst)
 

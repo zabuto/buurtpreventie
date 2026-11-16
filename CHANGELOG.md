@@ -114,6 +114,10 @@ versions follow [Semantic Versioning](https://semver.org/).
 - `GET /api/v1/config` for the frontend, public: name, colours, logo and icons, texts in the language of the
   association, the group link and the staffing defaults; the contact of the coordinator only for a member logged in. `GET /api/v1/manifest.webmanifest` lets a phone install the app under the name, colour and icon of the
   association, started under the path of `DEFAULT_URI`. Without an uploaded icon the app draws a neutral one.
+- Every message is a mail in HTML and text, in Dutch or English as the association sets it, with its name, colour
+  and logo: login code, invitation, reminder, a round that seeks a buddy, a walker who withdrew and a cancelled
+  round. A mail names no member, phone number, address or note; replies go to the contact address of the
+  association.
 - Every link in a mail starts at `DEFAULT_URI`, also when the app runs under a path such as
   `https://example.org/buurtpreventie`, with or without a trailing slash.
 - Dependabot also updates the Mailpit image in `compose.yaml`, after the same 7-day cooldown.

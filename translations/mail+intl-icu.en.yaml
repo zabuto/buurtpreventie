@@ -1,0 +1,39 @@
+# Mails to members, in plain English. The login code stays out of the subject: a locked phone shows the subject. A
+# mail names no member, phone number, address or note: who walks is in the app.
+layout.from: This mail comes from the app of {name}.
+layout.reply: Any questions? Reply to this mail.
+layout.no_reply: You cannot reply to this mail.
+
+account.login_code.subject: Your login code
+account.login_code.intro: 'Your login code is:'
+account.login_code.use: Enter this code on the screen where you asked for it. The code works for {minutes} minutes, and once.
+account.login_code.ignore: Did you not ask for a code? Then you need not do anything.
+
+account.invitation.subject: You are invited to the app of {name}
+account.invitation.intro: You are invited to the app of {name}. Open the link to log in.
+account.invitation.button: Log in
+account.invitation.valid: The link works for {hours} hours, and once. Does it no longer work? Then ask for a login code on the login screen with this e-mail address.
+
+round.line: '{date} at {time}, {daypart, select, morning {morning round} afternoon {afternoon round} other {evening round}}.'
+round.line_with_meeting_point: '{date} at {time}, {daypart, select, morning {morning round} afternoon {afternoon round} other {evening round}}, starting at {meetingPoint}.'
+round.others: '{others, plural, =0 {You walk alone so far.} one {1 other walks with you.} other {# others walk with you.}}'
+round.walkers: '{walkers, plural, one {1 walker has signed up.} other {# walkers have signed up.}}'
+round.button: See the round
+
+round.reminder.subject: You walk on {date}
+round.reminder.intro: '{rounds, plural, one {You signed up for this round:} other {You signed up for these rounds:}}'
+round.reminder.seeking_buddy: This round needs a buddy.
+round.reminder.withdraw: Can you not make it after all? Then withdraw in the app.
+
+round.buddy_needed.subject: Will you walk on {date}?
+round.buddy_needed.intro: This round needs a buddy. Will you walk?
+round.buddy_needed.why: You get this mail because you want to hear about rounds that need a buddy. Do you no longer want that? Then turn it off in the app, under Account.
+round.buddy_needed.account: Go to your account
+
+round.walker_withdrawn.subject: Your round on {date} is short of walkers
+round.walker_withdrawn.intro: A walker has withdrawn. This round is now short of walkers.
+round.walker_withdrawn.ask: Do you know someone who wants to walk? Then ask them. Can you not make it either? Then withdraw in the app.
+
+round.cancelled.subject: The round on {date} is off
+round.cancelled.intro: The round on {date} at {time} is off. It is no longer planned. You need not do anything.
+round.cancelled.button: Open the app

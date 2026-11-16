@@ -50,7 +50,7 @@ member lives in the fakes of the running kernel, so the session holds for one re
 authenticator. The session cookie of the test environment is `MOCKSESSID`, so a test ends a session by expiring that
 cookie. The identity probe also answers whether the proof is recent. Mail goes to the null transport in `test`
 (`config/packages/mailer.yaml`), where Symfony's mailer assertions see it; the kernel gives `MailNotifier` a fixed
-sender and base address. The kernel counts login attempts in a plain `ArrayAdapter` of its own: a cache pool is
+sender and `AppUrl` a base under a path, so every mail test proves a link keeps it. The kernel counts login attempts in a plain `ArrayAdapter` of its own: a cache pool is
 emptied between two requests of one client, and a pool in files would carry attempts from one test to the next.
 
 A few endpoint tests take the whole path through Doctrine, in the groups `database` and `functional`: they extend

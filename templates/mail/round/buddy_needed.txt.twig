@@ -1,0 +1,9 @@
+{% extends 'mail/layout.txt.twig' %}
+
+{% block content -%}
+{{ 'round.buddy_needed.intro'|trans({}, 'mail', locale) }}
+
+{{ include('mail/round/_round.txt.twig', {round: round, count: 'walkers'}) }}
+{{ 'round.buddy_needed.why'|trans({}, 'mail', locale) }}
+{{ 'round.buddy_needed.account'|trans({}, 'mail', locale) }}: {{ accountLink }}
+{%- endblock %}

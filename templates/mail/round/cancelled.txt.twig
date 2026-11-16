@@ -1,0 +1,7 @@
+{% extends 'mail/layout.txt.twig' %}
+
+{% block content -%}
+{{ 'round.cancelled.intro'|trans({date: date, time: time}, 'mail', locale) }}
+
+{{ 'round.cancelled.button'|trans({}, 'mail', locale) }}: {{ link }}
+{%- endblock %}

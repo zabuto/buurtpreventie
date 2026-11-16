@@ -51,7 +51,10 @@ final readonly class DeleteRoundHandler
                     continue;
                 }
 
-                $this->notifier->send(new Notification($walkerId, 'round.cancelled', ['roundId' => $round->id()->toRfc4122()]));
+                $this->notifier->send(new Notification($walkerId, 'round.cancelled', [
+                    'roundId' => $round->id()->toRfc4122(),
+                    'startsAt' => $round->startsAt()->format(\DATE_ATOM),
+                ]));
             }
         });
     }
