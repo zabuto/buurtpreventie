@@ -32,3 +32,13 @@ updates:
       actions:
         patterns: ['*']
         update-types: [minor, patch]
+
+  # The service images in compose.yaml, for development only. The database image is chosen through a variable, so
+  # Dependabot leaves it alone and it stays on the oldest supported MariaDB LTS line.
+  - package-ecosystem: docker-compose
+    directory: /
+    target-branch: develop
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7

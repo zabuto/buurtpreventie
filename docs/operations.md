@@ -44,11 +44,12 @@ are pinned to a commit SHA; Dependabot keeps them up to date.
 
 ## Dependabot
 
-`.github/dependabot.yml`: weekly for Composer and GitHub Actions, targeting `develop`. Security
-updates target the default branch.
+`.github/dependabot.yml`: weekly for Composer, GitHub Actions and the images in `compose.yaml` (Mailpit; the
+database image is set through a variable, which Dependabot skips), targeting `develop`. Security updates target the
+default branch.
 
 **Cooldown.** Dependabot proposes a Composer patch or minor only after 7 days and a major after 14;
-actions wait 7 days. No dependency is exempt; `DependabotCooldownTest` keeps it that way. Security
+actions and images wait 7 days. No dependency is exempt; `DependabotCooldownTest` keeps it that way. Security
 updates are not subject to it. Composer itself withholds every release younger than 24 hours
 (`config.policy.cooldown`), also for a security update and on a developer machine;
 `ComposerCooldownTest` guards that. The reasons are in
