@@ -700,6 +700,26 @@ Per regel eerst het testbestand, dan de regel (beslissing 35). Lokaal gedraaid z
 - Met de hand: inrichting wijzigen en upload via `curl` tegen de demo, `/config` en het manifest lezen, elke mail in
   Mailpit, `app:audit:verify`.
 - Push en pull request naar `develop` na akkoord; CI groen (alle jobs); merge als squash na akkoord.
+- Uitgevoerd op 16 november 2026 (verifiëren; opleveren na CI):
+  - `symfony composer check`: groen (validate, audit, YAML lint, deprecations, Mago format, lint en analyze, Rector,
+    PHPStan met PHPat, PHPUnit met database: 2507 tests); `composer test` zonder database: groen, 145 overgeslagen;
+  - Opengrep 1.33.1 lokaal (T13): 15 van 15 regeltests groen, 0 bevindingen;
+  - met de hand tegen de demo in de dev-database (geladen met akkoord), met `curl`: `/config` als bezoeker (`contact`
+    en `group` met `null`) en met het token van de demo (contact gevuld), het manifest (`application/manifest+json`,
+    `start_url` en `scope` op `/app/`), een icoon (cache van een jaar, `nosniff`; een onbekende versie en `../` geven
+    404), tekst als logo (422 `unsupported_image`, `format`), een te lichte kleur (422 `insufficient_contrast`, 1,71
+    tegen 4,5), een nieuw logo met een verkeerd `Content-Type` (204; de oude bestanden weg na de commit), `DELETE`
+    (`logoUrl` null) en het demologo terug; drie auditregels `setting.image_changed`; `app:audit:verify` intact tot en
+    met regel 327;
+  - vijf van de zes mails in Mailpit (inlogcode, uitnodiging, zoekt een loopmaatje, loper afgemeld, ronde gaat niet
+    door), via de API nagekeken: HTML en tekst, logo als `cid:`, `Reply-To` het contactadres, links onder
+    `DEFAULT_URI`, geen telefoonnummer of naam van een ander lid, de code niet in het onderwerp. De herinnering heeft
+    nog geen ingang (de scheduler volgt in fase 6a) en is alleen in de tests gerenderd;
+  - niet gedaan: de mails bekijken in licht, donker en smal (aan de ontwikkelaar, in Mailpit), MySQL (alleen in CI),
+    de Postman-collectie met Newman;
+  - gezien, niet opgelost: het laden van `demo` verstuurt twee mails "te weinig lopers" over rondes uit de nagespeelde
+    historie, omdat elk bericht in deze fase een mail is; en een teruggedraaide upload (zoals in de fixturetest) laat
+    ongebruikte bestanden in `UPLOAD_DIR` staan, die niemand opruimt. Beide als open punt hieronder.
 
 ## Afspraken
 
@@ -733,3 +753,7 @@ Gemeld, niet in deze fase opgelost:
 - **`.htaccess`, `shared/` en HSTS bij installatie** volgen met de mapindeling in fase 6a; `UPLOAD_DIR` wijst dan
   naar `shared/uploads`.
 - **Het beheerscherm** voor de instellingen en de contrastmelding in gewone taal bouwt fase 5 op deze endpoints.
+- **Voorbeelddata versturen mail**: het nagespelen van de historie van `demo` stuurt berichten (zoals "te weinig
+  lopers") naar `example.org`-adressen in Mailpit. Een notifier die tijdens het laden niets verstuurt, kan erbij.
+- **Ongebruikte afbeeldingen** na een teruggedraaide upload blijven in `UPLOAD_DIR`; opruimen hoort bij Onderhoud of
+  de scheduler (fase 6a of 6b).
