@@ -499,6 +499,28 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
 - Tests: aan- en afmelden zijn idempotent (tweede `PUT` en tweede `DELETE` geven hetzelfde antwoord); volle ronde 409
   `round_is_full`; namens aanmelden alleen voor de coördinator; `GET /rounds` boven 93 dagen geeft 422; elke ronde
   in de uitvoer heeft `status`, `walkerCount`, `minimumWalkers`, `maximumWalkers`, `openSpots` en `daypart`.
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - een controller per use case; `SignUpForRound` en `WithdrawFromRound` hebben elk twee routes (`/walkers/me` en
+    `/walkers/{memberId}`), beide met 204, ook bij herhalen. Een tweede `DELETE` na de laatste loper geeft 404: de
+    ronde is dan weg (beslissing uit fase 1, "meldt de laatste loper zich af, dan vervalt de ronde");
+  - `PATCH /rounds/{id}` volgt `ChangeRound`: start, startpunt en startnotitie worden vervangen, een weggelaten veld
+    wordt leeg. Geen samenvoegen per veld, zoals bij `PATCH /me`; de frontend stuurt het hele formulier. Ter
+    goedkeuring: `PUT` past beter bij die betekenis, maar wijkt af van het API-ontwerp;
+  - het ronde-id komt alleen uit het pad: `ChangeRound` en `CancelRound` krijgen in de controller een leeg id via
+    `default_constructor_arguments` van de serializer (een tekst, geen klasse van buiten regel 3), en de controller
+    vervangt het door het id uit het pad; een id in de body telt niet. Geen aparte payloadklasse: een use-casemap
+    bevat alleen de vaste bestanden;
+  - `POST /rounds/{id}/cancellation` mag zonder body; `POST /rounds` antwoordt 201 met `{id}`;
+  - `ListMyRounds` (nieuw, Patrol) leest `RoundRepository::withWalker()` (al met integratietest uit T7), op volgorde
+    van start, zonder voterattribuut, zoals de andere lees-handlers onder `/me`. `walked=1` geeft alleen gelopen
+    rondes, `walked=0` alle andere, zonder parameter alles; elke ronde heeft ook `reported`. Geen paginering: een lid
+    loopt hooguit enkele honderden rondes;
+  - `FindStaffingGaps` geeft ook `status` en `maximumWalkers`, zodat elke ronde in de uitvoer dezelfde zes velden
+    heeft;
+  - in een querystring leest een `+` als spatie: een offset gaat als `%2B` of `Z` (`docs/architecture.md`);
+  - de Postman-collectie leest na het inloggen met wachtwoord de rondes van de komende week, één ronde, de gaten en de
+    eigen gelopen rondes, en controleert de 422 voor meer dan 93 dagen en de 404 voor aanmelden bij een onbekende
+    ronde. Ze meldt niemand aan.
 
 ### T9. Review-focus 2 via de API (test eerst)
 
@@ -563,6 +585,8 @@ volledig IP-adres in de uitvoer, CSV met een vaste kolomvolgorde en formules gen
 ### T16. Opengrep-regels
 
 Per regel eerst het testbestand, dan de regel (beslissing 34). Lokaal gedraaid zoals in T14 van fase 1.
+
+Overgeslagen op verzoek; volgt later.
 
 ### T17. ADR 0006 en documentatie
 

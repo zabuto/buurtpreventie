@@ -55,6 +55,10 @@
     {
       "key": "tokenExpiresAt",
       "value": ""
+    },
+    {
+      "key": "roundId",
+      "value": ""
     }
   ],
   "item": [
@@ -1464,6 +1468,323 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('confirms in the session', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Rounds in the coming week",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/rounds?from={{periodFrom}}&to={{periodTo}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "rounds"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "{{periodFrom}}"
+                },
+                {
+                  "key": "to",
+                  "value": "{{periodTo}}"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get('password')) {",
+                  "    console.log('Skipped: no password set for this member');",
+                  "    pm.execution.skipRequest();",
+                  "}",
+                  "// The offset Z needs no encoding; a + in a query string reads as a space.",
+                  "const from = new Date();",
+                  "pm.variables.set('periodFrom', from.toISOString().replace(/\\.\\d+Z$/, 'Z'));",
+                  "pm.variables.set('periodTo', new Date(from.getTime() + 7 * 86400000).toISOString().replace(/\\.\\d+Z$/, 'Z'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('lists the rounds with their staffing', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const rounds = pm.response.json().rounds;",
+                  "    pm.expect(rounds).to.be.an('array');",
+                  "    pm.collectionVariables.set('roundId', rounds.length > 0 ? rounds[0].id : '');",
+                  "    for (const round of rounds) {",
+                  "        for (const field of ['status', 'walkerCount', 'minimumWalkers', 'maximumWalkers', 'openSpots', 'daypart']) {",
+                  "            pm.expect(round).to.have.property(field);",
+                  "        }",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "One round",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/rounds/{{roundId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "rounds",
+                "{{roundId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get('password')) {",
+                  "    console.log('Skipped: no password set for this member');",
+                  "    pm.execution.skipRequest();",
+                  "}",
+                  "if (!pm.variables.get('roundId')) {",
+                  "    console.log('Skipped: no round in the coming week');",
+                  "    pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('shows the round with its walkers', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const round = pm.response.json();",
+                  "    pm.expect(round.walkers).to.be.an('array');",
+                  "    for (const field of ['status', 'walkerCount', 'minimumWalkers', 'maximumWalkers', 'openSpots', 'daypart']) {",
+                  "        pm.expect(round).to.have.property(field);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Rounds that seek a buddy",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/staffing-gaps",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "staffing-gaps"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get('password')) {",
+                  "    console.log('Skipped: no password set for this member');",
+                  "    pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('lists the gaps', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.json().gaps).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Own walked rounds",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/rounds?walked=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "me",
+                "rounds"
+              ],
+              "query": [
+                {
+                  "key": "walked",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get('password')) {",
+                  "    console.log('Skipped: no password set for this member');",
+                  "    pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('lists only walked rounds', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    for (const round of pm.response.json().rounds) {",
+                  "        pm.expect(round.status).to.eql('walked');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Rounds over more than 93 days",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/rounds?from=2026-01-01T00:00:00Z&to=2026-06-01T00:00:00Z",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "rounds"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-01-01T00:00:00Z"
+                },
+                {
+                  "key": "to",
+                  "value": "2026-06-01T00:00:00Z"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get('password')) {",
+                  "    console.log('Skipped: no password set for this member');",
+                  "    pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('answers 422 invalid_period', () => {",
+                  "    pm.response.to.have.status(422);",
+                  "    pm.expect(pm.response.json().type).to.eql('urn:buurtpreventie:problem:invalid_period');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sign up for a round that does not exist",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/rounds/0193a3c0-0000-7000-8000-000000000001/walkers/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "rounds",
+                "0193a3c0-0000-7000-8000-000000000001",
+                "walkers",
+                "me"
+              ]
+            },
+            "description": "Checks the refusal only: signing up for a real round would change the local database."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get('password')) {",
+                  "    console.log('Skipped: no password set for this member');",
+                  "    pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('answers 404', () => {",
+                  "    pm.response.to.have.status(404);",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');",
+                  "});"
                 ]
               }
             }

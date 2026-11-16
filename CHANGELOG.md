@@ -122,3 +122,8 @@ versions follow [Semantic Versioning](https://semver.org/).
 - `GET`, `POST` and `DELETE /api/v1/me/tokens`: a new API token needs a recent session and an end date within 365
   days, and shows its secret only in the answer that created it; a request with an API token gets 403
   `browser_only` there. Every API token expires; tokens without an end date get one 365 days after they were made.
+- Rounds: `GET /api/v1/rounds` for a period of at most 93 days, `GET /api/v1/rounds/{id}`, `POST /api/v1/rounds`,
+  `PATCH` and `DELETE /api/v1/rounds/{id}`, `POST /api/v1/rounds/{id}/cancellation`, `GET /api/v1/staffing-gaps` and
+  `GET /api/v1/me/rounds?walked=`; every round carries its status, staffing, open spots and daypart. Signing up and
+  withdrawing with `PUT` and `DELETE /api/v1/rounds/{id}/walkers/me`, or `/walkers/{memberId}` for a coordinator,
+  answer the same when repeated.

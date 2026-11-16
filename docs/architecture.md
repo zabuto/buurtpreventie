@@ -278,6 +278,21 @@ member, such as a role an admin gave, it keeps the action but not who it was abo
 every activity entry through the use cases of each module, and of another member it holds a buddy's display name
 only.
 
+**Rounds.** `GET /rounds?from=&to=&status=` (`ListRounds`) lists the rounds that start in a period of at most 93 days,
+otherwise the 422 problem `invalid_period`; a `+` in an offset reads as a space in a query string, so a client sends
+`%2B` or `Z`. `GET /rounds/{id}` (`GetRound`) shows one round with its walkers, report and comments; `GET
+/staffing-gaps` (`FindStaffingGaps`) the rounds that have not started and seek a buddy; `GET /me/rounds?walked=`
+(`ListMyRounds`) the rounds of the member logged in, `walked=1` the walked ones with whether they have a report,
+`walked=0` the others. Every round in these answers has `status`, `walkerCount`, `minimumWalkers`, `maximumWalkers`,
+`openSpots` and `daypart`. `POST /rounds` (`CreateRound`) plans a round and answers 201 with its id; `PATCH
+/rounds/{id}` (`ChangeRound`) replaces start, meeting point and start note, so a field left out is cleared; `DELETE
+/rounds/{id}` (`DeleteRound`) deletes a round that has not started; `POST /rounds/{id}/cancellation` (`CancelRound`)
+records that a started round was not walked, with an optional reason. A round id comes from the path only: the
+controllers fill the one in the input with `default_constructor_arguments` and replace it, so one in the body
+counts for nothing. `PUT` and `DELETE /rounds/{id}/walkers/me` sign the member up and withdraw them, and
+`/walkers/{memberId}` does so on behalf of another member, which only a coordinator may; both answer 204 however
+often they are repeated, until the last walker leaves and the round goes, after which the round is not found.
+
 ## Handler and domain
 
 A handler orchestrates: it builds value objects from the input, asks `Authorization`, runs the change
