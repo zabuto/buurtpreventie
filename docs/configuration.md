@@ -63,7 +63,7 @@ The input of a use case refuses a longer value; the column holds at least as muc
 | Comment | 2,000 |
 | Note of a round report | 5,000 |
 | Name of an API token | 100 |
-| Password | at least 12, at most 4,096 |
+| Password | at least 15 characters (NIST SP 800-63B for a password as the only factor), at most 4,096 bytes; any kind of character |
 
 ### Other values
 

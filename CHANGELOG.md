@@ -90,6 +90,7 @@ versions follow [Semantic Versioning](https://semver.org/).
   `POST /api/v1/auth/login-code/verify` logs in with the code and the id of the request, at most 5 attempts.
 - Invitations: a link that logs a member in once within 48 hours (`POST /api/v1/auth/invitation`), sent by a
   coordinator or admin (`InviteMember`).
+- A new password has at least 15 characters of any kind, and at most 4,096 bytes.
 - Stay logged in for 90 days with `"rememberMe": true`. A new password ends every other session and every
   remembered device. A login without an e-mail address gets a field error instead of a failed login.
 - `POST /api/v1/auth/confirm` with the password makes a session recent; a new password needs a login or confirmation

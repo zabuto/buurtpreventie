@@ -198,7 +198,9 @@ sample data, and Mailpit. `email` is a member of the loaded set (`beheer@example
 local environment sets `mailpitUrl`, for the request "Read the code from Mailpit (local only)", which takes the code
 from the newest mail; without it that request is skipped, and a step that needs the code runs only once the variable
 `code` is set by hand. A step that needs a password is skipped without one. The app takes 3
-requests for a code per address in an hour, so a fourth run within the hour answers 429.
+requests for a code per address in an hour, the same limit as in production, so a fourth run within the hour answers
+429. Locally `symfony console cache:pool:clear cache.login_attempts` resets that count, and every count of failed
+logins with it.
 
 ## Security scan
 
