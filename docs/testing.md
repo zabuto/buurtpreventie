@@ -125,8 +125,8 @@ the next use case. What the templates contain is unit-tested in memory in `UseCa
 `OpenApiCoverageTest` reads `/api/v1/docs.json` on the regular test kernel: every route under `/api/v1` is in it with
 its method and nothing else is; every operation names its successful answer (204 without a body, any other with a
 schema for each media type) and the problem answers it can give (401 and 403 off the public
-paths, 404 with an id in the path, 422 with a body or query parameters); and every request of the Postman collection
-to `{{baseUrl}}` matches a path and method of the spec, a `{parameter}` standing for one segment. `OpenApiNamingTest`
+paths, 404 with an id in the path, 422 with a body or query parameters); and every request in `hurl/`
+to `{{baseUrl}}` matches a path and method of the spec, a `{parameter}` standing for one segment (`HurlRequests`). `OpenApiNamingTest`
 holds every property and query parameter of the spec to camelCase, and `OutputKeyNamingTest` (in memory) the keys of
 the array shapes in the outputs.
 
@@ -233,50 +233,63 @@ the job summary. It is information only: no threshold, and a failure there never
 database, so the Doctrine repositories count low. Locally the same script needs pcov or Xdebug (`XDEBUG_MODE=coverage`)
 and writes `var/coverage/coverage.txt`.
 
-## Postman collection
+## Hurl
 
-`postman/buurtpreventie.postman_collection.json` checks a running app from the outside: health, the OpenAPI
-description, the configuration of a visitor without the contact or the group, the app icon it names and the web app manifest, the refusals of the login endpoints, a login with a code and, when a password is set, a login with the
-password. After the login with a code it walks the own account: profile, a change that changes nothing, the 422 for empty text as phone number, an API token
-created, listed, used, refused under `/me/tokens` and revoked, activity, export, and the 403 for a new token or
-password once only the stay-logged-in cookie is left. After the login with a password it reads the rounds of the
-coming week, one of them with every walker in one shape, the gaps and the own rounds to report, and checks the 422 for every own round without a period, for a period of more than 93 days and
-the 404 for signing up for a round that does not exist. As the sample admin it gets the 403 for the reports and the
-history of a round, and the 404 for a comment on, or deleting a report of, something that does not exist. It reads
-the member list in one shape without e-mail addresses, the admin list and one member, and checks the 422 for a new member with an
-invalid address, the 422 for null as the name of a member and the 404 for the roles of a member that does not exist. It lists the meeting points and outcomes,
-for members and as admin, and checks the 409 for an outcome under the name of one that exists and the 404 for
-archiving a meeting point that does not exist, and the 422 for half a position. It reads the settings, sends a patch without fields, and checks the 422 for a primary colour without enough contrast and for text uploaded as a logo, both of which change nothing, and the 404 for a brand image no setting names. It reads the audit log, as JSON with the login among the entries and as
-CSV with its header (`Accept: text/csv`), and checks the 406 for another format. It never sets a valid new password, which would replace the one
-of the member in the local database, and the token it makes lives one day. It is no part of `composer check` or CI and adds no dependency: import it with
-`postman/local.postman_environment.json` into the Postman app, or run it with Newman:
+The files in `hurl/` check a running app from the outside, one subject per file. Every file logs in by itself and
+needs no other, so Hurl runs them in parallel by default, and in any order with `--jobs 1`.
+
+| File | Checks |
+| --- | --- |
+| `public.hurl` | Health, the OpenAPI description, `/config` of a visitor with contact and group empty, the app icon it names, the web app manifest |
+| `refusals.hurl` | The 401 problems of the login endpoints |
+| `account.hurl` | A login with a code from Mailpit, the own profile and its 422, a password too short, an API token created, listed without its secret, used, refused under `/me/tokens` and revoked, activity, export, logout, and the same code once more |
+| `rounds.hurl` | The rounds of the coming week, one round with walkers, the gaps, the own rounds to report, the 422 for an open or too long period, the 404s, and the 403s of the admin for reports and history |
+| `members.hurl` | The member list without e-mail addresses, the admin list, one member, and the 422s and 404 |
+| `meeting-points-and-outcomes.hurl` | The lists for members and the admin, the 409 for a name that is taken, the 422 for half a position, the 404 for archiving |
+| `settings.hurl` | The settings, a patch without fields, the 422 for a weak colour and for text as a logo, the 404 for an image no setting names |
+| `audit-log.hurl` | The log as JSON and as CSV, and the 406 for another format |
+
+Nothing changes data that a later run needs: no valid password is set, the refused patches change nothing, and the
+token made in `account.hurl` is revoked. Run them against the app under the Symfony CLI with sample data and Mailpit:
 
 ```sh
-HTTPS_PROXY=http://127.0.0.1:7080 npx newman run postman/buurtpreventie.postman_collection.json \
-  -e postman/local.postman_environment.json --insecure \
-  --env-var "mailpitUrl=$(symfony var:export MAILER_WEB_URL)"
+hurl --test --variables-file hurl/local.variables --insecure --proxy http://127.0.0.1:7080 \
+  --header 'Sec-Fetch-Site: same-origin' --header 'Accept-Language: nl' \
+  --variable "mailpitUrl=$(symfony var:export MAILER_WEB_URL)" \
+  --variable "inAWeek=$(php -r 'echo gmdate("Y-m-d\TH:i:s\Z", time() + 7 * 86400);')" \
+  hurl/*.hurl
 ```
 
-The local environment reaches the app at `https://buurtpreventie.wip`, the domain of the Symfony CLI's local proxy
-(`symfony proxy:status`), which stays the same whatever port the server got. Newman does not read the proxy setting of
-the system, hence `HTTPS_PROXY`; the Postman app does when it uses the system proxy. Without the proxy, pass the
-address `symfony server:list` shows for this directory: `--env-var baseUrl=https://127.0.0.1:<port>`. The local
-environment logs in as `beheer@example.org` with the sample password, the first admin of every sample set; add
-`--env-var email=…` for another sample member.
+- **Variables.** `hurl/local.variables` holds `baseUrl`, `email` and `password`: `https://buurtpreventie.wip` and
+  `beheer@example.org` with the sample password, the first admin of every sample set. `mailpitUrl` points at Mailpit;
+  `inAWeek` ends the period of the rounds and the life of the token. Every variable is required: one that is missing
+  fails its file rather than skipping a step. Without Mailpit, run every file but `account.hurl`.
+- **Headers.** The app takes a changing request of the browser only from its own origin, which a browser states in
+  `Sec-Fetch-Site`; without that header every changing request answers 403.
+- **Proxy.** `buurtpreventie.wip` is the domain of the Symfony CLI's local proxy (`symfony proxy:status`), which stays
+  the same whatever port the server got; `--proxy`, `https_proxy` or `HTTPS_PROXY` reaches it. Without the proxy,
+  set `--variable baseUrl=https://127.0.0.1:<port>` with the port `symfony server:list` shows.
+- **`--insecure`** skips the check of the TLS certificate. The Symfony CLI serves HTTPS with a certificate from its own
+  local certificate authority, which the browser trusts through the system keychain and Hurl's libcurl does not.
+  Locally that check protects nothing: the connection never leaves the machine. Never pass `--insecure` for a server
+  elsewhere, where the check is what proves the server is the real one.
+- **Codes.** The app takes 3 requests for a code per address in an hour, the same limit as in production, and only
+  `account.hurl` asks for one, so a fourth run within the hour answers 429 there. Locally
+  `symfony console cache:pool:clear cache.login_attempts` resets that count, and every count of failed logins with it.
+- **Hurl 7.1 or later** (`brew install hurl`), for `isList` and the filters on lists. It is no part of `composer check`
+  or CI, as it needs the running app and Mailpit.
 
-`--insecure` skips the check of the TLS certificate. The Symfony CLI serves HTTPS with a certificate from its own
-local certificate authority, which the browser trusts through the system keychain; Newman runs on Node.js, which
-reads its own list of authorities and not the keychain, so it refuses that certificate. Locally that check protects
-nothing: the connection never leaves the machine. Never pass `--insecure` for a server elsewhere, where the check is
-what proves the server is the real one. The Postman app has the same switch: Settings → SSL certificate verification.
+Two checks stay with PHPUnit. Hurl cannot drop one cookie of a session and keep the stay-logged-in cookie, so the 403
+`reauthentication_required` of a session that is not recent is covered by `ApiTokenEndpointsTest` and
+`SetPasswordControllerTest`. Hurl checks that every member and every walker has each key and the first has exactly
+these; that each one has exactly these keys is covered by `GetMemberSummariesHandlerTest` and `GetRoundHandlerTest`.
 
-It needs the app running under the Symfony CLI, the database with sample data, and Mailpit. Only the
-local environment sets `mailpitUrl`, for the request "Read the code from Mailpit (local only)", which takes the code
-from the newest mail; without it that request is skipped, and a step that needs the code runs only once the variable
-`code` is set by hand. A step that needs a password is skipped without one. The app takes 3
-requests for a code per address in an hour, the same limit as in production, so a fourth run within the hour answers
-429. Locally `symfony console cache:pool:clear cache.login_attempts` resets that count, and every count of failed
-logins with it.
+**Sending a request by hand.** One request through stdin, with `-i` for the headers:
+`echo 'GET https://buurtpreventie.wip/api/v1/health' | hurl --insecure --proxy http://127.0.0.1:7080 -i`. Part of a
+file runs with `--to-entry <n>`, and `--verbose` shows every request and answer. To keep a session over separate
+commands, save the cookies of a run with `-c "$TMPDIR/session.txt"` (for example the login of `members.hurl` with
+`--to-entry 2`) and send them with `-b "$TMPDIR/session.txt"`. A changing request needs
+`-H 'Sec-Fetch-Site: same-origin'`. The cookie file holds a valid session: keep it in `$TMPDIR`, never in the repository.
 
 ## Security scan
 
