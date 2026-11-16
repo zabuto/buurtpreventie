@@ -1,6 +1,6 @@
 # Fase 3: taakplan
 
-Status: ter goedkeuring. Besloten op 16 november 2026: beslissingen 2, 3, 4, 5, 8, 11, 14, 15, 17 en 19, en de zes
+Status: ter goedkeuring. Besloten op 16 november 2026: beslissingen 2, 3, 4, 4a, 5, 8, 11, 14, 15, 17 en 19, en de zes
 soorten berichten (vastgesteld 2).
 
 Bron: `docs/plans/plan.md` (Samenvatting, Branding en configuratie, Privacy en AVG, Auditlog, Fase 3, Risico's en
@@ -93,6 +93,7 @@ Klaar als:
    | `brand.logo`, `brand.icon` (bestandsnaam, beslissing 8) | geen logo; neutraal icoon uit de repo | ja |
    | `brand.primary`, `brand.accent`, `brand.primary_dark`, `brand.accent_dark` | neutrale kleuren die de contrastregels halen | ja |
    | `contact.name`, `contact.email`, `contact.phone` | leeg | alleen ingelogd (beslissing 4) |
+   | `community.group_url` (beslissing 4a) | leeg | alleen ingelogd |
    | `mail.sender_name` | `association.name` | nee |
    | `text.welcome.<taal>`, `text.emergency.<taal>` | neutrale tekst in `nl` en `en` | ja |
    | `text.privacy_url`, `text.accessibility_url` | leeg | ja |
@@ -114,6 +115,19 @@ Klaar als:
    naam, telefoonnummer en e-mailadres daar is een persoonsgegeven op internet. `GET /config` geeft `contact` met
    vaste sleutels, `null` zonder sessie of token (zoals T23 van fase 2). Het plan noemt "contact coördinator op elke
    pagina": dat zijn de pagina's na inloggen, en het inlogscherm toont de spoedtekst.
+4a. **Een link naar de groep van de vereniging in WhatsApp of Signal** (besloten op 16 november 2026), voor de
+    buurtsignalen die het plan bewust buiten de app houdt (Spoedmeldingen). Eén instelling `community.group_url`,
+    leeg of een uitnodigingslink:
+    - alleen `https://chat.whatsapp.com/<code>` of `https://signal.group/#<code>`; een andere host of `http` geeft
+      een veldfout. `/config` geeft de link met `service` (`whatsapp` of `signal`, afgeleid uit de host), zodat de
+      frontend het juiste woord en icoon toont;
+    - **alleen voor ingelogde leden**, zoals het contact (beslissing 4): wie de link heeft, kan de groep in, en dan
+      zien alle leden van de groep zijn telefoonnummer. Daarom ook niet in een mail, die wordt doorgestuurd;
+    - de auditregel noemt de wijziging als `null → null`, zodat de link niet in het log staat;
+    - een vereniging die de link vervangt (omdat hij gelekt is), trekt de oude in de app van WhatsApp of Signal in;
+      de app kan dat niet. De beheerhandleiding van fase 6b zegt het.
+    Eén groep, geen twee: een vereniging met beide kiest er een, zodat lopers niet op twee plekken hoeven te kijken.
+    Alternatief: een vrije URL met een vrije naam, zonder controle op de host.
 5. **De privacyverklaring en de toegankelijkheidsverklaring zijn een URL**, geen tekst in de app (besloten op
    16 november 2026). Fase 6b doet een voorstel voor een standaardtekst van beide, in `docs/privacy/`, die de
    vereniging op haar eigen site zet. Zo bestaat er één versie van de verklaring, en houdt de app geen juridische
@@ -175,7 +189,8 @@ Klaar als:
 ### Publieke configuratie en manifest
 
 12. **`GET /api/v1/config`** (publiek): naam, korte naam, kleuren, URL's van logo en iconen, taal, teksten in de taal
-    van de vereniging, privacy- en toegankelijkheids-URL, minimum en maximum lopers, en `contact` (beslissing 4).
+    van de vereniging, privacy- en toegankelijkheids-URL, minimum en maximum lopers, en `contact` en `group`
+    (beslissingen 4 en 4a).
     Eén use case `GetPublicConfig` in Settings, die `GetStaffingDefaults` vervangt als bron voor de frontend.
 13. **`GET /api/v1/manifest.webmanifest`** (publiek, `application/manifest+json`): naam, korte naam, `theme_color`
     (primair licht), `background_color` (wit), `display: standalone`, iconen 192 en 512, en `start_url` en `scope`
@@ -342,7 +357,8 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
 - Use cases: `GetSettings` (beheerder), `ChangeSettings` (`PATCH /admin/settings`, beslissing 7), `GetPublicConfig`
   (beslissing 12), `GetReminderLeadTime`, `GetApiTokenAccess`.
 - Tests: elke instelling weigert een verkeerde waarde met een veldfout; `null` zet de standaard terug; minimum en
-  maximum samen (maximum ≥ minimum, ook als maar één van beide verandert); elke standaardkleur haalt de regels; een
+  maximum samen (maximum ≥ minimum, ook als maar één van beide verandert); de groepslink neemt alleen de twee hosts
+  van beslissing 4a over `https`; elke standaardkleur haalt de regels; een
   te zwakke kleur geeft 422 `insufficient_contrast` met de verhoudingen; contrast tegen bekende paren uit WCAG; de
   auditregel noemt alleen wat veranderde, teksten als `null → null`.
 - Een gewijzigd minimum geldt alleen voor nieuwe rondes (bestaande test van fase 1 blijft groen).
@@ -365,7 +381,8 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
 
 ### T7. `/config` en manifest (test eerst)
 
-- Tests: `/config` zonder sessie heeft `contact` met `null`-waarden, met sessie of token de waarden; teksten in de
+- Tests: `/config` zonder sessie heeft `contact` en `group` met `null`-waarden, met sessie of token de waarden, en
+  `group.service` volgt de host; teksten in de
   taal van de vereniging; het manifest heeft `start_url` en `scope` op het pad van de basis-URL plus `/app/`,
   zonder `/public/` (review-focus 5), iconen 192 en 512 en het juiste mediatype.
 - OpenAPI voor beide; `OpenApiCoverageTest` en de Postman-collectie.
