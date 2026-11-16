@@ -14,6 +14,7 @@ use Override;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Filesystem\Filesystem;
 
 #[Group('integration')]
 final class FileBrandImagesTest extends TestCase
@@ -29,12 +30,7 @@ final class FileBrandImagesTest extends TestCase
     #[Override]
     protected function tearDown(): void
     {
-        \array_map(\unlink(...), $this->paths());
-        foreach ([$this->directory . '/brand', $this->directory] as $folder) {
-            if (\is_dir($folder)) {
-                \rmdir($folder);
-            }
-        }
+        new Filesystem()->remove($this->directory);
     }
 
     #[Test]

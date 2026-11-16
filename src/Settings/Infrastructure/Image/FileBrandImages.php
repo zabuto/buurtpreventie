@@ -7,9 +7,10 @@ namespace App\Settings\Infrastructure\Image;
 use App\Settings\Domain\BrandImageFile;
 use App\Settings\Domain\BrandImageKind;
 use App\Settings\Domain\BrandImages;
+use App\Settings\Domain\Rendition;
 use Override;
-use RuntimeException;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * Keeps the images in `brand/` under `UPLOAD_DIR`, outside the web folder, so the web server never serves an upload
@@ -30,8 +31,9 @@ final readonly class FileBrandImages implements BrandImages
         $renditions = $this->converter->convert($kind, $content);
         $version = BrandImageFile::versionOf($content);
 
+        $filesystem = new Filesystem();
         foreach ($renditions as $size => $png) {
-            $this->write(BrandImageFile::of($kind, $size, $version), $png);
+            $filesystem->dumpFile($this->path(BrandImageFile::of($kind, $size, $version)), $png);
         }
 
         return $version;
@@ -48,28 +50,10 @@ final readonly class FileBrandImages implements BrandImages
     #[Override]
     public function remove(BrandImageKind $kind, string $version): void
     {
-        foreach ($kind->renditions() as $rendition) {
-            $path = $this->path(BrandImageFile::of($kind, $rendition->size, $version));
-            if (\is_file($path)) {
-                \unlink($path);
-            }
-        }
-    }
-
-    /**
-     * @throws RuntimeException when the folder cannot be made or written to
-     */
-    private function write(BrandImageFile $file, string $png): void
-    {
-        $folder = $this->directory . '/brand';
-        if (!\is_dir($folder) && !\mkdir($folder, 0o775, recursive: true) && !\is_dir($folder)) {
-            throw new RuntimeException(\sprintf('Cannot create the folder "%s".', $folder));
-        }
-
-        $temporary = \tempnam($folder, '.upload-');
-        if (false === $temporary || false === \file_put_contents($temporary, $png) || !\rename($temporary, $this->path($file))) {
-            throw new RuntimeException(\sprintf('Cannot write "%s" in "%s".', $file->name(), $folder));
-        }
+        new Filesystem()->remove(\array_map(
+            fn(Rendition $rendition): string => $this->path(BrandImageFile::of($kind, $rendition->size, $version)),
+            $kind->renditions(),
+        ));
     }
 
     private function path(BrandImageFile $file): string

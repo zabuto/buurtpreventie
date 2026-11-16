@@ -320,6 +320,7 @@ Versies en datums van Packagist op 16 november 2026. De Composer-cooldown van 24
 | --- | --- | --- | --- | --- | --- |
 | `symfony/twig-bundle` (+ `symfony/twig-bridge`) | Twig in Symfony, voor de e-mails (beslissing 16) | MIT | runtime | Symfony 7.4 LTS, patch ongeveer maandelijks | v7.4.21 (9 okt), bridge v7.4.22 (15 okt) |
 | `twig/twig` (via de bundle) | Templates met automatisch escapen | BSD-3-Clause | runtime | Minor elke paar maanden; 4.0 staat in alpha, de 3-lijn krijgt releases | v3.30.0 (25 sep) |
+| `symfony/filesystem` (goedgekeurd bij T6) | Afbeeldingen schrijven (tijdelijk bestand en `rename()`) en verwijderen | MIT | runtime | Symfony 7.4 LTS, patch ongeveer maandelijks | v7.4.23 (4 nov), stond er al als indirecte afhankelijkheid |
 | `ext-gd` (PHP-extensie, geen pakket) | Logo en icoon controleren, verkleinen en opnieuw opslaan (beslissing 8) | PHP | platform | Met PHP | lokaal geladen |
 
 `symfony/mime` (al runtime via `symfony/mailer`) en `ext-fileinfo` (standaard in PHP) komen niet nieuw mee.
@@ -468,8 +469,8 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
   - `GET /media/brand/{bestand}` is publiek (`security.yaml`), met `Cache-Control: public, max-age=31536000,
     immutable` ook voor een ingelogd lid (Symfony maakt een antwoord na een sessie anders privé) en `nosniff` van
     `ApiSecurityHeaders`;
-  - `symfony/filesystem` is geen eigen afhankelijkheid, dus schrijven gaat met een tijdelijk bestand en `rename()`
-    in PHP zelf;
+  - `symfony/filesystem` is een eigen afhankelijkheid (goedgekeurd op 16 november 2026; hij stond er al
+    indirect): `dumpFile()` schrijft elke maat via een tijdelijk bestand, `remove()` haalt een versie weg;
   - het standaardicoon uit de repo komt in T7, met `/config` en het manifest die het noemen;
   - GD negeert de draaiing die een telefoon in de metadata van een JPEG zet; `docs/configuration.md` zegt het;
   - `UPLOAD_DIR` staat in `config/services.yaml` (standaard `var/uploads` in het project) en

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "dfd223c19d33e4d5e8ed9e50c882acee",
+    "content-hash": "5f2bbfc531b7f46a79c32cee613273a5",
     "packages": [
         {
             "name": "doctrine/collections",
@@ -3041,7 +3041,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-11-04T08:27:22+00:00"
+            "time": "2026-11-04T08:27:22+00:00",
+            "published-time": "2026-11-04T11:28:00+00:00"
         },
         {
             "name": "symfony/finder",
