@@ -69,6 +69,18 @@ final class InMemoryMemberRepository implements MemberRepository
     }
 
     #[Override]
+    public function ofEmail(EmailAddress $email): ?Member
+    {
+        foreach ($this->members as $member) {
+            if ($member->email()?->value === $email->value) {
+                return $member;
+            }
+        }
+
+        return null;
+    }
+
+    #[Override]
     public function isEmailAddressTaken(EmailAddress $email, ?Uuid $except = null): bool
     {
         return (

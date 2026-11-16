@@ -24,11 +24,16 @@ composer install
 ```
 
 Local settings and secrets go in `.env.local`, which stays out of Git. See
-[configuration.md](configuration.md).
+[configuration.md](configuration.md). The app needs `APP_SECRET` there before anything signs or hashes a secret, such
+as a login code, a stay-logged-in cookie or loading the sample data. Make one if `.env.local` has none:
+
+```bash
+echo "APP_SECRET=$(php -r 'echo bin2hex(random_bytes(32));')" >> .env.local
+```
 
 ## Database
 
-MariaDB runs in a container.
+MariaDB and Mailpit, which catches every mail the app sends, run in containers.
 
 ```bash
 docker compose up -d --wait
@@ -43,6 +48,10 @@ To look inside with a database client, connect to host `127.0.0.1` (not `localho
 many clients look for a socket) on the port that `docker compose port database 3306` prints, with
 the user, password and database from `compose.yaml`. The port changes when the container starts
 again.
+
+Mail never leaves the machine: Mailpit keeps it, and `symfony open:local:webmail` opens its web view. Through the
+Symfony CLI the app gets `MAILER_DSN` from the `mailer` container, as it gets `DATABASE_URL`. Without the CLI,
+`MAILER_DSN` is `null://null`, which drops every mail.
 
 Create the tables, and bring them up to date after every pull that adds a migration:
 
@@ -65,8 +74,35 @@ symfony console app:fixtures:load demo
 The command empties the database first and asks before it does; `--no-interaction` skips the
 question. Besides `demo` there are `test` (the least an installation needs) and `edge` (the hard
 cases); see [Sample data](architecture.md#sample-data). Every date follows today, so the calendar is
-never empty. The command exists only in `dev` and `test`. Sample members have no password: logging in
-arrives in phase 2.
+never empty. The command exists only in `dev` and `test`. The first admin of every set, `beheer@example.org`, logs in
+with the made-up password `voorbeeld-wachtwoord-buurt`, which the command shows. In `demo` so do the analyst
+(`thomas.visser@example.org`), the coordinator (`fatima.elamrani@example.org`) and three walkers: `jan.bakker`, who
+shares his first name, `priya.sharma`, who uses the API, and `willem.dekker`, who stopped and is refused. Any other
+member logs in with a code by mail. In `demo`, `priya.sharma` also has an API token that reads and writes for 90
+days; the command shows its secret once, after loading.
+
+### Sign up with curl
+
+With that token a script signs Priya up for a round, without a session. First the rounds of a period of at most 93
+days, read with the same token; fill in two dates as `2026-01-31T00:00:00Z` (`Z` needs no encoding in a query
+string, a `+` would read as a space):
+
+```bash
+TOKEN=bpt_…   # the secret the command showed
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "https://buurtpreventie.wip/api/v1/rounds?from=<today>T00:00:00Z&to=<a week later>T00:00:00Z"
+```
+
+Take the `id` of a round with open spots and sign up; the answer is `204`, also when she was signed up already:
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' -X PUT -H "Authorization: Bearer $TOKEN" \
+  "https://buurtpreventie.wip/api/v1/rounds/<id>/walkers/me"
+```
+
+`DELETE` on the same address withdraws her. A token that may only read gets `403` with `insufficient_scope`; a
+token that is revoked or expired gets `401`. Without the local domain, use the address the Symfony CLI prints, and
+`-k` when curl refuses its certificate.
 
 ## Start
 

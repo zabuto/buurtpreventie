@@ -25,4 +25,9 @@ interface RoundCommentRepository
      * @return list<RoundComment> oldest first
      */
     public function forRound(Round $round): array;
+
+    /**
+     * @return list<RoundComment> oldest first
+     */
+    public function byAuthor(Uuid $authorId): array;
 }

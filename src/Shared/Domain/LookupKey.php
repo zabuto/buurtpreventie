@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Shared\Domain;
 
-use InvalidArgumentException;
 use Normalizer;
 
 /**
@@ -22,13 +21,13 @@ final readonly class LookupKey
     }
 
     /**
-     * @throws InvalidArgumentException for invalid UTF-8, on which Normalizer fails, or for a name of only whitespace
+     * @throws InvalidName for invalid UTF-8, on which Normalizer fails, or for a name of only whitespace
      *                                  and punctuation
      */
     public static function fromName(string $name): self
     {
         if (!\mb_check_encoding($name, 'UTF-8')) {
-            throw new InvalidArgumentException('A name must be valid UTF-8.');
+            throw new InvalidName('A name must be valid UTF-8.');
         }
 
         $decomposed = Normalizer::normalize($name, Normalizer::FORM_D);
@@ -37,7 +36,7 @@ final readonly class LookupKey
         $bare = (string) \preg_replace(['/\p{Mn}/u', '/[\p{P}\s]+/u'], ['', ' '], $decomposed);
         $key = \mb_strtolower(\trim($bare));
         if ('' === $key) {
-            throw new InvalidArgumentException('A name needs at least one character besides whitespace and punctuation.');
+            throw new InvalidName('A name needs at least one character besides whitespace and punctuation.');
         }
 
         return new self($key);

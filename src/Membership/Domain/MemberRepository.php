@@ -54,6 +54,11 @@ interface MemberRepository
      */
     public function activeAdminsForUpdate(): array;
 
+    /**
+     * @return Member|null null when no member has the address, which an erased member never has
+     */
+    public function ofEmail(EmailAddress $email): ?Member;
+
     public function isEmailAddressTaken(EmailAddress $email, ?Uuid $except = null): bool;
 
     public function isDisplayNameTaken(LookupKey $displayName, ?Uuid $except = null): bool;

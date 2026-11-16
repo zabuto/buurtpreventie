@@ -25,6 +25,10 @@ final class Account
     #[ORM\Column(type: 'utc_datetime_immutable', nullable: true)]
     private ?DateTimeImmutable $lastLoginAt = null;
 
+    /** Signed into every "stay logged in" cookie, so a new password ends them all. */
+    #[ORM\Column(type: 'utc_datetime_immutable', nullable: true)]
+    private ?DateTimeImmutable $credentialsChangedAt = null;
+
     private function __construct(
         #[ORM\Column(type: 'uuid')]
         private readonly Uuid $memberId,
@@ -62,7 +66,21 @@ final class Account
         $this->lastLoginAt = $now;
     }
 
-    public function changePasswordHash(string $passwordHash): void
+    public function credentialsChangedAt(): ?DateTimeImmutable
+    {
+        return $this->credentialsChangedAt;
+    }
+
+    public function changePassword(string $passwordHash, DateTimeImmutable $now): void
+    {
+        $this->passwordHash = $passwordHash;
+        $this->credentialsChangedAt = $now;
+    }
+
+    /**
+     * The same password in a hash with a newer algorithm or cost; devices that stay logged in keep working.
+     */
+    public function renewPasswordHash(string $passwordHash): void
     {
         $this->passwordHash = $passwordHash;
     }

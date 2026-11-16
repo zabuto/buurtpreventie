@@ -112,6 +112,30 @@ final class DoctrineRoundRepositoryTest extends KernelTestCase
     }
 
     #[Test]
+    public function it_finds_every_round_of_the_member_past_and_upcoming_with_all_its_walkers_by_start(): void
+    {
+        $member = Uuid::v7();
+        $buddy = Uuid::v7();
+        $upcoming = $this->round(new DateTimeImmutable('2026-11-22T21:00:00+00:00'), $member);
+        $past = $this->round(new DateTimeImmutable('2026-10-01T20:00:00+00:00'), $buddy);
+        $past->signUp($member, new DateTimeImmutable('2026-01-01T12:00:00+00:00'));
+        $withoutTheMember = $this->round(new DateTimeImmutable('2026-11-16T21:00:00+00:00'));
+        foreach ([$upcoming, $past, $withoutTheMember] as $round) {
+            $this->repository->add($round);
+        }
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+
+        $found = $this->repository->withWalker($member);
+
+        $this->assertSame(
+            [$past->id()->toRfc4122(), $upcoming->id()->toRfc4122()],
+            \array_map(static fn(Round $round): string => $round->id()->toRfc4122(), $found),
+        );
+        $this->assertEqualsCanonicalizing([$buddy, $member], $found[0]->walkerIds());
+    }
+
+    #[Test]
     public function it_loads_every_walker_of_a_round_it_finds(): void
     {
         $member = Uuid::v7();

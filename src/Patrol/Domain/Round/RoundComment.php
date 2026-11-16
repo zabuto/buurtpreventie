@@ -6,7 +6,6 @@ namespace App\Patrol\Domain\Round;
 
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
-use InvalidArgumentException;
 use Symfony\Component\Uid\Uuid;
 
 /**
@@ -35,13 +34,13 @@ final readonly class RoundComment
     }
 
     /**
-     * @throws InvalidArgumentException for a comment without text
+     * @throws EmptyComment for a comment without text
      */
     public static function post(Round $round, Uuid $authorId, string $text, DateTimeImmutable $now): self
     {
         $text = \trim($text);
         if ('' === $text) {
-            throw new InvalidArgumentException('A comment needs text.');
+            throw new EmptyComment('A comment needs text.');
         }
 
         return new self($round, $authorId, $text, $now);

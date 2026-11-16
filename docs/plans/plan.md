@@ -16,13 +16,13 @@ Buurtpreventie v4 wordt een Symfony 7.4 LTS-backend met een echte REST-API (`/ap
 - Licentie PolyForm Noncommercial 1.0.0; README in het Engels met een korte Nederlandse samenvatting; docs in het Engels, behalve de woordenlijst en de plannen; code, API, AGENTS.md, CLAUDE.md en alle map- en bestandsnamen in het Engels.
 - Weinig afhankelijkheden, geen deprecations, tests vóór code, en overdraagbaar aan een andere ontwikkelaar (zie Overdraagbaarheid). Een beter domeinmodel gaat voor compatibiliteit met v3; data gaat over via conversie.
 
-**Fasen en stand van de MVP** (bijgewerkt op 15 november 2026; details in Implementatieplan):
+**Fasen en stand van de MVP** (bijgewerkt op 16 november 2026; details in Implementatieplan):
 
 | Fase | Inhoud | Stand |
 | --- | --- | --- |
 | 0 | Basis: skelet, CI, docs, codescan | klaar, in `develop` |
 | 1 | Domein, use cases, Voters, auditlog, database, voorbeelddata | klaar, in `develop`; T13 naar fase 5b |
-| 2 | REST-API v1 met inloggen en API-tokens | open |
+| 2 | REST-API v1 met inloggen en API-tokens | T1–T17 klaar; vervolgtaken T19–T24 klaar; push en pull request wachten op akkoord (`docs/plans/phase-2.md`) |
 | 3 | Branding en configuratie | open |
 | 4 | MCP-server | open |
 | 5 | Frontend (Lit, PWA, WCAG 2.2 AA) | open |
@@ -464,16 +464,17 @@ Regels die daaruit volgen:
 | Groep | Endpoints | Wie |
 | --- | --- | --- |
 | Publiek | `GET /config` (branding, teksten, minimum- en maximumaantal lopers) | iedereen |
-| Sessie | `POST /auth/login`, `POST /auth/logout`, `POST /auth/password-reset`, `POST /auth/password-reset/{token}` | iedereen |
+| Sessie | `POST /auth/login`, `POST /auth/logout`, `POST /auth/confirm` (opnieuw bevestigen; geen aparte wachtwoord-reset, zie Fase 2) | iedereen |
 | Eigen account | `GET/PATCH /me`, `PUT /me/password`, `GET/POST/DELETE /me/tokens` | lid |
-| Rondes | `GET /rounds?from=&to=&status=`, `GET /rounds/{id}`, `POST /rounds`, `PATCH /rounds/{id}`, `DELETE /rounds/{id}` | lid leest; loper maakt aan; coördinator wijzigt/verwijdert |
+| Rondes | `GET /rounds?from=&to=&status=`, `GET /rounds/{id}`, `POST /rounds`, `PATCH /rounds/{id}`, `DELETE /rounds/{id}`, `POST /rounds/{id}/cancellation`, `GET /staffing-gaps` | lid leest; loper maakt aan; coördinator wijzigt/verwijdert/annuleert |
 | Aanmelden | `PUT /rounds/{id}/walkers/me`, `DELETE /rounds/{id}/walkers/me` | loper |
 | Na de ronde | `GET /me/rounds?walked=1`, `POST /rounds/{id}/reports`, `DELETE /reports/{id}`, `POST /rounds/{id}/comments`, `DELETE /comments/{id}` | loper (eigen items), coördinator |
 | Leden | `GET /members` (contactgegevens alleen bij toestemming) | lid |
+| Keuzelijsten | `GET /meeting-points`, `GET /outcomes` (alleen niet gearchiveerd) | lid |
 | Analyse | `GET /reports?from=&to=&outcome=`, `GET /stats?period=` | analist |
-| Beheer | `/admin/members` (CRUD, herstellen, uitnodiging), `/admin/meeting-points`, `/admin/outcomes`, `/admin/settings` | beheerder |
+| Beheer | `/admin/members` (CRUD, rollen, (de)activeren, uitnodiging), `/admin/meeting-points`, `/admin/outcomes` (met archiveren en terugzetten), `/admin/settings` | beheerder; uitnodigen ook coördinator |
 | Systeem | `POST /system/tick` (geheime sleutel; draait herinneringen) | cron |
-| Inloggen per e-mail | `POST /auth/login-link`, `GET /auth/login-link/{token}` | iedereen |
+| Inloggen per e-mail | `POST /auth/login-code`, `POST /auth/login-code/verify` (code van zes cijfers), `POST /auth/invitation` (uitnodiging) | iedereen |
 | Namens een loper | `PUT /rounds/{id}/walkers/{memberId}`, `DELETE /rounds/{id}/walkers/{memberId}` | coördinator |
 | Auditlog | `GET /me/activity`, `GET /rounds/{id}/history`, `GET /admin/audit` | lid, coördinator, beheerder (zie Auditlog) |
 | Onderhoud | `GET /admin/maintenance`, `POST /admin/maintenance/update`, `POST /admin/maintenance/rollback`, `POST /admin/maintenance/backup` | beheerder |
@@ -482,10 +483,10 @@ Regels die daaruit volgen:
 
 **Rechten.** Eén Voter per onderwerp (`RoundVoter`, `ReportVoter`, `MemberVoter`, …) met de rollen walker, coordinator, analyst en admin. Rollen tellen op, en elke rol geeft alleen zijn eigen rechten. De beheerder (`admin`) beheert leden, catalogi, instellingen en onderhoud, en heeft geen rechten op de inhoud van rondes; wie dat nodig heeft, krijgt ook de rol coördinator. De analist leest alleen; loopt hij ook, dan krijgt hij de rol loper erbij. Controllers en MCP-tools roepen dezelfde Voters aan; een test controleert de volledige matrix rol × actie.
 
-**Authenticatie.**
+**Authenticatie.** Uitgewerkt en vastgelegd in fase 2 ([ADR 0006](../adr/0006-authentication.md)).
 
-- **Browser:** `json_login` met sessiecookie (`SameSite=Lax`, `HttpOnly`, `Secure`) en CSRF-bescherming op muterende verzoeken. Daarnaast inloggen via een link per e-mail (Symfony login link) en "ingelogd blijven" voor 90 dagen. Frontend en API staan op hetzelfde domein, dus geen CORS nodig.
-- **Scripts en MCP:** `Authorization: Bearer <token>` via Symfony's `access_token`-authenticator. Tokens worden alleen gehasht opgeslagen, eenmalig getoond, met scopes `read`, `write`, `admin` en een verloopdatum.
+- **Browser:** sessiecookie (`SameSite=Lax`, `HttpOnly`, `Secure`) met eigen authenticators voor wachtwoord, code per mail, uitnodiging en opnieuw bevestigen, CSRF op muterende verzoeken en "ingelogd blijven" voor 90 dagen. Frontend en API staan op hetzelfde domein, dus geen CORS nodig.
+- **Scripts en MCP:** `Authorization: Bearer <token>` via een eigen authenticator. Tokens worden alleen gehasht opgeslagen, eenmalig getoond, met scopes `read`, `write`, `admin` en een verloopdatum.
 
 **Conversie v3 → v4.**
 
@@ -579,7 +580,7 @@ Elke wijziging door een lid wordt vastgelegd als regel in een alleen-toevoegen-l
 - Een eigen module `Audit` met entiteit `AuditEntry`. Andere modules schrijven via de interface `Shared\Domain\AuditTrail::record()`, die `Audit` implementeert.
 - Handlers in `UseCase/` roepen `record()` expliciet aan, in dezelfde databasetransactie als de wijziging. Geen Doctrine-listeners: die weten niet wat de bedoeling was of via welk kanaal het kwam.
 - Het kanaal komt uit de requestcontext (`Http`, `Mcp`, `Console`) en hoeft dus niet door elke handler doorgegeven te worden.
-- De app heeft geen endpoint om regels te wijzigen of te verwijderen. Optioneel: elke regel bevat de hash van de vorige, zodat achteraf geknoei in de database opvalt.
+- De app heeft geen endpoint om regels te wijzigen of te verwijderen. Elke regel draagt een HMAC-keten met de vorige, zodat achteraf geknoei in de database opvalt; uitgewerkt in Fase 3.
 - Er zijn geen generieke blame-velden meer; het auditlog is de volledige geschiedenis, en entiteiten houden alleen velden met betekenis, zoals de auteur van een opmerking.
 - Een test faalt als een schrijvende handler geen auditregel achterlaat.
 
@@ -636,7 +637,7 @@ De vereniging is verwerkingsverantwoordelijke: zij stelt de privacyverklaring, b
 **Beveiliging.**
 
 - Alleen HTTPS; de installer weigert zonder.
-- Beveiligingsheaders: de API stuurt een CSP die niets toestaat, `nosniff`, `Referrer-Policy: no-referrer` en `Cross-Origin-Opener-Policy: same-origin` (fase 1); de frontend krijgt een eigen CSP en `Permissions-Policy` (fase 5), HSTS volgt in fase 6a.
+- Beveiligingsheaders: de API stuurt een CSP die niets toestaat, `nosniff`, `Referrer-Policy: no-referrer` en `Cross-Origin-Opener-Policy: same-origin` (fase 1); de frontend krijgt een eigen CSP en `Permissions-Policy` (fase 5). HSTS staat in de API per installatie aan met `HSTS_MAX_AGE` (opt-in, sinds fase 2, zonder `includeSubDomains`); de installer van fase 6a kan het zetten na zijn HTTPS-controle.
 - Wachtwoorden en tokens alleen gehasht opgeslagen.
 - Elk geheim maakt de app zelf, met `random_bytes`, en niemand typt het in: API-tokens, inloglinks, wachtwoord-reset, het installer-token, `APP_SECRET` en de tick-sleutel. Zo kan er geen kort of zelfbedacht geheim in komen. De installer schrijft `APP_SECRET` en `TICK_SECRET` in `shared/.env.local`; Onderhoud vervangt de tick-sleutel met een knop, zonder invoerveld. Het domein weigert een geheim dat niet het gegenereerde formaat heeft.
 - Rechten via rollen en Voters, gecontroleerd met de matrixtest.
@@ -791,28 +792,38 @@ Fase 3, 4 en 5 hangen alleen van de API af; MCP (fase 4) gaat vóór de frontend
 
 ### Fase 2 — REST-API v1
 
-- [ ] Auth: `json_login` + sessie + CSRF; authenticator voor API-tokens (zie hieronder); `/me/tokens`; inloglink per e-mail en ingelogd blijven (90 dagen); aan- en afmelden namens een loper (coördinator); auditlog-endpoints.
-- [ ] Authenticator voor `Authorization: Bearer <token>` (vastgelegd op 15 november 2026):
+- [x] Auth: sessie met eigen authenticators voor wachtwoord, code per mail en uitnodiging (geen `json_login` en geen inloglink), CSRF en ingelogd blijven (90 dagen); authenticator voor API-tokens (zie hieronder); `/me/tokens`; aan- en afmelden namens een loper (coördinator); auditlog-endpoints. Vastgelegd in [ADR 0006](../adr/0006-authentication.md); de uitwerking staat in `docs/plans/phase-2.md`.
+- [x] Authenticator voor `Authorization: Bearer <token>` (vastgelegd op 15 november 2026):
   - hij neemt elk verzoek op de API-firewall aan, zodat een ontbrekend token net zo geweigerd en gelogd wordt als een fout token;
   - hij zoekt het token op de SHA-256-hash; het token zelf staat nergens, en draagt geen inhoud en geen controlegetal;
   - één `match` met elke reden om te weigeren: onbekend, ingetrokken, verlopen, lid gedeactiveerd of gewist (review-focus 4: het token werkt meteen niet meer);
   - een weigering is een 401 zonder body, met `WWW-Authenticate: Bearer`; de reden gaat alleen naar ons log, in woorden die het datamodel niet prijsgeven, en de exceptie draagt een algemene melding;
-  - bij succes: `markUsed()` op het token, de scopes `read`, `write` en `admin` vertaald voor de Voters, en `ExecutionContext` gevuld met het lid, zijn rollen en kanaal `api` (of `mcp` in fase 4), zodat er één bron is voor wie de actie uitvoert;
+  - bij succes: `markUsed()` op het token en `ExecutionContext` gevuld met het lid, zijn rollen en kanaal `api` (of `mcp` in fase 4), zodat er één bron is voor wie de actie uitvoert;
   - geen JWT: dat is niet meteen in te trekken zonder toch bij elk verzoek op te zoeken, de inhoud is leesbaar, en één gelekte sleutel ondertekent elk token.
-  Of dit Symfony's `access_token`-authenticator met eigen handler wordt of een eigen authenticator, beslist het taakplan; het moet ook een ontbrekend token loggen.
-- [ ] Alle endpoints uit het API-ontwerp, `problem+json`-fouten, OpenAPI via NelmioApiDocBundle.
-- [ ] Functionele tests per endpoint plus één matrixtest rol × actie.
-- [ ] Opengrep-regelset uitgebreid voor wat deze fase toevoegt: verzoekinvoer naar SQL en bestandspaden, inloggen en CSRF; elke regel met een regeltest.
+  Het werd een eigen authenticator, geen `access_token` met handler: die slaat een verzoek zonder header over.
+- [x] **Afwijking: scopes per verzoek, niet in de Voters** (beslissing 17 van `phase-2.md`). Een listener op de tokenfirewall eist `read` voor `GET` en `HEAD`, `write` voor de andere methodes en `admin` voor `/api/v1/admin/`; de Voters gaan alleen over rollen. Rol én scope moeten kloppen, en één test dekt elke scope.
+- [x] **Afwijking: Identity vindt een lid via `Shared\Domain\MemberDirectory`, niet via een use case** (beslissing 4 van `phase-2.md`): een use case vraagt een Voter, en bij inloggen is nog niemand ingelogd. De user provider leest rollen en status bij elk verzoek opnieuw.
+- [x] Alle endpoints uit het API-ontwerp, `problem+json`-fouten, OpenAPI via NelmioApiDocBundle. De spec noemt per operatie de problem-antwoorden; de geslaagde antwoorden met hun uitvoer volgen (`phase-2.md`, T14).
+- [x] Functionele tests per endpoint plus één matrixtest rol × actie (`HttpMatrixTest`), naast de matrix op de Voters.
+- [x] Opengrep-regelset uitgebreid voor wat deze fase toevoegt: verzoekinvoer naar SQL en bestandspaden, inloggen en CSRF; elke regel met een regeltest.
 
 **Klaar als:** de OpenAPI-spec dekt elk endpoint, de matrixtest is groen, en `curl` met een token kan een lid aanmelden voor een ronde.
 
 ### Fase 3 — Branding en configuratie
 
 - [ ] `Setting`-repository met standaardwaarden, `/admin/settings`, logo-upload, `GET /config`, `manifest.webmanifest`.
-- [ ] E-mailtemplates (welkom, wachtwoord-reset, herinnering, nieuwe ronde zoekt loopmaatje, loopmaatje afgemeld) met branding en `nl`/`en`; altijd met een tekstversie, geen informatie die alleen in een afbeelding staat, en zo min mogelijk persoonsgegevens in de mail zelf.
+- [ ] E-mailtemplates (uitnodiging, inlogcode, herinnering, nieuwe ronde zoekt loopmaatje, loopmaatje afgemeld) met branding en `nl`/`en`; altijd met een tekstversie, geen informatie die alleen in een afbeelding staat, en zo min mogelijk persoonsgegevens in de mail zelf.
 - [ ] Berichten gaan pas na de commit uit, niet binnen de transactie; een test bewijst dat een teruggedraaide wijziging niets verstuurt.
+- [ ] Hashketen in het auditlog (beslissing 16 van fase 1, besloten op 16 november 2026), vóór de conversie van fase 5b, die de eerste echte regels schrijft. Hij maakt geknoei zichtbaar voor wie de database kan wijzigen maar niet bij de bestanden kan, zoals bij een SQL-injectie of een gelekte databaselogin; wie ook bij de bestanden kan, houdt hij niet tegen.
+  - **HMAC-SHA-256 met een eigen sleutel** `AUDIT_SECRET` in `shared/.env.local`, buiten de database en los van `APP_SECRET`, zodat het vervangen van `APP_SECRET` de keten niet breekt. Zonder sleutel is een geldige keten niet na te maken. De installer van fase 6a maakt de sleutel aan, zoals de andere geheimen.
+  - **De hash dekt alleen wat nooit verandert**: id, tijdstip, lid-id, actie, onderwerp en kanaal, plus de hash van de vorige regel. De naam van de uitvoerder valt erbuiten, zodat wissen hem kan vervangen door "verwijderd lid".
+  - **De gewijzigde velden krijgen een eigen hash**, en de keten loopt over die hash. Wissen haalt de inhoud weg en laat de hash staan: van die regel is de inhoud dan niet meer te controleren, de keten wel.
+  - **Een ankerrij** bewaart de hash van de laatst opgeruimde regel, zodat de keten na opruimen volgens de bewaartermijn vanaf daar te controleren blijft.
+  - **Een slot op één rij met de laatste hash**, als laatste stap van de transactie, zodat twee gelijktijdige schrijfacties nooit aan dezelfde vorige regel koppelen. Het zet alle schrijfacties achter elkaar, wat bij tientallen gebruikers niets uitmaakt; omdat het altijd als laatste komt, kan het niet vastlopen op het slot van een ronde.
+  - `app:audit:verify` meldt "intact tot en met …" of de eerste regel die niet klopt; Onderhoud (fase 6b) toont hetzelfde.
+  - Tests: een gewijzigde, verwijderde of tussengevoegde regel valt op; wissen en opruimen breken de keten niet; twee gelijktijdige schrijfacties op MariaDB en MySQL geven een kloppende keten.
 
-**Klaar als:** een tweede vereniging alleen via het beheerscherm een eigen naam, logo, kleuren en teksten krijgt, zonder codewijziging.
+**Klaar als:** een tweede vereniging alleen via `/admin/settings` en de logo-upload (API) een eigen naam, logo, kleuren en teksten krijgt, zonder codewijziging; het beheerscherm in fase 5 gebruikt dezelfde endpoints.
 
 ### Fase 4 — MCP-server
 

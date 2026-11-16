@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Tests\SampleData\Infrastructure\Console;
 
+use App\Identity\Domain\PasswordHasher;
+use App\SampleData\Infrastructure\Fixtures\SamplePassword;
 use App\Tests\Database\TestDatabase;
 use DateTimeImmutable;
 use DateTimeZone;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Psr\Clock\ClockInterface;
@@ -195,6 +198,91 @@ final class LoadFixturesCommandTest extends KernelTestCase
         );
     }
 
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function sets(): iterable
+    {
+        yield 'demo' => ['demo'];
+        yield 'test' => ['test'];
+        yield 'edge' => ['edge'];
+    }
+
+    /**
+     * Every set starts with the admin at the same address, so one login and one Postman environment fit any set.
+     */
+    #[DataProvider('sets')]
+    #[Test]
+    public function it_lets_the_first_admin_of_every_set_log_in_with_the_sample_password(string $set): void
+    {
+        $this->load($set, '2026-11-15T12:00:00+01:00');
+
+        $hash = $this->connection->fetchOne(
+            "SELECT a.password_hash FROM account a JOIN member m ON m.id = a.member_id WHERE m.email = 'beheer@example.org'",
+        );
+
+        $this->assertIsString($hash);
+        $this->assertTrue($this->passwordHasher()->verify($hash, SamplePassword::VALUE));
+    }
+
+    /**
+     * One member per role, and walkers in three situations; every hash costs the real hasher half a second.
+     */
+    #[Test]
+    public function it_gives_the_sample_password_to_one_member_per_role_and_three_walkers_in_the_demo_set(): void
+    {
+        $this->load('demo', '2026-11-15T12:00:00+01:00');
+
+        $rows = $this->connection->fetchAllAssociative(
+            'SELECT m.email, a.password_hash FROM member m JOIN account a ON a.member_id = m.id WHERE a.password_hash IS NOT NULL ORDER BY m.email',
+        );
+
+        $this->assertSame(
+            [
+                'beheer@example.org',
+                'fatima.elamrani@example.org',
+                'jan.bakker@example.org',
+                'priya.sharma@example.org',
+                'thomas.visser@example.org',
+                'willem.dekker@example.org',
+            ],
+            \array_column($rows, 'email'),
+        );
+        foreach ($rows as $row) {
+            $this->assertTrue(\is_string($row['password_hash']) && $this->passwordHasher()->verify($row['password_hash'], SamplePassword::VALUE));
+        }
+    }
+
+    #[Test]
+    public function it_shows_the_sample_password_after_loading(): void
+    {
+        Clock::set(new MockClock(new DateTimeImmutable('2026-11-15T12:00:00+01:00')));
+        $tester = $this->tester();
+
+        $tester->execute(['set' => 'test'], ['interactive' => false]);
+
+        $this->assertStringContainsString(SamplePassword::VALUE, $tester->getDisplay());
+    }
+
+    /**
+     * The curl scenario of docs/getting-started.md signs the demo member up with this token, so it may write.
+     */
+    #[Test]
+    public function it_shows_the_api_token_of_the_demo_member_that_reads_and_writes(): void
+    {
+        Clock::set(new MockClock(new DateTimeImmutable('2026-11-15T12:00:00+01:00')));
+        $tester = $this->tester();
+
+        $tester->execute(['set' => 'demo'], ['interactive' => false]);
+
+        $this->assertSame(1, \preg_match('/bpt_[0-9a-f]{64}/', $tester->getDisplay(), $secret));
+        $token = $this->connection->fetchAssociative(
+            'SELECT m.email, t.scopes FROM api_token t JOIN member m ON m.id = t.member_id WHERE t.secret_hash = UNHEX(?) AND t.expires_at > ?',
+            [\hash('sha256', $secret[0]), '2026-11-15 11:00:00'],
+        );
+        $this->assertSame(['email' => 'priya.sharma@example.org', 'scopes' => 'read,write'], $token);
+    }
+
     #[Test]
     public function it_refuses_an_unknown_set_and_keeps_the_database(): void
     {
@@ -214,6 +302,15 @@ final class LoadFixturesCommandTest extends KernelTestCase
         $tester->execute(['set' => $set], ['interactive' => false]);
 
         $tester->assertCommandIsSuccessful($tester->getDisplay());
+    }
+
+    private function passwordHasher(): PasswordHasher
+    {
+        $hasher = self::getContainer()->get(PasswordHasher::class);
+        // @phpstan-ignore method.alreadyNarrowedType (PHPStan reads the type from the container, Mago does not)
+        $this->assertInstanceOf(PasswordHasher::class, $hasher);
+
+        return $hasher;
     }
 
     private function tester(): CommandTester

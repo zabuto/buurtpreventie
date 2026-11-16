@@ -17,6 +17,7 @@ use App\Membership\UseCase\EraseMember\EraseMemberHandler;
 use App\Patrol\UseCase\WithdrawMemberFromUpcomingRounds\WithdrawMemberFromUpcomingRoundsHandler;
 use App\Shared\Domain\AccessDenied;
 use App\Shared\Domain\AuditedAction;
+use App\Shared\Domain\ReauthenticationRequired;
 use App\Shared\Domain\Role;
 use App\Tests\Audit\Fake\RecordingAuditEntryRepository;
 use App\Tests\Identity\Fake\ApiTokenFixture;
@@ -26,6 +27,7 @@ use App\Tests\Membership\Fake\MemberFixture;
 use App\Tests\Patrol\Domain\Round\RoundFixture;
 use App\Tests\Patrol\Fake\InMemoryRoundRepository;
 use App\Tests\Shared\Fake\FakeAuthorization;
+use App\Tests\Shared\Fake\FixedRecentAuthentication;
 use App\Tests\Shared\Fake\ImmediateTransaction;
 use App\Tests\Shared\Fake\RecordingAuditTrail;
 use App\Tests\Shared\Fake\RecordingNotifier;
@@ -198,7 +200,21 @@ final class EraseMemberHandlerTest extends TestCase
         $this->assertTrue($this->jan->isErased());
     }
 
-    private function handler(?FakeAuthorization $authorization = null): EraseMemberHandler
+    /**
+     * Erasing cannot be undone, so a hijacked session that is not recent cannot do it.
+     */
+    #[Test]
+    public function it_refuses_without_a_recent_login(): void
+    {
+        try {
+            $this->handler(recent: false)(new EraseMember($this->jan->id()->toRfc4122()));
+            $this->fail('The member was erased.');
+        } catch (ReauthenticationRequired) {
+            $this->assertSame([false, []], [$this->jan->isErased(), $this->auditTrail->recorded]);
+        }
+    }
+
+    private function handler(?FakeAuthorization $authorization = null, bool $recent = true): EraseMemberHandler
     {
         $authorization ??= FakeAuthorization::granting();
         $clock = new MockClock(self::NOW);
@@ -220,6 +236,7 @@ final class EraseMemberHandlerTest extends TestCase
             ),
             new RevokeMemberApiTokensHandler($this->tokens, $authorization, $this->auditTrail, $this->transaction, $clock),
             new EraseActorNameHandler($this->auditEntries, $authorization, $this->auditTrail, $this->transaction),
+            new FixedRecentAuthentication($recent),
         );
     }
 }

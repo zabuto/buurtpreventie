@@ -73,7 +73,8 @@ The plan lives in docs/plans/plan.md and is leading. Read it before every phase.
 - Start: symfony server:start -d (in the background), or php -S localhost:8000 -t public; check
   /api/v1/health.
 - Test: composer test (all; database tests skip), symfony composer test (all, with the database),
-  composer test:unit (in-memory unit tests only)
+  composer test:unit (in-memory unit tests only), composer test:coverage (coverage per class in
+  var/coverage/coverage.txt; needs pcov or Xdebug)
 - All CI checks: composer check (validate, audit, container lint, deprecations, Mago format,
   lint and analyze, Rector dry run, PHPStan level max with PHPat, PHPUnit). The Opengrep security
   scan runs only in CI (docs/testing.md).

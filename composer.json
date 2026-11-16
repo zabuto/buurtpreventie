@@ -14,16 +14,21 @@
         "doctrine/doctrine-bundle": "^3.4",
         "doctrine/doctrine-migrations-bundle": "^4.0",
         "doctrine/orm": "^3.8",
+        "nelmio/api-doc-bundle": "^5.13",
         "symfony/clock": "7.4.*",
         "symfony/console": "7.4.*",
         "symfony/dotenv": "7.4.*",
         "symfony/flex": "^2",
         "symfony/framework-bundle": "7.4.*",
+        "symfony/mailer": "7.4.*",
         "symfony/property-access": "7.4.*",
         "symfony/property-info": "7.4.*",
+        "symfony/rate-limiter": "7.4.*",
         "symfony/runtime": "7.4.*",
         "symfony/security-bundle": "7.4.*",
+        "symfony/security-csrf": "7.4.*",
         "symfony/serializer": "7.4.*",
+        "symfony/translation": "7.4.*",
         "symfony/uid": "7.4.*",
         "symfony/validator": "7.4.*",
         "symfony/yaml": "7.4.*"
@@ -85,6 +90,9 @@
         "test": [
             "@php vendor/bin/phpunit"
         ],
+        "test:coverage": [
+            "@php vendor/bin/phpunit --colors=never --coverage-text=var/coverage/coverage.txt"
+        ],
         "test:unit": [
             "@php vendor/bin/phpunit --exclude-group integration --exclude-group functional --exclude-group database"
         ],
@@ -112,7 +120,8 @@
         ]
     },
     "conflict": {
-        "symfony/symfony": "*"
+        "symfony/symfony": "*",
+        "zircote/swagger-php": ">=7"
     },
     "extra": {
         "symfony": {
@@ -136,6 +145,7 @@
     },
     "scripts-descriptions": {
         "test": "Runs the test suite",
+        "test:coverage": "Runs the test suite and writes the coverage per class to var/coverage/coverage.txt; needs pcov or Xdebug",
         "test:unit": "Runs the in-memory unit tests only",
         "check": "Runs every check CI runs",
         "fix": "Applies Rector, Mago lint fixes and Mago formatting",

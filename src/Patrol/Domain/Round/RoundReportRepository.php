@@ -16,4 +16,9 @@ interface RoundReportRepository
      * @throws NotFound
      */
     public function get(Uuid $id): RoundReport;
+
+    /**
+     * @return list<RoundReport> oldest first
+     */
+    public function byAuthor(Uuid $authorId): array;
 }

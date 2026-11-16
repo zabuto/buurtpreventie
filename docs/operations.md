@@ -32,7 +32,7 @@ These are not stored in files and must be set again on a fork or a recreated rep
 | Workflow | When | What |
 | --- | --- | --- |
 | `ci.yml`, checks job | Every pull request, every push to `develop` and `main` | `composer check` on PHP 8.4; see [testing.md](testing.md) |
-| `ci.yml`, database jobs "Database (MariaDB 10.11)" and "Database (MySQL 8.4)" | Same | Migrations from an empty database, `doctrine:schema:validate`, every `down()` and up again, the database tests with `REQUIRE_DATABASE=1`, and every sample data set; see [testing.md](testing.md#database-tests) |
+| `ci.yml`, database jobs "Database (MariaDB 10.11)" and "Database (MySQL 8.4)" | Same | A fresh `APP_SECRET` per run, migrations from an empty database, `doctrine:schema:validate`, every `down()` and up again, the database tests with `REQUIRE_DATABASE=1`, and every sample data set; see [testing.md](testing.md#database-tests) |
 | `ci.yml`, security scan job | Same | Opengrep with the rules in `.opengrep/rules/`; see [testing.md](testing.md#security-scan) |
 | `weekly.yml`, audit job | Monday 05:00 UTC and by hand | `composer audit` on `develop`; opens an issue on an advisory |
 | `weekly.yml`, look-ahead job | Same | Newest Symfony 8 on PHP 8.5, all checks; opens an issue on failure. Blocks nothing |
@@ -44,11 +44,12 @@ are pinned to a commit SHA; Dependabot keeps them up to date.
 
 ## Dependabot
 
-`.github/dependabot.yml`: weekly for Composer and GitHub Actions, targeting `develop`. Security
-updates target the default branch.
+`.github/dependabot.yml`: weekly for Composer, GitHub Actions and the images in `compose.yaml` (Mailpit; the
+database image is set through a variable, which Dependabot skips), targeting `develop`. Security updates target the
+default branch.
 
 **Cooldown.** Dependabot proposes a Composer patch or minor only after 7 days and a major after 14;
-actions wait 7 days. No dependency is exempt; `DependabotCooldownTest` keeps it that way. Security
+actions and images wait 7 days. No dependency is exempt; `DependabotCooldownTest` keeps it that way. Security
 updates are not subject to it. Composer itself withholds every release younger than 24 hours
 (`config.policy.cooldown`), also for a security update and on a developer machine;
 `ComposerCooldownTest` guards that. The reasons are in
@@ -109,6 +110,7 @@ Every response under `/api/` carries (`ApiSecurityHeaders`):
 | `X-Content-Type-Options` | `nosniff` | A browser never reads JSON as HTML or script |
 | `Referrer-Policy` | `no-referrer` | No API URL leaks to another site |
 | `Cross-Origin-Opener-Policy` | `same-origin` | Another site that opens the API in a window cannot reach it |
+| `Strict-Transport-Security` | `max-age=<HSTS_MAX_AGE>`, over HTTPS only, and only when an installation opts in | The browser keeps to HTTPS for this host, so an `http://` address typed on a hostile network cannot be intercepted before the redirect |
 
 In debug mode Symfony drops the policy from an error page, so its exception page can show; in `prod`
 the error response keeps it.

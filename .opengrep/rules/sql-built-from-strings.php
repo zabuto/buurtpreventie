@@ -65,3 +65,9 @@ $queryBuilder->select('COUNT(m.id)')->from(Member::class, 'm')->where($condition
 
 // ok: sql-built-from-strings
 $queryBuilder->set('m.name', ':name')->setParameter('name', $name);
+
+// ok: sql-built-from-strings
+$response->headers->set('Strict-Transport-Security', 'max-age=' . $this->hstsMaxAge);
+
+// ok: sql-built-from-strings
+$headers->set('Strict-Transport-Security', 'max-age=' . $this->hstsMaxAge);

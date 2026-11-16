@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Patrol\UseCase\ChangeMeetingPoint;
 
 use App\Patrol\Domain\Catalogue\Coordinates;
+use App\Patrol\Domain\Catalogue\InvalidCoordinates;
 use App\Patrol\Domain\Catalogue\MeetingPoint;
 use App\Patrol\Domain\Catalogue\MeetingPointNameTaken;
 use App\Patrol\Domain\Catalogue\UniqueCatalogueName;
@@ -18,7 +19,6 @@ use App\Tests\Patrol\Fake\InMemoryOutcomeRepository;
 use App\Tests\Shared\Fake\FakeAuthorization;
 use App\Tests\Shared\Fake\ImmediateTransaction;
 use App\Tests\Shared\Fake\RecordingAuditTrail;
-use InvalidArgumentException;
 use Override;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -57,7 +57,7 @@ final class ChangeMeetingPointHandlerTest extends TestCase
     }
 
     #[Test]
-    public function it_clears_the_coordinates_when_both_are_left_out(): void
+    public function it_clears_the_coordinates_when_both_are_null(): void
     {
         $this->handler()(new ChangeMeetingPoint($this->speeltuin->id()->toRfc4122(), 'Speeltuin', null, null));
 
@@ -150,7 +150,7 @@ final class ChangeMeetingPointHandlerTest extends TestCase
     #[Test]
     public function it_refuses_a_latitude_without_a_longitude(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(InvalidCoordinates::class);
 
         $this->handler()(new ChangeMeetingPoint($this->speeltuin->id()->toRfc4122(), 'Speeltuin', 52.2, null));
     }
@@ -158,9 +158,29 @@ final class ChangeMeetingPointHandlerTest extends TestCase
     #[Test]
     public function it_refuses_a_longitude_without_a_latitude(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(InvalidCoordinates::class);
 
         $this->handler()(new ChangeMeetingPoint($this->speeltuin->id()->toRfc4122(), 'Speeltuin', null, 5.2));
+    }
+
+    #[Test]
+    public function it_keeps_the_name_and_coordinates_left_out(): void
+    {
+        $this->handler()(new ChangeMeetingPoint($this->speeltuin->id()->toRfc4122()));
+
+        $this->assertEquals(['Speeltuin', new Coordinates(52.1, 5.1), []], [
+            $this->speeltuin->name(),
+            $this->speeltuin->coordinates(),
+            $this->auditTrail->recorded,
+        ]);
+    }
+
+    #[Test]
+    public function it_refuses_a_latitude_when_the_longitude_is_left_out(): void
+    {
+        $this->expectException(InvalidCoordinates::class);
+
+        $this->handler()(new ChangeMeetingPoint($this->speeltuin->id()->toRfc4122(), latitude: 52.2));
     }
 
     #[Test]

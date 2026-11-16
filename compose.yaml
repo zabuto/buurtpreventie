@@ -22,5 +22,17 @@ services:
       - database_data:/var/lib/mysql
       - ./docker/database:/docker-entrypoint-initdb.d:ro
 
+  # Catches every mail the app sends in development, with a web view; nothing leaves the machine. The Symfony CLI
+  # reads the SMTP port 1025 of a service named mailer and sets MAILER_DSN, and MAILER_WEB_URL for the web view.
+  mailer:
+    # A fixed release, not latest, so a hijacked release reaches nobody before the cooldowns of ADR 0004 would.
+    image: axllent/mailpit:v1.33.1
+    ports:
+      - '1025'
+      - '8025'
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+
 volumes:
   database_data:

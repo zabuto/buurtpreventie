@@ -12,6 +12,7 @@ use App\Shared\Domain\AuditTrail;
 use App\Shared\Domain\Authorization;
 use App\Shared\Domain\NotFound;
 use App\Shared\Domain\Transaction;
+use App\Shared\Domain\Unchanged;
 use App\Shared\Domain\WriteAction;
 use Symfony\Component\Uid\Uuid;
 
@@ -37,6 +38,10 @@ final readonly class ChangeOutcomeHandler
 
         $this->transaction->run(function () use ($input): void {
             $outcome = $this->outcomes->get(Uuid::fromString($input->outcomeId));
+            if ($input->name instanceof Unchanged) {
+                return;
+            }
+
             $this->uniqueName->ensureOutcomeNameAvailable($input->name, $outcome->id());
 
             $oldName = $outcome->name();

@@ -6,6 +6,7 @@ namespace App\SampleData\Infrastructure\Fixtures;
 
 use App\Shared\Domain\Role;
 use DateTimeImmutable;
+use LogicException;
 use Override;
 use Random\Engine\Mt19937;
 use Random\Randomizer;
@@ -52,8 +53,16 @@ final readonly class DemoSet implements FixtureSet
         ['Yara Brouwer',   'Yara',    'yara.brouwer'],
     ];
 
-    /** Priya reads the rounds into the agenda on her phone. */
+    /** Priya reads the rounds into the agenda on her phone and signs up from it, with the token the load shows. */
     private const string USES_THE_API = 'priya.sharma';
+
+    /**
+     * Who logs in with the sample password besides the admin, analyst and coordinator: a walker who shares a first
+     * name, one who uses the API, and one who stopped, whose login is refused.
+     *
+     * @var list<string>
+     */
+    private const array WITH_PASSWORD = ['jan.bakker', self::USES_THE_API, self::STOPPED];
 
     /** Willem stopped walking; deactivating him withdraws him from the rounds ahead. */
     private const string STOPPED = 'willem.dekker';
@@ -69,13 +78,18 @@ final readonly class DemoSet implements FixtureSet
     }
 
     #[Override]
-    public function load(DateTimeImmutable $now): void
+    public function load(DateTimeImmutable $now): array
     {
         $random = new Randomizer(new Mt19937(self::SEED));
         $start = SampleCalendar::day($now, DemoRounds::FIRST_DAY - 30, '09:00');
 
-        $admin = $this->members->firstAdmin($start, new SampleProfile('ingrid.deboer@example.org', 'Ingrid de Boer', 'Ingrid', '06 0000 0001'));
-        $this->members->add($admin, $start, new SampleProfile('thomas.visser@example.org', 'Thomas Visser', 'Thomas', '06 0000 0002', [Role::Analyst]));
+        $admin = $this->members->firstAdmin($start, new SampleProfile('beheer@example.org', 'Ingrid de Boer', 'Ingrid', '06 0000 0001'));
+        $analyst = $this->members->add(
+            $admin,
+            $start,
+            new SampleProfile('thomas.visser@example.org', 'Thomas Visser', 'Thomas', '06 0000 0002', [Role::Analyst]),
+        );
+        $this->members->giveSamplePassword($analyst, $start);
         $people = $this->walkers($random, $admin, $start);
         $neighbourhood = new Neighbourhood(
             $people['coordinator'],
@@ -96,10 +110,26 @@ final readonly class DemoSet implements FixtureSet
         foreach ($people['erased'] as $erased) {
             $this->members->erase($admin, $erased, $now->modify('-4 minutes'));
         }
+
+        $secret = $this->members->giveApiAccess(
+            $people['usesTheApi'],
+            $start->modify('+1 day'),
+            'Agenda en aanmelden op mijn telefoon',
+            ['read', 'write'],
+            $now->modify('+90 days'),
+        );
+
+        return [\sprintf('The API token of %s@example.org, for read and write, valid 90 days: %s', self::USES_THE_API, $secret)];
     }
 
     /**
-     * @return array{coordinator: SampleMember, walkers: list<SampleMember>, stopped: list<SampleMember>, erased: list<SampleMember>}
+     * @return array{
+     *     coordinator: SampleMember,
+     *     walkers: list<SampleMember>,
+     *     stopped: list<SampleMember>,
+     *     erased: list<SampleMember>,
+     *     usesTheApi: SampleMember,
+     * }
      */
     private function walkers(Randomizer $random, SampleMember $admin, DateTimeImmutable $at): array
     {
@@ -120,9 +150,11 @@ final readonly class DemoSet implements FixtureSet
             ),
         );
 
+        $this->members->giveSamplePassword($coordinator, $at);
         $walkers = [$coordinator];
         $stopped = [];
         $erased = [];
+        $usesTheApi = null;
         foreach (self::WALKERS as $index => [$name, $displayName, $address]) {
             $walker = $this->walker(
                 $random,
@@ -130,8 +162,11 @@ final readonly class DemoSet implements FixtureSet
                 $at,
                 new SampleProfile($address . '@example.org', $name, $displayName, \sprintf('06 0000 %04d', $index + 11)),
             );
+            if (\in_array($address, self::WITH_PASSWORD, strict: true)) {
+                $this->members->giveSamplePassword($walker, $at);
+            }
             if (self::USES_THE_API === $address) {
-                $this->members->giveApiAccess($walker, $at->modify('+1 day'), 'Agenda op mijn telefoon');
+                $usesTheApi = $walker;
             }
             if (self::STOPPED === $address) {
                 $stopped[] = $walker;
@@ -142,7 +177,13 @@ final readonly class DemoSet implements FixtureSet
             $walkers[] = $walker;
         }
 
-        return ['coordinator' => $coordinator, 'walkers' => $walkers, 'stopped' => $stopped, 'erased' => $erased];
+        return [
+            'coordinator' => $coordinator,
+            'walkers' => $walkers,
+            'stopped' => $stopped,
+            'erased' => $erased,
+            'usesTheApi' => $usesTheApi ?? throw new LogicException('The walker who uses the API is missing from the list.'),
+        ];
     }
 
     /**

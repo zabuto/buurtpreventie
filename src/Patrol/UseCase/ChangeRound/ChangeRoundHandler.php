@@ -13,6 +13,7 @@ use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\AuditTrail;
 use App\Shared\Domain\Authorization;
 use App\Shared\Domain\Transaction;
+use App\Shared\Domain\Unchanged;
 use App\Shared\Domain\WriteAction;
 use DateTimeImmutable;
 use Psr\Clock\ClockInterface;
@@ -39,7 +40,11 @@ final readonly class ChangeRoundHandler
 
             $before = self::fields($round);
             $round->change(
-                new RoundStart(new DateTimeImmutable($input->startsAt), $this->meetingPoint($input->meetingPointId), $input->startNote),
+                new RoundStart(
+                    $input->startsAt instanceof Unchanged ? $round->startsAt() : new DateTimeImmutable($input->startsAt),
+                    $input->meetingPointId instanceof Unchanged ? $round->meetingPoint() : $this->meetingPoint($input->meetingPointId),
+                    $input->startNote instanceof Unchanged ? $round->startNote() : $input->startNote,
+                ),
                 $this->clock->now(),
             );
 

@@ -65,6 +65,8 @@ final class UuidColumnIndexTest extends KernelTestCase
                 'round_report.round_id',
                 'account.member_id',
                 'api_token.member_id',
+                'invitation.member_id',
+                'login_challenge.member_id',
                 'audit_entry.actor_id',
                 'audit_entry.subject_id',
             ],

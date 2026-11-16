@@ -76,9 +76,31 @@ Things that are not obvious and cost time when you do not know them.
 
 - **`DEFAULT_URI`** has a default in `config/services.yaml` (`http://localhost`). Without it,
   `cache:clear` fails with "Environment variable not found". Set the real base URL in `.env.local`.
+- **The Symfony CLI sets `DEFAULT_URI` and `MAILER_DSN`** when it runs a command, also for tests: its local domain
+  and Mailpit. The test environment pins the mailer to `null://null`, and a test that checks a link sets the base
+  address itself.
 - **A kernel without debug does not check its cache.** With `APP_DEBUG=0` the kernel keeps using the
   container in `var/cache/<env>/`, however much the code changed since. An outdated container in
   `var/cache/test/` refused every voter attribute, so every handler threw `AccessDenied`. Clear it with
   `symfony console cache:clear --env=test` after pulling changes to services or voters.
 - **`bin/console debug:container --deprecations` always exits with code 0.** `composer deprecations`
   therefore checks the text of its output.
+- **`zircote/swagger-php` stays below 7.** NelmioApiDocBundle extends `OpenApi\Generator`, which swagger-php 7
+  deprecates, so `composer deprecations` fails on 7. The `conflict` entry in `composer.json` holds the 6 line,
+  which still gets releases; drop it once Nelmio builds on `OpenApi\Builder`.
+- **Nelmio adds request bodies and query parameters in swagger-php processors**, after every describer. A describer
+  therefore sees no input; `ProblemResponsesProcessor` is a processor for that reason.
+- **Nelmio does not read the output of a controller** that returns a `JsonResponse`: the spec lists no success
+  answer unless the controller carries an `#[OA\Response]`, which every controller here does.
+- **Nelmio does not read array shapes** (`list<array{id: string, ...}>`) from a docblock: such a list is an object
+  with free properties in the spec. Name the fields with `#[OA\Property(items: new OA\Items(...))]` on the output
+  property. `additionalProperties: false` there makes Nelmio fail, so the spec keeps the free properties as well.
+- **Nelmio finds a response by its status with `===`**: an `#[OA\Response]` carries an integer, a lookup by
+  `'404'` misses it and adds a second 404. `ProblemResponsesProcessor` looks for the documented answer itself.
+- **`#[MapQueryString]` answers a validation failure with 404** unless the controller sets
+  `validationFailedStatusCode: 422`, as every controller here does.
+- **A `+` in a query string reads as a space**, so `?from=2026-11-16T00:00:00+01:00` fails validation. A client sends
+  `%2B` or an offset `Z`.
+- **A route parameter does not reach `#[MapRequestPayload]`.** For an id in the path, the controller fills the id of
+  the input with the serializer context `default_constructor_arguments` and replaces it with the one from the path,
+  so an id in the body counts for nothing.

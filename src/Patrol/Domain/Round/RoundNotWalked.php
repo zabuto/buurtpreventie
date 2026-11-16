@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Patrol\Domain\Round;
 
+use App\Shared\Domain\StateConflict;
 use DomainException;
 use Symfony\Component\Uid\Uuid;
 
 /**
  * Only a walked round has something to report: one that has not started, or went without a buddy, has not.
  */
-final class RoundNotWalked extends DomainException
+final class RoundNotWalked extends DomainException implements StateConflict
 {
     public static function forRound(Uuid $roundId, RoundStatus $status): self
     {

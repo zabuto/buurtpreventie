@@ -80,4 +80,11 @@ final readonly class DoctrineMeetingPointRepository implements MeetingPointRepos
 
         return MeetingPointNameTaken::existing(Uuid::fromBinary($id), $name, (bool) $row['archived']);
     }
+
+    #[Override]
+    public function all(): array
+    {
+        /** @var list<MeetingPoint> */
+        return $this->entityManager->getRepository(MeetingPoint::class)->findBy([], ['nameKey' => 'ASC', 'id' => 'ASC']);
+    }
 }

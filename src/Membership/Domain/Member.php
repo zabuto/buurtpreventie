@@ -183,6 +183,20 @@ final class Member
     }
 
     /**
+     * The details a member changes for themselves; name, display name and e-mail address stay with the admin.
+     *
+     * @throws MemberErased
+     */
+    public function changeContactDetails(?PhoneNumber $phone, ?string $address): void
+    {
+        $this->refuseWhenErased();
+
+        $address = \trim($address ?? '');
+        $this->phone = $phone?->value;
+        $this->address = '' === $address ? null : $address;
+    }
+
+    /**
      * @param list<Role> $roles
      *
      * @throws MemberErased

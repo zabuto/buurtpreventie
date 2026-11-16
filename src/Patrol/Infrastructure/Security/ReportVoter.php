@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Patrol\Infrastructure\Security;
 
+use App\Patrol\Domain\Round\ReportReadingPolicy;
 use App\Patrol\Domain\Round\Round;
 use App\Patrol\Domain\Round\RoundPolicy;
 use App\Patrol\Domain\Round\RoundReport;
@@ -15,14 +16,15 @@ use Symfony\Component\Security\Core\Authorization\Voter\CacheableVoterInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 
 /**
- * The one report of a walked round.
+ * The one report of a walked round, and the reports of all rounds for analysis.
  */
 final readonly class ReportVoter implements CacheableVoterInterface
 {
-    private const array ATTRIBUTES = ['report.submit', 'report.delete'];
+    private const array ATTRIBUTES = ['report.submit', 'report.delete', 'report.list'];
 
     public function __construct(
         private RoundPolicy $policy,
+        private ReportReadingPolicy $readingPolicy,
     ) {
     }
 
@@ -59,6 +61,7 @@ final readonly class ReportVoter implements CacheableVoterInterface
 
         return match ($attribute) {
             'report.submit' => $subject instanceof Round && $this->policy->mayReport($actor, $subject),
+            'report.list' => $this->readingPolicy->mayListReports($actor),
             default => $subject instanceof RoundReport && $this->policy->mayDeleteReport($actor, $subject),
         };
     }

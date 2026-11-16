@@ -38,6 +38,11 @@ final class ArchitectureRulesTest extends TestCase
             ['inputAndHandlerStayFreeOfTransportAndInfrastructure'],
         ];
         yield 'controller calling another use case' => ['Alpha/UseCase/DoThing/DoThingController.php', ['controllerUsesOnlyItsOwnUseCaseAndHttp']];
+        yield 'controller documented with OpenAPI attributes' => ['Alpha/UseCase/DescribeThing/DescribeThingController.php', []];
+        yield 'controller using the OpenAPI library beyond its attributes' => [
+            'Alpha/UseCase/ListThings/ListThingsController.php',
+            ['controllerUsesOnlyItsOwnUseCaseAndHttp'],
+        ];
         yield 'tool depending on HTTP' => ['Alpha/UseCase/DoThing/DoThingTool.php', ['toolUsesOnlyItsOwnUseCaseAndMcp']];
         yield 'output exposing a domain object' => ['Alpha/UseCase/DoThing/DoThingOutput.php', ['outputExposesNoDomainObjects']];
         yield 'module reaching into another domain' => ['Beta/Infrastructure/ThingReader.php', ['modulesMeetOnlyThroughUseCasesAndSharedDomain']];

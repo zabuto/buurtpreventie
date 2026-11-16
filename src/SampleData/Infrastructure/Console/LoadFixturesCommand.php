@@ -7,6 +7,7 @@ namespace App\SampleData\Infrastructure\Console;
 use App\SampleData\Infrastructure\Fixtures\DemoSet;
 use App\SampleData\Infrastructure\Fixtures\EdgeSet;
 use App\SampleData\Infrastructure\Fixtures\FixtureSet;
+use App\SampleData\Infrastructure\Fixtures\SamplePassword;
 use App\SampleData\Infrastructure\Fixtures\TestSet;
 use App\SampleData\Infrastructure\Fixtures\Timeline;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
@@ -71,9 +72,12 @@ final class LoadFixturesCommand extends Command
 
         $now = $this->clock->now();
         $this->timeline->begin($now);
-        $this->sets[$name]->load($now);
+        $notes = $this->sets[$name]->load($now);
 
-        $io->success(\sprintf('Loaded the %s set.', $name));
+        $io->success([
+            \sprintf('Loaded the %s set. The admin beheer@example.org logs in with the password %s.', $name, SamplePassword::VALUE),
+            ...$notes,
+        ]);
 
         return Command::SUCCESS;
     }

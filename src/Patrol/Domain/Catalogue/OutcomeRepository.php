@@ -33,4 +33,9 @@ interface OutcomeRepository
      * @throws OutcomeNameTaken when another outcome committed the same name in the meantime
      */
     public function update(Outcome $outcome): void;
+
+    /**
+     * @return list<Outcome> archived ones included, by name
+     */
+    public function all(): array;
 }

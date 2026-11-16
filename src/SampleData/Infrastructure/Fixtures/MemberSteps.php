@@ -7,6 +7,8 @@ namespace App\SampleData\Infrastructure\Fixtures;
 use App\Identity\UseCase\CreateApiToken\CreateApiToken;
 use App\Identity\UseCase\CreateApiToken\CreateApiTokenHandler;
 use App\Identity\UseCase\CreateApiToken\CreateApiTokenOutput;
+use App\Identity\UseCase\SetPassword\SetPassword;
+use App\Identity\UseCase\SetPassword\SetPasswordHandler;
 use App\Membership\UseCase\AddFirstAdmin\AddFirstAdmin;
 use App\Membership\UseCase\AddFirstAdmin\AddFirstAdminHandler;
 use App\Membership\UseCase\AddFirstAdmin\AddFirstAdminOutput;
@@ -47,6 +49,7 @@ final readonly class MemberSteps
         private DeactivateMemberHandler $deactivateMember,
         private EraseMemberHandler $eraseMember,
         private CreateApiTokenHandler $giveApiAccess,
+        private SetPasswordHandler $giveLogin,
     ) {
     }
 
@@ -57,7 +60,10 @@ final readonly class MemberSteps
             $input,
         )));
 
-        return new SampleMember($output->id, new Actor(Uuid::fromString($output->id), [Role::Admin]));
+        $admin = new SampleMember($output->id, new Actor(Uuid::fromString($output->id), [Role::Admin]));
+        $this->giveSamplePassword($admin, $at);
+
+        return $admin;
     }
 
     public function add(SampleMember $admin, DateTimeImmutable $at, SampleProfile $profile): SampleMember
@@ -95,13 +101,24 @@ final readonly class MemberSteps
     }
 
     /**
-     * A read-only API token; its secret is shown once and dropped here, as nobody uses a sample token.
+     * @param list<string> $scopes
+     *
+     * @return string the secret, which the use case shows only here
      */
-    public function giveApiAccess(SampleMember $member, DateTimeImmutable $at, string $name): void
+    public function giveApiAccess(SampleMember $member, DateTimeImmutable $at, string $name, array $scopes, DateTimeImmutable $expiresAt): string
     {
-        $this->as($member, $at, fn(): CreateApiTokenOutput => ($this->giveApiAccess)(
-            new CreateApiToken($member->id, $name, ['read']),
-        ));
+        return $this->as($member, $at, fn(): CreateApiTokenOutput => ($this->giveApiAccess)(
+            new CreateApiToken($name, $scopes, $expiresAt->format(\DATE_ATOM), $member->id),
+        ))->token;
+    }
+
+    /**
+     * The password of SamplePassword, set by the member as after a login with a code. Only a few members get it:
+     * every hash costs the real hasher half a second.
+     */
+    public function giveSamplePassword(SampleMember $member, DateTimeImmutable $at): void
+    {
+        $this->as($member, $at, fn() => ($this->giveLogin)(new SetPassword(SamplePassword::VALUE)));
     }
 
     /**

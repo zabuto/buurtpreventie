@@ -19,7 +19,7 @@ final readonly class ApiTokenFixture
     {
         $token = ApiToken::issue(
             $memberId,
-            new TokenTerms('Script', [TokenScope::Read]),
+            new TokenTerms('Script', [TokenScope::Read], new DateTimeImmutable('2027-11-01T00:00:00+00:00')),
             'bpt_' . \bin2hex(\random_bytes(32)),
             new DateTimeImmutable('2026-11-01T12:00:00+00:00'),
         );

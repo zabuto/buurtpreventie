@@ -10,6 +10,8 @@ use App\Membership\Domain\MemberRepository;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\AuditTrail;
 use App\Shared\Domain\Authorization;
+use App\Shared\Domain\ReauthenticationRequired;
+use App\Shared\Domain\RecentAuthentication;
 use App\Shared\Domain\Role;
 use App\Shared\Domain\Transaction;
 use App\Shared\Domain\WriteAction;
@@ -24,6 +26,7 @@ final readonly class ChangeMemberRolesHandler
         private AuditTrail $auditTrail,
         private Transaction $transaction,
         private LastAdminGuard $lastAdmin,
+        private RecentAuthentication $recentAuthentication,
     ) {
     }
 
@@ -32,6 +35,9 @@ final readonly class ChangeMemberRolesHandler
         $this->transaction->run(function () use ($input): void {
             $member = $this->members->get(Uuid::fromString($input->memberId));
             $this->authorization->denyUnlessGranted('member.change_roles', $member);
+            if (!$this->recentAuthentication->isRecent()) {
+                throw ReauthenticationRequired::forAction('member.change_roles');
+            }
 
             $roles = \array_map(Role::from(...), $input->roles);
             if (!\in_array(Role::Admin, $roles, strict: true)) {

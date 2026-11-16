@@ -3,29 +3,56 @@ security:
     password_hashers:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
 
-    # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
-        users_in_memory: { memory: null }
+        members:
+            id: App\Identity\Infrastructure\Security\MemberUserProvider
 
     firewalls:
         dev:
             # Ensure dev tools and static assets are always allowed
             pattern: ^/(_profiler(/|$)|(_wdt|assets|build)/)
             security: false
-        main:
+        # Every API request with an Authorization header; the authenticator takes each one, so a broken header is
+        # refused and logged instead of passing as a request without a session.
+        api_token:
+            request_matcher: App\Identity\Infrastructure\Security\BearerRequestMatcher
+            stateless: true
+            provider: members
+            custom_authenticators:
+                - App\Identity\Infrastructure\Security\ApiTokenAuthenticator
+        browser:
             lazy: true
-            provider: users_in_memory
+            provider: members
+            entry_point: App\Identity\Infrastructure\Security\SessionEntryPoint
+            custom_authenticators:
+                - App\Identity\Infrastructure\Security\PasswordAuthenticator
+                - App\Identity\Infrastructure\Security\LoginCodeAuthenticator
+                - App\Identity\Infrastructure\Security\InvitationAuthenticator
+                - App\Identity\Infrastructure\Security\ConfirmPasswordAuthenticator
+            login_throttling:
+                limiter: app.login_rate_limiter
+            # "Stay logged in" for 90 days, asked with "rememberMe": true in the body of a login. The cookie is signed
+            # with the moment of the last new password, so a new password ends it on every device.
+            remember_me:
+                secret: '%kernel.secret%'
+                name: bp_remember
+                lifetime: 7776000
+                path: /
+                secure: true
+                httponly: true
+                samesite: lax
+                remember_me_parameter: rememberMe
+                signature_properties: [credentialsVersion]
+            logout:
+                path: auth_logout
+                delete_cookies:
+                    bp_session: { path: '/' }
 
-            # Activate different ways to authenticate:
-            # https://symfony.com/doc/current/security.html#the-firewall
-
-            # https://symfony.com/doc/current/security/impersonating_user.html
-            # switch_user: true
-
-    # Note: Only the *first* matching rule is applied
+    # Only the first matching rule applies.
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+        - { path: ^/api/v1/(health|docs\.json)$, roles: PUBLIC_ACCESS }
+        - { path: ^/api/v1/auth/, roles: PUBLIC_ACCESS }
+        - { path: ^/api/, roles: IS_AUTHENTICATED }
 
 when@test:
     security:

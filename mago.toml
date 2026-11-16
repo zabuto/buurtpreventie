@@ -3,7 +3,8 @@ version = "1"
 php-version = "8.4.0"
 
 # The architecture fixtures break the rules on purpose. Recipe files stay exactly as Symfony ships them, so a recipe
-# update applies cleanly; Flex writes config/bundles.php and the kernel writes config/reference.php.
+# update applies cleanly; Flex writes config/bundles.php and the kernel writes config/reference.php. src/Kernel.php is
+# left out of formatting and linting only: the analyzer needs it to resolve the test kernel that extends it.
 [source]
 workspace = "."
 paths = ["src/", "tests/", "tools/", "config/", "public/"]
@@ -14,7 +15,6 @@ excludes = [
     "config/reference.php",
     "config/preload.php",
     "public/index.php",
-    "src/Kernel.php",
     "tests/bootstrap.php",
 ]
 
@@ -23,6 +23,7 @@ literal-separator = true
 
 # Follows the PHP section of .editorconfig, so a PhpStorm reformat and mago format agree.
 [formatter]
+excludes = ["src/Kernel.php"]
 preset = "default"
 print-width = 160
 method-chain-semicolon-on-next-line = true
@@ -42,6 +43,7 @@ inline-empty-classlike-braces = false
 inline-empty-anonymous-class-braces = false
 
 [linter]
+excludes = ["src/Kernel.php"]
 integrations = ["symfony", "phpunit"]
 
 [linter.rules]

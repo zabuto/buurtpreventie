@@ -11,10 +11,12 @@ use App\Membership\UseCase\ChangeMemberRoles\ChangeMemberRoles;
 use App\Membership\UseCase\ChangeMemberRoles\ChangeMemberRolesHandler;
 use App\Shared\Domain\AccessDenied;
 use App\Shared\Domain\AuditedAction;
+use App\Shared\Domain\ReauthenticationRequired;
 use App\Shared\Domain\Role;
 use App\Tests\Membership\Fake\InMemoryMemberRepository;
 use App\Tests\Membership\Fake\MemberFixture;
 use App\Tests\Shared\Fake\FakeAuthorization;
+use App\Tests\Shared\Fake\FixedRecentAuthentication;
 use App\Tests\Shared\Fake\ImmediateTransaction;
 use App\Tests\Shared\Fake\RecordingAuditTrail;
 use Override;
@@ -122,7 +124,21 @@ final class ChangeMemberRolesHandlerTest extends TestCase
         $this->assertSame([Role::Admin, Role::Coordinator], $this->jan->roles());
     }
 
-    private function handler(?FakeAuthorization $authorization = null): ChangeMemberRolesHandler
+    /**
+     * Roles grant rights over every member, so a hijacked session that is not recent cannot hand them out.
+     */
+    #[Test]
+    public function it_refuses_without_a_recent_login(): void
+    {
+        try {
+            $this->handler(recent: false)(new ChangeMemberRoles($this->jan->id()->toRfc4122(), ['coordinator']));
+            $this->fail('The roles changed.');
+        } catch (ReauthenticationRequired) {
+            $this->assertSame([[Role::Walker], []], [$this->jan->roles(), $this->auditTrail->recorded]);
+        }
+    }
+
+    private function handler(?FakeAuthorization $authorization = null, bool $recent = true): ChangeMemberRolesHandler
     {
         return new ChangeMemberRolesHandler(
             $this->members,
@@ -130,6 +146,7 @@ final class ChangeMemberRolesHandlerTest extends TestCase
             $this->auditTrail,
             new ImmediateTransaction(),
             new LastAdminGuard($this->members),
+            new FixedRecentAuthentication($recent),
         );
     }
 }

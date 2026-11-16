@@ -51,4 +51,14 @@ interface RoundRepository
      * @return list<Round>
      */
     public function upcomingWithWalker(Uuid $memberId, DateTimeImmutable $now): array;
+
+    /**
+     * @return list<Round> every round the member is signed up for, past and upcoming, by start
+     */
+    public function withWalker(Uuid $memberId): array;
+
+    /**
+     * @return list<Round> the rounds of the walker that match the query, by start, at most its limit
+     */
+    public function forWalker(WalkerRoundQuery $query): array;
 }

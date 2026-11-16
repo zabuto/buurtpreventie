@@ -13,6 +13,7 @@ use App\Membership\Domain\MemberPolicy;
 use App\Membership\Infrastructure\Security\MemberVoter;
 use App\Patrol\Domain\Catalogue\Outcome;
 use App\Patrol\Domain\Catalogue\OutcomeKind;
+use App\Patrol\Domain\Round\ReportReadingPolicy;
 use App\Patrol\Domain\Round\Round;
 use App\Patrol\Domain\Round\RoundComment;
 use App\Patrol\Domain\Round\RoundPolicy;
@@ -62,6 +63,8 @@ final class AuthorizationMatrixTest extends TestCase
         yield from self::memberRows();
         yield from self::credentialRows();
         yield 'audit.erase_actor_name' => ['audit.erase_actor_name', static fn(Uuid $actor): Uuid => Uuid::v7(), ['admin']];
+        yield 'audit.view_round_history' => ['audit.view_round_history', static fn(Uuid $actor): Uuid => Uuid::v7(), ['coordinator']];
+        yield 'audit.view' => ['audit.view', static fn(Uuid $actor): null => null, ['admin']];
     }
 
     /**
@@ -99,6 +102,7 @@ final class AuthorizationMatrixTest extends TestCase
         yield 'report.submit by a walker of the round' => ['report.submit', $roundWalkedWithBuddy, self::MEMBERS];
         yield 'report.delete of another author' => ['report.delete', static fn(Uuid $actor): mixed => self::reportBy(Uuid::v7()), ['coordinator']];
         yield 'report.delete by its author' => ['report.delete', self::reportBy(...), self::MEMBERS];
+        yield 'report.list' => ['report.list', $nobody, ['coordinator', 'analyst']];
 
         yield 'comment.add on a round of others' => ['comment.add', $roundOfOthers, ['coordinator']];
         yield 'comment.add by a walker of the round' => ['comment.add', $roundWalkedWithBuddy, self::MEMBERS];
@@ -106,6 +110,7 @@ final class AuthorizationMatrixTest extends TestCase
         yield 'comment.delete by its author' => ['comment.delete', self::commentBy(...), self::MEMBERS];
 
         yield 'catalogue.manage' => ['catalogue.manage', $nobody, ['admin']];
+        yield 'catalogue.list' => ['catalogue.list', $nobody, [...self::MEMBERS, 'system']];
     }
 
     /**
@@ -118,12 +123,16 @@ final class AuthorizationMatrixTest extends TestCase
         foreach (['member.add', 'member.change', 'member.change_roles', 'member.deactivate', 'member.reactivate', 'member.erase'] as $attribute) {
             yield $attribute => [$attribute, $nobody, ['admin']];
         }
+        yield 'member.invite' => ['member.invite', $nobody, ['coordinator', 'admin']];
         yield 'member.add_first_admin' => ['member.add_first_admin', $nobody, ['system']];
         yield 'member.change_consent of oneself' => ['member.change_consent', 'member:self', self::MEMBERS];
         yield 'member.change_consent of another member' => ['member.change_consent', 'member:other', []];
         yield 'member.change_open_round_notifications of oneself' => ['member.change_open_round_notifications', 'member:self', self::MEMBERS];
         yield 'member.change_open_round_notifications of another member' => ['member.change_open_round_notifications', 'member:other', []];
+        yield 'member.change_contact_details of oneself' => ['member.change_contact_details', 'member:self', self::MEMBERS];
+        yield 'member.change_contact_details of another member' => ['member.change_contact_details', 'member:other', []];
         yield 'member.list' => ['member.list', $nobody, [...self::MEMBERS, 'system']];
+        yield 'member.view' => ['member.view', $nobody, ['admin']];
     }
 
     /**
@@ -142,6 +151,8 @@ final class AuthorizationMatrixTest extends TestCase
         yield 'api_token.revoke_all of another member' => ['api_token.revoke_all', $stranger, ['admin']];
         yield 'account.set_password of oneself' => ['account.set_password', $self, self::MEMBERS];
         yield 'account.set_password of another member' => ['account.set_password', $stranger, []];
+        yield 'account.issue_invitation' => ['account.issue_invitation', $stranger, ['coordinator', 'admin']];
+        yield 'account.request_login_code' => ['account.request_login_code', static fn(Uuid $actor): null => null, ['nobody', 'system', ...self::MEMBERS]];
     }
 
     /**
@@ -218,7 +229,7 @@ final class AuthorizationMatrixTest extends TestCase
         return [
             new RoundVoter($roundPolicy),
             new ParticipationVoter($roundPolicy),
-            new ReportVoter($roundPolicy),
+            new ReportVoter($roundPolicy, new ReportReadingPolicy()),
             new CommentVoter($roundPolicy),
             new CatalogueVoter($roundPolicy),
             new MemberVoter(new MemberPolicy()),

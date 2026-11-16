@@ -11,7 +11,8 @@ use Symfony\Component\Uid\Uuid;
 
 /**
  * Passwords and API tokens belong to the member alone. An admin only revokes every token of a member, as part of
- * deactivating or erasing them.
+ * deactivating or erasing them. A coordinator or admin has an invitation sent; only an admin sees its link, to hand
+ * it on to a new member without mail.
  */
 final readonly class CredentialPolicy
 {
@@ -33,5 +34,15 @@ final readonly class CredentialPolicy
     public function maySetPassword(Actor $actor, Uuid $memberId): bool
     {
         return $actor->is($memberId);
+    }
+
+    public function mayInvite(Actor $actor): bool
+    {
+        return $actor->hasRole(Role::Coordinator) || $actor->hasRole(Role::Admin);
+    }
+
+    public function maySeeInvitationLink(Actor $actor): bool
+    {
+        return $actor->hasRole(Role::Admin);
     }
 }

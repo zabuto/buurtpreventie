@@ -27,9 +27,12 @@ final readonly class MemberVoter implements CacheableVoterInterface
         'member.deactivate',
         'member.reactivate',
         'member.erase',
+        'member.invite',
         'member.change_consent',
         'member.change_open_round_notifications',
+        'member.change_contact_details',
         'member.list',
+        'member.view',
     ];
 
     public function __construct(
@@ -76,8 +79,9 @@ final readonly class MemberVoter implements CacheableVoterInterface
         }
 
         return match ($attribute) {
-            'member.change_consent', 'member.change_open_round_notifications' => $subject instanceof Member
+            'member.change_consent', 'member.change_open_round_notifications', 'member.change_contact_details' => $subject instanceof Member
                 && $this->policy->mayChangeOwnChoice($actor, $subject),
+            'member.invite' => $this->policy->mayInvite($actor),
             default => $this->policy->mayManage($actor),
         };
     }

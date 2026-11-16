@@ -124,6 +124,42 @@ final class MemberTest extends TestCase
     }
 
     #[Test]
+    public function it_takes_a_new_phone_number_and_address_and_keeps_its_other_details(): void
+    {
+        $member = $this->member();
+
+        $member->changeContactDetails(PhoneNumber::fromString('020 123 4567'), '  Kerkstraat 2 ');
+
+        $this->assertSame(['020 123 4567', 'Kerkstraat 2', 'jose@example.org', 'José J.'], [
+            $member->phone()?->value,
+            $member->address(),
+            $member->email()?->value,
+            $member->displayName(),
+        ]);
+    }
+
+    #[Test]
+    public function it_drops_an_address_of_only_whitespace(): void
+    {
+        $member = $this->member();
+
+        $member->changeContactDetails(null, '   ');
+
+        $this->assertSame([null, null], [$member->phone(), $member->address()]);
+    }
+
+    #[Test]
+    public function it_refuses_new_contact_details_once_erased(): void
+    {
+        $member = $this->member();
+        $member->erase(new DateTimeImmutable(self::NOW));
+
+        $this->expectException(MemberErased::class);
+
+        $member->changeContactDetails(null, 'Kerkstraat 2');
+    }
+
+    #[Test]
     public function it_reactivates_a_deactivated_member(): void
     {
         $member = $this->member();

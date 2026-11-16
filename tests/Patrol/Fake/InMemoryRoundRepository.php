@@ -7,6 +7,7 @@ namespace App\Tests\Patrol\Fake;
 use App\Patrol\Domain\Catalogue\MeetingPoint;
 use App\Patrol\Domain\Round\Round;
 use App\Patrol\Domain\Round\RoundRepository;
+use App\Patrol\Domain\Round\WalkerRoundQuery;
 use App\Shared\Domain\NotFound;
 use DateTimeImmutable;
 use Override;
@@ -69,6 +70,20 @@ final class InMemoryRoundRepository implements RoundRepository
             $this->rounds,
             static fn(Round $round): bool => !$round->hasStarted($now) && $round->isSignedUp($memberId),
         ));
+    }
+
+    #[Override]
+    public function withWalker(Uuid $memberId): array
+    {
+        return $this->sortedWhere(static fn(Round $round): bool => $round->isSignedUp($memberId));
+    }
+
+    #[Override]
+    public function forWalker(WalkerRoundQuery $query): array
+    {
+        $rounds = $this->sortedWhere($query->matches(...));
+
+        return \array_slice($query->newestFirst ? \array_reverse($rounds) : $rounds, 0, $query->limit);
     }
 
     public function has(Round $round): bool

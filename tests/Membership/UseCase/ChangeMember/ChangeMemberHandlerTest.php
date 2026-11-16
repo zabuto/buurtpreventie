@@ -7,6 +7,7 @@ namespace App\Tests\Membership\UseCase\ChangeMember;
 use App\Membership\Domain\DisplayNameTaken;
 use App\Membership\Domain\EmailAddressTaken;
 use App\Membership\Domain\Member;
+use App\Membership\Domain\MemberErased;
 use App\Membership\Domain\UniqueMemberDetails;
 use App\Membership\UseCase\ChangeMember\ChangeMember;
 use App\Membership\UseCase\ChangeMember\ChangeMemberHandler;
@@ -17,6 +18,7 @@ use App\Tests\Membership\Fake\MemberFixture;
 use App\Tests\Shared\Fake\FakeAuthorization;
 use App\Tests\Shared\Fake\ImmediateTransaction;
 use App\Tests\Shared\Fake\RecordingAuditTrail;
+use DateTimeImmutable;
 use Override;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -59,6 +61,42 @@ final class ChangeMemberHandlerTest extends TestCase
                 $this->jan->isCertified(),
             ],
         );
+    }
+
+    #[Test]
+    public function it_keeps_the_details_left_out(): void
+    {
+        $this->handler()(new ChangeMember(memberId: $this->jan->id()->toRfc4122(), displayName: 'Jan Ba.'));
+
+        $this->assertSame(
+            ['jan@example.org', 'Jan Bakker', 'Jan Ba.', '06 1234 5678', 'Dorpsstraat 1', false],
+            [
+                $this->jan->email()?->value,
+                $this->jan->name(),
+                $this->jan->displayName(),
+                $this->jan->phone()?->value,
+                $this->jan->address(),
+                $this->jan->isCertified(),
+            ],
+        );
+    }
+
+    #[Test]
+    public function it_clears_the_phone_number_and_address_given_as_null(): void
+    {
+        $this->handler()(new ChangeMember(memberId: $this->jan->id()->toRfc4122(), phone: null, address: null));
+
+        $this->assertSame([null, null], [$this->jan->phone(), $this->jan->address()]);
+    }
+
+    #[Test]
+    public function it_refuses_an_erased_member_even_without_new_details(): void
+    {
+        $this->jan->erase(new DateTimeImmutable('2026-11-15T12:00:00+00:00'));
+
+        $this->expectException(MemberErased::class);
+
+        $this->handler()(new ChangeMember(memberId: $this->jan->id()->toRfc4122()));
     }
 
     #[Test]

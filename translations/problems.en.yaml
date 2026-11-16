@@ -1,0 +1,48 @@
+# Titles of API problems (RFC 9457) by code.
+admin_exists: An admin exists. An admin adds the next one.
+display_name_taken: Another member has this display name.
+email_address_taken: Another member has this e-mail address.
+last_admin: This is the last admin. Make someone else an admin first.
+member_erased: This member is erased.
+meeting_point_archived: This meeting point is no longer in use.
+meeting_point_in_use: Rounds still start at this meeting point.
+meeting_point_name_taken: A meeting point with this name exists.
+outcome_archived: This outcome is no longer in use.
+outcome_name_taken: An outcome with this name exists.
+member_inactive: This member is not active.
+invitee_inactive: This member is not active, so an invitation leads nowhere.
+round_already_reported: This round already has a report.
+round_has_started: This round has started.
+round_is_full: This round is full.
+round_not_started: This round has not started.
+round_not_walked: This round was not walked.
+start_in_past: A round cannot start in the past.
+invalid_phone_number: This phone number is not valid.
+invalid_coordinates: This position on the map is not valid.
+empty_comment: Write something in the comment.
+invalid_staffing_rule: The number of walkers is not valid. The maximum must be at least the minimum.
+invalid_period: Choose a period of at most three months that ends after it starts.
+invalid_staffing_defaults: The number of walkers is not valid. The maximum must be at least the minimum.
+invalid_email_address: This e-mail address is not valid.
+invalid_name: This name is not valid. Use at least one letter or digit.
+invalid_token_expiry: Choose an end date for the token within 365 days.
+too_many_entries: Too many entries for one file. Choose a shorter period, a member or an action.
+invalid_input: Not all details are valid.
+bad_request: The app cannot read this request.
+login_failed: The e-mail address or password is not correct.
+login_code_wrong: This code is not correct.
+login_code_ended: This code no longer works. Ask for a new code.
+invitation_ended: This invitation no longer works. Ask for a login code, or ask an admin for a new invitation.
+csrf_check_failed: The app could not check that this request comes from this site. Reload the page and try again.
+unauthorized: You are not logged in.
+insufficient_scope: Your token may not do this. Create a token with the right scope.
+browser_only: 'Manage your tokens in the app, not with a token.'
+access_denied: You may not do this.
+reauthentication_required: 'Confirm it is you: enter your password, or log in again with a code.'
+not_found: This does not exist (any more).
+method_not_allowed: This cannot be done at this address.
+not_acceptable: The app cannot answer in that form.
+unsupported_media_type: The app cannot read this kind of data.
+too_many_requests: Too many attempts. Try again later.
+request_failed: This request did not succeed.
+internal_error: Something went wrong. Try again later.

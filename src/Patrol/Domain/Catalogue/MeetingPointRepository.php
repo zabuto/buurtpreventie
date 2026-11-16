@@ -33,4 +33,9 @@ interface MeetingPointRepository
      * @throws MeetingPointNameTaken when another meeting point committed the same name in the meantime
      */
     public function update(MeetingPoint $meetingPoint): void;
+
+    /**
+     * @return list<MeetingPoint> archived ones included, by name
+     */
+    public function all(): array;
 }

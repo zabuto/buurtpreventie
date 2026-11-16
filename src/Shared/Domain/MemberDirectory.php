@@ -27,4 +27,26 @@ interface MemberDirectory
      * @return array<string, MemberProfile> by RFC 4122 id; an unknown id is missing
      */
     public function profilesOf(array $memberIds): array;
+
+    /**
+     * The member as the login sees it, read afresh on every call, so a changed role or a deactivation counts on the
+     * next request.
+     *
+     * @return MemberIdentity|null null for an unknown id
+     */
+    public function identity(Uuid $memberId): ?MemberIdentity;
+
+    /**
+     * The member who logs in with this address, read afresh like identity().
+     *
+     * @return MemberIdentity|null null when no member has the address; an erased member has none
+     */
+    public function identify(EmailAddress $email): ?MemberIdentity;
+
+    /**
+     * The address mail for the member goes to.
+     *
+     * @return EmailAddress|null null for a deactivated, erased or unknown member, who gets no mail
+     */
+    public function emailOf(Uuid $memberId): ?EmailAddress;
 }

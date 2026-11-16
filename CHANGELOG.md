@@ -76,14 +76,96 @@ versions follow [Semantic Versioning](https://semver.org/).
   scopes, expiry and revocation; a token secret is always generated, and any other value is refused. Settings: the default minimum and maximum walkers of a new round.
 - Responses do not name the PHP version: the app and `public/.htaccess` set `X-Powered-By` to `PHP Symfony`.
 - API responses carry a Content-Security-Policy that allows nothing, `nosniff`, `Referrer-Policy: no-referrer`
-  and `Cross-Origin-Opener-Policy: same-origin`.
+  and `Cross-Origin-Opener-Policy: same-origin`, and over HTTPS `Strict-Transport-Security` once an installation
+  opts in with `HSTS_MAX_AGE`.
 - `AddFirstAdmin`: the system adds the first admin, only while no active admin exists.
+- Login in the browser: `POST /api/v1/auth/login` with e-mail address and password gives a session, `POST
+  /api/v1/auth/logout` ends it. A failed attempt gets the same answer whatever went wrong; repeated failures are
+  throttled with 429. An outdated password hash is renewed at login. A deactivated member is logged out on the next
+  request, a changed role counts at once. Logins and failed attempts on a known member are in the audit log with a
+  shortened IP address. Changing requests from the browser must come from the same origin.
+- Mail through Symfony Mailer (`MAILER_DSN`, sender `MAILER_FROM`); in development Mailpit in `compose.yaml` catches
+  every mail. Login codes and invitations go out as plain Dutch text; the log never holds message parameters.
+- Login with a code by mail: `POST /api/v1/auth/login-code` answers the same for any address and mails an active
+  member a six-digit code for 60 minutes, at most 3 requests per address and 10 per IP address in an hour;
+  `POST /api/v1/auth/login-code/verify` logs in with the code and the id of the request, at most 5 attempts. Without
+  `APP_SECRET` the app refuses to hash a login code.
+- Invitations: a link that logs a member in once within 48 hours (`POST /api/v1/auth/invitation`), sent by a
+  coordinator or admin (`InviteMember`).
+- A new password has at least 15 characters of any kind, and at most 4,096 bytes.
+- Stay logged in for 90 days with `"rememberMe": true`. A new password ends every other session and every
+  remembered device. A login without an e-mail address gets a field error instead of a failed login.
+- `POST /api/v1/auth/confirm` with the password makes a session recent; a new password needs a login or confirmation
+  of the last 15 minutes, otherwise 403 `reauthentication_required`. The audit entry of a login names its method.
 - A member chooses to hear about rounds that seek a buddy (`ChangeOpenRoundNotifications`), only for themselves.
 - A round list covers at most 93 days.
 - Sample data: `app:fixtures:load demo|test|edge` in `dev` and `test`, built through the use cases with a fixed seed
-  and dates from today.
+  and dates from today. The first admin of every set, `beheer@example.org`, and in `demo` one member per role and
+  three walkers log in with one made-up password, which the command shows.
+- Dependabot also updates the Mailpit image in `compose.yaml`, after the same 7-day cooldown.
+- A Postman collection in `postman/` that checks a running app, for the Postman app or Newman.
+- Test coverage per class in the summary of the CI job "Checks" (`composer test:coverage`), as information only.
 - CI jobs on MariaDB 10.11 and MySQL 8.4: migrations from an empty database, schema validation, every `down()`,
   the database tests and every sample data set.
 - Opengrep rules against queries outside a repository, query builder parts built from strings, predictable random
   functions and broken hashes, and byte-wise case changes.
 - ADR 0005 on the database approach; fixed limits in `docs/configuration.md`.
+- OpenAPI description of the API at `GET /api/v1/docs.json` (NelmioApiDocBundle), public, in JSON only and as OpenAPI 3.1.
+- API errors as `application/problem+json` with a title in Dutch or English (`Accept-Language`), field errors for
+  invalid input, and no internal detail.
+- Personal API tokens in `Authorization: Bearer`: looked up by hash on every request, refused at once when revoked,
+  expired or when the member is deactivated or erased, held to their scopes (`read`, `write`, `admin`), and the
+  last use recorded at most once a minute.
+- Own account: `GET /api/v1/me` shows the profile; `PATCH /api/v1/me` changes phone number, address, consent and
+  notifications about open rounds, never name or e-mail address; `PUT /api/v1/me/password` sets a new password in a
+  recent session, also after a login with a code; `GET /api/v1/me/activity` lists the member's own actions a page at
+  a time; `GET /api/v1/me/export` hands over all own data as a JSON file, of other members only display names.
+- `GET`, `POST` and `DELETE /api/v1/me/tokens`: a new API token needs a recent session and an end date within 365
+  days, and shows its secret only in the answer that created it; a request with an API token gets 403
+  `browser_only` there. Every API token expires; tokens without an end date get one 365 days after they were made.
+- Rounds: `GET /api/v1/rounds` for a period of at most 93 days, `GET /api/v1/rounds/{id}`, `POST /api/v1/rounds`,
+  `PATCH` and `DELETE /api/v1/rounds/{id}`, `POST /api/v1/rounds/{id}/cancellation`, `GET /api/v1/staffing-gaps` and
+  `GET /api/v1/me/rounds` with a view (`upcoming`, `to_report` or `all`), an optional period of at most 93 days that
+  `all` needs, an order for `all` and a limit of at most 200; every round carries its status, staffing, open spots and daypart. Signing up and
+  withdrawing with `PUT` and `DELETE /api/v1/rounds/{id}/walkers/me`, or `/walkers/{memberId}` for a coordinator,
+  answer the same when repeated.
+- Review focus 2 through the API: a round planned at 22:00 on the evenings around both clock changes, with the offset
+  of the day, the other offset or `Z`, comes back at 22:00 with the right offset and in the evening, in one round, in
+  the list and in the own rounds, in memory and once through the database.
+- After the round: `POST /api/v1/rounds/{id}/reports` and `DELETE /api/v1/reports/{id}`, `POST
+  /api/v1/rounds/{id}/comments` and `DELETE /api/v1/comments/{id}`; `GET /api/v1/reports` lists the reports of a
+  period of at most 93 days for analysts and coordinators, and `GET /api/v1/rounds/{id}/history` the history of a
+  round for coordinators, with an erased member as a removed member. The note of a report and the comments of a
+  round are for its walkers, analysts and coordinators only, also in `GET /api/v1/rounds/{id}`.
+- Members: `GET /api/v1/members` lists the active members, with phone number and address only for a member who
+  consents and never an e-mail address. Name, phone number and address are always in the answer, null for what the
+  reader may not see, and so are name and phone number of the walkers in `GET /api/v1/rounds/{id}`. Under `/api/v1/admin/members` the admin lists, shows, adds and changes
+  members, sets roles, deactivates, reactivates and erases them, and has an invitation sent; changing roles and
+  erasing need a recent login. The secret of an invitation is in the answer only for an admin inviting a member who
+  never logged in.
+- Catalogues: `GET /api/v1/meeting-points` and `GET /api/v1/outcomes` list what a member can choose; under
+  `/api/v1/admin/meeting-points` and `/api/v1/admin/outcomes` the admin lists them with the archived ones, adds,
+  changes, archives and restores them. A name that is taken answers 409 with the id of the item that holds it and
+  whether that one is archived.
+- Audit log for the admin: `GET /api/v1/admin/audit` narrowed by member, action and period, 50 entries a page as
+  JSON, or with `Accept: text/csv` every matching entry as a streamed CSV file, with a fixed column order and cells
+  that a spreadsheet would run as a formula neutralised. A file ends before the second of the request, so an entry
+  recorded while it streams never appears twice. A file holds at most 10,000 entries; more answers 422
+  `too_many_entries` with their count. An Accept header that allows neither format answers 406.
+- JSON keys and query parameters are camelCase, codes and enum values snake_case; tests hold the OpenAPI description
+  and the outputs to it.
+- Every `PATCH` is a JSON Merge Patch: a field left out stays, null clears a field that may be empty, a value
+  replaces it, and null on a required field is refused. `PATCH /api/v1/me` refuses empty text for a phone number or
+  address; null removes it. A meeting point takes latitude and longitude as a pair.
+- The OpenAPI description covers every route, the login routes of the firewall included, and names the successful
+  answer, with the schema of its body, and the problem answers of every operation; a test holds it to the router and to the Postman collection. A controller may carry
+  OpenAPI attributes to document its endpoint.
+- An HTTP matrix test runs every route against every role, next to the matrix of the voters, and a test signs a
+  member up with a personal API token alone, as curl would. In the `demo` sample set the walker who uses the API has
+  a token that reads and writes, whose secret the fixture command shows; `docs/getting-started.md` walks through
+  signing up with curl.
+- ADR 0006 on authentication: two firewalls, own authenticators, a hash for every secret, recent logins and scopes per
+  request.
+- Opengrep rules `request-value-in-query`, `secret-compared-with-equals`, `security-disabled` and
+  `insecure-session-cookie`, each with a rule test; `sql-built-from-strings` leaves the `set()` of response headers
+  alone.

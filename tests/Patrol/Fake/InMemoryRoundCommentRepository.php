@@ -45,4 +45,16 @@ final class InMemoryRoundCommentRepository implements RoundCommentRepository
 
         return $found;
     }
+
+    #[Override]
+    public function byAuthor(Uuid $authorId): array
+    {
+        $found = \array_values(\array_filter(
+            $this->comments,
+            static fn(RoundComment $comment): bool => $comment->authorId()->equals($authorId),
+        ));
+        \usort($found, static fn(RoundComment $a, RoundComment $b): int => $a->postedAt() <=> $b->postedAt());
+
+        return $found;
+    }
 }

@@ -10,10 +10,13 @@ use App\Shared\Domain\Role;
 use App\Shared\Infrastructure\Security\MemberUser;
 use App\Shared\Infrastructure\Security\RunAs;
 use App\Shared\Infrastructure\Security\TokenExecutionContext;
+use App\Shared\Infrastructure\Security\TokenRecentAuthentication;
 use DomainException;
 use Override;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Clock\MockClock;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Uid\Uuid;
@@ -28,8 +31,8 @@ final class RunAsTest extends TestCase
     protected function setUp(): void
     {
         $this->tokenStorage = new TokenStorage();
-        $this->runAs = new RunAs($this->tokenStorage);
-        $this->context = new TokenExecutionContext($this->tokenStorage);
+        $this->runAs = new RunAs($this->tokenStorage, new MockClock('2026-11-16T10:00:00+00:00'));
+        $this->context = new TokenExecutionContext($this->tokenStorage, new RequestStack());
     }
 
     #[Test]
@@ -40,6 +43,20 @@ final class RunAsTest extends TestCase
         $seen = $this->runAs->member($actor, Channel::Console, fn(): array => [$this->context->actor(), $this->context->channel()]);
 
         $this->assertEquals([$actor, Channel::Console], $seen);
+    }
+
+    /**
+     * Whoever runs a console command proved who they are by reaching the server, so a sensitive action such as
+     * creating a token runs there too, as the sample data do.
+     */
+    #[Test]
+    public function it_runs_the_operation_of_a_member_as_a_recent_login(): void
+    {
+        $recent = new TokenRecentAuthentication($this->tokenStorage, new MockClock('2026-11-16T10:14:00+00:00'));
+
+        $seen = $this->runAs->member(new Actor(Uuid::v7(), []), Channel::Console, $recent->isRecent(...));
+
+        $this->assertTrue($seen);
     }
 
     #[Test]

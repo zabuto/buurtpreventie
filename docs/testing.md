@@ -10,7 +10,8 @@
 | `tests/Architecture/` | The PHPat rules, the test that proves they fire, the folder layout test, and the test that every linked section of `architecture.md` exists |
 | `tests/Architecture/Fixtures/` | Deliberate violations; outside the regular PHPStan run and the autoloader |
 | `tests/<Module>/Fake/` | In-memory repositories and other small fakes of the interfaces in `Domain`, for the handler tests |
-| `tests/Shared/Fake/` | Fakes of the interfaces in `Shared\Domain`: transaction, execution context, authorization, audit trail, notifier, member directory |
+| `tests/Shared/Fake/` | Fakes of the interfaces in `Shared\Domain`: transaction, execution context, authorization, audit trail, notifier, member directory, recent authentication |
+| `tests/Support/` | `ApiTestCase` and `InMemoryKernel` for endpoint tests without a database, and a probe controller that raises each kind of failure for the problem responses |
 | `tests/Database/` | The PHPUnit extension that builds the test database before the database tests |
 | `tests/Dependencies/` | Every Symfony component in `composer.json` and `composer.lock` is on the release line in `extra.symfony.require` (7.4 LTS); the Dependabot and Composer cooldowns stay at their minimums without exemptions |
 | `tests/Tools/` | The development tools in `tools/`, such as the Opengrep version choice |
@@ -21,12 +22,45 @@
 | --- | --- | --- | --- |
 | Unit | none | `PHPUnit\Framework\TestCase` | Handlers, domain rules, templates: in memory only, no files, network, database or real clock |
 | Integration | `integration` | `PHPUnit\Framework\TestCase` | Code that needs files or a process: the generator, the architecture rules, the dependency checks |
-| Functional | `functional` | `Symfony\Bundle\FrameworkBundle\Test\WebTestCase` | Endpoints through the kernel: route, status, JSON |
+| Functional | `functional` | `App\Tests\Support\ApiTestCase` (or `WebTestCase`) | Endpoints through the kernel: route, status, JSON; on the in-memory kernel, so without a database |
 | Database | `database` | `Symfony\Bundle\FrameworkBundle\Test\KernelTestCase` | Doctrine types, transactions, repository queries, the schema, concurrency and the sample data against MariaDB or MySQL |
 
 `composer test` runs all of them; `composer test:unit` runs only the unit tests, in about a second.
 A test class that leaves memory carries `#[Group('integration')]`, `#[Group('functional')]` or
 `#[Group('database')]`.
+
+## Endpoint tests
+
+`ApiTestCase` boots `InMemoryKernel`: the app with every repository, the transaction, the audit trail, the
+notifier and the generators of secrets and login codes replaced by the fakes from `tests/<Module>/Fake/` and `tests/Shared/Fake/`, the clock stopped at
+`InMemoryKernel::NOW` and a `RecordingLogger` that keeps what the app logs; everything else is real, security and
+voters included. `InMemoryServices` makes the swap as a compiler pass, because `config/services.yaml` loads after
+anything registered next to it. Two probe controllers exist only in this kernel: one raises each kind of failure,
+the other answers who a request runs as and through which channel. Endpoint tests therefore run without a database, also in `composer test` when none is
+reachable. The kernel keeps its container in `var/cache/test_in_memory/`. A test arranges its data in the fakes it
+takes from the container (`self::service()`), then makes one request; the client boots a fresh kernel per request, so state does not
+leak between tests.
+
+The test client sends `Accept-Language: en-us` unless told otherwise (`Request::create()`). A test that expects
+Dutch says so with its own header. `ApiTestCase::createClient()` adds `Sec-Fetch-Site: same-origin`, so a changing
+request passes the CSRF check; a test passes another value, or `null` to leave the header out.
+`ApiTestCase::actingAs()` logs the client in on the browser firewall as a new member with the given roles. That
+member lives in the fakes of the running kernel, so the session holds for one request, or for all of them after
+`$client->disableReboot()`. That session is not recent; a test that needs a recent one logs in through an
+authenticator. The session cookie of the test environment is `MOCKSESSID`, so a test ends a session by expiring that
+cookie. The identity probe also answers whether the proof is recent. Mail goes to the null transport in `test`
+(`config/packages/mailer.yaml`), where Symfony's mailer assertions see it; the kernel gives `MailNotifier` a fixed
+sender and base address. The kernel counts login attempts in a plain `ArrayAdapter` of its own: a cache pool is
+emptied between two requests of one client, and a pool in files would carry attempts from one test to the next.
+
+A few endpoint tests take the whole path through Doctrine, in the groups `database` and `functional`: they extend
+`ApiTestCase` with `App\Kernel` as kernel class, store their member through the repository and flush, and stop the app
+clock with `Clock::set()` at `InMemoryKernel::NOW`, putting the previous clock back in `tearDown()`. The `clock`
+service of the app is Symfony's global clock, so that is the clock the handlers read. `ClockChangeDatabaseTest` is
+one: the rounds around both clock changes of 2027, planned and read back through the API. `AuditLogDatabaseTest` is
+another: a failed login through the API, then the log of the admin, which shows the shortened IP address only.
+`SignUpWithApiTokenDatabaseTest` is the curl scenario: a member logs in, makes a token and signs up with that token
+alone; a token that may only read gets 403 `insufficient_scope`.
 
 ## Database tests
 
@@ -76,7 +110,25 @@ does not lock, the second sign-up joins next to the first.
 `mago format` would not change it, and runs PHPStan at level max with the architecture rules on it. A mistake in the templates thus breaks a test, not
 the next use case. What the templates contain is unit-tested in memory in `UseCaseTemplatesTest`.
 
+`OpenApiCoverageTest` reads `/api/v1/docs.json` on the regular test kernel: every route under `/api/v1` is in it with
+its method and nothing else is; every operation names its successful answer (204 without a body, any other with a
+schema for each media type) and the problem answers it can give (401 and 403 off the public
+paths, 404 with an id in the path, 422 with a body or query parameters); and every request of the Postman collection
+to `{{baseUrl}}` matches a path and method of the spec, a `{parameter}` standing for one segment. `OpenApiNamingTest`
+holds every property and query parameter of the spec to camelCase, and `OutputKeyNamingTest` (in memory) the keys of
+the array shapes in the outputs.
+
 ## Rights and write actions
+
+`tests/Identity/Infrastructure/Security/TokenScopeTest.php` sets every scope against a reading request, a changing
+request and one under `/api/v1/admin/`.
+
+`tests/Shared/HttpMatrixTest.php` runs every route against nobody logged in, a member without a role and a member
+with exactly one role, over HTTP on the in-memory kernel. Each request goes to data that exists, with a valid body,
+so only the rights can refuse it: a principal that may not act gets 401 (`unauthorized`) or 403 (`access_denied`),
+one that may gets anything else, the 403 `reauthentication_required` of a login that is not recent included. Where a
+right depends on a relation, the row takes the data of someone else. A guard test in the same class requires a row
+for every route of the app, and no row without a route.
 
 - `tests/Shared/AuthorizationMatrixTest.php` runs every voter attribute against nobody signed in, the
   system, and a member with no role or exactly one role, with a row per relation where a right depends
@@ -147,17 +199,70 @@ Locally you can also run them one by one: `composer test`, `vendor/bin/phpstan a
 `vendor/bin/mago format --dry-run`, `vendor/bin/mago lint`, `vendor/bin/mago analyze`,
 `vendor/bin/rector process --dry-run`.
 
+### Coverage
+
+The CI job "Checks" also runs `composer test:coverage` with pcov and puts the totals and the coverage per class in
+the job summary. It is information only: no threshold, and a failure there never fails the run. That job has no
+database, so the Doctrine repositories count low. Locally the same script needs pcov or Xdebug (`XDEBUG_MODE=coverage`)
+and writes `var/coverage/coverage.txt`.
+
+## Postman collection
+
+`postman/buurtpreventie.postman_collection.json` checks a running app from the outside: health, the OpenAPI
+description, the refusals of the login endpoints, a login with a code and, when a password is set, a login with the
+password. After the login with a code it walks the own account: profile, a change that changes nothing, the 422 for empty text as phone number, an API token
+created, listed, used, refused under `/me/tokens` and revoked, activity, export, and the 403 for a new token or
+password once only the stay-logged-in cookie is left. After the login with a password it reads the rounds of the
+coming week, one of them with every walker in one shape, the gaps and the own rounds to report, and checks the 422 for every own round without a period, for a period of more than 93 days and
+the 404 for signing up for a round that does not exist. As the sample admin it gets the 403 for the reports and the
+history of a round, and the 404 for a comment on, or deleting a report of, something that does not exist. It reads
+the member list in one shape without e-mail addresses, the admin list and one member, and checks the 422 for a new member with an
+invalid address, the 422 for null as the name of a member and the 404 for the roles of a member that does not exist. It lists the meeting points and outcomes,
+for members and as admin, and checks the 409 for an outcome under the name of one that exists and the 404 for
+archiving a meeting point that does not exist, and the 422 for half a position. It reads the audit log, as JSON with the login among the entries and as
+CSV with its header (`Accept: text/csv`), and checks the 406 for another format. It never sets a valid new password, which would replace the one
+of the member in the local database, and the token it makes lives one day. It is no part of `composer check` or CI and adds no dependency: import it with
+`postman/local.postman_environment.json` into the Postman app, or run it with Newman:
+
+```sh
+HTTPS_PROXY=http://127.0.0.1:7080 npx newman run postman/buurtpreventie.postman_collection.json \
+  -e postman/local.postman_environment.json --insecure \
+  --env-var "mailpitUrl=$(symfony var:export MAILER_WEB_URL)"
+```
+
+The local environment reaches the app at `https://buurtpreventie.wip`, the domain of the Symfony CLI's local proxy
+(`symfony proxy:status`), which stays the same whatever port the server got. Newman does not read the proxy setting of
+the system, hence `HTTPS_PROXY`; the Postman app does when it uses the system proxy. Without the proxy, pass the
+address `symfony server:list` shows for this directory: `--env-var baseUrl=https://127.0.0.1:<port>`. The local
+environment logs in as `beheer@example.org` with the sample password, the first admin of every sample set; add
+`--env-var email=…` for another sample member.
+
+`--insecure` skips the check of the TLS certificate. The Symfony CLI serves HTTPS with a certificate from its own
+local certificate authority, which the browser trusts through the system keychain; Newman runs on Node.js, which
+reads its own list of authorities and not the keychain, so it refuses that certificate. Locally that check protects
+nothing: the connection never leaves the machine. Never pass `--insecure` for a server elsewhere, where the check is
+what proves the server is the real one. The Postman app has the same switch: Settings → SSL certificate verification.
+
+It needs the app running under the Symfony CLI, the database with sample data, and Mailpit. Only the
+local environment sets `mailpitUrl`, for the request "Read the code from Mailpit (local only)", which takes the code
+from the newest mail; without it that request is skipped, and a step that needs the code runs only once the variable
+`code` is set by hand. A step that needs a password is skipped without one. The app takes 3
+requests for a code per address in an hour, the same limit as in production, so a fourth run within the hour answers
+429. Locally `symfony console cache:pool:clear cache.login_attempts` resets that count, and every count of failed
+logins with it.
+
 ## Security scan
 
 The "Security scan" job in `ci.yml` runs Opengrep with the rules in `.opengrep/rules/`. It runs only
 in CI, because verifying the downloaded binary needs Cosign. It first runs the rule tests, then scans
 `src/`, `config/`, `templates/`, `public/`, `bin/` and `tools/`; any finding fails the job.
 
-A rule is a YAML file with a test file of the same name next to it: `.php`, or `.twig` for templates.
-In the test file, a comment `ruleid: <id>` marks the next line as one the rule must report and
-`ok: <id>` as one it must leave alone. Twig test files use HTML comments (`<!-- ruleid: <id> -->`),
-because Opengrep does not read `{# #}` as an annotation. Rules for functions also match the fully
-qualified call (`\exec()`), the form this code base writes.
+A rule is a YAML file with a test file of the same name next to it: `.php`, `.twig` for templates, or
+`.test.yaml` for configuration (Opengrep would read a plain `.yaml` as a rule). In the test file, a comment
+`ruleid: <id>` marks the next line as one the rule must report and `ok: <id>` as one it must leave alone. Twig test
+files use HTML comments (`<!-- ruleid: <id> -->`), because Opengrep does not read `{# #}` as an annotation. Rules for
+functions also match the fully qualified call (`\exec()`), the form this code base writes. A `metavariable-regex`
+matches from the start of the text, so a pattern that may match further on starts with `^.*`.
 
 | Rule | Refuses |
 | --- | --- |
@@ -165,7 +270,11 @@ qualified call (`\exec()`), the form this code base writes.
 | `unserialize` | `unserialize()` on anything but a literal string, unless `allowed_classes` is `false` |
 | `request-value-as-file-path` | A request value that reaches a file path |
 | `twig-raw-filter` | The `raw` filter in a template |
-| `sql-built-from-strings` | SQL or DQL built with concatenation, interpolation or `sprintf()`, also in the parts of the query builder (`select`, `from`, `join`, `where`, `groupBy`, the expression of `set`, ...). A `sprintf()` that fills in only class names (`Round::class`) stays a fixed text and is allowed |
+| `sql-built-from-strings` | SQL or DQL built with concatenation, interpolation or `sprintf()`, also in the parts of the query builder (`select`, `from`, `join`, `where`, `groupBy`, the expression of `set`, ...). A `sprintf()` that fills in only class names (`Round::class`) stays a fixed text and is allowed, as is the `set()` of a response's headers |
+| `request-value-in-query` | A request value (`get`, `query`, `request`, `attributes`, `getContent`, `toArray`, `getPayload`, the superglobals) that reaches the text of a query, also through the query builder; a value passed as a parameter, or cast to a number, is allowed. Only a receiver whose name ends in `request` counts as the request |
+| `secret-compared-with-equals` | `==`, `===`, `!=`, `!==` and `strcmp()` (and its variants) on a variable or property with `token`, `secret` or `hash` in its name; compare with `hash_equals()`. A check against `null`, a boolean, a literal or a constant is allowed |
+| `security-disabled` | `security: false` on any firewall but `dev`, and `csrf_protection: false` or `enabled: false` under it |
+| `insecure-session-cookie` | `cookie_secure: false` and `cookie_samesite: none` outside `when@test` |
 | `sql-outside-repository` | `executeQuery`, `executeStatement`, `fetch*`, `createQuery`, `createNativeQuery` and `createQueryBuilder` outside `src/*/Infrastructure/Persistence/` |
 | `weak-random-or-hash` | `md5`, `sha1`, `rand`, `mt_rand`, `uniqid`, `lcg_value` and `str_shuffle`, also `hash()`, `hash_file()` and `hash_hmac()` with `md5` or `sha1`; secrets come from `random_bytes()` and are hashed with SHA-256 |
 | `byte-lowercase` | `strtolower()` and `strtoupper()`, which leave `É` as it is; use `mb_strtolower()` or `LookupKey` |

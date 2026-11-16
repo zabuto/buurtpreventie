@@ -21,10 +21,14 @@ rules:
           - metavariable-regex:
               metavariable: $METHOD
               regex: ^(executeQuery|executeStatement|executeCacheQuery|executeUpdate|query|exec|prepare|fetchAssociative|fetchNumeric|fetchOne|fetchAllAssociative|fetchAllNumeric|fetchAllKeyValue|fetchFirstColumn|iterateAssociative|iterateNumeric|createQuery|createNativeQuery|where|andWhere|orWhere|having|andHaving|orHaving|orderBy|addOrderBy|select|addSelect|from|join|innerJoin|leftJoin|groupBy|addGroupBy|set)$
-      # The query builder's set() takes the SQL expression as its second argument.
-      - pattern-either:
-          - pattern: $DB->set($FIELD, "..." . $VALUE)
-          - pattern: $DB->set($FIELD, $VALUE . "...")
-          - pattern: $DB->set($FIELD, "...$VALUE...")
-          - pattern: $DB->set($FIELD, sprintf(...))
-          - pattern: $DB->set($FIELD, \sprintf(...))
+      # The query builder's set() takes the SQL expression as its second argument; the set() of a response's
+      # headers takes a header value.
+      - patterns:
+          - pattern-either:
+              - pattern: $DB->set($FIELD, "..." . $VALUE)
+              - pattern: $DB->set($FIELD, $VALUE . "...")
+              - pattern: $DB->set($FIELD, "...$VALUE...")
+              - pattern: $DB->set($FIELD, sprintf(...))
+              - pattern: $DB->set($FIELD, \sprintf(...))
+          - pattern-not: $RESPONSE->headers->set(...)
+          - pattern-not: $headers->set(...)

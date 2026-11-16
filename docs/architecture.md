@@ -31,7 +31,7 @@ tests/                the same folders as src/, plus Architecture/, Database/, D
 | --- | --- |
 | `Patrol` | Rounds, signing up, buddies, round reports |
 | `Membership` | Members, roles, consent, certificate |
-| `Identity` | Login, login links, passwords, API tokens |
+| `Identity` | Login, login codes, invitations, passwords, API tokens |
 | `Audit` | Recording and showing the audit log |
 | `Settings` | The default minimum and maximum walkers of a new round; branding and texts from phase 3 |
 | `Maintenance` | Health check, updates, installer, legacy import |
@@ -110,6 +110,11 @@ final readonly class CheckHealthController
     }
 
     #[Route('/health', name: 'maintenance_check_health', methods: ['GET'])]
+    #[OA\Response(
+        response: 200,
+        description: 'The app answers.',
+        content: new OA\JsonContent(ref: new Model(type: CheckHealthOutput::class)),
+    )]
     public function __invoke(): JsonResponse
     {
         return new JsonResponse(($this->handler)(new CheckHealth()));
@@ -117,7 +122,9 @@ final readonly class CheckHealthController
 }
 ```
 
-A use case with input receives it through `#[MapRequestPayload]`; the generator sets that up.
+A use case with input receives it through `#[MapRequestPayload]`; the generator sets that up. Nelmio cannot read the
+output from a `JsonResponse`, so `#[OA\Response]` names the successful answer: the status with the `…Output` class
+as its schema, or a 204 without a body.
 
 **Tool** (`CheckHealthTool.php`). As thin as the controller, with the same handler.
 
@@ -148,17 +155,21 @@ A handler reaches storage, rights, the audit log and messages only through inter
 | `Shared\Domain` | What it does | Implementation |
 | --- | --- | --- |
 | `Transaction` | Runs an operation as one unit: a change and its audit entry are stored together or not at all | `Shared\Infrastructure\Doctrine\DoctrineTransaction` |
-| `ExecutionContext`, `Channel` | The member performing the action with their roles (an `Actor`), or none for the system, and the channel (`web`, `api`, `mcp`, `cron`, `console`) | `Shared\Infrastructure\Security\TokenExecutionContext`, which reads Symfony's token storage; `RunAs` fills it for console commands, fixtures and the scheduler, an authenticator for HTTP and MCP |
+| `ExecutionContext`, `Channel` | The member performing the action with their roles (an `Actor`), or none for the system, and the channel (`web`, `api`, `mcp`, `cron`, `console`) | `Shared\Infrastructure\Security\TokenExecutionContext`, which reads Symfony's token storage; `RunAs` fills it for console commands, fixtures and the scheduler, an authenticator for HTTP and MCP. A member run through `RunAs` counts as a recent login: whoever runs a console command proved who they are by reaching the server |
 | `AuditTrail`, `AuditedAction` | Records an action; time, actor and channel come from the clock and the execution context | `Audit\Infrastructure\Persistence\DoctrineAuditTrail` |
 | `MemberNames` | The display name of a member, or none for an erased one, so another module can record or show who acted | `Membership\Infrastructure\RepositoryMemberNames` |
-| `MemberDirectory`, `MemberProfile` | Whether a member is active, who wants to hear about open rounds, and a member's names and phone number (only with consent) | `Membership\Infrastructure\RepositoryMemberDirectory` |
+| `MemberDirectory`, `MemberProfile`, `MemberIdentity` | Whether a member is active, who wants to hear about open rounds, a member's names and phone number (only with consent), the address mail goes to (none for an inactive member), and the identity the login works with, by id or e-mail address: id, current roles and whether the member may log in | `Membership\Infrastructure\RepositoryMemberDirectory` |
 | `Authorization`, `AccessDenied` | `denyUnlessGranted()` asks the voters of every module and throws `AccessDenied` on a refusal | `Shared\Infrastructure\Security\SymfonyAuthorization` |
-| `Notifier`, `Notification` | Sends a member a message by type and parameters; the domain holds no texts | `Shared\Infrastructure\Notification\LoggingNotifier`, which only logs |
+| `Notifier`, `Notification` | Sends a member a message by type and parameters; the domain holds no texts | `Shared\Infrastructure\Notification\MailNotifier`, which mails a login code or invitation as plain text from `translations/mail.<locale>.yaml` and hands any other type to `LoggingNotifier`; neither logs the parameters, which can hold a code or secret |
+| `RecentAuthentication`, `ReauthenticationRequired` | Whether the member acting proved who they are in the last 15 minutes (`@upgrade-8.4`, sudo mode), and the refusal of a sensitive action without that proof | `Shared\Infrastructure\Security\TokenRecentAuthentication`, which reads the token attribute `authenticated_at` |
 | `Role`, `Actor` | The fixed roles `walker`, `coordinator`, `analyst` and `admin`, without inheritance, and a member with their roles, as the policies of every module decide on them | |
 | `NotFound` | No item of a kind has a given id; entry points turn it into their own answer, such as HTTP 404 | |
+| `RuleViolation`, `StateConflict`, `InvalidValue` | A domain rule refused the action: the state forbids it (`RoundIsFull`) or a value breaks a rule (`StartInPast`). Every domain exception is one of these or `NotFound`; its code is the short class name in snake case | |
+| `RuleViolationDetails` | A refusal that tells the client what it needs to act on it, such as the item that already holds a name; `ProblemResponder` adds its `details()` to the problem answer | |
 | `LocalTime` | Converts an instant to `Europe/Amsterdam`, the clock of dayparts, calendar days and everything a walker reads | |
 | `LocalDay` | A calendar day on that clock, from midnight to midnight: 23 or 25 hours on the days the clock changes | |
 | `WriteAction`, `ReadAction` | Mark a handler as changing something, with its voter attribute and audit action, or as only reading | |
+| `Unchanged` | The default of an input field that a JSON Merge Patch leaves out, so a handler keeps the current value where null clears it; `fieldsSetIn()` gives the fields to validate | |
 | `BackedEnumValues` | Gives an enum `values()`, so an input constraint takes its choices from the enum (`Assert\Choice(callback: ...)`) | |
 | `EmailAddress` | An address trimmed and in lower case, with accents kept | |
 | `LookupKey` | The search and uniqueness key of a name: no case, accents or extra whitespace | |
@@ -177,9 +188,197 @@ reads the actor from the token with `TokenActor` and asks the policy, so handler
 the same actor. Scheduled actions are granted only to `ROLE_SYSTEM`, the identity `RunAs::system()`
 sets; an action no voter decides on is refused.
 
+**Errors.** Under `/api/`, `Shared\Infrastructure\Http\ProblemResponder` turns every failure into
+`application/problem+json` (RFC 9457): a `StateConflict` is 409, an `InvalidValue` 422, `NotFound` 404,
+`AccessDenied` 403, `ReauthenticationRequired` 403 with the code `reauthentication_required`, invalid input 422 with a `violations` list per field, and anything unexpected 500. The `type`
+is `urn:buurtpreventie:problem:<code>`, the `title` comes from `translations/problems.<locale>.yaml` in the language
+of `Accept-Language` (Dutch by default). The exception message never reaches the client: it holds ids and
+internals, and goes to the log only. A new domain exception therefore implements `StateConflict` or `InvalidValue`
+and gets a title in both files; `RuleViolationCoverageTest` fails otherwise.
+
 A handler that calls the handler of another module, such as `DeactivateMember` calling
 `WithdrawMemberFromUpcomingRounds`, `RevokeMemberApiTokens` and `EraseActorName`, runs that handler's transaction inside
 its own. Doctrine nests it with a savepoint, so a failure in either undoes both.
+
+## Authentication
+
+The reasons for this design are in [ADR 0006](adr/0006-authentication.md). Two firewalls guard `/api/`, picked by
+the request:
+
+| Firewall | Takes | Authenticator | Channel |
+| --- | --- | --- | --- |
+| `api_token` | Every API request with an `Authorization` header, whatever its scheme | `Identity\Infrastructure\Security\ApiTokenAuthenticator` | `api` |
+| `browser` | Every other request, with a session | `PasswordAuthenticator`, `LoginCodeAuthenticator`, `InvitationAuthenticator`, `ConfirmPasswordAuthenticator` and Symfony's `remember_me`, all in `Identity\Infrastructure\Security` except the last | `web` |
+
+The token firewall is stateless. Its authenticator takes every request, so a broken or unknown header is refused
+like a wrong token: an empty 401 with `WWW-Authenticate: Bearer`, and the reason only in the log. It looks the
+token up by the SHA-256 hash of the secret on every request, so a revocation or a deactivation counts at once.
+`ApiToken::refusalAt()` decides why a known token lets nobody in (revoked, expired, member inactive); the member
+comes from `MemberDirectory::identity()`, read afresh, so a changed role counts on the next request.
+
+Under `/api/` a request needs a logged-in member, except `/api/v1/health`, `/api/v1/docs.json` and everything under
+`/api/v1/auth/`. Without one, `SessionEntryPoint` answers with the 401 problem `unauthorized` and logs the path.
+
+`POST /api/v1/auth/login` takes `{email, password}` and answers 204 with a session cookie (`bp_session`); the session
+gets a new id at login. `PasswordCheck` runs as two steps of the passport, after Symfony's login throttling: it
+finds the active member by address through `MemberDirectory::identify()`, then checks the password and renews a
+hash made with an older algorithm or cost, such as one of the legacy app. Every refusal is the same 401 problem
+`login_failed`; an unknown address or inactive member costs one hash too, so neither answer nor timing shows whether
+an address belongs to a member. `LoginRecorder` writes `account.logged_in` with the member as actor and
+`account.login_failed` for a known member without an actor, nobody having proved who tried; both carry the IP
+address without its last byte (IPv4) or last 80 bits (IPv6). An attempt on an unknown address goes to the log only,
+without the address. Five failed attempts on one address from one IP address within 15 minutes, or 30 from one IP
+address within an hour, give 429 with `Retry-After`; a successful login clears the first count only.
+`POST /api/v1/auth/logout` ends the session and clears its cookie. Login and logout take `POST` only.
+
+**Login code.** `POST /api/v1/auth/login-code` (`RequestLoginCode`) takes `{email}` and always answers 202 with a
+`challengeId`, which the browser keeps. An active member gets a six-digit code by mail and loses every earlier open
+challenge; any other address gets a challenge that no code opens, so neither answer nor attempts tell whether the
+address belongs to a member. `LoginCodeRequestThrottle` allows 3 requests per address and 10 per IP address in an
+hour, then 429 with `Retry-After`. `POST /api/v1/auth/login-code/verify` takes `{challengeId, code}`; spaces and
+hyphens in the code do not count. `LoginCodeCheck` stores the attempt before it answers: a wrong code is the 401
+problem `login_code_wrong` with `attemptsLeft`, a challenge that is unknown, used, older than 60 minutes, past 5
+attempts or of a member deactivated since is `login_code_ended`. Only an HMAC of challenge id and code is stored.
+
+**Invitation.** `POST /api/v1/auth/invitation` takes `{secret}`, which the frontend reads from behind the `#` of the
+link in the mail, so it reaches no access log. `InvitationCheck` accepts an invitation once, within 48 hours, for an
+active member; anything else is the 401 problem `invitation_ended`. `IssueInvitation` sends one and ends the earlier
+ones; only an admin inviting a member who never logged in gets the secret back.
+
+**Every browser login** answers 204, records `account.logged_in` or `account.login_failed` with the method
+(`password`, `code`, `invitation`), and counts in Symfony's login throttling. `"rememberMe": true` in the body sets
+the cookie `bp_remember` for 90 days, signed with `MemberUser::$credentialsVersion`, the moment of the member's last
+new password. A new password ends every remembered device and every session, because `MemberUser` is the same user
+only while that version is; the session that set it stays (`CurrentSession`), and so does its cookie. A login without
+an e-mail address is the 422 problem `invalid_input` with a field error. A login stamps the token with `authenticated_at`, which makes
+it recent for 15 minutes (`RecentAuthentication`); a session from the cookie and an API token never are.
+`POST /api/v1/auth/confirm` takes `{password}` in an existing session and makes it recent; a refusal leaves the
+session as it was. `BrowserTokenChannel` puts the channel `web` on every token of the browser firewall. A request
+without a token, such as a request for a code, also runs on `web`, without an actor.
+
+`MemberUserProvider` reloads the member of a session on every request: a deactivated or erased member drops out at
+once, and a changed role counts from the next request without a new login (`MemberUser` is the same user as long as
+the member is).
+
+`SameOriginGuard` runs before both firewalls and refuses a changing request for the browser firewall, the login
+included, unless it comes from the same origin: by `Sec-Fetch-Site`, else by `Origin` or `Referer`, else by a
+`csrf-token` header of at least 24 characters, which the frontend sets for browsers that send neither, such as
+Safari on iOS 15. Symfony's `SameOriginCsrfTokenManager` decides. A refusal is the 403 problem `csrf_check_failed`.
+A request with an API token carries no cookie and is not checked.
+
+`TokenScopeGuard` runs right after the firewall and holds a token request to its scopes: `read` for `GET` and
+`HEAD`, `write` for every other method, `admin` for everything under `/api/v1/admin/`. A missing scope is a 403
+problem `insufficient_scope`. The voters then decide on the roles as for any request, so scope and role must both
+allow an action. `TokenManagementGuard` refuses every token request under `/api/v1/me/tokens` with the 403 problem
+`browser_only`, whatever its scopes: a leaked token can neither list, create nor revoke tokens.
+
+**Own account.** Everything under `/api/v1/me` is about the member logged in, and the controllers there pass no member
+id, so one in the body counts for nothing. `GET /me` (`GetOwnProfile`) shows the whole profile. `PATCH /me`
+(`ChangeOwnContactDetails`) takes phone number, address, consent and notifications about open rounds; null removes a
+phone number or address, empty text is refused. Consent and notifications go through `ChangeContactConsent` and
+`ChangeOpenRoundNotifications`, so they are the same audit actions wherever they change. Name, display name and
+e-mail address stay with the admin, so a hijacked session cannot move the address a login code goes to.
+`PUT /me/password` (`SetPassword`) and `POST /me/tokens` (`CreateApiToken`) need a recent login, otherwise the 403
+problem `reauthentication_required`; a login with a code counts, which is how a member replaces a forgotten password.
+A new token expires within 365 days and its secret is only in the answer to `POST`; `GET /me/tokens`
+(`ListApiTokens`) lists the tokens not revoked, and `DELETE /me/tokens/{id}` (`RevokeApiToken`) revokes one.
+`GET /me/activity` (`ListOwnActivity`) gives the member's own audit entries, 50 a page; of an entry about another
+member, such as a role an admin gave, it keeps the action but not who it was about or what changed.
+`GET /me/export` (`ExportOwnData`) gathers profile, rounds, reports and comments (`ExportOwnPatrolData`), tokens and
+every activity entry through the use cases of each module, and of another member it holds a buddy's display name
+only.
+
+**Naming.** Every JSON key, in a body, an answer or a problem, and every query parameter is camelCase
+(`walkerCount`, `existingId`, `allEntries`). Codes and enum values are snake_case (`round_is_full`, `seeking_buddy`,
+`to_report`): they are values a client compares, not keys. `OpenApiNamingTest` checks every property and query
+parameter of the OpenAPI description, and `OutputKeyNamingTest` the keys of the array shapes in the `…Output`
+docblocks, which Nelmio leaves out of the description.
+
+**Changes.** Every `PATCH` is a JSON Merge Patch (RFC 7396): a field left out stays, null clears a field that may be
+empty, a value replaces it. Null on a field that may not be empty, such as a name or the start of a round, is 422, and
+so is empty text for a phone number or address. `?string` cannot tell a field left out from null, so each field of
+the input is typed as, say, `string|null|Unchanged` with `Shared\Domain\Unchanged::Field` as its default: the
+serializer leaves a field it does not find at that default. The handler applies only the fields that are not
+`Unchanged`, and the audit entry names only what changed. A constraint such as `Length` cannot read `Unchanged`, so
+each field's constraints sit in a validation group named after the field, and the input is a
+`GroupSequenceProviderInterface` that validates only the groups of the fields sent (`Unchanged::fieldsSetIn()`).
+`MergePatchFieldsProcessor` describes such a field in the OpenAPI description by what a client sends, without
+`Unchanged`. Latitude and longitude of a meeting point go as a pair: both left out, both null or both a number,
+otherwise the 422 problem `invalid_coordinates`.
+
+**Rounds.** `GET /rounds?from=&to=&status=` (`ListRounds`) lists the rounds that start in a period of at most 93 days,
+otherwise the 422 problem `invalid_period`; a `+` in an offset reads as a space in a query string, so a client sends
+`%2B` or `Z`. `GET /rounds/{id}` (`GetRound`) shows one round with its walkers, report and comments; `GET
+/staffing-gaps` (`FindStaffingGaps`) the rounds that have not started and seek a buddy; `GET
+/me/rounds?view=&from=&to=&order=&limit=` (`ListMyRounds`) the rounds of the member logged in, through
+`RoundRepository::forWalker()` with a `WalkerRoundQuery`: `upcoming` (the default) the ones that have not started,
+earliest first; `to_report` the walked ones without a report, latest first, where walked is what `RoundStatus` derives
+(started, staffed, not cancelled); `all` every round, `order=asc` (the default) or `desc`. A period (`from` and `to`
+together, at most 93 days by `ListingPeriod`) narrows any view and `all` needs one, otherwise the 422 problem
+`invalid_period`; `limit` is 50 by default and at most 200. Every round in these answers has `status`, `walkerCount`, `minimumWalkers`, `maximumWalkers`,
+`openSpots` and `daypart`. `POST /rounds` (`CreateRound`) plans a round and answers 201 with its id; `PATCH
+/rounds/{id}` (`ChangeRound`) changes start, meeting point and start note; `DELETE
+/rounds/{id}` (`DeleteRound`) deletes a round that has not started; `POST /rounds/{id}/cancellation` (`CancelRound`)
+records that a started round was not walked, with an optional reason. A round id comes from the path only: the
+controllers fill the one in the input with `default_constructor_arguments` and replace it, so one in the body
+counts for nothing. `PUT` and `DELETE /rounds/{id}/walkers/me` sign the member up and withdraw them, and
+`/walkers/{memberId}` does so on behalf of another member, which only a coordinator may; both answer 204 however
+often they are repeated, until the last walker leaves and the round goes, after which the round is not found.
+
+**After the round.** `POST /rounds/{id}/reports` (`ReportRoundResult`) takes the one report of a walked round, a
+second gets the 409 problem `round_already_reported`; `DELETE /reports/{id}` (`DeleteRoundReport`) removes it. `POST
+/rounds/{id}/comments` (`AddRoundComment`) and `DELETE /comments/{id}` (`DeleteRoundComment`) do the same for
+comments. The note of a report and the comments may be about a suspect, so `ReportReadingPolicy::maySeeNotes()` keeps
+them for the walkers of the round, analysts, coordinators and the system: `GET /rounds/{id}` gives anyone else the
+outcome with a null note and no comments. `GET /reports?from=&to=&outcome=` (`ListRoundReports`, voter attribute
+`report.list`) lists the reports of the rounds that start in a period of at most 93 days (`ListingPeriod`, shared with
+`ListRounds`), with notes, for analysts and coordinators. `GET /rounds/{id}/history` (`GetRoundHistory`, Audit,
+`audit.view_round_history`) gives a coordinator the audit entries about the round, oldest first, through
+`AuditEntryRepository::bySubject()`; each names its actor as `member`, `removed_member` (erased, without a name) or
+`system`, which the frontend words. It reads the log only, so a deleted round keeps its history; a round the log does
+not know is not found.
+
+**Members.** `GET /members` (`GetMemberSummaries`) lists the active members by display name for every member; a
+coordinator or admin sees the full name as well. Phone number and address show only for a member who consents to share
+them, to everyone alike, and the e-mail address never does. The shape stays the same for every reader: `name`,
+`phone` and `address` are always there, null for what the reader may not see or what the member left empty, and the
+walkers in `GET /rounds/{id}` always carry `name` and `phone` the same way. The OpenAPI description names these fields
+with `#[OA\Property]` on the output, because Nelmio does not read an array shape from a docblock. Everything else about a member is under `/admin/members`,
+for the admin (voter attribute `member.view` and the other `member.*` attributes): `GET` lists every member that is
+not erased, deactivated ones included, and `GET /admin/members/{id}` (`GetMember`) shows one, both with e-mail
+address, contact details, roles and choices (`ListMembers`); `POST` (`AddMember`) adds a member, `PATCH
+/admin/members/{id}` (`ChangeMember`) changes name, display name, e-mail address, contact details and certificate,
+`PUT /admin/members/{id}/roles` (`ChangeMemberRoles`) sets the roles, `POST` and `DELETE
+/admin/members/{id}/deactivation` (`DeactivateMember`, `ReactivateMember`) deactivate and reactivate, `DELETE
+/admin/members/{id}` (`EraseMember`) erases. Changing roles and erasing need a recent login, otherwise the 403 problem
+`reauthentication_required`. `POST /admin/members/{id}/invitation` (`InviteMember`) sends an invitation, also for a
+coordinator; the answer holds the secret only for an admin inviting a member who never logged in, and the frontend
+makes the link of it.
+
+**Catalogues.** `GET /meeting-points` (`ListMeetingPoints`) and `GET /outcomes` (`ListOutcomes`) give every member the
+items to choose from, by name, without the archived ones (voter attribute `catalogue.list`); under
+`/admin/meeting-points` and `/admin/outcomes` the same use cases list the archived ones too, for the admin
+(`catalogue.manage`). There the admin adds an item with `POST` (`CreateMeetingPoint`, `CreateOutcome`), changes it
+with `PATCH /{id}` (`ChangeMeetingPoint`: name and coordinates; `ChangeOutcome`: the name only), archives it with
+`POST /{id}/archive` and restores it with `DELETE /{id}/archive`. A name another item holds, archived or not, is the
+409 problem `meeting_point_name_taken` or `outcome_name_taken` with `existingId` and `existingArchived`, so the admin
+can restore that item instead of adding a look-alike. A domain error adds such members by implementing
+`Shared\Domain\RuleViolationDetails`, which `ProblemResponder` reads.
+
+**Audit log.** `GET /admin/audit` (`ListAuditEntries`, voter attribute `audit.view`, for the admin) gives the whole
+log newest first, 50 entries a page with `nextPage`, narrowed by `member` (what the member did and what was done to
+the member), `action`, `from` and `to` (`AuditFilter`, through `AuditEntryRepository::matching()`). Each entry names
+its actor as `member`, `removed_member` or `system`. The Accept header picks the format: `application/json`, `*/*`
+or none gives the page as JSON, `text/csv` every matching entry at once as a file, and anything else the 406 problem
+`not_acceptable`; the query string cannot ask for a format (`allEntries` is `#[Ignore]`d). The file is streamed, read
+in batches of 500, with a fixed column order, the changes as JSON and every cell that starts with `=`, `+`, `-`, `@`,
+a tab or a carriage return prefixed with an apostrophe, so a spreadsheet never runs it as a formula. The file ends
+before the second of the request (`to` is the start of that second, or stays when it is earlier): the batches are read
+by offset, newest first, so an entry recorded while the file streams would otherwise shift them and appear twice, and
+the log stores whole seconds. It holds at most
+10,000 entries: more is the 422 problem `too_many_entries` with their `count` (`AuditEntryRepository::countMatching()`),
+never a file cut short that would look complete. IP addresses
+are shortened when the entry is recorded, so the log never holds a full one.
 
 ## Handler and domain
 
@@ -257,6 +456,15 @@ then, and its audit entries carry that moment; a step after the start of the loa
 change to a rule or the model therefore breaks the sample data at once, instead of leaving rows that
 no use case could have written.
 
+The first admin of every set is `beheer@example.org` with the password in `SamplePassword`, so one login fits any
+set; in `demo` one member per role and three walkers in different situations have it too. Each sets it through
+`SetPassword`, as a member would. The others have none: every hash costs the real hasher half a second.
+
+In `demo` the walker who uses the API gets a token that reads and writes for 90 days, through `CreateApiToken`. A set
+returns what the developer needs to know afterwards from `FixtureSet::load()`, and the command shows it: here the
+secret of that token, which the app keeps only as a hash, for the curl scenario of
+[getting-started.md](getting-started.md#sign-up-with-curl).
+
 | Set | Contents |
 | --- | --- |
 | `demo` | Twenty members with every role, rounds from three months back to six weeks ahead, mostly in the evening, more than a quarter without a buddy, a few full ones, reports with now and then an incident, a deactivated member and an erased member in the history |
@@ -305,7 +513,11 @@ interface in the module's `Domain`, and wrap a change and its audit entry in `Tr
 ### Rule 3: controller, tool and output
 
 - A controller depends only on classes in its own use-case folder and on Symfony's HttpFoundation,
-  `HttpKernel\Attribute` and `Routing\Attribute`.
+  `HttpKernel\Attribute`, `Routing\Attribute` and `Routing\Requirement` (such as `Requirement::UUID` for an id in
+  the path), and on `OpenApi\Attributes` and `Nelmio\ApiDocBundle\Attribute` to document the endpoint; the rest of
+  the OpenAPI library stays out. The one HTTP exception it may throw is `NotAcceptableHttpException`, for a client
+  whose Accept header allows no format the endpoint gives: that choice is HTTP alone, and `ProblemResponder` turns it
+  into the 406 problem `not_acceptable`.
 - A tool depends only on classes in its own use-case folder and on the MCP SDK.
 - An `Output` depends on no `Domain` at all.
 
@@ -341,3 +553,16 @@ installer, nothing else.
 
 The frontend calls only endpoints listed in the OpenAPI spec. This contract test arrives with the
 frontend in phase 5.
+
+The spec on `/api/v1/docs.json` comes from NelmioApiDocBundle: paths, path parameters, request bodies
+(`#[MapRequestPayload]`) and query parameters (`#[MapQueryString]`) from the controllers. The routes the firewall
+answers (`/auth/login`, `/auth/login-code/verify`, `/auth/invitation`, `/auth/confirm`, `/auth/logout`) and the
+`Problem` schema are written out in `config/packages/nelmio_api_doc.yaml`. Every controller names its successful answer
+with `#[OA\Response]`: 200, 201 or 202 with the `…Output` class as a Nelmio `Model`, or 204 without a body.
+`Shared\Infrastructure\Http\ProblemResponsesProcessor` gives every operation its problem answers: 401 and 403 off the
+public paths, 404 with an id in the path, 409 for a change, 422 with a body or query parameters. It is a swagger-php
+processor rather than a describer, because Nelmio adds bodies and query parameters in processors of its own, after
+every describer. An answer a controller documents itself, such as the 404 of a repeated withdrawal, stays.
+
+**Why.** `OpenApiCoverageTest` holds the spec to the router and to the Postman collection, so neither drifts from the
+API.

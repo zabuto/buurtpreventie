@@ -1,0 +1,53 @@
+rules:
+  - id: request-value-in-query
+    languages: [php]
+    severity: ERROR
+    mode: taint
+    message: >-
+      A value from the request becomes part of the SQL or DQL text, so whoever sends the request can change the
+      query. Pass the value as a parameter (`?`, `:name` or setParameter()), or map it to a fixed column name or
+      direction on the server.
+    pattern-sources:
+      # Only a receiver named after the request counts, so the get() of a container or repository stays out.
+      - patterns:
+          - pattern-either:
+              - pattern: $REQUEST->query->get(...)
+              - pattern: $REQUEST->query->all(...)
+              - pattern: $REQUEST->request->get(...)
+              - pattern: $REQUEST->request->all(...)
+              - pattern: $REQUEST->attributes->get(...)
+              - pattern: $REQUEST->get(...)
+              - pattern: $REQUEST->getContent(...)
+              - pattern: $REQUEST->toArray(...)
+              - pattern: $REQUEST->getPayload()->get(...)
+              - pattern: $REQUEST->getPayload()->all(...)
+          - metavariable-regex:
+              metavariable: $REQUEST
+              regex: (?i)^.*request(\(\))?$
+      - pattern: $_GET
+      - pattern: $_POST
+      - pattern: $_REQUEST
+      - pattern: $_COOKIE
+    pattern-sanitizers:
+      - pattern: (int) $VALUE
+      - pattern: (float) $VALUE
+      - pattern: (bool) $VALUE
+    pattern-sinks:
+      # The first argument of a connection or entity manager call is the query text; the rest are parameters.
+      - patterns:
+          - pattern: $DB->$METHOD($QUERY, ...)
+          - metavariable-regex:
+              metavariable: $METHOD
+              regex: ^(executeQuery|executeStatement|executeCacheQuery|executeUpdate|query|exec|prepare|fetch[A-Z][A-Za-z]*|iterate(Associative|Numeric|KeyValue|Column)|createQuery|createNativeQuery)$
+          - focus-metavariable: $QUERY
+      # Every argument of these query builder parts ends up in the query text, the join condition included.
+      - patterns:
+          - pattern-either:
+              - pattern: $BUILDER->$METHOD($PART, ...)
+              - pattern: $BUILDER->$METHOD($A, $PART, ...)
+              - pattern: $BUILDER->$METHOD($A, $B, $PART, ...)
+              - pattern: $BUILDER->$METHOD($A, $B, $C, $PART, ...)
+          - metavariable-regex:
+              metavariable: $METHOD
+              regex: ^(select|addSelect|from|join|innerJoin|leftJoin|rightJoin|where|andWhere|orWhere|having|andHaving|orHaving|orderBy|addOrderBy|groupBy|addGroupBy|set|update|delete|insert|values|setValue)$
+          - focus-metavariable: $PART

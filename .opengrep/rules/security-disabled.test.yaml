@@ -1,0 +1,28 @@
+security:
+    firewalls:
+        # ok: security-disabled
+        dev:
+            pattern: ^/(_profiler(/|$)|(_wdt|assets|build)/)
+            security: false
+        # ruleid: security-disabled
+        api:
+            pattern: ^/api/
+            security: false
+        browser:
+            lazy: true
+
+framework:
+    # ruleid: security-disabled
+    csrf_protection: false
+
+when@dev:
+    framework:
+        # ruleid: security-disabled
+        csrf_protection:
+            enabled: false
+
+when@prod:
+    framework:
+        # ok: security-disabled
+        csrf_protection:
+            check_header: true

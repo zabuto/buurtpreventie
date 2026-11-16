@@ -13,7 +13,7 @@ use App\Shared\Domain\Role;
 final readonly class MemberPolicy
 {
     /**
-     * Adding, changing, roles, (de)activating and erasing.
+     * Viewing every member with contact details, adding, changing, roles, (de)activating and erasing.
      */
     public function mayManage(Actor $actor): bool
     {
@@ -21,11 +21,19 @@ final readonly class MemberPolicy
     }
 
     /**
-     * Consent to share contact details and notifications about open rounds are the member's own choice; nobody makes
-     * it for them.
+     * Phone number, address, consent to share them and notifications about open rounds are the member's own choice;
+     * nobody makes it for them.
      */
     public function mayChangeOwnChoice(Actor $actor, Member $member): bool
     {
         return $actor->is($member->id());
+    }
+
+    /**
+     * Having an invitation sent, which a coordinator may too, for a member whose invitation got lost.
+     */
+    public function mayInvite(Actor $actor): bool
+    {
+        return $actor->hasRole(Role::Coordinator) || $actor->hasRole(Role::Admin);
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Identity\Infrastructure;
 
 use App\Identity\Domain\ApiToken;
+use App\Identity\Domain\Invitation;
 use App\Identity\Domain\TokenScope;
 use App\Identity\Domain\TokenTerms;
 use App\Identity\Infrastructure\RandomSecretGenerator;
@@ -20,7 +21,12 @@ final class RandomSecretGeneratorTest extends TestCase
     {
         $secret = new RandomSecretGenerator()->newSecret();
 
-        $token = ApiToken::issue(Uuid::v7(), new TokenTerms('Script', [TokenScope::Read]), $secret, new DateTimeImmutable('2026-11-15T12:00:00+00:00'));
+        $token = ApiToken::issue(
+            Uuid::v7(),
+            new TokenTerms('Script', [TokenScope::Read], new DateTimeImmutable('2027-11-01T00:00:00+00:00')),
+            $secret,
+            new DateTimeImmutable('2026-11-15T12:00:00+00:00'),
+        );
 
         $this->assertTrue($token->matches($secret));
     }
@@ -31,5 +37,23 @@ final class RandomSecretGeneratorTest extends TestCase
         $generator = new RandomSecretGenerator();
 
         $this->assertNotSame($generator->newSecret(), $generator->newSecret());
+    }
+
+    #[Test]
+    public function it_makes_an_invitation_secret_that_an_invitation_accepts(): void
+    {
+        $secret = new RandomSecretGenerator()->newInvitationSecret();
+
+        $invitation = Invitation::issue(Uuid::v7(), $secret, new DateTimeImmutable('2026-11-15T12:00:00+00:00'));
+
+        $this->assertSame(Invitation::hash($secret), $invitation->secretHash());
+    }
+
+    #[Test]
+    public function it_never_repeats_an_invitation_secret(): void
+    {
+        $generator = new RandomSecretGenerator();
+
+        $this->assertNotSame($generator->newInvitationSecret(), $generator->newInvitationSecret());
     }
 }

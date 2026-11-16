@@ -17,10 +17,11 @@ use Symfony\Component\Yaml\Yaml;
 #[Group('integration')]
 final class DependabotCooldownTest extends TestCase
 {
-    /** Minimum days per key; Dependabot supports the semver keys for Composer, not for GitHub Actions. */
+    /** Minimum days per key; Dependabot supports the semver keys for Composer, not for GitHub Actions or images. */
     private const array MINIMUM_DAYS = [
         'composer' => ['semver-patch-days' => 7, 'semver-minor-days' => 7, 'semver-major-days' => 14, 'default-days' => 7],
         'github-actions' => ['default-days' => 7],
+        'docker-compose' => ['default-days' => 7],
     ];
 
     #[Test]

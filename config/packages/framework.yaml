@@ -2,8 +2,20 @@
 framework:
     secret: '%env(APP_SECRET)%'
 
-    # Note that the session will be started ONLY if you read or write from it.
-    session: true
+    # Started only when read or written: by a login, never by a request with an API token.
+    session:
+        name: bp_session
+        cookie_secure: true
+        cookie_httponly: true
+        cookie_samesite: lax
+        handler_id: session.handler.native_file
+        save_path: '%kernel.project_dir%/var/sessions/%kernel.environment%'
+
+    # Same-origin check for every changing request of the browser (SameOriginGuard); the csrf-token header is the
+    # fallback for browsers that send neither Sec-Fetch-Site nor Origin.
+    csrf_protection:
+        stateless_token_ids: [api]
+        check_header: true
 
     #esi: true
     #fragments: true

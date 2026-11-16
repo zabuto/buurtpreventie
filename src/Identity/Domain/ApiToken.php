@@ -22,6 +22,10 @@ final class ApiToken
     /** \z, not $: $ also matches before a trailing newline. */
     private const string SECRET_FORMAT = '/^bpt_[0-9a-f]{64}\z/';
 
+    private const int USE_RECORDING_INTERVAL = 60;
+
+    public const int MAXIMUM_LIFETIME_IN_DAYS = 365;
+
     #[ORM\Id]
     #[ORM\Column(type: 'uuid')]
     private readonly Uuid $id;
@@ -42,8 +46,8 @@ final class ApiToken
     #[ORM\Column(length: 100)]
     private readonly string $name;
 
-    #[ORM\Column(type: 'utc_datetime_immutable', nullable: true)]
-    private readonly ?DateTimeImmutable $expiresAt;
+    #[ORM\Column(type: 'utc_datetime_immutable')]
+    private readonly DateTimeImmutable $expiresAt;
 
     private function __construct(
         #[ORM\Column(type: 'uuid')]
@@ -65,11 +69,15 @@ final class ApiToken
      * The secret comes from the SecretGenerator, never from a person: a typed or truncated secret is guessable.
      *
      * @throws InvalidArgumentException for a secret that is not bpt_ followed by 64 lower-case hex digits
+     * @throws InvalidTokenExpiry for an expiry not after $now or more than 365 days after it
      */
     public static function issue(Uuid $memberId, TokenTerms $terms, #[SensitiveParameter] string $secret, DateTimeImmutable $now): self
     {
         if (1 !== \preg_match(self::SECRET_FORMAT, $secret)) {
             throw new InvalidArgumentException('An API token secret is bpt_ followed by 64 lower-case hex digits.');
+        }
+        if ($terms->expiresAt <= $now || $terms->expiresAt > $now->modify(\sprintf('+%d days', self::MAXIMUM_LIFETIME_IN_DAYS))) {
+            throw new InvalidTokenExpiry(\sprintf('A token expires within %d days after it is issued.', self::MAXIMUM_LIFETIME_IN_DAYS));
         }
 
         return new self($memberId, $terms, $secret, $now);
@@ -111,7 +119,7 @@ final class ApiToken
         return \array_map(TokenScope::from(...), $this->scopes);
     }
 
-    public function expiresAt(): ?DateTimeImmutable
+    public function expiresAt(): DateTimeImmutable
     {
         return $this->expiresAt;
     }
@@ -132,11 +140,34 @@ final class ApiToken
     }
 
     /**
-     * The token authenticated a request, which shows the member which tokens are in use.
+     * The token authenticated a request, which shows the member which tokens are in use. A use within a minute of the
+     * last one is not recorded, so a script does not turn every request into a write.
+     *
+     * @return bool whether the moment was recorded
      */
-    public function markUsed(DateTimeImmutable $now): void
+    public function markUsed(DateTimeImmutable $now): bool
     {
+        if (null !== $this->lastUsedAt && ($now->getTimestamp() - $this->lastUsedAt->getTimestamp()) < self::USE_RECORDING_INTERVAL) {
+            return false;
+        }
+
         $this->lastUsedAt = $now;
+
+        return true;
+    }
+
+    /**
+     * Why the token lets nobody in at this moment, or null when it admits its member. A revoked token reports that
+     * before anything else, so the log shows the action that ended it.
+     */
+    public function refusalAt(DateTimeImmutable $now, bool $memberIsActive): ?TokenRefusal
+    {
+        return match (true) {
+            null !== $this->revokedAt => TokenRefusal::Revoked,
+            $now >= $this->expiresAt => TokenRefusal::Expired,
+            !$memberIsActive => TokenRefusal::MemberInactive,
+            default => null,
+        };
     }
 
     public function matches(#[SensitiveParameter] string $secret): bool
@@ -146,7 +177,7 @@ final class ApiToken
 
     public function isUsableAt(DateTimeImmutable $now): bool
     {
-        return null === $this->revokedAt && (null === $this->expiresAt || $now < $this->expiresAt);
+        return null === $this->revokedAt && $now < $this->expiresAt;
     }
 
     /**

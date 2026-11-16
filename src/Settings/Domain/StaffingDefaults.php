@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Settings\Domain;
 
-use InvalidArgumentException;
-
 /**
  * The minimum and maximum walkers a new round gets. A round keeps the pair it was created with, so changing these
  * never rewrites the past.
@@ -18,14 +16,14 @@ final readonly class StaffingDefaults
     public const int MAXIMUM = 7;
 
     /**
-     * @throws InvalidArgumentException when the minimum is below one or the maximum below the minimum
+     * @throws InvalidStaffingDefaults  when the minimum is below one or the maximum below the minimum
      */
     public function __construct(
         public int $minimumWalkers,
         public int $maximumWalkers,
     ) {
         if ($minimumWalkers < 1 || $maximumWalkers < $minimumWalkers) {
-            throw new InvalidArgumentException(\sprintf(
+            throw new InvalidStaffingDefaults(\sprintf(
                 'A minimum of %d and a maximum of %d walkers cannot both hold.',
                 $minimumWalkers,
                 $maximumWalkers,

@@ -8,6 +8,7 @@ use PHPat\Selector\Selector;
 use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 use PHPat\Test\PHPat;
+use Symfony\Component\HttpKernel\Exception\NotAcceptableHttpException;
 
 /**
  * PHPat rules for the module and use-case structure. Each rule names the section of docs/architecture.md that
@@ -92,6 +93,10 @@ final readonly class ArchitectureRules
                     Selector::inNamespace('Symfony\Component\HttpFoundation'),
                     Selector::inNamespace('Symfony\Component\HttpKernel\Attribute'),
                     Selector::inNamespace('Symfony\Component\Routing\Attribute'),
+                    Selector::inNamespace('Symfony\Component\Routing\Requirement'),
+                    Selector::classname(NotAcceptableHttpException::class),
+                    Selector::inNamespace('OpenApi\Attributes'),
+                    Selector::inNamespace('Nelmio\ApiDocBundle\Attribute'),
                 )
                 ->because(
                     'A controller is a thin adapter: it maps the request onto the input and calls the handler in its'

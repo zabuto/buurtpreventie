@@ -33,6 +33,12 @@ final readonly class SymfonyPasswordHasher implements PasswordHasher
         return $this->hasher()->verify($hash, $password);
     }
 
+    #[Override]
+    public function needsRehash(string $hash): bool
+    {
+        return $this->hasher()->needsRehash($hash);
+    }
+
     private function hasher(): PasswordHasherInterface
     {
         return $this->hasherFactory->getPasswordHasher(PasswordAuthenticatedUserInterface::class);

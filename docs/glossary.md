@@ -9,7 +9,7 @@ dezelfde naam.
 | --- | --- | --- |
 | Rondes en terugmelden | `Patrol` | Rondes, aanmelden, loopmaatjes, terugmelden |
 | Ledenbeheer | `Membership` | Leden, rollen, toestemming, certificaat |
-| Inloggen | `Identity` | Accounts, inloglinks, wachtwoorden, API-tokens |
+| Inloggen | `Identity` | Accounts, inlogcodes, uitnodigingen, wachtwoorden, API-tokens |
 | Auditlog | `Audit` | Wie deed wat, wanneer en via welk kanaal |
 | Instellingen | `Settings` | Branding, teksten en het minimum- en maximumaantal lopers per vereniging |
 | Onderhoud | `Maintenance` | Gezondheidscheck, herinneringen, updates, installer, legacy-import |
@@ -60,6 +60,13 @@ dezelfde naam.
 | Kanaal | channel: `web`, `api`, `mcp`, `cron`, `console` | Hoe een actie binnenkwam; `console` voor console-commando's en voorbeelddata |
 | Systeem | `ROLE_SYSTEM`, `RunAs::system()` | Uitvoerder zonder lid, voor geplande taken, de eerste beheerder en voorbeelddata; een auditregel zonder lid |
 | Instelling | `Setting` | Waarde die een vereniging zelf instelt |
+| Inlogcode | `LoginChallenge`, `RequestLoginCode` | Code van zes cijfers per mail, 60 minuten geldig; werkt alleen samen met de aanvraag (`challengeId`) uit de browser die hem aanvroeg |
+| Uitnodiging | `Invitation`, `IssueInvitation`, `InviteMember` | Link per mail die een lid één keer inlogt, 48 uur geldig |
+| Ingelogd blijven | `remember_me`, cookie `bp_remember` | 90 dagen ingelogd op een toestel; vervalt bij een nieuw wachtwoord |
+| Recent ingelogd | `RecentAuthentication` | In de laatste 15 minuten ingelogd of bevestigd; nodig voor gevoelige acties |
+| Scope | `TokenScope`: `read`, `write`, `admin` | Wat een API-token mag: lezen, wijzigen, of `/api/v1/admin/`; rol en scope moeten allebei kloppen |
+| Geschiedenis van een ronde | `GetRoundHistory` | De auditregels over één ronde, voor de coördinator |
+| Terugmeldingen | `ListRoundReports` | De terugmeldingen van een periode met notities, voor analist en coördinator |
 | API-token | `ApiToken` | Persoonlijke sleutel voor scripts en MCP, met scopes `read`, `write` en `admin`; alleen de hash wordt bewaard |
 | Tijdtrigger, tick | `app:scheduler:run`, `POST /api/v1/system/tick` | Start taken op een vast moment |
 | Gezondheidscheck | `CheckHealth`, `GET /api/v1/health` | Antwoordt `ok` als de app draait |

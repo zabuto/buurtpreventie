@@ -13,11 +13,12 @@ use Symfony\Component\Security\Core\Authorization\Voter\CacheableVoterInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 
 /**
- * The audit log, which takes no change but wiping the name of an erased member.
+ * The audit log, which takes no change but wiping the name of an erased member; the history of a round and the whole
+ * log are read.
  */
 final readonly class AuditVoter implements CacheableVoterInterface
 {
-    private const array ATTRIBUTES = ['audit.erase_actor_name'];
+    private const array ATTRIBUTES = ['audit.erase_actor_name', 'audit.view_round_history', 'audit.view'];
 
     public function __construct(
         private AuditPolicy $policy,
@@ -41,17 +42,24 @@ final readonly class AuditVoter implements CacheableVoterInterface
     {
         foreach ($attributes as $attribute) {
             if (\is_string($attribute) && $this->supportsAttribute($attribute)) {
-                return $this->decide($token) ? self::ACCESS_GRANTED : self::ACCESS_DENIED;
+                return $this->decide($attribute, $token) ? self::ACCESS_GRANTED : self::ACCESS_DENIED;
             }
         }
 
         return self::ACCESS_ABSTAIN;
     }
 
-    private function decide(#[SensitiveParameter] TokenInterface $token): bool
+    private function decide(string $attribute, #[SensitiveParameter] TokenInterface $token): bool
     {
         $actor = TokenActor::of($token);
+        if (null === $actor) {
+            return false;
+        }
 
-        return null !== $actor && $this->policy->mayEraseActorName($actor);
+        return match ($attribute) {
+            'audit.view_round_history' => $this->policy->mayViewRoundHistory($actor),
+            'audit.view' => $this->policy->mayViewLog($actor),
+            default => $this->policy->mayEraseActorName($actor),
+        };
     }
 }

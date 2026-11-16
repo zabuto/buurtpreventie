@@ -41,6 +41,20 @@ final class ApiSecurityHeadersTest extends WebTestCase
     }
 
     /**
+     * HSTS_MAX_AGE is 0 unless an installation opts in.
+     */
+    #[Test]
+    public function it_sends_no_hsts_without_an_opt_in(): void
+    {
+        $client = self::createClient();
+
+        $client->request('GET', 'https://localhost/api/v1/health');
+
+        self::assertResponseIsSuccessful();
+        self::assertResponseNotHasHeader('Strict-Transport-Security');
+    }
+
+    /**
      * Pages outside the API, such as the installer, load their own styles and scripts; a policy that allows nothing
      * would leave them blank.
      */

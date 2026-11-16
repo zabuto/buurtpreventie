@@ -84,7 +84,7 @@ final class DoctrineApiTokenRepositoryTest extends KernelTestCase
     {
         return ApiToken::issue(
             $memberId,
-            new TokenTerms('Script', [TokenScope::Read, TokenScope::Write]),
+            new TokenTerms('Script', [TokenScope::Read, TokenScope::Write], new DateTimeImmutable('2027-11-01T00:00:00+00:00')),
             $secret ?? 'bpt_' . \bin2hex(\random_bytes(32)),
             new DateTimeImmutable('2026-11-01T12:00:00+00:00'),
         );
