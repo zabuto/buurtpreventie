@@ -26,6 +26,7 @@ invalid_staffing_defaults: Het aantal lopers klopt niet. Het maximum moet minste
 invalid_email_address: Dit e-mailadres klopt niet.
 invalid_name: Deze naam klopt niet. Gebruik minstens één letter of cijfer.
 invalid_token_expiry: Kies een einddatum voor het token binnen 365 dagen.
+too_many_entries: Dit zijn te veel regels voor één bestand. Kies een kortere periode, een lid of een actie.
 invalid_input: Niet alle gegevens kloppen.
 bad_request: Dit verzoek kan de app niet lezen.
 login_failed: Het e-mailadres of het wachtwoord klopt niet.

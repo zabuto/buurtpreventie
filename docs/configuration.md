@@ -81,5 +81,5 @@ The input of a use case refuses a longer value; the column holds at least as muc
 | Stay logged in | Cookie `bp_remember` for 90 days: `Secure`, `HttpOnly`, `SameSite=Lax`; ends with a new password | `config/packages/security.yaml` |
 | Recent login | 15 minutes after a login or confirmation; needed for a new password, a new API token, changing roles and erasing a member. A console command run as a member counts as recent | `TokenRecentAuthentication`, `RunAs` |
 | Own activity | 50 entries per page, newest first | `ListOwnActivityHandler::PAGE_SIZE` |
-| Audit log of the admin | 50 entries per page, newest first; as CSV every matching entry, read 500 at a time | `ListAuditEntriesHandler` |
+| Audit log of the admin | 50 entries per page, newest first; as CSV every matching entry, at most 10,000, read 500 at a time | `ListAuditEntriesHandler` |
 | Audit fields | A field name containing `password`, `secret`, `token` or `hash` is refused | `AuditEntry` |

@@ -26,6 +26,8 @@ interface AuditEntryRepository
      */
     public function matching(AuditFilter $filter, int $offset, int $limit): array;
 
+    public function countMatching(AuditFilter $filter): int;
+
     /**
      * Wipes the name of the member from every entry the member made; the id stays, so the actions stay attributed
      * to one "removed member".

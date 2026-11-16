@@ -633,7 +633,8 @@ volledig IP-adres in de uitvoer, CSV met een vaste kolomvolgorde en formules gen
     na een vraag of een datalek. Actie is een exacte naam, de periode is `from` tot (niet tot en met) `to`, zonder
     maximum;
   - 50 regels per pagina met `nextPage`, zoals `/me/activity`. `format=csv` geeft alles wat past, in porties van 500
-    gelezen, zonder paginering en zonder bovengrens. Ter goedkeuring: bij een groot log is dat één lang antwoord;
+    gelezen, zonder paginering en zonder bovengrens. Besloten op 16 november 2026: het formaat via `Accept`, CSV
+    gestreamd en hooguit 10.000 regels (T20);
   - CSV-kolommen in vaste volgorde: `occurredAt`, `action`, `actor`, `actorId`, `actorName`, `subjectType`,
     `subjectId`, `channel`, `changes` (JSON). Naast `=`, `+`, `-` en `@` krijgt ook een cel die met een tab of
     carriage return begint een `'` ervoor (OWASP CSV injection). Het maken van de CSV staat in
@@ -802,6 +803,29 @@ Besloten op 16 november 2026:
 - CSV hooguit 10.000 regels; daarboven 422 `too_many_entries` met `count`, nooit afkappen. Dat sluit de notitie
   "ter goedkeuring" over CSV in T13;
 - Postman en docs bijwerken.
+
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - de controller kiest het formaat met `AcceptHeader` op volgorde van voorkeur: `application/json`,
+    `application/*`, `*/*` of geen header geeft JSON, `text/csv` of `text/*` CSV; een type met `q=0` telt niet;
+  - **afwijking van regel 3, ter goedkeuring**: de controller gooit `NotAcceptableHttpException` voor de 406, die
+    `ProblemResponder` al als `not_acceptable` gaf. Regel 3 staat alleen die ene klasse toe, niet heel
+    `HttpKernel\Exception`. Zonder die uitzondering kon de 406 alleen zonder problem-body of via een eigen listener;
+  - de invoer heeft `allEntries` (met `#[Ignore]`) in plaats van `format`: de querystring kan het niet zetten en de
+    OpenAPI-spec noemt het niet; alleen de controller zet het na `Accept: text/csv`. `?format=csv` doet niets meer;
+  - de grens telt eerst met `AuditEntryRepository::countMatching()` (nieuw, met integratietest in
+    `DoctrineAuditEntryMatchingTest`; `matching()` en de telling delen één querybouwer). Boven 10.000 gooit de handler
+    `TooManyEntries` (Audit\Domain, `InvalidValue` met `count` als detail), anders leest hij lui per 500 in een
+    generator, die `StreamedResponse` naar `php://output` schrijft. `ListAuditEntriesOutput::csv()` werd
+    `writeCsv($file)`, en `entries` is `iterable`;
+  - open punt: het log wordt nieuwste eerst per 500 gelezen met een offset. Komt er tijdens het streamen een regel
+    bij, dan schuift de rest een plek op en staat één regel twee keer in het bestand. Dat gold al vóór deze taak; een
+    vaste bovengrens `to` (het moment van de aanvraag) lost het op;
+  - de OpenAPI-spec beschrijft de 200 met `application/json` (schema `ListAuditEntriesOutput`) en `text/csv`, en de
+    406; de 422 noemt `too_many_entries` in de samenvatting van de operatie, want een tweede 422 naast die van
+    `#[MapQueryString]` weigert swagger-php;
+  - de Postman-collectie vraagt de CSV met `Accept: text/csv` en controleert de 406 voor `Accept: application/xml`.
+    De 422 boven 10.000 regels staat alleen in de tests: de lokale database heeft er zo veel niet;
+  - `docs/testing.md` noemt ook de drie Postman-stappen van T19, die daar ontbraken.
 
 ### T21. Geslaagde antwoorden in de OpenAPI-spec (test eerst)
 

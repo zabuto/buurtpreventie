@@ -26,6 +26,7 @@ invalid_staffing_defaults: The number of walkers is not valid. The maximum must 
 invalid_email_address: This e-mail address is not valid.
 invalid_name: This name is not valid. Use at least one letter or digit.
 invalid_token_expiry: Choose an end date for the token within 365 days.
+too_many_entries: Too many entries for one file. Choose a shorter period, a member or an action.
 invalid_input: Not all details are valid.
 bad_request: The app cannot read this request.
 login_failed: The e-mail address or password is not correct.

@@ -2811,9 +2811,14 @@
           "name": "Audit log as CSV",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Accept",
+                "value": "text/csv"
+              }
+            ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/audit?format=csv&action=account.logged_in",
+              "raw": "{{baseUrl}}/api/v1/admin/audit?action=account.logged_in",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -2824,10 +2829,6 @@
                 "audit"
               ],
               "query": [
-                {
-                  "key": "format",
-                  "value": "csv"
-                },
                 {
                   "key": "action",
                   "value": "account.logged_in"
@@ -2867,9 +2868,14 @@
           "name": "Audit log in another format",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/xml"
+              }
+            ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/audit?format=xml",
+              "raw": "{{baseUrl}}/api/v1/admin/audit",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -2878,12 +2884,6 @@
                 "v1",
                 "admin",
                 "audit"
-              ],
-              "query": [
-                {
-                  "key": "format",
-                  "value": "xml"
-                }
               ]
             }
           },
@@ -2905,9 +2905,9 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('answers 422', () => {",
-                  "    pm.response.to.have.status(422);",
-                  "    pm.expect(pm.response.json().type).to.eql('urn:buurtpreventie:problem:invalid_input');",
+                  "pm.test('answers 406', () => {",
+                  "    pm.response.to.have.status(406);",
+                  "    pm.expect(pm.response.json().type).to.eql('urn:buurtpreventie:problem:not_acceptable');",
                   "});"
                 ]
               }

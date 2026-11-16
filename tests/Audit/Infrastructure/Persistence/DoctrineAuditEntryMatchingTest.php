@@ -77,6 +77,23 @@ final class DoctrineAuditEntryMatchingTest extends KernelTestCase
     }
 
     #[Test]
+    public function it_counts_the_entries_that_match_without_a_page(): void
+    {
+        $jan = Uuid::v7();
+        $this->stored('round', Uuid::v7(), $jan, '2026-11-13T12:00:00+00:00');
+        $this->stored('member', $jan, Uuid::v7(), '2026-11-14T12:00:00+00:00');
+        $this->stored('round', Uuid::v7(), Uuid::v7(), '2026-11-14T12:00:00+00:00');
+        $this->stored('round', $jan, Uuid::v7(), '2026-11-15T12:00:00+00:00');
+        $this->flushAndForget();
+
+        $this->assertSame([2, 3, 4], [
+            $this->repository->countMatching(new AuditFilter(member: $jan)),
+            $this->repository->countMatching(new AuditFilter(action: $this->action, from: new DateTimeImmutable('2026-11-14T00:00:00+00:00'))),
+            $this->repository->countMatching(new AuditFilter(action: $this->action)),
+        ]);
+    }
+
+    #[Test]
     public function it_gives_one_page_at_a_time(): void
     {
         $this->stored('round', Uuid::v7(), Uuid::v7(), '2026-11-15T12:00:00+00:00');

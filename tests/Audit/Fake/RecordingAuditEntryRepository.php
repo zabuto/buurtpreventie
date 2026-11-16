@@ -70,6 +70,12 @@ final class RecordingAuditEntryRepository implements AuditEntryRepository
     }
 
     #[Override]
+    public function countMatching(AuditFilter $filter): int
+    {
+        return \count(\array_filter($this->entries, $filter->matches(...)));
+    }
+
+    #[Override]
     public function eraseActorName(Uuid $memberId): void
     {
         $this->erasedActorNames[] = $memberId;

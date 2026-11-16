@@ -26,7 +26,7 @@ final class ListAuditEntriesOutputTest extends TestCase
     #[Test]
     public function it_writes_a_header_and_one_line_per_entry_in_a_fixed_order(): void
     {
-        $csv = new ListAuditEntriesOutput([self::ENTRY], null)->csv();
+        $csv = self::csv(new ListAuditEntriesOutput([self::ENTRY], null));
 
         $this->assertSame(
             "occurredAt,action,actor,actorId,actorName,subjectType,subjectId,channel,changes\n"
@@ -56,9 +56,19 @@ final class ListAuditEntriesOutputTest extends TestCase
     #[Test]
     public function it_neutralises_a_cell_that_a_spreadsheet_would_read_as_a_formula(string $name): void
     {
-        $csv = new ListAuditEntriesOutput([[...self::ENTRY, 'actorName' => $name]], null)->csv();
+        $csv = self::csv(new ListAuditEntriesOutput([[...self::ENTRY, 'actorName' => $name]], null));
 
         $line = \str_getcsv(\explode("\n", $csv, 3)[1], escape: '');
         $this->assertSame("'" . $name, $line[4] ?? null);
+    }
+
+    private static function csv(ListAuditEntriesOutput $output): string
+    {
+        $file = \fopen('php://memory', 'r+');
+        self::assertNotFalse($file);
+        $output->writeCsv($file);
+        \rewind($file);
+
+        return (string) \stream_get_contents($file);
     }
 }

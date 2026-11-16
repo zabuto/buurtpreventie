@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Tests\Audit\UseCase\ListAuditEntries;
 
 use App\Audit\Domain\AuditEntry;
+use App\Audit\Domain\TooManyEntries;
 use App\Audit\UseCase\ListAuditEntries\ListAuditEntries;
 use App\Audit\UseCase\ListAuditEntries\ListAuditEntriesHandler;
+use App\Audit\UseCase\ListAuditEntries\ListAuditEntriesOutput;
 use App\Shared\Domain\AccessDenied;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\Channel;
@@ -54,9 +56,9 @@ final class ListAuditEntriesHandlerTest extends TestCase
                 'channel' => 'web',
                 'changes' => ['roles' => ['old' => 'walker', 'new' => 'walker,coordinator']],
             ],
-            $output->entries[0] ?? null,
+            self::entries($output)[0] ?? null,
         );
-        $this->assertSame(['member.roles_changed', 'member.added'], \array_column($output->entries, 'action'));
+        $this->assertSame(['member.roles_changed', 'member.added'], \array_column(self::entries($output), 'action'));
     }
 
     #[Test]
@@ -82,7 +84,7 @@ final class ListAuditEntriesHandlerTest extends TestCase
 
         $this->assertSame([['round.created', '2026-11-14T13:00:00+01:00']], \array_map(
             static fn(array $entry): array => [$entry['action'], $entry['occurredAt']],
-            $output->entries,
+            self::entries($output),
         ));
     }
 
@@ -96,7 +98,7 @@ final class ListAuditEntriesHandlerTest extends TestCase
         $first = $this->handler()(new ListAuditEntries());
         $second = $this->handler()(new ListAuditEntries(page: 2));
 
-        $this->assertSame([50, 2, 1, null], [\count($first->entries), $first->nextPage, \count($second->entries), $second->nextPage]);
+        $this->assertSame([50, 2, 1, null], [\count(self::entries($first)), $first->nextPage, \count(self::entries($second)), $second->nextPage]);
     }
 
     /**
@@ -121,20 +123,54 @@ final class ListAuditEntriesHandlerTest extends TestCase
             ['system',         null],
         ], \array_map(
             static fn(array $entry): array => [$entry['actor'], $entry['actorName']],
-            $output->entries,
+            self::entries($output),
         ));
     }
 
     #[Test]
-    public function it_gives_every_matching_entry_for_the_csv_file(): void
+    public function it_gives_every_matching_entry_at_once_for_the_csv_file(): void
     {
-        for ($minute = 0; $minute < 51; ++$minute) {
-            $this->stored(new AuditedAction('round.created', 'round', Uuid::v7()), \sprintf('2026-11-14T12:%02d:00+00:00', $minute));
+        $this->storedMany(51);
+
+        $output = $this->handler()(new ListAuditEntries(allEntries: true));
+
+        $this->assertSame([51, null], [\count(self::entries($output)), $output->nextPage]);
+    }
+
+    #[Test]
+    public function it_gives_the_most_entries_it_allows_at_once(): void
+    {
+        $this->storedMany(ListAuditEntriesHandler::MOST_ENTRIES_AT_ONCE);
+
+        $output = $this->handler()(new ListAuditEntries(allEntries: true));
+
+        $this->assertCount(ListAuditEntriesHandler::MOST_ENTRIES_AT_ONCE, self::entries($output));
+    }
+
+    /**
+     * A file cut short would look complete to whoever reads it, so the admin narrows the filter instead.
+     */
+    #[Test]
+    public function it_refuses_more_entries_at_once_than_it_allows_and_says_how_many_match(): void
+    {
+        $this->storedMany(ListAuditEntriesHandler::MOST_ENTRIES_AT_ONCE + 1);
+
+        try {
+            $this->handler()(new ListAuditEntries(allEntries: true));
+            $this->fail('Every entry was given.');
+        } catch (TooManyEntries $refusal) {
+            $this->assertSame(['count' => ListAuditEntriesHandler::MOST_ENTRIES_AT_ONCE + 1], $refusal->details());
         }
+    }
 
-        $output = $this->handler()(new ListAuditEntries(format: 'csv'));
+    #[Test]
+    public function it_gives_a_page_whatever_the_number_of_entries(): void
+    {
+        $this->storedMany(ListAuditEntriesHandler::MOST_ENTRIES_AT_ONCE + 1);
 
-        $this->assertSame([51, null], [\count($output->entries), $output->nextPage]);
+        $output = $this->handler()(new ListAuditEntries());
+
+        $this->assertSame([ListAuditEntriesHandler::PAGE_SIZE, 2], [\count(self::entries($output)), $output->nextPage]);
     }
 
     #[Test]
@@ -156,6 +192,28 @@ final class ListAuditEntriesHandlerTest extends TestCase
         $this->entries->add($entry);
 
         return $entry;
+    }
+
+    private function storedMany(int $count): void
+    {
+        $at = new DateTimeImmutable('2026-11-01T00:00:00+00:00');
+        for ($index = 0; $index < $count; ++$index) {
+            $this->entries->add(AuditEntry::of(
+                new AuditedAction('round.created', 'round', Uuid::v7()),
+                $this->jan,
+                'Jan B.',
+                Channel::Web,
+                $at->modify(\sprintf('+%d seconds', $index)),
+            ));
+        }
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private static function entries(ListAuditEntriesOutput $output): array
+    {
+        return \iterator_to_array($output->entries, preserve_keys: false);
     }
 
     private function handler(?FakeAuthorization $authorization = null): ListAuditEntriesHandler

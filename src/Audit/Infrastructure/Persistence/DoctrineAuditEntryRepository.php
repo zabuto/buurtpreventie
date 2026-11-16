@@ -8,6 +8,7 @@ use App\Audit\Domain\AuditEntry;
 use App\Audit\Domain\AuditEntryRepository;
 use App\Audit\Domain\AuditFilter;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\QueryBuilder;
 use Override;
 use Symfony\Component\Uid\Uuid;
 
@@ -59,15 +60,28 @@ final readonly class DoctrineAuditEntryRepository implements AuditEntryRepositor
     #[Override]
     public function matching(AuditFilter $filter, int $offset, int $limit): array
     {
-        $query = $this->entityManager
-            ->createQueryBuilder()
+        $query = $this
+            ->filtered($filter)
             ->select('e')
-            ->from(AuditEntry::class, 'e')
             ->orderBy('e.occurredAt', 'DESC')
             ->addOrderBy('e.id', 'DESC')
             ->setFirstResult($offset)
             ->setMaxResults($limit)
         ;
+
+        /** @var list<AuditEntry> */
+        return $query->getQuery()->getResult();
+    }
+
+    #[Override]
+    public function countMatching(AuditFilter $filter): int
+    {
+        return (int) $this->filtered($filter)->select('COUNT(e.id)')->getQuery()->getSingleScalarResult();
+    }
+
+    private function filtered(AuditFilter $filter): QueryBuilder
+    {
+        $query = $this->entityManager->createQueryBuilder()->from(AuditEntry::class, 'e');
         if (null !== $filter->member) {
             $query
                 ->andWhere("e.actorId = :member OR (e.subjectType = 'member' AND e.subjectId = :member)")
@@ -87,8 +101,7 @@ final readonly class DoctrineAuditEntryRepository implements AuditEntryRepositor
             $query->andWhere('e.occurredAt < :to')->setParameter('to', $filter->to, 'utc_datetime_immutable');
         }
 
-        /** @var list<AuditEntry> */
-        return $query->getQuery()->getResult();
+        return $query;
     }
 
     /**

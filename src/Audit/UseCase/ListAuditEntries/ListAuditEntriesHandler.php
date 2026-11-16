@@ -7,23 +7,27 @@ namespace App\Audit\UseCase\ListAuditEntries;
 use App\Audit\Domain\AuditEntry;
 use App\Audit\Domain\AuditEntryRepository;
 use App\Audit\Domain\AuditFilter;
+use App\Audit\Domain\TooManyEntries;
 use App\Shared\Domain\Authorization;
 use App\Shared\Domain\LocalTime;
 use App\Shared\Domain\ReadAction;
 use DateTimeImmutable;
+use Generator;
 use Symfony\Component\Uid\Uuid;
 
 /**
  * The whole audit log for the admin, newest first, narrowed to a member, an action and a period: a page at a time,
- * or every matching entry for a CSV file. IP addresses in it are shortened when recorded.
+ * or every matching entry at once for a CSV file, read lazily. IP addresses in it are shortened when recorded.
  */
 #[ReadAction]
 final readonly class ListAuditEntriesHandler
 {
     public const int PAGE_SIZE = 50;
 
+    public const int MOST_ENTRIES_AT_ONCE = 10_000;
+
     /**
-     * Read in batches, so a large CSV file never holds every entity of the log in memory at once.
+     * Read in batches, so a CSV file never holds every entity of the log in memory at once.
      */
     private const int BATCH_SIZE = 500;
 
@@ -33,6 +37,9 @@ final readonly class ListAuditEntriesHandler
     ) {
     }
 
+    /**
+     * @throws TooManyEntries for every entry at once when more match than one file may hold
+     */
     public function __invoke(ListAuditEntries $input): ListAuditEntriesOutput
     {
         $this->authorization->denyUnlessGranted('audit.view');
@@ -44,7 +51,12 @@ final readonly class ListAuditEntriesHandler
             null === $input->to ? null : new DateTimeImmutable($input->to),
         );
 
-        if ('csv' === $input->format) {
+        if ($input->allEntries) {
+            $count = $this->entries->countMatching($filter);
+            if ($count > self::MOST_ENTRIES_AT_ONCE) {
+                throw TooManyEntries::counted($count, self::MOST_ENTRIES_AT_ONCE);
+            }
+
             return new ListAuditEntriesOutput($this->everyLine($filter), null);
         }
 
@@ -58,7 +70,7 @@ final readonly class ListAuditEntriesHandler
     }
 
     /**
-     * @return list<array{
+     * @return Generator<int, array{
      *     occurredAt: string,
      *     action: string,
      *     actor: string,
@@ -70,17 +82,16 @@ final readonly class ListAuditEntriesHandler
      *     changes: array<string, array{old: scalar|null, new: scalar|null}>,
      * }>
      */
-    private function everyLine(AuditFilter $filter): array
+    private function everyLine(AuditFilter $filter): Generator
     {
-        $lines = [];
         $offset = 0;
         do {
             $batch = $this->entries->matching($filter, $offset, self::BATCH_SIZE);
-            \array_push($lines, ...\array_map(self::line(...), $batch));
+            foreach ($batch as $entry) {
+                yield self::line($entry);
+            }
             $offset += self::BATCH_SIZE;
         } while (\count($batch) === self::BATCH_SIZE);
-
-        return $lines;
     }
 
     /**

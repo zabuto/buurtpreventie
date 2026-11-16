@@ -348,9 +348,13 @@ can restore that item instead of adding a look-alike. A domain error adds such m
 **Audit log.** `GET /admin/audit` (`ListAuditEntries`, voter attribute `audit.view`, for the admin) gives the whole
 log newest first, 50 entries a page with `nextPage`, narrowed by `member` (what the member did and what was done to
 the member), `action`, `from` and `to` (`AuditFilter`, through `AuditEntryRepository::matching()`). Each entry names
-its actor as `member`, `removed_member` or `system`. With `format=csv` it hands over every matching entry as a file,
-read in batches of 500, with a fixed column order, the changes as JSON and every cell that starts with `=`, `+`, `-`,
-`@`, a tab or a carriage return prefixed with an apostrophe, so a spreadsheet never runs it as a formula. IP addresses
+its actor as `member`, `removed_member` or `system`. The Accept header picks the format: `application/json`, `*/*`
+or none gives the page as JSON, `text/csv` every matching entry at once as a file, and anything else the 406 problem
+`not_acceptable`; the query string cannot ask for a format (`allEntries` is `#[Ignore]`d). The file is streamed, read
+in batches of 500, with a fixed column order, the changes as JSON and every cell that starts with `=`, `+`, `-`, `@`,
+a tab or a carriage return prefixed with an apostrophe, so a spreadsheet never runs it as a formula. It holds at most
+10,000 entries: more is the 422 problem `too_many_entries` with their `count` (`AuditEntryRepository::countMatching()`),
+never a file cut short that would look complete. IP addresses
 are shortened when the entry is recorded, so the log never holds a full one.
 
 ## Handler and domain
@@ -488,7 +492,9 @@ interface in the module's `Domain`, and wrap a change and its audit entry in `Tr
 - A controller depends only on classes in its own use-case folder and on Symfony's HttpFoundation,
   `HttpKernel\Attribute`, `Routing\Attribute` and `Routing\Requirement` (such as `Requirement::UUID` for an id in
   the path), and on `OpenApi\Attributes` and `Nelmio\ApiDocBundle\Attribute` to document the endpoint; the rest of
-  the OpenAPI library stays out.
+  the OpenAPI library stays out. The one HTTP exception it may throw is `NotAcceptableHttpException`, for a client
+  whose Accept header allows no format the endpoint gives: that choice is HTTP alone, and `ProblemResponder` turns it
+  into the 406 problem `not_acceptable`.
 - A tool depends only on classes in its own use-case folder and on the MCP SDK.
 - An `Output` depends on no `Domain` at all.
 
