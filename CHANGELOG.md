@@ -126,6 +126,9 @@ versions follow [Semantic Versioning](https://semver.org/).
   `symfony console app:audit:verify` reports the chain intact through an entry, or the first entry that was changed,
   removed or inserted, and exits with 1 then. Erasing a member also removes the changed fields of every entry about
   that member; the chain holds. Entries from before the chain get a position and stay unchecked.
+- The `demo` sample set is the association "Buurtpreventie Voorbeeldwijk", with colours, a drawn logo and icon, and
+  the coordinator as contact, all set through the settings and uploads; `edge` has a name at the limit of 100
+  characters and a short name of two letters. CI checks the audit chain after loading each set.
 - Every link in a mail starts at `DEFAULT_URI`, also when the app runs under a path such as
   `https://example.org/buurtpreventie`, with or without a trailing slash.
 - Dependabot also updates the Mailpit image in `compose.yaml`, after the same 7-day cooldown.

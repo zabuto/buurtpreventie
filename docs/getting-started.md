@@ -65,7 +65,7 @@ Tests use `buurtpreventie_test` on the same server. On an empty data volume,
 
 ## Sample data
 
-Fill the development database with made-up members, rounds and reports:
+Fill the development database with a made-up association, its members, rounds and reports:
 
 ```bash
 symfony console app:fixtures:load demo
@@ -79,7 +79,8 @@ with the made-up password `voorbeeld-wachtwoord-buurt`, which the command shows.
 (`thomas.visser@example.org`), the coordinator (`fatima.elamrani@example.org`) and three walkers: `jan.bakker`, who
 shares his first name, `priya.sharma`, who uses the API, and `willem.dekker`, who stopped and is refused. Any other
 member logs in with a code by mail. In `demo`, `priya.sharma` also has an API token that reads and writes for 90
-days; the command shows its secret once, after loading.
+days; the command shows its secret once, after loading. Loading empties the audit log too, so its chain starts afresh
+and `symfony console app:audit:verify` reports it intact.
 
 ### Sign up with curl
 

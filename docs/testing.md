@@ -95,6 +95,8 @@ database tests with `symfony php vendor/bin/phpunit --group database`.
   and checks their positions, head and anchor; it commits, so it leaves the schema at the latest version itself.
 - **The sample data.** `LoadFixturesCommandTest` loads every set and checks what it holds: the same
   people and pattern on any day, the limits of the `demo` set, every hard case in `edge`.
+  `LoadedSettingsAndChainTest` checks the branding of `demo`, the names of `edge` and an intact audit chain after
+  every set.
 
 ### Concurrency
 
@@ -150,7 +152,8 @@ for every route of the app, and no row without a route.
 ## Sample data in CI
 
 The database jobs in `ci.yml` load every set with `app:fixtures:load <set> --no-interaction`, outside
-the test transaction, and fail when a set leaves no members or no audit entries. Locally,
+the test transaction, run `app:audit:verify` after each, and fail when a set leaves no members or no audit entries,
+or a chain that does not hold. Locally,
 `symfony console app:fixtures:load demo` empties the development database; see
 [getting-started.md](getting-started.md#sample-data).
 

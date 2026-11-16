@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\SampleData\Infrastructure\Fixtures;
 
+use App\Settings\UseCase\ChangeSettings\ChangeSettings;
 use App\Shared\Domain\LocalTime;
 use App\Shared\Domain\Role;
 use DateTimeImmutable;
@@ -14,15 +15,20 @@ use Symfony\Component\DependencyInjection\Attribute\When;
 /**
  * The hard cases of the plan, one of each: rounds around the last clock change, a last walker who withdraws, an
  * erased member in the history, a member without consent, rounds just under the minimum, at the maximum and with one
- * spot left, and two members who share their full name.
+ * spot left, two members who share their full name, and an association with a name at the limit of the setting and a
+ * short name of two letters.
  */
 #[When(env: 'dev')]
 #[When(env: 'test')]
 final readonly class EdgeSet implements FixtureSet
 {
+    /** Exactly 100 characters, the most the setting takes. */
+    private const string LONG_NAME = 'Stichting Buurtpreventie en Bewonersparticipatie voor de Wijken Noordoost, Zuidwest en de Binnenstad';
+
     public function __construct(
         private MemberSteps $members,
         private PatrolSteps $patrol,
+        private SettingsSteps $settings,
     ) {
     }
 
@@ -33,6 +39,7 @@ final readonly class EdgeSet implements FixtureSet
         $start = $clockChange->modify('-30 days');
 
         $admin = $this->members->firstAdmin($start, new SampleProfile('beheer@example.org', 'Greet Hofman', 'Greet', '06 0000 0101'));
+        $this->settings->change($admin, $start, new ChangeSettings(associationName: self::LONG_NAME, associationShortName: 'BP'));
         $meetingPoint = $this->patrol->meetingPoint($admin, $start, 'Buurthuis');
         $outcomes = $this->patrol->standardOutcomes($admin, $start);
         $people = $this->people($admin, $start);

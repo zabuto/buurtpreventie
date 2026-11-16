@@ -518,9 +518,9 @@ secret of that token, which the app keeps only as a hash, for the curl scenario 
 
 | Set | Contents |
 | --- | --- |
-| `demo` | Twenty members with every role, rounds from three months back to six weeks ahead, mostly in the evening, more than a quarter without a buddy, a few full ones, reports with now and then an incident, a deactivated member and an erased member in the history |
+| `demo` | The association "Buurtpreventie Voorbeeldwijk" with colours of its own, a logo and icon that `SampleBrand` draws with GD, and the coordinator as contact, all through `ChangeSettings` and `ChangeBrandImage`; twenty members with every role, rounds from three months back to six weeks ahead, mostly in the evening, more than a quarter without a buddy, a few full ones, reports with now and then an incident, a deactivated member and an erased member in the history |
 | `test` | An admin, a meeting point and the standard outcomes; each test builds the rest |
-| `edge` | One of each hard case: rounds around the last clock change, a last walker who withdraws, an erased member in the history, a member without consent, rounds just under the minimum, at the maximum and with one spot left, two members who share their full name |
+| `edge` | One of each hard case: rounds around the last clock change, a last walker who withdraws, an erased member in the history, a member without consent, rounds just under the minimum, at the maximum and with one spot left, two members who share their full name, and an association name of exactly 100 characters, the limit, with the short name `BP` |
 
 A fixed seed gives the same people and pattern on every load; only the dates follow today. Names are
 made up and international, with letters the lookup key keeps (`ı`, `ł`); a display name is the first

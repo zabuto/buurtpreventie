@@ -159,7 +159,8 @@ jobs:
       - name: Run the database tests
         run: php vendor/bin/phpunit --group database
 
-      # Outside the test transaction, so every set commits for real; the database tests check what each set holds.
+      # Outside the test transaction, so every set commits for real; the database tests check what each set holds. The
+      # audit chain must hold after each set, as on an installation where the console wrote the entries.
       - name: Load every sample data set
         run: |
           query() {
@@ -167,6 +168,7 @@ jobs:
           }
           for set in demo test edge; do
             php bin/console app:fixtures:load "$set" --no-interaction
+            php bin/console app:audit:verify
             members="$(query 'SELECT COUNT(*) FROM member')"
             entries="$(query 'SELECT COUNT(*) FROM audit_entry')"
             echo "$set: $members members, $entries audit entries"

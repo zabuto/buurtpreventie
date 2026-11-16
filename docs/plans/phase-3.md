@@ -630,6 +630,22 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
 - `demo` krijgt de inrichting van "Buurtpreventie Voorbeeldwijk" via `ChangeSettings` (plan, Voorbeelddata), met
   eigen kleuren en een verzonnen logo dat de fixture met GD tekent; `edge` krijgt een korte en een lange naam.
 - De rooktest per set blijft groen; na laden meldt `app:audit:verify` een intacte keten.
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - `SettingsSteps` voert `ChangeSettings` en `ChangeBrandImage` uit als de beheerder, op het moment van de tijdlijn,
+    zoals `MemberSteps` en `PatrolSteps` dat voor leden en rondes doen;
+  - `demo`: naam "Buurtpreventie Voorbeeldwijk", korte naam "Voorbeeldwijk", groen en amber (`#2f6b3a`, `#a14f00`,
+    donker `#9ad3a5`, `#f0a04b`; elk boven de vereiste verhouding) en de coördinator als contact. `SampleBrand` tekent
+    met GD een huis en een maansikkel: een breed logo met transparante achtergrond en een vierkant icoon. **Ook het
+    icoon wordt geüpload** (kleine aanvulling op het plan, dat alleen een logo noemt): anders toont het manifest het
+    standaardicoon in de standaardkleur naast de eigen kleuren. Geen groepslink: een verzonnen uitnodiging wijst toch
+    naar een echte dienst;
+  - `edge`: een naam van precies 100 tekens (de grens) en korte naam "BP";
+  - de keten na laden was al intact door T11 (leegmaken haalt kop en anker weg, de keten begint opnieuw); 
+    `LoadedSettingsAndChainTest` legt het per set vast, naast de inrichting van `demo` en de namen van `edge`, en CI draait `app:audit:verify` na elke
+    set. Het volgnummer volgt de volgorde van schrijven, niet de tijd: de laatste regel van `demo` is het API-token,
+    gedateerd aan het begin van de tijdlijn;
+  - de uploads uit de fixturetest komen in `UPLOAD_DIR`, ook in `test` (standaard `var/uploads`); de inhoud is vast,
+    dus het zijn steeds dezelfde bestanden als die van `demo` in `dev`.
 
 ### T13. Opengrep-regels
 
