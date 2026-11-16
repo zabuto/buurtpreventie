@@ -136,6 +136,110 @@
               }
             }
           ]
+        },
+        {
+          "name": "Configuration as a visitor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/config",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "config"
+              ]
+            },
+            "description": "Public: name, colours, images, texts and group of the association. Before any login, so the contact holds null."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('answers 200 without the contact', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const config = pm.response.json();",
+                  "    pm.expect(config.associationName).to.be.a('string');",
+                  "    pm.expect(config.contact).to.eql({ name: null, email: null, phone: null });",
+                  "    pm.expect(config.icons.map((icon) => icon.size)).to.eql([512, 192, 180, 32]);",
+                  "    pm.expect(config.group).to.have.all.keys('url', 'service');",
+                  "    pm.collectionVariables.set('iconUrl', config.icons[1].url);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "App icon",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{iconUrl}}",
+              "host": [
+                "{{baseUrl}}{{iconUrl}}"
+              ]
+            },
+            "description": "The icon of 192 pixels the configuration names, uploaded or the default."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('answers a PNG that may be cached for a year', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.eql('image/png');",
+                  "    pm.expect(pm.response.headers.get('Cache-Control')).to.include('max-age=31536000');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Web app manifest",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/manifest.webmanifest",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "manifest.webmanifest"
+              ]
+            },
+            "description": "Public: what a phone needs to install the app."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('answers a manifest that starts the app under /app/', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/manifest+json');",
+                  "    const manifest = pm.response.json();",
+                  "    pm.expect(manifest.start_url).to.match(/\\/app\\/$/);",
+                  "    pm.expect(manifest.icons.map((icon) => icon.sizes)).to.eql(['192x192', '512x512']);",
+                  "    pm.expect(pm.response.text()).not.to.include('/public/');",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
     },

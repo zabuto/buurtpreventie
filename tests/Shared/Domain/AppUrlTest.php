@@ -42,6 +42,29 @@ final class AppUrlTest extends TestCase
     }
 
     /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function basePaths(): iterable
+    {
+        yield 'subdomain' => ['https://buurt.example.org', '/app/'];
+        yield 'subdomain with a trailing slash' => ['https://buurt.example.org/', '/app/'];
+        yield 'path' => ['https://example.org/buurtpreventie', '/buurtpreventie/app/'];
+        yield 'path with a trailing slash' => ['https://example.org/buurtpreventie/', '/buurtpreventie/app/'];
+    }
+
+    /**
+     * A web app manifest and the frontend take a path, so the app works on whatever host serves it.
+     */
+    #[Test]
+    #[DataProvider('basePaths')]
+    public function it_gives_the_path_of_a_link_from_the_root_of_the_host(string $base, string $path): void
+    {
+        $url = AppUrl::fromString($base);
+
+        $this->assertSame($path, $url->pathTo('app/'));
+    }
+
+    /**
      * @return iterable<string, array{string}>
      */
     public static function malformedBaseUrls(): iterable

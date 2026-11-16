@@ -218,8 +218,8 @@ token up by the SHA-256 hash of the secret on every request, so a revocation or 
 `ApiToken::refusalAt()` decides why a known token lets nobody in (revoked, expired, member inactive); the member
 comes from `MemberDirectory::identity()`, read afresh, so a changed role counts on the next request.
 
-Under `/api/` a request needs a logged-in member, except `/api/v1/health`, `/api/v1/docs.json` and everything under
-`/api/v1/auth/`. Without one, `SessionEntryPoint` answers with the 401 problem `unauthorized` and logs the path.
+Under `/api/` a request needs a logged-in member, except `/api/v1/health`, `/api/v1/docs.json`, `/api/v1/config`,
+`/api/v1/manifest.webmanifest`, and everything under `/api/v1/auth/` and `/api/v1/media/brand/`. Without one, `SessionEntryPoint` answers with the 401 problem `unauthorized` and logs the path.
 
 `POST /api/v1/auth/login` takes `{email, password}` and answers 204 with a session cookie (`bp_session`); the session
 gets a new id at login. `PasswordCheck` runs as two steps of the passport, after Symfony's login throttling: it
@@ -388,8 +388,15 @@ images, all for the admin (`settings.view`, `settings.change`). `BrandImages` st
 the setting names its version, and removes the previous files through `Transaction::afterCommit()`, so a reader
 always finds the files the setting names. `GET /media/brand/{file}` (`GetBrandImage`) is public: `BrandImageFile`
 reads kind, size and version from the name, and anything outside that pattern, or a version no setting names, is
-not found before a path is made. The answer keeps `Cache-Control: public` for a logged-in member too, through the
-header Symfony reads to leave the cache headers of a session alone.
+not found before a path is made; while no icon is uploaded, the version `BrandImageKind::defaultVersion()` names the
+neutral icon `DefaultBrandIcon` draws. The answer keeps `Cache-Control: public` for a logged-in member too, through
+the header Symfony reads to leave the cache headers of a session alone.
+
+`GET /config` (`GetPublicConfig`) gives the frontend name, colours, logo and icons, texts in the language of the
+association, the group link with its service and the staffing defaults, to anyone; `contact` keeps its keys with null
+unless a member is logged in, by session or token, since it holds personal data. `GET /manifest.webmanifest`
+(`GetWebManifest`) is the web app manifest, in the member names of its standard. Both give every link as a path from
+`AppUrl::pathTo()`, so the start of the app and every image follow the path of the base URL.
 
 ## Handler and domain
 

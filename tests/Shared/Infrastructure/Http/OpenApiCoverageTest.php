@@ -21,7 +21,7 @@ use Symfony\Component\Routing\RouterInterface;
 final class OpenApiCoverageTest extends WebTestCase
 {
     private const string POSTMAN_COLLECTION = __DIR__ . '/../../../../postman/buurtpreventie.postman_collection.json';
-    private const string PUBLIC_PATH = '#^/api/v1/(health|auth/)#';
+    private const string PUBLIC_PATH = '#^/api/v1/(health|config|manifest\.webmanifest|media/brand/|auth/)#';
 
     #[Test]
     public function it_describes_every_route_of_the_api_and_nothing_else(): void

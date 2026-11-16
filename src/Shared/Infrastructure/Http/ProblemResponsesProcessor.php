@@ -22,7 +22,7 @@ final readonly class ProblemResponsesProcessor
     /**
      * The paths security.yaml leaves open (access_control).
      */
-    private const string PUBLIC_PATH = '#^/api/v1/(health|auth/)#';
+    private const string PUBLIC_PATH = '#^/api/v1/(health|config|manifest\.webmanifest|media/brand/|auth/)#';
 
     private const array DESCRIPTIONS = [
         401 => 'Not logged in, or the API token is refused.',

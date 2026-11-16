@@ -7,14 +7,15 @@ namespace App\Shared\Domain;
 use InvalidArgumentException;
 
 /**
- * The base URL of the app, on a subdomain or under a path, and the one source of every absolute link the app sends
- * outside a request, such as in a mail. Built from `DEFAULT_URI`, so a link carries the path of the installation
- * and never a folder the web server happens to serve from.
+ * The base URL of the app, on a subdomain or under a path, and the one source of every link the app hands out:
+ * absolute in a mail, as a path in the manifest and the configuration. Built from `DEFAULT_URI`, so a link carries
+ * the path of the installation and never a folder the web server happens to serve from.
  */
 final readonly class AppUrl
 {
     private function __construct(
         private string $base,
+        private string $basePath,
     ) {
     }
 
@@ -35,7 +36,7 @@ final readonly class AppUrl
             throw new InvalidArgumentException('The base URL of the app must be an http or https address with a host and at most a path.');
         }
 
-        return new self(\rtrim($url, '/'));
+        return new self(\rtrim($url, '/'), \rtrim($parts['path'] ?? '', '/'));
     }
 
     /**
@@ -44,5 +45,13 @@ final readonly class AppUrl
     public function to(string $path): string
     {
         return $this->base . '/' . \ltrim($path, '/');
+    }
+
+    /**
+     * The same link as a path from the root of the host, such as `/buurtpreventie/app/`, for whatever host serves it.
+     */
+    public function pathTo(string $path): string
+    {
+        return $this->basePath . '/' . \ltrim($path, '/');
     }
 }

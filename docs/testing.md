@@ -209,7 +209,7 @@ and writes `var/coverage/coverage.txt`.
 ## Postman collection
 
 `postman/buurtpreventie.postman_collection.json` checks a running app from the outside: health, the OpenAPI
-description, the refusals of the login endpoints, a login with a code and, when a password is set, a login with the
+description, the configuration of a visitor without the contact, the app icon it names and the web app manifest, the refusals of the login endpoints, a login with a code and, when a password is set, a login with the
 password. After the login with a code it walks the own account: profile, a change that changes nothing, the 422 for empty text as phone number, an API token
 created, listed, used, refused under `/me/tokens` and revoked, activity, export, and the 403 for a new token or
 password once only the stay-logged-in cookie is left. After the login with a password it reads the rounds of the

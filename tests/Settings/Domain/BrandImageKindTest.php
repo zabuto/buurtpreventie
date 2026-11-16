@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Settings\Domain;
 
+use App\Settings\Domain\BrandImageFile;
 use App\Settings\Domain\BrandImageKind;
 use App\Settings\Domain\ImageFacts;
 use App\Settings\Domain\UnsupportedImage;
@@ -65,6 +66,15 @@ final class BrandImageKindTest extends TestCase
         }
 
         $this->assertSame(['condition' => $condition], $refusal?->details());
+    }
+
+    /**
+     * A web app needs an icon to install; without a logo the app shows the name of the association instead.
+     */
+    #[Test]
+    public function it_has_a_default_icon_but_no_default_logo(): void
+    {
+        $this->assertSame([true, null], [BrandImageFile::isVersion((string) BrandImageKind::Icon->defaultVersion()), BrandImageKind::Logo->defaultVersion()]);
     }
 
     #[Test]

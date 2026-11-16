@@ -105,6 +105,8 @@ final class HttpMatrixTest extends ApiTestCase
             'auth_invitation' => ['POST', '/api/v1/auth/invitation', ['secret' => 'bpi_' . \str_repeat('0', 64)], self::EVERYONE],
             'auth_confirm' => ['POST', '/api/v1/auth/confirm', ['password' => self::WRONG_PASSWORD], self::MEMBERS],
             'settings_get_brand_image' => ['GET', '/api/v1/media/brand/{logo}', null, self::EVERYONE],
+            'settings_get_public_config' => ['GET', '/api/v1/config', null, self::EVERYONE],
+            'settings_get_web_manifest' => ['GET', '/api/v1/manifest.webmanifest', null, self::EVERYONE],
         ];
     }
 

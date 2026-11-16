@@ -21,6 +21,9 @@ enum BrandImageKind: string
     private const int MOST_PIXELS = 2048;
     private const int LEAST_ICON_PIXELS = 512;
 
+    /** Raise it when the drawing of the default icon changes, so browsers that cached the old one fetch it anew. */
+    private const string DEFAULT_ICON_VERSION = 'defa017000000001';
+
     /** GIF animates and adds nothing over PNG; WebP and AVIF depend on how GD was built on a host. */
     private const array TYPES = ['image/png', 'image/jpeg'];
 
@@ -29,6 +32,18 @@ enum BrandImageKind: string
         return match ($this) {
             self::Logo => SettingName::Logo,
             self::Icon => SettingName::Icon,
+        };
+    }
+
+    /**
+     * The version under which the app serves its own image when none is uploaded: an icon, as a web app needs one to
+     * install. Without a logo the name of the association stands in its place.
+     */
+    public function defaultVersion(): ?string
+    {
+        return match ($this) {
+            self::Logo => null,
+            self::Icon => self::DEFAULT_ICON_VERSION,
         };
     }
 

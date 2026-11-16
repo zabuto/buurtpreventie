@@ -6,6 +6,8 @@ namespace App\Tests\Settings\UseCase\GetBrandImage;
 
 use App\Settings\Domain\BrandImageKind;
 use App\Settings\Domain\Setting;
+use App\Settings\Infrastructure\Image\GdBrandImageConverter;
+use App\Settings\Infrastructure\Image\GdDefaultBrandIcon;
 use App\Settings\UseCase\GetBrandImage\GetBrandImage;
 use App\Settings\UseCase\GetBrandImage\GetBrandImageHandler;
 use App\Shared\Domain\NotFound;
@@ -38,6 +40,24 @@ final class GetBrandImageHandlerTest extends TestCase
         $output = $this->handler()(new GetBrandImage('icon-192-' . $version . '.png'));
 
         $this->assertSame($this->images->files['icon-192-' . $version . '.png'], $output->content);
+    }
+
+    #[Test]
+    public function it_gives_the_default_icon_while_none_is_uploaded(): void
+    {
+        $output = $this->handler()(new GetBrandImage('icon-192-' . BrandImageKind::Icon->defaultVersion() . '.png'));
+
+        $this->assertSame(new GdDefaultBrandIcon(new GdBrandImageConverter())->png(192), $output->content);
+    }
+
+    #[Test]
+    public function it_knows_no_default_icon_once_an_icon_is_uploaded(): void
+    {
+        $this->settings->add(Setting::of('brand.icon', $this->images->store(BrandImageKind::Icon, TestImages::png(512, 512))));
+
+        $this->expectException(NotFound::class);
+
+        $this->handler()(new GetBrandImage('icon-192-' . BrandImageKind::Icon->defaultVersion() . '.png'));
     }
 
     /**
@@ -76,6 +96,6 @@ final class GetBrandImageHandlerTest extends TestCase
 
     private function handler(): GetBrandImageHandler
     {
-        return new GetBrandImageHandler($this->settings, $this->images);
+        return new GetBrandImageHandler($this->settings, $this->images, new GdDefaultBrandIcon(new GdBrandImageConverter()));
     }
 }

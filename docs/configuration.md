@@ -71,6 +71,9 @@ puts the default back with `DELETE`. What a file is follows from its content alo
 | `too_large`, `not_square`, `too_small` | at most 2048 × 2048 pixels, any proportion | square, from 512 × 512 to 2048 × 2048 pixels |
 | Stored as | PNG within 512 × 512 (screen) and within 512 × 128 (mail) | PNG of 512, 192, 180 (Apple) and 32 (favicon) pixels |
 
+Without an uploaded icon the app draws its own: a white house on the default primary colour. Without a logo the
+frontend shows the name of the association. `GET /api/v1/config` and the web app manifest give the paths of both.
+
 Every size is drawn afresh with GD, so only the pixels stay: no metadata such as the place a photo was taken, and
 nothing hidden after the image. A JPEG keeps the orientation of its pixels; GD ignores the rotation a phone notes
 in its metadata. The files are named `<kind>-<size>-<version>.png`, the version from the uploaded content, and

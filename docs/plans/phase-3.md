@@ -92,7 +92,7 @@ Klaar als:
    | `brand.logo`, `brand.icon` (bestandsnaam, beslissing 8) | geen logo; neutraal icoon uit de repo | ja |
    | `brand.primary`, `brand.accent`, `brand.primary_dark`, `brand.accent_dark` | neutrale kleuren die de contrastregels halen | ja |
    | `contact.name`, `contact.email`, `contact.phone` | leeg | alleen ingelogd (beslissing 4) |
-   | `community.group_url` (beslissing 4a) | leeg | alleen ingelogd |
+   | `community.group_url` (beslissing 4a) | leeg | ja |
    | `mail.sender_name` | `association.name` | nee |
    | `text.welcome.<taal>`, `text.emergency.<taal>` | neutrale tekst in `nl` en `en` | ja |
    | `text.privacy_url`, `text.accessibility_url` | leeg | ja |
@@ -120,8 +120,10 @@ Klaar als:
     - alleen `https://chat.whatsapp.com/<code>` of `https://signal.group/#<code>`; een andere host of `http` geeft
       een veldfout. `/config` geeft de link met `service` (`whatsapp` of `signal`, afgeleid uit de host), zodat de
       frontend het juiste woord en icoon toont;
-    - **alleen voor ingelogde leden**, zoals het contact (beslissing 4): wie de link heeft, kan de groep in, en dan
-      zien alle leden van de groep zijn telefoonnummer. Daarom ook niet in een mail, die wordt doorgestuurd;
+    - **publiek in `/config`**, zoals naam en kleuren (besloten op 16 november 2026, bij T7). Geaccepteerd risico:
+      wie de link heeft, kan de groep in, en dan zien alle leden van de groep zijn telefoonnummer. Een vereniging
+      die dat niet wil, zet goedkeuring door een beheerder aan in de groep zelf of laat de link leeg. Niet in een
+      mail;
     - de auditregel noemt de wijziging als `null → null`, zodat de link niet in het log staat;
     - een vereniging die de link vervangt (omdat hij gelekt is), trekt de oude in de app van WhatsApp of Signal in;
       de app kan dat niet. De beheerhandleiding van fase 6b zegt het.
@@ -485,6 +487,26 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
   taal van de vereniging; het manifest heeft `start_url` en `scope` op het pad van de basis-URL plus `/app/`,
   zonder `/public/` (review-focus 5), iconen 192 en 512 en het juiste mediatype.
 - OpenAPI voor beide; `OpenApiCoverageTest` en de Postman-collectie.
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - **het standaardicoon tekent GD** (besloten op 16 november 2026): `GdDefaultBrandIcon` tekent een wit huisje op
+    de standaard primaire kleur, over het hele vlak (een telefoon snijdt het bij tot elke vorm), en de converter van
+    T6 maakt er de vier maten van. Geen binaire bestanden in Git. `/media/brand/` geeft het onder de vaste versie
+    `BrandImageKind::defaultVersion()` zolang er geen icoon is geüpload; die versie gaat omhoog als de tekening
+    verandert. Zonder logo is `logoUrl` null en toont de frontend de naam;
+  - `AppUrl::pathTo()` geeft een link als pad vanaf de root van de host (`/buurtpreventie/app/`): `/config` en het
+    manifest geven elk beeld en `start_url` en `scope` zo, dus ze werken op elke host die de app serveert;
+  - `/config` heeft de kleuren plat (`primaryColor` enz., zoals `/admin/settings`), `logoUrl`, `icons` (maat en pad),
+    `welcomeText` en `emergencyText` in de taal van de vereniging (zonder eigen tekst de standaardtekst), en
+    `contact` (alleen voor een ingelogd lid) en `group` (voor iedereen, beslissing 4a) met vaste sleutels;
+  - het manifest heeft de sleutels van de W3C-standaard (`short_name`, `start_url`, …); de controller schrijft ze uit
+    een output in camelCase, en OpenAPI beschrijft het antwoord als object zonder eigenschappen, zodat
+    `OpenApiNamingTest` blijft gelden. Iconen 192 en 512, `background_color` wit, `theme_color` primair licht;
+  - `ProblemResponsesProcessor` en `OpenApiCoverageTest` kennen `/config`, het manifest en `/media/brand/` als
+    publiek, ook `/media/brand/` uit T6, waarvoor de beschrijving anders een 401 en 403 noemt die het nooit geeft;
+  - tests: `AppUrlTest` (pad), `GdDefaultBrandIconTest`, de handlers (bezoeker, sessie, taal, beelden),
+    `PublicConfigEndpointTest` (bezoeker, sessie, token, manifest onder het pad zonder `/public/`, en elk icoon uit
+    het manifest is op te halen) en rijen in `HttpMatrixTest`; de Postman-collectie leest `/config` als bezoeker,
+    het icoon dat het noemt en het manifest.
 
 ### T8. E-mails (test eerst)
 
