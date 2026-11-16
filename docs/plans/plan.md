@@ -107,7 +107,7 @@ Gevolgen voor het ontwerp:
 5. **Pad of subdomein.** De bestaande root-`.htaccess` die naar `public/` herschrijft, blijft; de updater laat hem naar de actieve map `releases/<versie>/public/` wijzen. Op een eigen subdomein (de voorkeur en de standaard in de handleiding) wijst de documentroot naar de app-map, en stuurt dezelfde root-`.htaccess` door naar de actieve release; cookies staan dan los van andere sites op het domein. De installer waarschuwt als de map binnen de map van een andere applicatie staat (bijvoorbeeld een WordPress-installatie), omdat diens `.htaccess`-regels dan kunnen doorwerken. In een pad werkt `example.nl/buurtpreventie/` zonder `/public` in de URL.
 6. **`Authorization`-header.** Apache/LiteSpeed met FastCGI stript die header vaak; `.htaccess` moet hem doorgeven (`CGIPassAuth On` of een `RewriteRule` met `E=HTTP_AUTHORIZATION`). Zonder dit werken API-tokens en MCP niet.
 
-**HTTPS en certificaat.** De app werkt alleen via HTTPS: veilige cookies, de service worker en inloglinks vereisen het, en de installer weigert zonder. Een nieuw subdomein heeft dus eerst een eigen certificaat nodig. Veel hosters bieden gratis Let's Encrypt in het hostingpaneel, per subdomein aan te zetten en automatisch verlengd. Daarnaast stuurt de app `http://` door naar `https://`. De handleiding beschrijft de volgorde: subdomein aanmaken, DNS laten wijzen, certificaat aanvragen, en pas daarna installeren. Onderhoud waarschuwt als het certificaat binnen 14 dagen verloopt.
+**HTTPS en certificaat.** De app werkt alleen via HTTPS: veilige cookies, de service worker en de link in een uitnodiging vereisen het, en de installer weigert zonder. Een nieuw subdomein heeft dus eerst een eigen certificaat nodig. Veel hosters bieden gratis Let's Encrypt in het hostingpaneel, per subdomein aan te zetten en automatisch verlengd. Daarnaast stuurt de app `http://` door naar `https://`. De handleiding beschrijft de volgorde: subdomein aanmaken, DNS laten wijzen, certificaat aanvragen, en pas daarna installeren. Onderhoud waarschuwt als het certificaat binnen 14 dagen verloopt.
 
 ## Afhankelijkheden: tijdtrigger, e-mail en externe diensten
 
@@ -133,7 +133,7 @@ Taken meeliften op gewone verzoeken van lopers gebeurt bewust niet: dat zou de a
 | Herinnering de dag vooraf, met "nog geen loopmaatje" | ja | ja | — | Geen herinnering; de ronde staat wel in de app |
 | Mail "nieuwe ronde zoekt loopmaatje" | nee, direct | ja | — | Alleen zichtbaar in de app |
 | Mail "je loopmaatje heeft zich afgemeld" | nee, direct | ja | — | Alleen zichtbaar in de app |
-| Welkomstmail, wachtwoord-reset, inloglink | nee, direct | ja | — | Beheerder kopieert de link in het beheerscherm en geeft hem zelf door |
+| Uitnodiging, inlogcode | nee, direct | ja | — | De beheerder ziet de link van de uitnodiging in het beheerscherm, alleen voor een lid dat nog nooit inlogde, en geeft hem zelf door; zonder mail logt een lid alleen met een wachtwoord in |
 | Opruimen volgens bewaartermijnen (auditlog, routes) | ja | — | — | Beheerder ruimt op met de knop Nu opruimen; anders blijven gegevens langer staan dan de privacyverklaring belooft |
 | Dagelijkse controle op updates en beveiligingsadviezen | ja | ja (melding) | GitHub, Packagist | Geen melding; Onderhoud controleert wel als de beheerder het scherm opent |
 | Update installeren | — | — | GitHub (download) | Handmatig via FTP volgens `docs/admin-guide/` |
@@ -212,7 +212,7 @@ De backend is een modulaire monoliet: elke module staat direct onder `src/` en h
 | --- | --- |
 | `Patrol` | Rondes, aanmelden, loopmaatjes, terugmelden (de kern) |
 | `Membership` | Leden, rollen, toestemming, certificaat |
-| `Identity` | Inloggen, inloglinks, wachtwoorden, API-tokens |
+| `Identity` | Inloggen (wachtwoord, code per mail, uitnodiging), wachtwoorden, API-tokens |
 | `Audit` | Auditlog vastleggen en tonen |
 | `Settings` | Branding en teksten |
 | `Maintenance` | Herinneringen, updates, installer, conversie uit v3 |
@@ -386,8 +386,8 @@ Eenvoud in gebruik:
 - **Startscherm met drie dingen:** Zoekt een loopmaatje, Mijn rondes, Terugmelden.
 - **Grote basistekst (18 px)** die meeschaalt met de lettergrootte van de telefoon.
 - **Bevestiging in woorden na elke actie**, met ongedaan maken waar het kan ("Afgemeld. Ongedaan maken").
-- **Inloggen zonder gedoe:** "ingelogd blijven" voor 90 dagen en inloggen via een link in de e-mail; een wachtwoord blijft mogelijk. E-mails hebben een directe knop naar de ronde.
-- **Hulp van de coördinator:** inloglink opnieuw sturen, en een loper die het zelf niet lukt namens hem aan- of afmelden; dat staat als "namens" in het auditlog.
+- **Inloggen zonder gedoe:** "ingelogd blijven" voor 90 dagen en inloggen met een code van zes cijfers per mail; "wachtwoord vergeten" is inloggen met een code. Een wachtwoord kan, maar is nooit verplicht. Een nieuw lid krijgt een uitnodiging: een link die één keer werkt. E-mails hebben een directe knop naar de ronde.
+- **Hulp van de coördinator:** een nieuwe uitnodiging laten sturen, zonder de link zelf te zien, en een loper die het zelf niet lukt namens hem aan- of afmelden; dat staat als "namens" in het auditlog.
 - **Handleiding voor lopers:** één A4 met schermafbeeldingen in `docs/user-guide/`, en dezelfde uitleg in de app onder "Hoe werkt het?".
 
 Testen met echte lopers en toestellen:
@@ -423,7 +423,7 @@ Het domeinmodel wordt verbeterd waar dat de app helderder en eenvoudiger maakt; 
 
 | Entiteit | Module | Uit v3 | Wat verandert |
 | --- | --- | --- | --- |
-| `Account` | Identity | deel van `User` | Alleen inloggen: wachtwoordhash, laatste login, inloglinks, met een verwijzing naar het lid. Los van het profiel, zodat de v3-`User` geen god object meer is |
+| `Account` | Identity | deel van `User` | Alleen inloggen: wachtwoordhash (nooit verplicht), laatste login en het moment van het laatste nieuwe wachtwoord, met een verwijzing naar het lid. Inlogcodes en uitnodigingen staan in eigen entiteiten (`LoginChallenge`, `Invitation`). Los van het profiel, zodat de v3-`User` geen god object meer is |
 | `Member` | Membership | deel van `User` | E-mailadres (voor mails én inloggen), naam, unieke weergavenaam (`displayName`, zoals "Jan H."), telefoon, adres, rollen, `consentContactShare` (was `permitted`), `certified` (was `credited`), `active`, `notifyOpenRounds` |
 | `Round` | Patrol | `Round` | `startsAt`, aangemaakt door een loper, optioneel `meetingPoint` en vrije tekst `startNote`; `minimumWalkers` en `maximumWalkers` vastgelegd bij aanmaken; status, open plekken en dagdeel afgeleid |
 | `Participation` | Patrol | `RoundWalker` | Aanmelding: lid, `joinedAt`, `remindedAt`, `onBehalfOf` (als de coördinator aanmeldde); ronde + lid is uniek |
@@ -562,7 +562,7 @@ Elke wijziging door een lid wordt vastgelegd als regel in een alleen-toevoegen-l
 | Aanmeldingen | loper aangemeld, afgemeld, door coördinator verwijderd, automatisch uitgeschreven (inactief lid) |
 | Na de ronde | terugmelding geplaatst of verwijderd, opmerking geplaatst of verwijderd |
 | Leden | toegevoegd, rol gewijzigd, (de)geactiveerd, hersteld, toestemming contactgegevens gewijzigd |
-| Account | ingelogd, mislukte inlog, wachtwoord gewijzigd of gereset, API-token aangemaakt of ingetrokken |
+| Account | ingelogd (met wachtwoord, code of uitnodiging), mislukte inlog, inlogcode aangevraagd, uitnodiging verstuurd, wachtwoord gewijzigd, API-token aangemaakt of ingetrokken |
 | Beheer | instelling gewijzigd, startpunt of uitkomst gewijzigd, update uitgevoerd of teruggezet |
 
 **Per regel:** tijdstip (UTC, getoond in Europe/Amsterdam), wie (lid-id plus naam op dat moment, of "systeem"), actie (bv. `round.walker_removed`), onderwerp (type + id), kanaal, en de gewijzigde velden als oud → nieuw. Nooit wachtwoorden, tokens of volledige IP-adressen; bij mislukte inlogpogingen alleen een ingekort IP-adres.
@@ -639,7 +639,7 @@ De vereniging is verwerkingsverantwoordelijke: zij stelt de privacyverklaring, b
 - Alleen HTTPS; de installer weigert zonder.
 - Beveiligingsheaders: de API stuurt een CSP die niets toestaat, `nosniff`, `Referrer-Policy: no-referrer` en `Cross-Origin-Opener-Policy: same-origin` (fase 1); de frontend krijgt een eigen CSP en `Permissions-Policy` (fase 5). HSTS staat in de API per installatie aan met `HSTS_MAX_AGE` (opt-in, sinds fase 2, zonder `includeSubDomains`); de installer van fase 6a kan het zetten na zijn HTTPS-controle.
 - Wachtwoorden en tokens alleen gehasht opgeslagen.
-- Elk geheim maakt de app zelf, met `random_bytes`, en niemand typt het in: API-tokens, inloglinks, wachtwoord-reset, het installer-token, `APP_SECRET` en de tick-sleutel. Zo kan er geen kort of zelfbedacht geheim in komen. De installer schrijft `APP_SECRET` en `TICK_SECRET` in `shared/.env.local`; Onderhoud vervangt de tick-sleutel met een knop, zonder invoerveld. Het domein weigert een geheim dat niet het gegenereerde formaat heeft.
+- Elk geheim maakt de app zelf, met `random_bytes` (een inlogcode met `random_int`), en niemand typt het in: API-tokens, uitnodigingen, inlogcodes en het id van hun aanvraag, het installer-token, `APP_SECRET` en de tick-sleutel. Zo kan er geen kort of zelfbedacht geheim in komen. De installer schrijft `APP_SECRET` en `TICK_SECRET` in `shared/.env.local`; Onderhoud vervangt de tick-sleutel met een knop, zonder invoerveld. Het domein weigert een geheim dat niet het gegenereerde formaat heeft.
 - Rechten via rollen en Voters, gecontroleerd met de matrixtest.
 - Opnieuw het wachtwoord invoeren bij gevoelige acties.
 - Beperkt aantal inlogpogingen.
@@ -743,7 +743,7 @@ v4 start op 7.4 LTS en stapt in 2028 over naar 8.4 LTS (verwacht november 2027),
 | Sudo mode: opnieuw inloggen vóór gevoelige acties ([8.2](https://symfony.com/blog/new-in-symfony-8-2-sudo-mode)) | Bijwerken, terugzetten, rollen wijzigen, tokens aanmaken | Eigen "wachtwoord opnieuw"-controle |
 | `#[Lock]` op controllers tegen gelijktijdige verzoeken ([8.2](https://symfony.com/blog/category/living-on-the-edge?page=2)) | Twee lopers tegelijk op de laatste plek; dubbel klikken op Bijwerken | Lock-component met bestandsopslag |
 | `#[Encrypted]` voor Doctrine-velden ([8.2](https://symfony.com/blog/category/living-on-the-edge?page=2)) | Telefoon en adres versleuteld opslaan | Velden onversleuteld, achter toestemming |
-| Eenmalige ondertekende URL's ([8.2](https://symfony.com/blog/category/a-week-of-symfony?page=1)) | Inloglinks en wachtwoord-reset | Eigen token met verloopdatum |
+| Eenmalige ondertekende URL's ([8.2](https://symfony.com/blog/category/a-week-of-symfony?page=1)) | Niet nodig: een uitnodiging werkt één keer en moet dus opgeslagen zijn, en inloggen per mail gaat met een code | Uitnodiging en inlogcode als eigen entiteit, met hash en verloopdatum |
 | `#[Serialize]` voor controller-uitvoer en betere request-mapping, ook uploads in DTO's ([8.1](https://symfony.com/blog/symfony-8-1-curated-new-features)) | Dunnere controllers, logo-upload | Serializer handmatig aanroepen |
 | SSRF-allow-list in HttpClient ([8.1](https://symfony.com/blog/symfony-8-1-curated-new-features)) | Updater haalt alleen bij GitHub op | Vaste host-check in de updater |
 
@@ -784,7 +784,7 @@ Fase 3, 4 en 5 hangen alleen van de API af; MCP (fase 4) gaat vóór de frontend
 - [x] Entiteiten in `src/*/Domain` met Doctrine-mapping volgens het verbeterde model; nieuw zijn ook `ApiToken`/`Setting`. De conversie uit v3 volgt in fase 5b.
 - [x] Use cases in UseCase/ per module, elk met invoerklasse, handler en later de adapters (zie Codestructuur): `SignUpForRound`, `WithdrawFromRound`, `CreateRound`, `ChangeRound`, `ReportRoundResult`, `AddRoundComment`, `SendReminders`, `NotifyBuddyNeeded`, …
 - [x] Voters per onderwerp en de module Audit (elke schrijvende handler legt een auditregel vast, met test); regels uit de oude `WalkService` (minimum lopers, inactieve lopers uit toekomstige rondes, eigen melding verwijderen) als unit tests vastgelegd; fixture-sets demo, test en edge (zie Voorbeelddata); de set v3 volgt met de conversie in fase 5b.
-- [x] Database: lokaal MariaDB 10.11 (`compose.yaml`), omdat shared hosting meestal MariaDB biedt. CI draait de migraties vanaf een lege database en de databasetests op MariaDB 10.11 én MySQL 8.4, omdat niet elke hoster MariaDB heeft en Doctrine niet alles gelijktrekt: gegenereerde migraties, collation en gelijktijdige schrijfacties kunnen per database verschillen. Standaard-tabelopties in `doctrine.yaml`: `utf8mb4` met `utf8mb4_unicode_ci`, dat op beide bestaat. Wat mensen intypen en waarop de app zoekt (e-mailadressen, namen) is hoofdletterongevoelig: `Anke@example.org` en `anke@example.org` zijn hetzelfde adres. Namen zijn ook accentongevoelig: zoeken op "Jose" vindt "José". De app maakt in PHP een zoeksleutel, vóór opslag en vóór het zoeken, zodat zoeken en unieke sleutels niet van de collation afhangen; de weergave blijft zoals getypt. Bij leden zijn e-mailadres en weergavenaam uniek: twee leden mogen dezelfde volledige naam hebben, maar in rondes en lijsten staan ze met een eigen weergavenaam ("Jan H." en "Jan B."). Geheime tokens (inloglink, wachtwoord-reset, API-token) zijn de uitzondering: die worden exact vergeleken, als hash. Geen eigen SQL, behalve in een repositorymethode met een integratietest op beide. Coördinaten zijn twee getallen in WGS84 (`DECIMAL(9,6)`), geen spatial types.
+- [x] Database: lokaal MariaDB 10.11 (`compose.yaml`), omdat shared hosting meestal MariaDB biedt. CI draait de migraties vanaf een lege database en de databasetests op MariaDB 10.11 én MySQL 8.4, omdat niet elke hoster MariaDB heeft en Doctrine niet alles gelijktrekt: gegenereerde migraties, collation en gelijktijdige schrijfacties kunnen per database verschillen. Standaard-tabelopties in `doctrine.yaml`: `utf8mb4` met `utf8mb4_unicode_ci`, dat op beide bestaat. Wat mensen intypen en waarop de app zoekt (e-mailadressen, namen) is hoofdletterongevoelig: `Anke@example.org` en `anke@example.org` zijn hetzelfde adres. Namen zijn ook accentongevoelig: zoeken op "Jose" vindt "José". De app maakt in PHP een zoeksleutel, vóór opslag en vóór het zoeken, zodat zoeken en unieke sleutels niet van de collation afhangen; de weergave blijft zoals getypt. Bij leden zijn e-mailadres en weergavenaam uniek: twee leden mogen dezelfde volledige naam hebben, maar in rondes en lijsten staan ze met een eigen weergavenaam ("Jan H." en "Jan B."). Geheimen (inlogcode, uitnodiging, API-token) zijn de uitzondering: die worden exact vergeleken, als hash. Geen eigen SQL, behalve in een repositorymethode met een integratietest op beide. Coördinaten zijn twee getallen in WGS84 (`DECIMAL(9,6)`), geen spatial types.
 
 **Klaar als:** alle domeinregels uit de oude app hebben een test, en de migraties en databasetests draaien op MariaDB 10.11 én MySQL 8.4.
 
@@ -1245,4 +1245,4 @@ Alleen rapporteren, niets wijzigen.
 2. **Rondes rond de zomer-/wintertijdwissel**: een ronde om 22:00 blijft 22:00 lokale tijd in kalender, API, MCP en herinnering (fase 1 en 2).
 3. **Lid zonder toestemming** verschijnt in `/members`, `get_round` of een e-mail: nooit telefoon, e-mail of adres (fase 2 en 4).
 4. **Gedeactiveerd of verwijderd lid** in toekomstige rondes, ledenlijst of als token-eigenaar: wordt uitgeschreven, en het token werkt meteen niet meer (fase 1 en 2).
-5. **App in een pad of op een subdomein**: links in e-mails, wachtwoord-reset, inloglinks en `manifest` gebruiken de ingestelde basis-URL (subdomein of `/buurtpreventie/`) en bevatten nooit `/public/` (fase 3 en 6).
+5. **App in een pad of op een subdomein**: links in e-mails, ook die van een uitnodiging, en `manifest` gebruiken de ingestelde basis-URL (subdomein of `/buurtpreventie/`) en bevatten nooit `/public/` (fase 3 en 6).
