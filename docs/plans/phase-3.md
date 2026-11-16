@@ -1,7 +1,6 @@
 # Fase 3: taakplan
 
-Status: ter goedkeuring. Besloten op 16 november 2026: beslissingen 2, 3, 4, 4a, 5, 8, 11, 14, 15, 17 en 19, en de zes
-soorten berichten (vastgesteld 2).
+Status: goedgekeurd op 16 november 2026.
 
 Bron: `docs/plans/plan.md` (Samenvatting, Branding en configuratie, Privacy en AVG, Auditlog, Fase 3, Risico's en
 review-focus), `docs/plans/phase-2.md` (beslissingen en Open punten uit het plan), `docs/plans/phase-1.md`
