@@ -151,7 +151,7 @@ A handler reaches storage, rights, the audit log and messages only through inter
 | `ExecutionContext`, `Channel` | The member performing the action with their roles (an `Actor`), or none for the system, and the channel (`web`, `api`, `mcp`, `cron`, `console`) | `Shared\Infrastructure\Security\TokenExecutionContext`, which reads Symfony's token storage; `RunAs` fills it for console commands, fixtures and the scheduler, an authenticator for HTTP and MCP |
 | `AuditTrail`, `AuditedAction` | Records an action; time, actor and channel come from the clock and the execution context | `Audit\Infrastructure\Persistence\DoctrineAuditTrail` |
 | `MemberNames` | The display name of a member, or none for an erased one, so another module can record or show who acted | `Membership\Infrastructure\RepositoryMemberNames` |
-| `MemberDirectory`, `MemberProfile`, `MemberIdentity` | Whether a member is active, who wants to hear about open rounds, a member's names and phone number (only with consent), and the identity the login works with: id, current roles and whether the member may log in | `Membership\Infrastructure\RepositoryMemberDirectory` |
+| `MemberDirectory`, `MemberProfile`, `MemberIdentity` | Whether a member is active, who wants to hear about open rounds, a member's names and phone number (only with consent), and the identity the login works with, by id or e-mail address: id, current roles and whether the member may log in | `Membership\Infrastructure\RepositoryMemberDirectory` |
 | `Authorization`, `AccessDenied` | `denyUnlessGranted()` asks the voters of every module and throws `AccessDenied` on a refusal | `Shared\Infrastructure\Security\SymfonyAuthorization` |
 | `Notifier`, `Notification` | Sends a member a message by type and parameters; the domain holds no texts | `Shared\Infrastructure\Notification\LoggingNotifier`, which only logs |
 | `Role`, `Actor` | The fixed roles `walker`, `coordinator`, `analyst` and `admin`, without inheritance, and a member with their roles, as the policies of every module decide on them | |
@@ -197,13 +197,38 @@ Two firewalls guard `/api/`, picked by the request:
 | Firewall | Takes | Authenticator | Channel |
 | --- | --- | --- | --- |
 | `api_token` | Every API request with an `Authorization` header, whatever its scheme | `Identity\Infrastructure\Security\ApiTokenAuthenticator` | `api` |
-| `main` | Every other request | the browser login of phase 2 | `web` |
+| `browser` | Every other request, with a session | `Identity\Infrastructure\Security\PasswordAuthenticator` | `web` |
 
 The token firewall is stateless. Its authenticator takes every request, so a broken or unknown header is refused
 like a wrong token: an empty 401 with `WWW-Authenticate: Bearer`, and the reason only in the log. It looks the
 token up by the SHA-256 hash of the secret on every request, so a revocation or a deactivation counts at once.
 `ApiToken::refusalAt()` decides why a known token lets nobody in (revoked, expired, member inactive); the member
 comes from `MemberDirectory::identity()`, read afresh, so a changed role counts on the next request.
+
+Under `/api/` a request needs a logged-in member, except `/api/v1/health`, `/api/v1/docs.json` and everything under
+`/api/v1/auth/`. Without one, `SessionEntryPoint` answers with the 401 problem `unauthorized` and logs the path.
+
+`POST /api/v1/auth/login` takes `{email, password}` and answers 204 with a session cookie (`bp_session`); the session
+gets a new id at login. `PasswordCheck` runs as two steps of the passport, after Symfony's login throttling: it
+finds the active member by address through `MemberDirectory::identify()`, then checks the password and renews a
+hash made with an older algorithm or cost, such as one of the legacy app. Every refusal is the same 401 problem
+`login_failed`; an unknown address or inactive member costs one hash too, so neither answer nor timing shows whether
+an address belongs to a member. `LoginRecorder` writes `account.logged_in` with the member as actor and
+`account.login_failed` for a known member without an actor, nobody having proved who tried; both carry the IP
+address without its last byte (IPv4) or last 80 bits (IPv6). An attempt on an unknown address goes to the log only,
+without the address. Five failed attempts on one address from one IP address within 15 minutes, or 30 from one IP
+address within an hour, give 429 with `Retry-After`; a successful login clears the first count only.
+`POST /api/v1/auth/logout` ends the session and clears its cookie. Login and logout take `POST` only.
+
+`MemberUserProvider` reloads the member of a session on every request: a deactivated or erased member drops out at
+once, and a changed role counts from the next request without a new login (`MemberUser` is the same user as long as
+the member is).
+
+`SameOriginGuard` runs before both firewalls and refuses a changing request for the browser firewall, the login
+included, unless it comes from the same origin: by `Sec-Fetch-Site`, else by `Origin` or `Referer`, else by a
+`csrf-token` header of at least 24 characters, which the frontend sets for browsers that send neither, such as
+Safari on iOS 15. Symfony's `SameOriginCsrfTokenManager` decides. A refusal is the 403 problem `csrf_check_failed`.
+A request with an API token carries no cookie and is not checked.
 
 `TokenScopeGuard` runs right after the firewall and holds a token request to its scopes: `read` for `GET` and
 `HEAD`, `write` for every other method, `admin` for everything under `/api/v1/admin/`. A missing scope is a 403

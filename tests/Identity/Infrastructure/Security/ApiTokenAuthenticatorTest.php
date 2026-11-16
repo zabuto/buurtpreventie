@@ -37,7 +37,7 @@ final class ApiTokenAuthenticatorTest extends ApiTestCase
         $client->request('GET', '/api/v1/_probe-identity', server: self::bearer(self::SECRET));
 
         self::assertResponseIsSuccessful();
-        self::assertSame(['memberId' => $jan->id()->toRfc4122(), 'channel' => 'api'], self::json($client));
+        self::assertSame(['memberId' => $jan->id()->toRfc4122(), 'roles' => ['walker'], 'channel' => 'api'], self::json($client));
     }
 
     #[Test]

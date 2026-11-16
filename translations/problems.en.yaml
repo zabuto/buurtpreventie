@@ -26,6 +26,8 @@ invalid_email_address: This e-mail address is not valid.
 invalid_name: This name is not valid. Use at least one letter or digit.
 invalid_input: Not all details are valid.
 bad_request: The app cannot read this request.
+login_failed: The e-mail address or password is not correct.
+csrf_check_failed: The app could not check that this request comes from this site. Reload the page and try again.
 unauthorized: You are not logged in.
 insufficient_scope: Your token may not do this. Create a token with the right scope.
 access_denied: You may not do this.

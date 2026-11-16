@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Shared\Fake;
 
+use App\Shared\Domain\EmailAddress;
 use App\Shared\Domain\MemberDirectory;
 use App\Shared\Domain\MemberIdentity;
 use App\Shared\Domain\MemberProfile;
@@ -68,5 +69,14 @@ final readonly class FixedMemberDirectory implements MemberDirectory
         $profile = $this->profilesOf([$memberId])[$memberId->toRfc4122()] ?? null;
 
         return null === $profile ? null : new MemberIdentity($memberId, [Role::Walker], $profile->active);
+    }
+
+    /**
+     * The profiles carry no address, so nobody logs in through this directory.
+     */
+    #[Override]
+    public function identify(EmailAddress $email): ?MemberIdentity
+    {
+        return null;
     }
 }

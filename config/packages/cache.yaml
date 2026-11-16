@@ -15,5 +15,7 @@ framework:
         #app: cache.adapter.apcu
 
         # Namespaced pools use the above "app" backend by default
-        #pools:
-            #my.dedicated.cache: null
+        pools:
+            # Login attempts per address and IP address; files, so the count holds across PHP processes.
+            cache.login_attempts:
+                adapter: cache.app

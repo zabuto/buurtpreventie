@@ -8,13 +8,16 @@ use App\Shared\Domain\Actor;
 use App\Shared\Domain\Role;
 use Deprecated;
 use Override;
+use Symfony\Component\Security\Core\User\EquatableInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * A member as the token storage holds them: the id and the roles, nothing that needs erasing.
+ * A member as the token storage holds them: the id and the roles, nothing that needs erasing. Two of them are the
+ * same user when the member is: the session then keeps a member whose roles changed, with the roles read afresh,
+ * instead of logging them out.
  */
-final readonly class MemberUser implements UserInterface
+final readonly class MemberUser implements UserInterface, EquatableInterface
 {
     /**
      * @param list<Role> $roles
@@ -48,6 +51,12 @@ final readonly class MemberUser implements UserInterface
     public function getUserIdentifier(): string
     {
         return $this->memberId->toRfc4122();
+    }
+
+    #[Override]
+    public function isEqualTo(UserInterface $user): bool
+    {
+        return $user instanceof self && $user->memberId->equals($this->memberId);
     }
 
     #[Override]

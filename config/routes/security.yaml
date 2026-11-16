@@ -1,3 +1,13 @@
 _security_logout:
     resource: security.route_loader.logout
     type: service
+
+# Both answered by the browser firewall (PasswordAuthenticator, logout), so they have no controller. POST only: a
+# login or logout by GET could be set off by any link or image on another site.
+auth_login:
+    path: /api/v1/auth/login
+    methods: [POST]
+
+auth_logout:
+    path: /api/v1/auth/logout
+    methods: [POST]

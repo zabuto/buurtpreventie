@@ -35,4 +35,11 @@ interface MemberDirectory
      * @return MemberIdentity|null null for an unknown id
      */
     public function identity(Uuid $memberId): ?MemberIdentity;
+
+    /**
+     * The member who logs in with this address, read afresh like identity().
+     *
+     * @return MemberIdentity|null null when no member has the address; an erased member has none
+     */
+    public function identify(EmailAddress $email): ?MemberIdentity;
 }

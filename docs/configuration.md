@@ -70,4 +70,6 @@ The input of a use case refuses a longer value; the column holds at least as muc
 | Coordinates | Latitude −90 to 90, longitude −180 to 180, six decimals (about 10 cm) | `Coordinates`, `DECIMAL(9,6)` |
 | API token secret | `bpt_` and 64 hexadecimal characters from 32 random bytes, stored as SHA-256; any other value is refused | `ApiToken`, `RandomSecretGenerator` |
 | API token scopes | At least one of `read`, `write` and `admin`; an optional expiry | `CreateApiToken`, `TokenScope` |
+| Session | Cookie `bp_session`: `Secure`, `HttpOnly`, `SameSite=Lax`; files in `var/sessions/<env>/`; a new id at login | `config/packages/framework.yaml` |
+| Failed logins | 5 per address and IP address in 15 minutes, 30 per IP address in an hour, then 429; a successful login clears the first count | `config/packages/rate_limiter.yaml` |
 | Audit fields | A field name containing `password`, `secret`, `token` or `hash` is refused | `AuditEntry` |

@@ -78,6 +78,11 @@ versions follow [Semantic Versioning](https://semver.org/).
 - API responses carry a Content-Security-Policy that allows nothing, `nosniff`, `Referrer-Policy: no-referrer`
   and `Cross-Origin-Opener-Policy: same-origin`.
 - `AddFirstAdmin`: the system adds the first admin, only while no active admin exists.
+- Login in the browser: `POST /api/v1/auth/login` with e-mail address and password gives a session, `POST
+  /api/v1/auth/logout` ends it. A failed attempt gets the same answer whatever went wrong; repeated failures are
+  throttled with 429. An outdated password hash is renewed at login. A deactivated member is logged out on the next
+  request, a changed role counts at once. Logins and failed attempts on a known member are in the audit log with a
+  shortened IP address. Changing requests from the browser must come from the same origin.
 - A member chooses to hear about rounds that seek a buddy (`ChangeOpenRoundNotifications`), only for themselves.
 - A round list covers at most 93 days.
 - Sample data: `app:fixtures:load demo|test|edge` in `dev` and `test`, built through the use cases with a fixed seed

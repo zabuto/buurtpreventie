@@ -350,6 +350,29 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
   verzoek uitgelogd (review-focus 4); een gewijzigde rol werkt bij het volgende verzoek; een muterend verzoek zonder
   geldige CSRF-controle geeft 403; `POST /auth/logout` wist sessie en cookie.
 - Authenticator, user provider, CSRF-listener, entry point; auditregels uit beslissing 14.
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - de firewall heet `browser`; alles onder `/api/` vraagt een ingelogd lid, behalve `/api/v1/health`,
+    `/api/v1/docs.json` en `/api/v1/auth/`. Inloggen antwoordt 204 zonder body; uitloggen ook. Beide alleen `POST`,
+    als routes zonder controller die de firewall beantwoordt;
+  - lid en wachtwoord worden gecontroleerd als stappen van het paspoort (`PasswordCheck`), zodat de rate limiter
+    van Symfony (`login_throttling` met `DefaultLoginRateLimiter`) eerst beslist: een geweigerde poging hasht niets.
+    In Symfony 7.4 telt hij alleen mislukte pogingen, en een geslaagde inlog wist alleen de telling per adres en IP;
+  - een onbekend adres, inactief lid of lid zonder wachtwoord kost één hash, zodat de tijd niets verraadt. Een
+    wachtwoord boven 4.096 tekens wordt vooraf geweigerd: de hasher van Symfony gooit daar een fout;
+  - `account.login_failed` heeft geen uitvoerder (`RunAs::system()` op kanaal `web`): niemand bewees wie het
+    probeerde. Het IP-adres wordt ingekort met `IpUtils::anonymize($ip, 1, 10)`; de standaard houdt 64 bits van IPv6;
+  - `Retry-After` komt uit de minuten van Symfony, naar boven afgerond, dus 15 minuten kan 960 seconden zijn;
+  - `MemberUser` is gelijk aan een ander `MemberUser` van hetzelfde lid (`EquatableInterface`); anders logt Symfony
+    een lid uit zodra de rollen veranderen;
+  - `SameOriginGuard` draait vóór de firewalls en gebruikt `SameOriginCsrfTokenManager` met `check_header`; de
+    header heet `csrf-token`. Een verzoek met een `Authorization`-header gaat ongecontroleerd naar de tokenfirewall;
+  - `ProblemResponses` bouwt elk problem-antwoord, ook dat van de firewall; nieuwe codes `login_failed` en
+    `csrf_check_failed`;
+  - de sessiecookie is altijd `Secure`; lokaal over `http://localhost` nemen Chrome en Firefox hem aan;
+  - `InMemoryKernel` telt inlogpogingen in een eigen `ArrayAdapter` per kernel; `ApiTestCase` stuurt
+    `Sec-Fetch-Site: same-origin` en heeft `actingAs()`. De probe toont ook de rollen;
+  - `MemberRepository::ofEmail()` heeft een eigen integratietest (`DoctrineMemberRepositoryOfEmailTest`): de
+    bestaande testklasse zat aan de grens van Mago voor het aantal methodes.
 
 ### T6. Ingelogd blijven, code per mail en uitnodiging (test eerst)
 

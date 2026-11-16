@@ -10,12 +10,10 @@ use App\Shared\Domain\NotFound;
 use App\Shared\Domain\RuleViolation;
 use App\Shared\Domain\StateConflict;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Validator\Exception\ValidationFailedException;
-use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
 
 /**
@@ -27,7 +25,6 @@ use Throwable;
 final readonly class ProblemResponder
 {
     private const string API_PREFIX = '/api/';
-    private const string TYPE_PREFIX = 'urn:buurtpreventie:problem:';
 
     /** @var array<int, string> */
     private const array HTTP_CODES = [
@@ -43,7 +40,7 @@ final readonly class ProblemResponder
     ];
 
     public function __construct(
-        private TranslatorInterface $translator,
+        private ProblemResponses $problems,
     ) {
     }
 
@@ -56,17 +53,7 @@ final readonly class ProblemResponder
         $throwable = $event->getThrowable();
         [$status, $code, $headers] = self::classify($throwable);
 
-        $body = [
-            'type' => self::TYPE_PREFIX . $code,
-            'title' => $this->translator->trans($code, domain: 'problems'),
-            'status' => $status,
-        ];
-        $violations = self::violations($throwable);
-        if ([] !== $violations) {
-            $body['violations'] = $violations;
-        }
-
-        $event->setResponse(new JsonResponse($body, $status, [...$headers, 'Content-Type' => 'application/problem+json']));
+        $event->setResponse($this->problems->create($status, $code, $headers, self::violations($throwable)));
     }
 
     /**

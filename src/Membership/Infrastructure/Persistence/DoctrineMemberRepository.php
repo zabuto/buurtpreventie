@@ -61,6 +61,12 @@ final readonly class DoctrineMemberRepository implements MemberRepository
     }
 
     #[Override]
+    public function ofEmail(EmailAddress $email): ?Member
+    {
+        return $this->entityManager->getRepository(Member::class)->findOneBy(['email' => $email->value]);
+    }
+
+    #[Override]
     public function activeWithOpenRoundNotifications(): array
     {
         /** @var list<Member> */

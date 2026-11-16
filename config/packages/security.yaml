@@ -3,9 +3,9 @@ security:
     password_hashers:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
 
-    # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
-        users_in_memory: { memory: null }
+        members:
+            id: App\Identity\Infrastructure\Security\MemberUserProvider
 
     firewalls:
         dev:
@@ -17,17 +17,27 @@ security:
         api_token:
             request_matcher: App\Identity\Infrastructure\Security\BearerRequestMatcher
             stateless: true
-            provider: users_in_memory
+            provider: members
             custom_authenticators:
                 - App\Identity\Infrastructure\Security\ApiTokenAuthenticator
-        main:
+        browser:
             lazy: true
-            provider: users_in_memory
+            provider: members
+            entry_point: App\Identity\Infrastructure\Security\SessionEntryPoint
+            custom_authenticators:
+                - App\Identity\Infrastructure\Security\PasswordAuthenticator
+            login_throttling:
+                limiter: app.login_rate_limiter
+            logout:
+                path: auth_logout
+                delete_cookies:
+                    bp_session: { path: '/' }
 
-    # Note: Only the *first* matching rule is applied
+    # Only the first matching rule applies.
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+        - { path: ^/api/v1/(health|docs\.json)$, roles: PUBLIC_ACCESS }
+        - { path: ^/api/v1/auth/, roles: PUBLIC_ACCESS }
+        - { path: ^/api/, roles: IS_AUTHENTICATED }
 
 when@test:
     security:

@@ -6,6 +6,7 @@ namespace App\Membership\Infrastructure;
 
 use App\Membership\Domain\Member;
 use App\Membership\Domain\MemberRepository;
+use App\Shared\Domain\EmailAddress;
 use App\Shared\Domain\MemberDirectory;
 use App\Shared\Domain\MemberIdentity;
 use App\Shared\Domain\MemberProfile;
@@ -68,6 +69,19 @@ final readonly class RepositoryMemberDirectory implements MemberDirectory
             return null;
         }
 
+        return self::identityOf($member);
+    }
+
+    #[Override]
+    public function identify(EmailAddress $email): ?MemberIdentity
+    {
+        $member = $this->members->ofEmail($email);
+
+        return null === $member ? null : self::identityOf($member);
+    }
+
+    private static function identityOf(Member $member): MemberIdentity
+    {
         return new MemberIdentity($member->id(), $member->roles(), $member->isActive());
     }
 }

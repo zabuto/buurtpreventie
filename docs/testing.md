@@ -42,7 +42,12 @@ takes from the container (`self::service()`), then makes one request; the client
 leak between tests.
 
 The test client sends `Accept-Language: en-us` unless told otherwise (`Request::create()`). A test that expects
-Dutch says so with its own header.
+Dutch says so with its own header. `ApiTestCase::createClient()` adds `Sec-Fetch-Site: same-origin`, so a changing
+request passes the CSRF check; a test passes another value, or `null` to leave the header out.
+`ApiTestCase::actingAs()` logs the client in on the browser firewall as a new member with the given roles. That
+member lives in the fakes of the running kernel, so the session holds for one request, or for all of them after
+`$client->disableReboot()`. The kernel counts login attempts in a plain `ArrayAdapter` of its own: a cache pool is
+emptied between two requests of one client, and a pool in files would carry attempts from one test to the next.
 
 ## Database tests
 

@@ -26,6 +26,8 @@ invalid_email_address: Dit e-mailadres klopt niet.
 invalid_name: Deze naam klopt niet. Gebruik minstens één letter of cijfer.
 invalid_input: Niet alle gegevens kloppen.
 bad_request: Dit verzoek kan de app niet lezen.
+login_failed: Het e-mailadres of het wachtwoord klopt niet.
+csrf_check_failed: De app kon niet controleren of dit verzoek van deze site komt. Laad de pagina opnieuw en probeer het nog eens.
 unauthorized: Je bent niet ingelogd.
 insufficient_scope: Je token mag dit niet. Maak een token met de juiste rechten.
 access_denied: Dit mag je niet doen.

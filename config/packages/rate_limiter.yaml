@@ -1,0 +1,14 @@
+framework:
+    rate_limiter:
+        # Failed logins on one address from one IP address.
+        login_per_address:
+            policy: sliding_window
+            limit: 5
+            interval: '15 minutes'
+            cache_pool: cache.login_attempts
+        # Failed logins from one IP address over all addresses, against trying one password on many addresses.
+        login_per_ip:
+            policy: sliding_window
+            limit: 30
+            interval: '1 hour'
+            cache_pool: cache.login_attempts

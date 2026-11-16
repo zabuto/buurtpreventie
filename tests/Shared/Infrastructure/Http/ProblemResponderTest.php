@@ -18,6 +18,7 @@ final class ProblemResponderTest extends ApiTestCase
     public function it_answers_a_state_conflict_with_409_and_the_code_of_the_rule(): void
     {
         $client = self::createClient();
+        self::actingAs($client);
 
         $client->request('GET', '/api/v1/_probe/conflict', server: self::DUTCH);
 
@@ -33,6 +34,7 @@ final class ProblemResponderTest extends ApiTestCase
     public function it_answers_an_invalid_value_with_422(): void
     {
         $client = self::createClient();
+        self::actingAs($client);
 
         $client->request('GET', '/api/v1/_probe/invalid');
 
@@ -44,6 +46,7 @@ final class ProblemResponderTest extends ApiTestCase
     public function it_answers_an_unknown_item_with_404(): void
     {
         $client = self::createClient();
+        self::actingAs($client);
 
         $client->request('GET', '/api/v1/_probe/not-found');
 
@@ -55,6 +58,7 @@ final class ProblemResponderTest extends ApiTestCase
     public function it_answers_a_refusal_by_the_voters_with_403(): void
     {
         $client = self::createClient();
+        self::actingAs($client);
 
         $client->request('GET', '/api/v1/_probe/denied');
 
@@ -66,6 +70,7 @@ final class ProblemResponderTest extends ApiTestCase
     public function it_lists_each_invalid_field_with_its_message(): void
     {
         $client = self::createClient();
+        self::actingAs($client);
 
         $client->request('POST', '/api/v1/_probe', server: [...self::DUTCH, 'CONTENT_TYPE' => 'application/json'], content: '{"name":""}');
 
@@ -85,6 +90,7 @@ final class ProblemResponderTest extends ApiTestCase
     public function it_answers_unreadable_json_with_400(): void
     {
         $client = self::createClient();
+        self::actingAs($client);
 
         $client->request('POST', '/api/v1/_probe', server: ['CONTENT_TYPE' => 'application/json'], content: '{"name":');
 
@@ -107,6 +113,7 @@ final class ProblemResponderTest extends ApiTestCase
     public function it_answers_a_wrong_method_with_405_and_keeps_the_allowed_methods(): void
     {
         $client = self::createClient();
+        self::actingAs($client);
 
         $client->request('DELETE', '/api/v1/_probe');
 
@@ -119,6 +126,7 @@ final class ProblemResponderTest extends ApiTestCase
     public function it_answers_too_many_attempts_with_429_and_keeps_retry_after(): void
     {
         $client = self::createClient();
+        self::actingAs($client);
 
         $client->request('GET', '/api/v1/_probe/throttled');
 
@@ -131,6 +139,7 @@ final class ProblemResponderTest extends ApiTestCase
     public function it_answers_an_unexpected_failure_with_500_without_its_detail(): void
     {
         $client = self::createClient();
+        self::actingAs($client);
 
         $client->request('GET', '/api/v1/_probe/unexpected', server: self::DUTCH);
 
@@ -146,6 +155,7 @@ final class ProblemResponderTest extends ApiTestCase
     public function it_answers_in_english_when_the_client_asks_for_it(): void
     {
         $client = self::createClient();
+        self::actingAs($client);
 
         $client->request('GET', '/api/v1/_probe/conflict', server: ['HTTP_ACCEPT_LANGUAGE' => 'en-GB,en;q=0.8']);
 
@@ -156,6 +166,7 @@ final class ProblemResponderTest extends ApiTestCase
     public function it_answers_in_dutch_for_a_language_it_does_not_have(): void
     {
         $client = self::createClient();
+        self::actingAs($client);
 
         $client->request('GET', '/api/v1/_probe/conflict', server: ['HTTP_ACCEPT_LANGUAGE' => 'fr-FR']);
 
@@ -166,10 +177,26 @@ final class ProblemResponderTest extends ApiTestCase
     public function it_answers_in_dutch_when_the_client_names_no_language(): void
     {
         $client = self::createClient();
+        self::actingAs($client);
 
         $client->request('GET', '/api/v1/_probe/conflict', server: ['HTTP_ACCEPT_LANGUAGE' => '']);
 
         self::assertSame('Deze ronde is vol.', self::json($client)['title'] ?? null);
+    }
+
+    #[Test]
+    public function it_answers_a_request_without_a_session_with_401_before_the_endpoint_runs(): void
+    {
+        $client = self::createClient();
+
+        $client->request('GET', '/api/v1/_probe/conflict');
+
+        self::assertResponseStatusCodeSame(401);
+        self::assertResponseHeaderSame('Content-Type', 'application/problem+json');
+        self::assertSame(
+            ['type' => 'urn:buurtpreventie:problem:unauthorized', 'title' => 'You are not logged in.', 'status' => 401],
+            self::json($client),
+        );
     }
 
     #[Test]
