@@ -171,6 +171,7 @@ A handler reaches storage, rights, the audit log and messages only through inter
 | `WriteAction`, `ReadAction` | Mark a handler as changing something, with its voter attribute and audit action, or as only reading | |
 | `Unchanged` | The default of an input field that a JSON Merge Patch leaves out, so a handler keeps the current value where null clears it; `fieldsSetIn()` gives the fields to validate | |
 | `BackedEnumValues` | Gives an enum `values()`, so an input constraint takes its choices from the enum (`Assert\Choice(callback: ...)`) | |
+| `AppUrl` | The base URL of the app from `DEFAULT_URI`, on a subdomain or under a path; `to('app/#/…')` makes every absolute link that leaves the app outside a request, such as in a mail, so the path of the installation is in each | |
 | `EmailAddress` | An address trimmed and in lower case, with accents kept | |
 | `PhoneNumber` | A phone number as a member types it, with whitespace tidied: digits, spaces, brackets and hyphens, an optional leading plus, at least six digits. Shared, as members and the contact of the association both have one | |
 | `LookupKey` | The search and uniqueness key of a name: no case, accents or extra whitespace | |

@@ -28,6 +28,11 @@ services:
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
 
+    # Every absolute link outside a request, such as in a mail, starts at DEFAULT_URI.
+    App\Shared\Domain\AppUrl:
+        factory: ['App\Shared\Domain\AppUrl', 'fromString']
+        arguments: ['%env(DEFAULT_URI)%']
+
     # Messages leave once the change is committed (AfterCommitNotifier); login codes and invitations go by mail, any
     # other message reaches the log only (MailNotifier).
     App\Shared\Domain\Notifier: '@App\Shared\Infrastructure\Notification\AfterCommitNotifier'

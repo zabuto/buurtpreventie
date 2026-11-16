@@ -422,6 +422,16 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
 
 - `AppUrl` (beslissing 14). Tests: subdomein en pad, met en zonder slash aan het eind, geven dezelfde links.
 - `MailNotifier` en het manifest gebruiken `AppUrl`; de uitnodigingslink van fase 2 ook.
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - `AppUrl::fromString()` weigert alles behalve een `http`- of `https`-adres met host en hooguit een pad: een query
+    of fragment zou midden in elke link komen. Een verkeerde `DEFAULT_URI` geeft zo een fout zodra de app een
+    bericht verstuurt, in plaats van een mail met een kapotte link. Geen controle op `/public` (beslissing 14);
+  - `to()` zet precies één slash tussen basis en pad, met of zonder slash aan het eind van de basis of het begin
+    van het pad;
+  - `AppUrl` is een service uit `DEFAULT_URI` (`config/services.yaml`); `MailNotifier` maakt de uitnodigingslink
+    ermee. De manifestlinks komen in T7, met het manifest;
+  - de testkernel zet de basis op `https://example.org/buurtpreventie/`, dus elke mailtest bewijst dat het pad
+    meegaat (review-focus 5).
 
 ### T6. Logo en icoon (test eerst)
 

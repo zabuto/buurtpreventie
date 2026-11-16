@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Shared\Infrastructure\Notification;
 
+use App\Shared\Domain\AppUrl;
 use App\Shared\Domain\MemberDirectory;
 use App\Shared\Domain\Notification;
 use App\Shared\Domain\Notifier;
@@ -33,8 +34,7 @@ final readonly class MailNotifier implements Notifier
         private LoggerInterface $logger,
         #[Autowire(env: 'MAILER_FROM')]
         private string $from,
-        #[Autowire(env: 'DEFAULT_URI')]
-        private string $baseUri,
+        private AppUrl $appUrl,
     ) {
     }
 
@@ -78,7 +78,7 @@ final readonly class MailNotifier implements Notifier
 
         $secret = $notification->parameters['secret'] ?? null;
         if (\is_string($secret)) {
-            $placeholders['%link%'] = \rtrim($this->baseUri, '/') . '/app/#/welcome/' . $secret;
+            $placeholders['%link%'] = $this->appUrl->to('app/#/welcome/' . $secret);
         }
 
         return $placeholders;

@@ -19,7 +19,7 @@ use Symfony\Component\Mime\Email;
 /**
  * The mails a member needs to log in, as plain Dutch text through the mailer of the app. The test environment sends
  * them to the null transport, where Symfony keeps them for the assertions; InMemoryServices gives the notifier a
- * sender and base address of its own.
+ * sender of its own and a base URL under a path.
  */
 #[Group('functional')]
 final class MailNotifierTest extends ApiTestCase
@@ -45,7 +45,7 @@ final class MailNotifierTest extends ApiTestCase
     }
 
     #[Test]
-    public function it_mails_the_invitation_with_the_secret_behind_the_hash_of_a_link_on_the_base_address(): void
+    public function it_mails_the_invitation_with_the_secret_behind_the_hash_of_a_link_under_the_path_of_the_base_url(): void
     {
         self::bootKernel();
         $jan = self::member();
@@ -61,7 +61,7 @@ final class MailNotifierTest extends ApiTestCase
         self::assertSame('Je bent uitgenodigd', $mail->getSubject());
         self::assertSame(
             "Je bent uitgenodigd voor de app van de buurtpreventie. Open deze link om in te loggen:\n\n"
-                . "https://buurt.example.org/app/#/welcome/bpi_0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\n\n"
+                . "https://example.org/buurtpreventie/app/#/welcome/bpi_0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\n\n"
                 . "De link werkt 48 uur en één keer. Werkt hij niet meer? Vraag dan op het inlogscherm een inlogcode aan met dit e-mailadres.\n",
             $mail->getTextBody(),
         );

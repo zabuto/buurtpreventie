@@ -30,7 +30,7 @@ Symfony reads them in this order; a later value wins. Real secrets live only in 
 | `MAILER_DSN` | How mail leaves the app, such as `smtp://user:password@smtp.example.org:587` on a server. Locally the Symfony CLI sets it from the `mailer` container (Mailpit) in `compose.yaml` | `null://null`, which sends nothing; always in `test` |
 | `MAILER_FROM` | Sender of every mail, an address the mail server may send from | `noreply@localhost` (in `config/services.yaml`) |
 | `HSTS_MAX_AGE` | Seconds a browser keeps to HTTPS for this host after an API answer over HTTPS (`Strict-Transport-Security`), such as `31536000` for a year. Opt-in per installation: set it only once HTTPS works there, because a browser that has it refuses the site over HTTP until the time runs out, also when the certificate is lost. Covers this host only, not other subdomains of the domain | `0`, which sends no HSTS (in `config/services.yaml`) |
-| `DEFAULT_URI` | Base URL of the app for links outside a web request, such as in e-mails and from the console. A subdomain (`https://buurtpreventie.example.org`) or a path (`https://example.org/buurtpreventie`), without `/public` | `http://localhost` (in `config/services.yaml`) |
+| `DEFAULT_URI` | Base URL of the app for links outside a web request, such as in e-mails and from the console. A subdomain (`https://buurtpreventie.example.org`) or a path (`https://example.org/buurtpreventie`), without `/public`; a trailing slash makes no difference. Anything but an http or https address with a host and at most a path is an error as soon as the app sends a message | `http://localhost` (in `config/services.yaml`) |
 
 ## Settings of the association
 
