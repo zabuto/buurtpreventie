@@ -187,13 +187,16 @@ password. It is no part of `composer check` or CI and adds no dependency: import
 `postman/local.postman_environment.json` into the Postman app, or run it with Newman:
 
 ```sh
-npx newman run postman/buurtpreventie.postman_collection.json \
+HTTPS_PROXY=http://127.0.0.1:7080 npx newman run postman/buurtpreventie.postman_collection.json \
   -e postman/local.postman_environment.json --insecure \
   --env-var "mailpitUrl=$(symfony var:export MAILER_WEB_URL)"
 ```
 
-Add `--env-var password=…` for a member with a password, `--env-var email=…` for a member of another sample set, and
-`--env-var baseUrl=…` when the app runs on another address than `https://127.0.0.1:8000`.
+The local environment reaches the app at `https://buurtpreventie.wip`, the domain of the Symfony CLI's local proxy
+(`symfony proxy:status`), which stays the same whatever port the server got. Newman does not read the proxy setting of
+the system, hence `HTTPS_PROXY`; the Postman app does when it uses the system proxy. Without the proxy, pass the
+address `symfony server:list` shows for this directory: `--env-var baseUrl=https://127.0.0.1:<port>`. Add
+`--env-var password=…` for a member with a password and `--env-var email=…` for a member of another sample set.
 
 It needs the app running under the Symfony CLI (hence `--insecure` for its local certificate), the database with
 sample data, and Mailpit. `email` is a member of the loaded set (`beheer@example.org` in `test` and `edge`). Only the
