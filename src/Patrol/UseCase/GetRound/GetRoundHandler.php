@@ -6,6 +6,7 @@ namespace App\Patrol\UseCase\GetRound;
 
 use App\Patrol\Domain\Catalogue\MeetingPoint;
 use App\Patrol\Domain\Round\Participation;
+use App\Patrol\Domain\Round\ReportReadingPolicy;
 use App\Patrol\Domain\Round\Round;
 use App\Patrol\Domain\Round\RoundComment;
 use App\Patrol\Domain\Round\RoundCommentRepository;
@@ -25,7 +26,8 @@ use Symfony\Component\Uid\Uuid;
 /**
  * Shows one round with its walkers, report and comments. Only Membership knows who is inactive, so inactive walkers
  * show as a count. A coordinator or admin, or the system itself, sees full names; the walkers of the round and
- * coordinators see the phone numbers walkers consent to share.
+ * coordinators see the phone numbers walkers consent to share. The note of the report and the comments are for the
+ * walkers of the round, analysts and coordinators only; anyone else sees the outcome without a note.
  */
 #[ReadAction]
 final readonly class GetRoundHandler
@@ -35,6 +37,7 @@ final readonly class GetRoundHandler
         private RoundCommentRepository $comments,
         private MemberDirectory $memberDirectory,
         private RoundPolicy $policy,
+        private ReportReadingPolicy $readingPolicy,
         private Authorization $authorization,
         private ExecutionContext $executionContext,
         private ClockInterface $clock,
@@ -51,7 +54,8 @@ final readonly class GetRoundHandler
 
         $now = $this->clock->now();
         $report = $round->report();
-        $comments = $this->comments->forRound($round);
+        $withNotes = $this->readingPolicy->maySeeNotes($this->executionContext->actor(), $round);
+        $comments = $withNotes ? $this->comments->forRound($round) : [];
         $walkers = $this->walkers($round);
         $authors = $this->memberDirectory->profilesOf([
             ...(null === $report ? [] : [$report->authorId()]),
@@ -73,7 +77,7 @@ final readonly class GetRoundHandler
             ownerId: $round->ownerId()?->toRfc4122(),
             walkers: $walkers,
             inactiveWalkerCount: $round->walkerCount() - \count($walkers),
-            report: null === $report ? null : self::report($report, $authors),
+            report: null === $report ? null : self::report($report, $authors, $withNotes),
             comments: \array_map(static fn(RoundComment $comment): array => self::comment($comment, $authors), $comments),
         );
     }
@@ -162,13 +166,13 @@ final readonly class GetRoundHandler
      *     reportedAt: string,
      * }
      */
-    private static function report(RoundReport $report, array $authors): array
+    private static function report(RoundReport $report, array $authors, bool $withNote): array
     {
         return [
             'id' => $report->id()->toRfc4122(),
             'outcome' => $report->outcome()->name(),
             'outcomeKind' => $report->outcome()->kind()->value,
-            'note' => $report->note(),
+            'note' => $withNote ? $report->note() : null,
             'authorId' => $report->authorId()->toRfc4122(),
             'authorDisplayName' => $authors[$report->authorId()->toRfc4122()]->displayName ?? null,
             'reportedAt' => LocalTime::of($report->reportedAt())->format(\DATE_ATOM),

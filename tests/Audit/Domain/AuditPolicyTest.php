@@ -29,4 +29,23 @@ final class AuditPolicyTest extends TestCase
             ],
         );
     }
+
+    /**
+     * The history of a round names who signed up and withdrew, which a coordinator needs to arrange rounds.
+     */
+    #[Test]
+    public function it_lets_only_a_coordinator_view_the_history_of_a_round(): void
+    {
+        $policy = new AuditPolicy();
+
+        $this->assertSame(
+            [true, false, false, false],
+            [
+                $policy->mayViewRoundHistory(new Actor(Uuid::v7(), [Role::Coordinator])),
+                $policy->mayViewRoundHistory(new Actor(Uuid::v7(), [Role::Admin])),
+                $policy->mayViewRoundHistory(new Actor(Uuid::v7(), [Role::Analyst])),
+                $policy->mayViewRoundHistory(new Actor(Uuid::v7(), [Role::Walker])),
+            ],
+        );
+    }
 }

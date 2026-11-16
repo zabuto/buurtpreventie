@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Patrol\UseCase\ListRounds;
 
 use App\Patrol\Domain\Round\InvalidPeriod;
+use App\Patrol\Domain\Round\ListingPeriod;
 use App\Patrol\Domain\Round\Round;
 use App\Patrol\Domain\Round\RoundRepository;
 use App\Patrol\Domain\Round\RoundStatus;
@@ -20,11 +21,6 @@ use Psr\Clock\ClockInterface;
 #[ReadAction]
 final readonly class ListRoundsHandler
 {
-    /**
-     * A quarter in local time, the hour the clocks go back included, keeps one answer to a few hundred rounds.
-     */
-    private const int MAXIMUM_PERIOD_IN_DAYS = 93;
-
     public function __construct(
         private RoundRepository $rounds,
         private Authorization $authorization,
@@ -39,19 +35,12 @@ final readonly class ListRoundsHandler
     {
         $this->authorization->denyUnlessGranted('round.list');
 
-        $from = new DateTimeImmutable($input->from);
-        $to = new DateTimeImmutable($input->to);
-        if ($to <= $from) {
-            throw new InvalidPeriod(\sprintf('The period from %s does not end after its start.', $input->from));
-        }
-        if (($to->getTimestamp() - $from->getTimestamp()) > (self::MAXIMUM_PERIOD_IN_DAYS * 86_400)) {
-            throw new InvalidPeriod(\sprintf('The period from %s lasts longer than %d days.', $input->from, self::MAXIMUM_PERIOD_IN_DAYS));
-        }
+        $period = new ListingPeriod(new DateTimeImmutable($input->from), new DateTimeImmutable($input->to));
 
         $now = $this->clock->now();
         $status = null === $input->status ? null : RoundStatus::from($input->status);
         $rounds = \array_filter(
-            $this->rounds->between($from, $to),
+            $this->rounds->between($period->from, $period->to),
             static fn(Round $round): bool => null === $status || $round->status($now) === $status,
         );
 

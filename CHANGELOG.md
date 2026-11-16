@@ -130,3 +130,8 @@ versions follow [Semantic Versioning](https://semver.org/).
 - Review focus 2 through the API: a round planned at 22:00 on the evenings around both clock changes, with the offset
   of the day, the other offset or `Z`, comes back at 22:00 with the right offset and in the evening, in one round, in
   the list and in the own rounds, in memory and once through the database.
+- After the round: `POST /api/v1/rounds/{id}/reports` and `DELETE /api/v1/reports/{id}`, `POST
+  /api/v1/rounds/{id}/comments` and `DELETE /api/v1/comments/{id}`; `GET /api/v1/reports` lists the reports of a
+  period of at most 93 days for analysts and coordinators, and `GET /api/v1/rounds/{id}/history` the history of a
+  round for coordinators, with an erased member as a removed member. The note of a report and the comments of a
+  round are for its walkers, analysts and coordinators only, also in `GET /api/v1/rounds/{id}`.

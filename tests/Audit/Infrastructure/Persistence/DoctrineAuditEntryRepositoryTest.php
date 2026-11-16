@@ -73,6 +73,33 @@ final class DoctrineAuditEntryRepositoryTest extends KernelTestCase
         );
     }
 
+    #[Test]
+    public function it_finds_the_entries_about_one_subject_oldest_first(): void
+    {
+        $round = Uuid::v7();
+        $later = $this->storedAbout('round', $round, '2026-11-15T12:00:00+00:00');
+        $earlier = $this->storedAbout('round', $round, '2026-11-14T12:00:00+00:00');
+        $this->storedAbout('member', $round, '2026-11-14T13:00:00+00:00');
+        $this->storedAbout('round', Uuid::v7(), '2026-11-14T13:00:00+00:00');
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+
+        $found = new DoctrineAuditEntryRepository($this->entityManager)->bySubject('round', $round);
+
+        $this->assertSame(
+            [$earlier->id()->toRfc4122(), $later->id()->toRfc4122()],
+            \array_map(static fn(AuditEntry $entry): string => $entry->id()->toRfc4122(), $found),
+        );
+    }
+
+    private function storedAbout(string $subjectType, Uuid $subjectId, string $at): AuditEntry
+    {
+        $entry = AuditEntry::of(new AuditedAction('round.changed', $subjectType, $subjectId), Uuid::v7(), 'Jan B.', Channel::Web, new DateTimeImmutable($at));
+        $this->entityManager->persist($entry);
+
+        return $entry;
+    }
+
     private function stored(Uuid $actorId, string $actorName, string $at = '2026-11-15T12:00:00+00:00'): AuditEntry
     {
         $entry = AuditEntry::of(

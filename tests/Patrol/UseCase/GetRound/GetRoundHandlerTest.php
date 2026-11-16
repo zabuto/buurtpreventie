@@ -8,6 +8,7 @@ use App\Patrol\Domain\Catalogue\Coordinates;
 use App\Patrol\Domain\Catalogue\MeetingPoint;
 use App\Patrol\Domain\Catalogue\Outcome;
 use App\Patrol\Domain\Catalogue\OutcomeKind;
+use App\Patrol\Domain\Round\ReportReadingPolicy;
 use App\Patrol\Domain\Round\Round;
 use App\Patrol\Domain\Round\RoundComment;
 use App\Patrol\Domain\Round\RoundPolicy;
@@ -335,6 +336,36 @@ final class GetRoundHandlerTest extends TestCase
         $this->assertSame([null, null], [$output->report['authorDisplayName'], $output->comments[0]['authorDisplayName']]);
     }
 
+    /**
+     * A note may be about a suspect: a member who neither walks the round, coordinates nor analyses sees the outcome
+     * only.
+     */
+    #[Test]
+    public function it_hides_the_note_and_comments_from_a_member_who_does_not_walk_the_round(): void
+    {
+        $round = $this->round(new RoundStart(new DateTimeImmutable(self::PAST)), $this->jan, $this->piet);
+        $round->submitReport($this->piet, Outcome::create('Incident', OutcomeKind::Incident), 'Bij de speeltuin', new DateTimeImmutable(self::NOW));
+        $this->comments->add(RoundComment::post($round, $this->piet, 'Politie gebeld.', new DateTimeImmutable(self::NOW)));
+
+        $output = $this->handler(actor: new Actor(Uuid::v7(), [Role::Walker, Role::Admin]))(new GetRound($round->id()->toRfc4122()));
+
+        $this->assertNotNull($output->report);
+        $this->assertSame(['Incident', null, []], [$output->report['outcome'], $output->report['note'], $output->comments]);
+    }
+
+    #[Test]
+    public function it_shows_the_note_and_comments_to_a_walker_of_the_round(): void
+    {
+        $round = $this->round(new RoundStart(new DateTimeImmutable(self::PAST)), $this->jan, $this->piet);
+        $round->submitReport($this->piet, Outcome::create('Incident', OutcomeKind::Incident), 'Bij de speeltuin', new DateTimeImmutable(self::NOW));
+        $this->comments->add(RoundComment::post($round, $this->piet, 'Politie gebeld.', new DateTimeImmutable(self::NOW)));
+
+        $output = $this->handler(actor: new Actor($this->jan, [Role::Walker]))(new GetRound($round->id()->toRfc4122()));
+
+        $this->assertNotNull($output->report);
+        $this->assertSame(['Bij de speeltuin', ['Politie gebeld.']], [$output->report['note'], \array_column($output->comments, 'text')]);
+    }
+
     #[Test]
     public function it_refuses_an_unknown_round(): void
     {
@@ -383,6 +414,7 @@ final class GetRoundHandlerTest extends TestCase
             $this->comments,
             $directory,
             new RoundPolicy(),
+            new ReportReadingPolicy(),
             $authorization ?? FakeAuthorization::granting(),
             new FixedExecutionContext($actor),
             new MockClock(self::NOW),

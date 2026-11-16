@@ -17,6 +17,11 @@ interface AuditEntryRepository
     public function byActor(Uuid $memberId, int $offset, int $limit): array;
 
     /**
+     * @return list<AuditEntry> the entries about one subject, such as a round, oldest first
+     */
+    public function bySubject(string $subjectType, Uuid $subjectId): array;
+
+    /**
      * Wipes the name of the member from every entry the member made; the id stays, so the actions stay attributed
      * to one "removed member".
      */

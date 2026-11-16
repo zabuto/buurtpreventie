@@ -547,6 +547,26 @@ dagdeel `evening`, in `GET /rounds/{id}`, `GET /rounds` en `GET /me/rounds`.
   `GET /rounds/{id}/history` (`GetRoundHistory` nieuw, coördinator).
 - Tests: tweede terugmelding 409; notitie alleen zichtbaar voor de lopers van die ronde, coördinator en analist; de
   geschiedenis toont een gewist lid als "verwijderd lid".
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - de notitie bij een terugmelding én de opmerkingen zijn alleen voor de lopers van de ronde, de coördinator, de
+    analist en het systeem (`ReportReadingPolicy::maySeeNotes()`), zoals de tabel in Privacy en AVG van het plan. `GET
+    /rounds/{id}` gaf ze aan elk lid; nu krijgt een ander lid de uitkomst met notitie `null` en geen opmerkingen. Een
+    beheerder zonder die rollen ziet ze dus ook niet. De regel staat met `mayListReports()` in een eigen
+    `ReportReadingPolicy`: `RoundPolicy` werd te complex voor Mago;
+  - `ListRoundReports` (nieuw, Patrol, voterattribuut `report.list` voor analist en coördinator, rij in de matrix)
+    leest `RoundRepository::between()` en neemt de rondes met een terugmelding: geen nieuwe query. `outcome` is het
+    id van een uitkomst, niet het soort. De periode gaat over de start van de ronde, hooguit 93 dagen; die regel staat
+    in `ListingPeriod`, dat `ListRounds` ook gebruikt (verplaatst, niet veranderd);
+  - `GetRoundHistory` (nieuw, Audit, `audit.view_round_history` alleen voor de coördinator, rij in de matrix) leest
+    `AuditEntryRepository::bySubject()` (nieuw, met integratietest; de index op `subject_id` bestond al), oudste
+    eerst, zonder paginering. Het leest alleen het log, dus een verwijderde ronde houdt haar geschiedenis; zonder
+    regels is het 404. De uitvoer noemt de uitvoerder `member`, `removed_member` of `system`; de frontend maakt er
+    "verwijderd lid" en "systeem" van, zodat de API geen Nederlandse tekst geeft. De wijzigingen staan er zoals in
+    het log, dus met lid-id's van lopers;
+  - `POST /rounds/{id}/reports` en `/comments` nemen het ronde-id uit het pad, zoals in T8, en antwoorden 201 met
+    `{id}`; `DELETE /reports/{id}` en `/comments/{id}` 204;
+  - de Postman-collectie controleert als voorbeeldbeheerder de 403 voor `/reports` en de geschiedenis, en de 404 voor
+    een opmerking bij of het wissen van iets dat niet bestaat. Ze plaatst niets.
 
 ### T11. Leden en review-focus 3 (test eerst)
 

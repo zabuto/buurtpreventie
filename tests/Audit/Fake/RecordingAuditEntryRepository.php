@@ -42,6 +42,21 @@ final class RecordingAuditEntryRepository implements AuditEntryRepository
     }
 
     #[Override]
+    public function bySubject(string $subjectType, Uuid $subjectId): array
+    {
+        $entries = \array_values(\array_filter(
+            $this->entries,
+            static fn(AuditEntry $entry): bool => $entry->subjectType() === $subjectType && $entry->subjectId()->equals($subjectId),
+        ));
+        \usort(
+            $entries,
+            static fn(AuditEntry $a, AuditEntry $b): int => [$a->occurredAt(), $a->id()->toRfc4122()] <=> [$b->occurredAt(), $b->id()->toRfc4122()],
+        );
+
+        return $entries;
+    }
+
+    #[Override]
     public function eraseActorName(Uuid $memberId): void
     {
         $this->erasedActorNames[] = $memberId;

@@ -20,9 +20,9 @@ final readonly class GetRoundOutput
      *     authorId: string,
      *     authorDisplayName: string|null,
      *     reportedAt: string,
-     * }|null $report a null authorDisplayName is an erased member
+     * }|null $report a null authorDisplayName is an erased member; the note is null for whoever may not read it
      * @param list<array{id: string, authorId: string, authorDisplayName: string|null, text: string, postedAt: string}> $comments
-     *     oldest first; a null authorDisplayName is an erased member
+     *     oldest first, empty for whoever may not read them; a null authorDisplayName is an erased member
      */
     public function __construct(
         public string $id,

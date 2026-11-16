@@ -193,7 +193,8 @@ password. After the login with a code it walks the own account: profile, a chang
 created, listed, used, refused under `/me/tokens` and revoked, activity, export, and the 403 for a new token or
 password once only the stay-logged-in cookie is left. After the login with a password it reads the rounds of the
 coming week, one of them, the gaps and the own walked rounds, and checks the 422 for a period of more than 93 days and
-the 404 for signing up for a round that does not exist. It never sets a valid new password, which would replace the one
+the 404 for signing up for a round that does not exist. As the sample admin it gets the 403 for the reports and the
+history of a round, and the 404 for a comment on, or deleting a report of, something that does not exist. It never sets a valid new password, which would replace the one
 of the member in the local database, and the token it makes lives one day. It is no part of `composer check` or CI and adds no dependency: import it with
 `postman/local.postman_environment.json` into the Postman app, or run it with Newman:
 

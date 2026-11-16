@@ -293,6 +293,19 @@ counts for nothing. `PUT` and `DELETE /rounds/{id}/walkers/me` sign the member u
 `/walkers/{memberId}` does so on behalf of another member, which only a coordinator may; both answer 204 however
 often they are repeated, until the last walker leaves and the round goes, after which the round is not found.
 
+**After the round.** `POST /rounds/{id}/reports` (`ReportRoundResult`) takes the one report of a walked round, a
+second gets the 409 problem `round_already_reported`; `DELETE /reports/{id}` (`DeleteRoundReport`) removes it. `POST
+/rounds/{id}/comments` (`AddRoundComment`) and `DELETE /comments/{id}` (`DeleteRoundComment`) do the same for
+comments. The note of a report and the comments may be about a suspect, so `ReportReadingPolicy::maySeeNotes()` keeps
+them for the walkers of the round, analysts, coordinators and the system: `GET /rounds/{id}` gives anyone else the
+outcome with a null note and no comments. `GET /reports?from=&to=&outcome=` (`ListRoundReports`, voter attribute
+`report.list`) lists the reports of the rounds that start in a period of at most 93 days (`ListingPeriod`, shared with
+`ListRounds`), with notes, for analysts and coordinators. `GET /rounds/{id}/history` (`GetRoundHistory`, Audit,
+`audit.view_round_history`) gives a coordinator the audit entries about the round, oldest first, through
+`AuditEntryRepository::bySubject()`; each names its actor as `member`, `removed_member` (erased, without a name) or
+`system`, which the frontend words. It reads the log only, so a deleted round keeps its history; a round the log does
+not know is not found.
+
 ## Handler and domain
 
 A handler orchestrates: it builds value objects from the input, asks `Authorization`, runs the change

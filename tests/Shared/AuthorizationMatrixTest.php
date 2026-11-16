@@ -13,6 +13,7 @@ use App\Membership\Domain\MemberPolicy;
 use App\Membership\Infrastructure\Security\MemberVoter;
 use App\Patrol\Domain\Catalogue\Outcome;
 use App\Patrol\Domain\Catalogue\OutcomeKind;
+use App\Patrol\Domain\Round\ReportReadingPolicy;
 use App\Patrol\Domain\Round\Round;
 use App\Patrol\Domain\Round\RoundComment;
 use App\Patrol\Domain\Round\RoundPolicy;
@@ -62,6 +63,7 @@ final class AuthorizationMatrixTest extends TestCase
         yield from self::memberRows();
         yield from self::credentialRows();
         yield 'audit.erase_actor_name' => ['audit.erase_actor_name', static fn(Uuid $actor): Uuid => Uuid::v7(), ['admin']];
+        yield 'audit.view_round_history' => ['audit.view_round_history', static fn(Uuid $actor): Uuid => Uuid::v7(), ['coordinator']];
     }
 
     /**
@@ -99,6 +101,7 @@ final class AuthorizationMatrixTest extends TestCase
         yield 'report.submit by a walker of the round' => ['report.submit', $roundWalkedWithBuddy, self::MEMBERS];
         yield 'report.delete of another author' => ['report.delete', static fn(Uuid $actor): mixed => self::reportBy(Uuid::v7()), ['coordinator']];
         yield 'report.delete by its author' => ['report.delete', self::reportBy(...), self::MEMBERS];
+        yield 'report.list' => ['report.list', $nobody, ['coordinator', 'analyst']];
 
         yield 'comment.add on a round of others' => ['comment.add', $roundOfOthers, ['coordinator']];
         yield 'comment.add by a walker of the round' => ['comment.add', $roundWalkedWithBuddy, self::MEMBERS];
@@ -223,7 +226,7 @@ final class AuthorizationMatrixTest extends TestCase
         return [
             new RoundVoter($roundPolicy),
             new ParticipationVoter($roundPolicy),
-            new ReportVoter($roundPolicy),
+            new ReportVoter($roundPolicy, new ReportReadingPolicy()),
             new CommentVoter($roundPolicy),
             new CatalogueVoter($roundPolicy),
             new MemberVoter(new MemberPolicy()),
