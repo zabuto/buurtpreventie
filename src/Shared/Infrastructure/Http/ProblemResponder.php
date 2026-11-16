@@ -7,6 +7,7 @@ namespace App\Shared\Infrastructure\Http;
 use App\Shared\Domain\AccessDenied;
 use App\Shared\Domain\InvalidValue;
 use App\Shared\Domain\NotFound;
+use App\Shared\Domain\ReauthenticationRequired;
 use App\Shared\Domain\RuleViolation;
 use App\Shared\Domain\StateConflict;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
@@ -67,6 +68,7 @@ final readonly class ProblemResponder
             $throwable instanceof RuleViolation => [422, ProblemCode::of($throwable), []],
             $throwable instanceof NotFound => [404, 'not_found', []],
             $throwable instanceof AccessDenied => [403, 'access_denied', []],
+            $throwable instanceof ReauthenticationRequired => [403, 'reauthentication_required', []],
             $throwable instanceof NamedProblem => self::fromHttp($throwable, $throwable->problemCode()),
             $throwable instanceof HttpExceptionInterface => self::fromHttp($throwable),
             default => [500, 'internal_error', []],

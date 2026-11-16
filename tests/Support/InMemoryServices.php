@@ -21,6 +21,7 @@ use App\Settings\Domain\SettingRepository;
 use App\Shared\Domain\AuditTrail;
 use App\Shared\Domain\Notifier;
 use App\Shared\Domain\Transaction;
+use App\Shared\Infrastructure\Notification\MailNotifier;
 use App\Tests\Audit\Fake\RecordingAuditEntryRepository;
 use App\Tests\Identity\Fake\FixedLoginCodeGenerator;
 use App\Tests\Identity\Fake\FixedSecretGenerator;
@@ -93,6 +94,15 @@ final readonly class InMemoryServices implements CompilerPassInterface
         foreach ([ClockInterface::class, PsrClock::class, 'clock'] as $clock) {
             $container->setAlias($clock, MockClock::class)->setPublic(true);
         }
+
+        // The notifier of the app is replaced, so its own test reaches it here, with a sender and base address that
+        // do not depend on the environment: the Symfony CLI sets DEFAULT_URI to its local domain.
+        $container
+            ->getDefinition(MailNotifier::class)
+            ->setPublic(true)
+            ->setArgument('$from', 'noreply@example.org')
+            ->setArgument('$baseUri', 'https://buurt.example.org/')
+        ;
 
         $container->setDefinition('cache.login_attempts', new Definition(ArrayAdapter::class))->setPublic(true);
 

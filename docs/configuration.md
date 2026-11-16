@@ -26,7 +26,8 @@ Symfony reads them in this order; a later value wins. Real secrets live only in 
 | `APP_ENV` | Environment: `dev`, `test` or `prod` | `dev` |
 | `APP_SECRET` | Key for signed values such as CSRF tokens. Unique and secret per installation, and always generated, never typed: the installer writes it; locally `php -r 'echo bin2hex(random_bytes(32)), PHP_EOL;'` makes one for `.env.local` | required in production, in `shared/.env.local` |
 | `DATABASE_URL` | Database connection. Locally the Symfony CLI sets it from the `database` container in `compose.yaml`; on a server it goes in `shared/.env.local`, such as `mysql://db_user:db_password@localhost:3306/db_name?charset=utf8mb4` for MariaDB and MySQL alike. URL-encode special characters in the password (`@` becomes `%40`, `:` `%3A`, `/` `%2F`, `#` `%23`, `%` `%25`), or the connection fails with a misleading error. Leave out `serverVersion`: hosts upgrade without notice, and a stale version makes Doctrine generate SQL for the wrong platform; without it, DBAL reads the version when it connects. Tests add `_test` to the database name | none; in `test`, an unreachable address in `.env.test`, so the kernel boots and the database tests skip |
-| `MAILER_DSN` | How mail leaves the app, such as `smtp://user:password@smtp.example.org:587` on a server. Locally the Symfony CLI sets it from the `mailer` container (Mailpit) in `compose.yaml` | `null://null`, which sends nothing |
+| `MAILER_DSN` | How mail leaves the app, such as `smtp://user:password@smtp.example.org:587` on a server. Locally the Symfony CLI sets it from the `mailer` container (Mailpit) in `compose.yaml` | `null://null`, which sends nothing; always in `test` |
+| `MAILER_FROM` | Sender of every mail, an address the mail server may send from | `noreply@localhost` (in `config/services.yaml`) |
 | `DEFAULT_URI` | Base URL of the app for links outside a web request, such as in e-mails and from the console. A subdomain (`https://buurtpreventie.example.org`) or a path (`https://example.org/buurtpreventie`), without `/public` | `http://localhost` (in `config/services.yaml`) |
 
 ## Fixed limits
@@ -72,5 +73,10 @@ The input of a use case refuses a longer value; the column holds at least as muc
 | API token secret | `bpt_` and 64 hexadecimal characters from 32 random bytes, stored as SHA-256; any other value is refused | `ApiToken`, `RandomSecretGenerator` |
 | API token scopes | At least one of `read`, `write` and `admin`; an optional expiry | `CreateApiToken`, `TokenScope` |
 | Session | Cookie `bp_session`: `Secure`, `HttpOnly`, `SameSite=Lax`; files in `var/sessions/<env>/`; a new id at login | `config/packages/framework.yaml` |
-| Failed logins | 5 per address and IP address in 15 minutes, 30 per IP address in an hour, then 429; a successful login clears the first count | `config/packages/rate_limiter.yaml` |
+| Failed logins | 5 per address (or login challenge, or invitation) and IP address in 15 minutes, 30 per IP address in an hour, then 429; a successful login clears the first count | `config/packages/rate_limiter.yaml` |
+| Login code | Six digits, 60 minutes, once, at most 5 attempts; a new request ends the earlier ones | `LoginChallenge` |
+| Login code requests | 3 per address and 10 per IP address in an hour, then 429 | `config/packages/rate_limiter.yaml` |
+| Invitation | `bpi_` and 64 hexadecimal characters, stored as SHA-256; 48 hours, once; a new invitation ends the earlier ones | `Invitation` |
+| Stay logged in | Cookie `bp_remember` for 90 days: `Secure`, `HttpOnly`, `SameSite=Lax`; ends with a new password | `config/packages/security.yaml` |
+| Recent login | 15 minutes after a login or confirmation; needed for a new password | `TokenRecentAuthentication` |
 | Audit fields | A field name containing `password`, `secret`, `token` or `hash` is refused | `AuditEntry` |

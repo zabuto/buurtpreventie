@@ -1,0 +1,17 @@
+# Mails to members, as plain text. The login code stays out of the subject: a locked phone shows the subject.
+account.login_code.subject: Your login code
+account.login_code.body: |
+    Your login code is:
+
+        %code%
+
+    Enter this code on the screen where you asked for it. The code works for %minutes% minutes, and once.
+
+    Did you not ask for a code? Then you need not do anything.
+account.invitation.subject: You are invited
+account.invitation.body: |
+    You are invited to the app of the neighbourhood watch. Open this link to log in:
+
+    %link%
+
+    The link works for %hours% hours, and once. Does it no longer work? Then ask for a login code on the login screen with this e-mail address.

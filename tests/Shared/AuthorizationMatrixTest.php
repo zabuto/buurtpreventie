@@ -118,6 +118,7 @@ final class AuthorizationMatrixTest extends TestCase
         foreach (['member.add', 'member.change', 'member.change_roles', 'member.deactivate', 'member.reactivate', 'member.erase'] as $attribute) {
             yield $attribute => [$attribute, $nobody, ['admin']];
         }
+        yield 'member.invite' => ['member.invite', $nobody, ['coordinator', 'admin']];
         yield 'member.add_first_admin' => ['member.add_first_admin', $nobody, ['system']];
         yield 'member.change_consent of oneself' => ['member.change_consent', 'member:self', self::MEMBERS];
         yield 'member.change_consent of another member' => ['member.change_consent', 'member:other', []];
@@ -142,6 +143,8 @@ final class AuthorizationMatrixTest extends TestCase
         yield 'api_token.revoke_all of another member' => ['api_token.revoke_all', $stranger, ['admin']];
         yield 'account.set_password of oneself' => ['account.set_password', $self, self::MEMBERS];
         yield 'account.set_password of another member' => ['account.set_password', $stranger, []];
+        yield 'account.issue_invitation' => ['account.issue_invitation', $stranger, ['coordinator', 'admin']];
+        yield 'account.request_login_code' => ['account.request_login_code', static fn(Uuid $actor): null => null, ['nobody', 'system', ...self::MEMBERS]];
     }
 
     /**

@@ -28,4 +28,12 @@ final readonly class MemberPolicy
     {
         return $actor->is($member->id());
     }
+
+    /**
+     * Having an invitation sent, which a coordinator may too, for a member whose invitation got lost.
+     */
+    public function mayInvite(Actor $actor): bool
+    {
+        return $actor->hasRole(Role::Coordinator) || $actor->hasRole(Role::Admin);
+    }
 }

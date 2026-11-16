@@ -76,6 +76,9 @@ Things that are not obvious and cost time when you do not know them.
 
 - **`DEFAULT_URI`** has a default in `config/services.yaml` (`http://localhost`). Without it,
   `cache:clear` fails with "Environment variable not found". Set the real base URL in `.env.local`.
+- **The Symfony CLI sets `DEFAULT_URI` and `MAILER_DSN`** when it runs a command, also for tests: its local domain
+  and Mailpit. The test environment pins the mailer to `null://null`, and a test that checks a link sets the base
+  address itself.
 - **A kernel without debug does not check its cache.** With `APP_DEBUG=0` the kernel keeps using the
   container in `var/cache/<env>/`, however much the code changed since. An outdated container in
   `var/cache/test/` refused every voter attribute, so every handler threw `AccessDenied`. Clear it with

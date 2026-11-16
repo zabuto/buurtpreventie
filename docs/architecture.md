@@ -31,7 +31,7 @@ tests/                the same folders as src/, plus Architecture/, Database/, D
 | --- | --- |
 | `Patrol` | Rounds, signing up, buddies, round reports |
 | `Membership` | Members, roles, consent, certificate |
-| `Identity` | Login, login links, passwords, API tokens |
+| `Identity` | Login, login codes, invitations, passwords, API tokens |
 | `Audit` | Recording and showing the audit log |
 | `Settings` | The default minimum and maximum walkers of a new round; branding and texts from phase 3 |
 | `Maintenance` | Health check, updates, installer, legacy import |
@@ -151,9 +151,10 @@ A handler reaches storage, rights, the audit log and messages only through inter
 | `ExecutionContext`, `Channel` | The member performing the action with their roles (an `Actor`), or none for the system, and the channel (`web`, `api`, `mcp`, `cron`, `console`) | `Shared\Infrastructure\Security\TokenExecutionContext`, which reads Symfony's token storage; `RunAs` fills it for console commands, fixtures and the scheduler, an authenticator for HTTP and MCP |
 | `AuditTrail`, `AuditedAction` | Records an action; time, actor and channel come from the clock and the execution context | `Audit\Infrastructure\Persistence\DoctrineAuditTrail` |
 | `MemberNames` | The display name of a member, or none for an erased one, so another module can record or show who acted | `Membership\Infrastructure\RepositoryMemberNames` |
-| `MemberDirectory`, `MemberProfile`, `MemberIdentity` | Whether a member is active, who wants to hear about open rounds, a member's names and phone number (only with consent), and the identity the login works with, by id or e-mail address: id, current roles and whether the member may log in | `Membership\Infrastructure\RepositoryMemberDirectory` |
+| `MemberDirectory`, `MemberProfile`, `MemberIdentity` | Whether a member is active, who wants to hear about open rounds, a member's names and phone number (only with consent), the address mail goes to (none for an inactive member), and the identity the login works with, by id or e-mail address: id, current roles and whether the member may log in | `Membership\Infrastructure\RepositoryMemberDirectory` |
 | `Authorization`, `AccessDenied` | `denyUnlessGranted()` asks the voters of every module and throws `AccessDenied` on a refusal | `Shared\Infrastructure\Security\SymfonyAuthorization` |
-| `Notifier`, `Notification` | Sends a member a message by type and parameters; the domain holds no texts | `Shared\Infrastructure\Notification\LoggingNotifier`, which only logs |
+| `Notifier`, `Notification` | Sends a member a message by type and parameters; the domain holds no texts | `Shared\Infrastructure\Notification\MailNotifier`, which mails a login code or invitation as plain text from `translations/mail.<locale>.yaml` and hands any other type to `LoggingNotifier`; neither logs the parameters, which can hold a code or secret |
+| `RecentAuthentication`, `ReauthenticationRequired` | Whether the member acting proved who they are in the last 15 minutes (`@upgrade-8.4`, sudo mode), and the refusal of a sensitive action without that proof | `Shared\Infrastructure\Security\TokenRecentAuthentication`, which reads the token attribute `authenticated_at` |
 | `Role`, `Actor` | The fixed roles `walker`, `coordinator`, `analyst` and `admin`, without inheritance, and a member with their roles, as the policies of every module decide on them | |
 | `NotFound` | No item of a kind has a given id; entry points turn it into their own answer, such as HTTP 404 | |
 | `RuleViolation`, `StateConflict`, `InvalidValue` | A domain rule refused the action: the state forbids it (`RoundIsFull`) or a value breaks a rule (`StartInPast`). Every domain exception is one of these or `NotFound`; its code is the short class name in snake case | |
@@ -180,7 +181,7 @@ sets; an action no voter decides on is refused.
 
 **Errors.** Under `/api/`, `Shared\Infrastructure\Http\ProblemResponder` turns every failure into
 `application/problem+json` (RFC 9457): a `StateConflict` is 409, an `InvalidValue` 422, `NotFound` 404,
-`AccessDenied` 403, invalid input 422 with a `violations` list per field, and anything unexpected 500. The `type`
+`AccessDenied` 403, `ReauthenticationRequired` 403 with the code `reauthentication_required`, invalid input 422 with a `violations` list per field, and anything unexpected 500. The `type`
 is `urn:buurtpreventie:problem:<code>`, the `title` comes from `translations/problems.<locale>.yaml` in the language
 of `Accept-Language` (Dutch by default). The exception message never reaches the client: it holds ids and
 internals, and goes to the log only. A new domain exception therefore implements `StateConflict` or `InvalidValue`
@@ -197,7 +198,7 @@ Two firewalls guard `/api/`, picked by the request:
 | Firewall | Takes | Authenticator | Channel |
 | --- | --- | --- | --- |
 | `api_token` | Every API request with an `Authorization` header, whatever its scheme | `Identity\Infrastructure\Security\ApiTokenAuthenticator` | `api` |
-| `browser` | Every other request, with a session | `Identity\Infrastructure\Security\PasswordAuthenticator` | `web` |
+| `browser` | Every other request, with a session | `PasswordAuthenticator`, `LoginCodeAuthenticator`, `InvitationAuthenticator`, `ConfirmPasswordAuthenticator` and Symfony's `remember_me`, all in `Identity\Infrastructure\Security` except the last | `web` |
 
 The token firewall is stateless. Its authenticator takes every request, so a broken or unknown header is refused
 like a wrong token: an empty 401 with `WWW-Authenticate: Bearer`, and the reason only in the log. It looks the
@@ -219,6 +220,29 @@ address without its last byte (IPv4) or last 80 bits (IPv6). An attempt on an un
 without the address. Five failed attempts on one address from one IP address within 15 minutes, or 30 from one IP
 address within an hour, give 429 with `Retry-After`; a successful login clears the first count only.
 `POST /api/v1/auth/logout` ends the session and clears its cookie. Login and logout take `POST` only.
+
+**Login code.** `POST /api/v1/auth/login-code` (`RequestLoginCode`) takes `{email}` and always answers 202 with a
+`challengeId`, which the browser keeps. An active member gets a six-digit code by mail and loses every earlier open
+challenge; any other address gets a challenge that no code opens, so neither answer nor attempts tell whether the
+address belongs to a member. `LoginCodeRequestThrottle` allows 3 requests per address and 10 per IP address in an
+hour, then 429 with `Retry-After`. `POST /api/v1/auth/login-code/verify` takes `{challengeId, code}`; spaces and
+hyphens in the code do not count. `LoginCodeCheck` stores the attempt before it answers: a wrong code is the 401
+problem `login_code_wrong` with `attemptsLeft`, a challenge that is unknown, used, older than 60 minutes, past 5
+attempts or of a member deactivated since is `login_code_ended`. Only an HMAC of challenge id and code is stored.
+
+**Invitation.** `POST /api/v1/auth/invitation` takes `{secret}`, which the frontend reads from behind the `#` of the
+link in the mail, so it reaches no access log. `InvitationCheck` accepts an invitation once, within 48 hours, for an
+active member; anything else is the 401 problem `invitation_ended`. `IssueInvitation` sends one and ends the earlier
+ones; only an admin inviting a member who never logged in gets the secret back.
+
+**Every browser login** answers 204, records `account.logged_in` or `account.login_failed` with the method
+(`password`, `code`, `invitation`), and counts in Symfony's login throttling. `"rememberMe": true` in the body sets
+the cookie `bp_remember` for 90 days, signed with `MemberUser::$credentialsVersion`, the moment of the member's last
+new password: a new password ends it on every device. A login stamps the token with `authenticated_at`, which makes
+it recent for 15 minutes (`RecentAuthentication`); a session from the cookie and an API token never are.
+`POST /api/v1/auth/confirm` takes `{password}` in an existing session and makes it recent; a refusal leaves the
+session as it was. `BrowserTokenChannel` puts the channel `web` on every token of the browser firewall. A request
+without a token, such as a request for a code, also runs on `web`, without an actor.
 
 `MemberUserProvider` reloads the member of a session on every request: a deactivated or erased member drops out at
 once, and a changed role counts from the next request without a new login (`MemberUser` is the same user as long as

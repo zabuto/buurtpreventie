@@ -1,0 +1,17 @@
+# Mails to members, as plain text. The login code stays out of the subject: a locked phone shows the subject.
+account.login_code.subject: Je inlogcode
+account.login_code.body: |
+    Je inlogcode is:
+
+        %code%
+
+    Vul deze code in op het scherm waar je hem aanvroeg. De code werkt %minutes% minuten en één keer.
+
+    Heb je geen code aangevraagd? Dan hoef je niets te doen.
+account.invitation.subject: Je bent uitgenodigd
+account.invitation.body: |
+    Je bent uitgenodigd voor de app van de buurtpreventie. Open deze link om in te loggen:
+
+    %link%
+
+    De link werkt %hours% uur en één keer. Werkt hij niet meer? Vraag dan op het inlogscherm een inlogcode aan met dit e-mailadres.

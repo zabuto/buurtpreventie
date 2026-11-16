@@ -12,3 +12,15 @@ framework:
             limit: 30
             interval: '1 hour'
             cache_pool: cache.login_attempts
+        # Requests for a login code for one address, whether it belongs to a member or not.
+        login_code_per_address:
+            policy: sliding_window
+            limit: 3
+            interval: '1 hour'
+            cache_pool: cache.login_attempts
+        # Requests for a login code from one IP address over all addresses.
+        login_code_per_ip:
+            policy: sliding_window
+            limit: 10
+            interval: '1 hour'
+            cache_pool: cache.login_attempts

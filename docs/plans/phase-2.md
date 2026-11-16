@@ -382,7 +382,8 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
 
 - `LoginChallenge` en `Invitation` met migratie (alleen toevoegen) en `Account.credentialsChangedAt` (beslissingen 9,
   10 en 12).
-- Use cases (Identity): `RequestLoginCode`, `LogInWithCode`, `AcceptInvitation`, `ConfirmPassword`; `InviteMember` in Membership roept de uitnodiging aan.
+- Use cases (Identity): `RequestLoginCode`, `IssueInvitation`; inloggen met code of uitnodiging en opnieuw
+  bevestigen zijn authenticators (zie Uitgevoerd); `InviteMember` in Membership roept de uitnodiging aan.
 - Tests: elke code en uitnodiging één keer bruikbaar; een code verloopt na 60 minuten, een uitnodiging na 48 uur;
   een code werkt alleen met zijn eigen `challengeId`; na 5 foute pogingen werkt ook de goede code niet meer; een
   nieuwe aanvraag maakt de vorige ongeldig; spaties en een streepje in de code tellen niet mee; 202 met een
@@ -391,15 +392,49 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
   nieuw wachtwoord werkt een onthouden apparaat niet meer; `remember_me` houdt een sessie 90 dagen vast maar telt
   niet als recent (beslissing 15).
 - `LoggingNotifier` zonder parameters; inlogcode en uitnodiging per mail, lokaal in Mailpit (beslissing 29).
-- Stand op 16 november 2026 (opslag klaar, de rest volgt):
-  - `LoginChallenge` (id van 128 willekeurige bits als 32 hex-tekens, `CodeAttempt` `Accepted`/`Wrong`/`Ended`,
-    `end()` voor een nieuwere aanvraag), `Invitation` (`bpi_`, `end()`), `LoginCode::typed()`/`shown()`,
-    `Account::changePassword()` met `credentialsChangedAt` en `renewPasswordHash()` voor een vernieuwde hash;
-  - `LoginCodeGenerator`, `LoginCodeHasher` (HMAC-SHA-256 met `APP_SECRET` over id en code),
-    `SecretGenerator::newInvitationSecret()`, Doctrine-repositories met een slot bij gebruik, fakes in `InMemoryKernel`
-    en migratie `Version20261116002055` (alleen toevoegen); `SetPassword` zet `credentialsChangedAt`;
-  - nog te doen: use cases en endpoints, `MailNotifier`, `RecentAuthentication`, ingelogd blijven, code-aanvragen
-    begrenzen, `SetPassword` volgens beslissingen 16 en 22.
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - opslag: `LoginChallenge` (id van 128 willekeurige bits als 32 hex-tekens, `CodeAttempt` `Accepted`/`Wrong`/`Ended`),
+    `Invitation` (`bpi_`), `LoginCode::typed()`/`shown()`, `Account::changePassword()` met `credentialsChangedAt` en
+    `renewPasswordHash()`, `LoginCodeHasher` (HMAC-SHA-256 met `APP_SECRET` over id en code), migratie
+    `Version20261116002055` (alleen toevoegen);
+  - `RequestLoginCode` (`POST /auth/login-code`, 202 met `challengeId`): een onbekend adres of inactief lid krijgt een
+    aanvraag zonder lid, waar geen code op past; een getypte code telt daar als fout, dus het antwoord verschilt niet.
+    Een adres in een verkeerd formaat geeft 422. Voterattribuut `account.request_login_code` voor iedereen, ook
+    zonder sessie; auditregel `account.login_code_requested` alleen voor een bekend lid;
+  - `LoginCodeRequestThrottle` begrenst code-aanvragen op 3 per uur per adres (geteld op een hash, zodat de cache
+    geen adres bevat) en 10 per uur per IP-adres, met 429 en `Retry-After`. Elke aanvraag telt, met of zonder lid;
+  - inloggen met een code, met een uitnodiging en opnieuw bevestigen zijn authenticators op de firewall `browser`
+    (`LoginCodeAuthenticator`, `InvitationAuthenticator`, `ConfirmPasswordAuthenticator`), met `LoginCodeCheck`,
+    `InvitationCheck` en `PasswordCheck`, geen use cases (zoals beslissing 4). De `login_throttling` van Symfony telt
+    ook hun mislukte pogingen, per aanvraag-id of uitnodiging en IP-adres, en in de 30 per uur per IP-adres;
+  - probleemcodes: `login_code_wrong` (401 met `attemptsLeft`), `login_code_ended` (onbekend, gebruikt, verlopen,
+    opgebruikt, of het lid is inmiddels gedeactiveerd) en `invitation_ended`. De uitnodiging van een gedeactiveerd lid
+    blijft ongebruikt;
+  - `LoginRecorder` zet de manier (`password`, `code`, `invitation`) in de auditregel. Bevestigen is geen inloggen:
+    alleen een mislukte poging komt in het auditlog;
+  - `RecentAuthentication` (`@upgrade-8.4`) leest het tokenattribuut `authenticated_at`, dat de authenticators zetten;
+    recent is tot en met 15 minuten. `BrowserTokenChannel` zet kanaal `web` op elk token van de firewall `browser`, ook
+    dat van `remember_me`, dat geen moment krijgt;
+  - `TokenExecutionContext` geeft kanaal `web` zonder actor voor een HTTP-verzoek zonder token;
+  - `remember_me`: 90 dagen, cookie `bp_remember` (`Secure`, `HttpOnly`, `Lax`), aan met `"rememberMe": true`,
+    ondertekend met `MemberUser::$credentialsVersion` (het moment van `credentialsChangedAt`). Het vinkje staat in de
+    frontend standaard uit: wie een gedeeld toestel gebruikt, kiest zelf (besloten op 16 november 2026). Een lopende
+    sessie op een ander toestel eindigt niet door een nieuw wachtwoord; alleen onthouden apparaten vallen af;
+  - **afwijking van beslissing 16**: `SetPassword` vraagt nooit het huidige wachtwoord, maar eist een recente sessie
+    (anders 403 `reauthentication_required`, `Shared\Domain\ReauthenticationRequired`). Het huidige wachtwoord gaat
+    via `POST /auth/confirm`, achter de login throttling en met een auditregel bij falen; een controle in
+    `SetPassword` zelf zou een onbegrensde manier zijn om wachtwoorden te raden. `memberId` is optioneel (beslissing 22);
+  - `MailNotifier` stuurt `account.login_code` en `account.invitation` als platte tekst in het Nederlands, uit
+    `translations/mail.nl.yaml` (een Engelse versie staat klaar). Platte tekst kent geen grote letters: de code staat
+    in twee groepen op een eigen, ingesprongen regel bovenaan. Geldigheid gaat als parameter mee (`minutes`, `hours`).
+    Afzender `MAILER_FROM` (standaard `noreply@localhost`), link `DEFAULT_URI` plus `/app/#/welcome/bpi_…`. De
+    `LoggingNotifier` logt geen parameters meer. `MemberDirectory::emailOf()` geeft geen adres voor een inactief lid;
+  - `IssueInvitation` (`account.issue_invitation`) en `InviteMember` (`member.invite`) voor coördinator en beheerder;
+    het geheim komt alleen terug voor een beheerder bij een lid dat nooit inlogde. Een inactief lid geeft 409
+    `invitee_inactive`;
+  - de test "na inloggen met een code zet het lid een nieuw wachtwoord zonder het oude" staat op de handler (een
+    recente sessie); de hele weg via `PUT /me/password` volgt in T7;
+  - in tests gaat mail altijd naar `null://null`: de Symfony CLI zet `MAILER_DSN` en `DEFAULT_URI` als hij draait.
 
 ### T7. Eigen account (test eerst)
 

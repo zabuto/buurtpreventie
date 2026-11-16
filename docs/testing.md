@@ -10,7 +10,7 @@
 | `tests/Architecture/` | The PHPat rules, the test that proves they fire, the folder layout test, and the test that every linked section of `architecture.md` exists |
 | `tests/Architecture/Fixtures/` | Deliberate violations; outside the regular PHPStan run and the autoloader |
 | `tests/<Module>/Fake/` | In-memory repositories and other small fakes of the interfaces in `Domain`, for the handler tests |
-| `tests/Shared/Fake/` | Fakes of the interfaces in `Shared\Domain`: transaction, execution context, authorization, audit trail, notifier, member directory |
+| `tests/Shared/Fake/` | Fakes of the interfaces in `Shared\Domain`: transaction, execution context, authorization, audit trail, notifier, member directory, recent authentication |
 | `tests/Support/` | `ApiTestCase` and `InMemoryKernel` for endpoint tests without a database, and a probe controller that raises each kind of failure for the problem responses |
 | `tests/Database/` | The PHPUnit extension that builds the test database before the database tests |
 | `tests/Dependencies/` | Every Symfony component in `composer.json` and `composer.lock` is on the release line in `extra.symfony.require` (7.4 LTS); the Dependabot and Composer cooldowns stay at their minimums without exemptions |
@@ -46,7 +46,11 @@ Dutch says so with its own header. `ApiTestCase::createClient()` adds `Sec-Fetch
 request passes the CSRF check; a test passes another value, or `null` to leave the header out.
 `ApiTestCase::actingAs()` logs the client in on the browser firewall as a new member with the given roles. That
 member lives in the fakes of the running kernel, so the session holds for one request, or for all of them after
-`$client->disableReboot()`. The kernel counts login attempts in a plain `ArrayAdapter` of its own: a cache pool is
+`$client->disableReboot()`. That session is not recent; a test that needs a recent one logs in through an
+authenticator. The session cookie of the test environment is `MOCKSESSID`, so a test ends a session by expiring that
+cookie. The identity probe also answers whether the proof is recent. Mail goes to the null transport in `test`
+(`config/packages/mailer.yaml`), where Symfony's mailer assertions see it; the kernel gives `MailNotifier` a fixed
+sender and base address. The kernel counts login attempts in a plain `ArrayAdapter` of its own: a cache pool is
 emptied between two requests of one client, and a pool in files would carry attempts from one test to the next.
 
 ## Database tests

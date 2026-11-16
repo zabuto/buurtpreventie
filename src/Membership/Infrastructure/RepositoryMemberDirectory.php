@@ -80,6 +80,18 @@ final readonly class RepositoryMemberDirectory implements MemberDirectory
         return null === $member ? null : self::identityOf($member);
     }
 
+    #[Override]
+    public function emailOf(Uuid $memberId): ?EmailAddress
+    {
+        try {
+            $member = $this->members->get($memberId);
+        } catch (NotFound) {
+            return null;
+        }
+
+        return $member->isActive() ? $member->email() : null;
+    }
+
     private static function identityOf(Member $member): MemberIdentity
     {
         return new MemberIdentity($member->id(), $member->roles(), $member->isActive());

@@ -79,4 +79,13 @@ final readonly class FixedMemberDirectory implements MemberDirectory
     {
         return null;
     }
+
+    /**
+     * The profiles carry no address, so nobody gets mail through this directory.
+     */
+    #[Override]
+    public function emailOf(Uuid $memberId): ?EmailAddress
+    {
+        return null;
+    }
 }

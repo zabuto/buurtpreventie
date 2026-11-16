@@ -28,7 +28,7 @@ final class ApiTokenAuthenticatorTest extends ApiTestCase
     private const string SECRET = 'bpt_0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
     #[Test]
-    public function it_runs_the_request_as_the_member_of_the_token_through_the_api_channel(): void
+    public function it_runs_the_request_as_the_member_of_the_token_through_the_api_channel_never_as_a_recent_login(): void
     {
         $client = self::createClient();
         $jan = self::member();
@@ -37,7 +37,7 @@ final class ApiTokenAuthenticatorTest extends ApiTestCase
         $client->request('GET', '/api/v1/_probe-identity', server: self::bearer(self::SECRET));
 
         self::assertResponseIsSuccessful();
-        self::assertSame(['memberId' => $jan->id()->toRfc4122(), 'roles' => ['walker'], 'channel' => 'api'], self::json($client));
+        self::assertSame(['memberId' => $jan->id()->toRfc4122(), 'roles' => ['walker'], 'channel' => 'api', 'recent' => false], self::json($client));
     }
 
     #[Test]

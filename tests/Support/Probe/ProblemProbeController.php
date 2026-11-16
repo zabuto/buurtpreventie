@@ -8,6 +8,7 @@ use App\Patrol\Domain\Round\RoundIsFull;
 use App\Patrol\Domain\Round\StartInPast;
 use App\Shared\Domain\AccessDenied;
 use App\Shared\Domain\NotFound;
+use App\Shared\Domain\ReauthenticationRequired;
 use DateTimeImmutable;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -50,6 +51,7 @@ final readonly class ProblemProbeController
             'invalid' => StartInPast::at(new DateTimeImmutable('2026-01-01T20:00:00+01:00')),
             'not-found' => NotFound::forId('round', Uuid::v7()),
             'denied' => AccessDenied::forAction('round.delete'),
+            'not-recent' => ReauthenticationRequired::forAction('account.set_password'),
             'throttled' => new TooManyRequestsHttpException(60),
             default => new RuntimeException(self::UNEXPECTED_DETAIL),
         };

@@ -56,4 +56,25 @@ final class MemberPolicyTest extends TestCase
 
         $this->assertFalse(new MemberPolicy()->mayChangeOwnChoice(new Actor(Uuid::v7(), [Role::Admin]), $member));
     }
+
+    /**
+     * @return iterable<string, array{list<Role>, bool}>
+     */
+    public static function inviters(): iterable
+    {
+        yield 'walker' => [[Role::Walker], false];
+        yield 'analyst' => [[Role::Analyst], false];
+        yield 'coordinator' => [[Role::Coordinator], true];
+        yield 'admin' => [[Role::Admin], true];
+    }
+
+    /**
+     * @param list<Role> $roles
+     */
+    #[DataProvider('inviters')]
+    #[Test]
+    public function it_lets_a_coordinator_or_admin_have_an_invitation_sent(array $roles, bool $expected): void
+    {
+        $this->assertSame($expected, new MemberPolicy()->mayInvite(new Actor(Uuid::v7(), $roles)));
+    }
 }

@@ -15,7 +15,8 @@ use Symfony\Component\Uid\Uuid;
 /**
  * A member as the token storage holds them: the id and the roles, nothing that needs erasing. Two of them are the
  * same user when the member is: the session then keeps a member whose roles changed, with the roles read afresh,
- * instead of logging them out.
+ * instead of logging them out. The credentials version is signed into every "stay logged in" cookie, so a new
+ * password ends them all.
  */
 final readonly class MemberUser implements UserInterface, EquatableInterface
 {
@@ -25,6 +26,7 @@ final readonly class MemberUser implements UserInterface, EquatableInterface
     public function __construct(
         public Uuid $memberId,
         public array $roles,
+        public string $credentialsVersion = '',
     ) {
     }
 

@@ -42,4 +42,11 @@ interface MemberDirectory
      * @return MemberIdentity|null null when no member has the address; an erased member has none
      */
     public function identify(EmailAddress $email): ?MemberIdentity;
+
+    /**
+     * The address mail for the member goes to.
+     *
+     * @return EmailAddress|null null for a deactivated, erased or unknown member, who gets no mail
+     */
+    public function emailOf(Uuid $memberId): ?EmailAddress;
 }

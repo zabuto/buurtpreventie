@@ -26,6 +26,7 @@ final readonly class PasswordCheck
         private AccountRepository $accounts,
         private PasswordHasher $passwordHasher,
         private Transaction $transaction,
+        private MemberUserProvider $users,
     ) {
     }
 
@@ -46,7 +47,7 @@ final readonly class PasswordCheck
             throw new LoginRefused(null === $identity ? 'unknown_address' : 'member_inactive', $identity?->memberId);
         }
 
-        return new MemberUser($identity->memberId, $identity->roles);
+        return $this->users->userOf($identity);
     }
 
     /**

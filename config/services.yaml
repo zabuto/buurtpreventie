@@ -9,6 +9,8 @@
 parameters:
     # Fallback for URL generation outside a request (console, scheduler); the real base URL goes in .env.local.
     env(DEFAULT_URI): 'http://localhost'
+    # Sender of every mail; the real address goes in .env.local.
+    env(MAILER_FROM): 'noreply@localhost'
 
 services:
     # default configuration for services in *this* file
@@ -23,6 +25,9 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    # Login codes and invitations go by mail; any other message reaches the log only (MailNotifier).
+    App\Shared\Domain\Notifier: '@App\Shared\Infrastructure\Notification\MailNotifier'
 
     # Login throttling (security.yaml): a limit per address and IP address, cleared by a successful login, and a
     # higher limit per IP address that a successful login leaves alone.

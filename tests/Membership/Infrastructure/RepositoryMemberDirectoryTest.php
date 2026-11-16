@@ -162,4 +162,25 @@ final class RepositoryMemberDirectoryTest extends TestCase
 
         $this->assertNull($this->directory->identify(EmailAddress::fromString('piet@example.org')));
     }
+
+    #[Test]
+    public function it_gives_the_address_mail_for_an_active_member_goes_to(): void
+    {
+        $jan = MemberFixture::stored($this->members, 'Jan@Example.org', 'Jan Bakker', 'Jan B.');
+
+        $this->assertEquals(EmailAddress::fromString('jan@example.org'), $this->directory->emailOf($jan->id()));
+    }
+
+    #[Test]
+    public function it_gives_no_address_for_a_deactivated_an_erased_or_an_unknown_member(): void
+    {
+        $deactivated = MemberFixture::stored($this->members, 'jan@example.org', 'Jan Bakker', 'Jan B.');
+        $deactivated->deactivate();
+        $erased = MemberFixture::stored($this->members, 'piet@example.org', 'Piet de Vries', 'Piet V.');
+        $erased->erase(new DateTimeImmutable('2026-11-16T10:00:00+00:00'));
+
+        $addresses = [$this->directory->emailOf($deactivated->id()), $this->directory->emailOf($erased->id()), $this->directory->emailOf(Uuid::v7())];
+
+        $this->assertSame([null, null, null], $addresses);
+    }
 }

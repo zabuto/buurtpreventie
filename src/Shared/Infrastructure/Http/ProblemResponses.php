@@ -23,8 +23,9 @@ final readonly class ProblemResponses
     /**
      * @param array<string, string> $headers
      * @param list<array{field: string, message: string}> $violations
+     * @param array<string, scalar> $extensions members a client reads besides the standard ones, such as attemptsLeft
      */
-    public function create(int $status, string $code, array $headers = [], array $violations = []): JsonResponse
+    public function create(int $status, string $code, array $headers = [], array $violations = [], array $extensions = []): JsonResponse
     {
         $body = [
             'type' => self::TYPE_PREFIX . $code,
@@ -34,6 +35,7 @@ final readonly class ProblemResponses
         if ([] !== $violations) {
             $body['violations'] = $violations;
         }
+        $body = [...$body, ...$extensions];
 
         return new JsonResponse($body, $status, [...$headers, 'Content-Type' => 'application/problem+json']);
     }

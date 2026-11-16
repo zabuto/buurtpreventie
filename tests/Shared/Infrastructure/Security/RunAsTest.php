@@ -14,6 +14,7 @@ use DomainException;
 use Override;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Uid\Uuid;
@@ -29,7 +30,7 @@ final class RunAsTest extends TestCase
     {
         $this->tokenStorage = new TokenStorage();
         $this->runAs = new RunAs($this->tokenStorage);
-        $this->context = new TokenExecutionContext($this->tokenStorage);
+        $this->context = new TokenExecutionContext($this->tokenStorage, new RequestStack());
     }
 
     #[Test]

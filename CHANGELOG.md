@@ -83,7 +83,16 @@ versions follow [Semantic Versioning](https://semver.org/).
   throttled with 429. An outdated password hash is renewed at login. A deactivated member is logged out on the next
   request, a changed role counts at once. Logins and failed attempts on a known member are in the audit log with a
   shortened IP address. Changing requests from the browser must come from the same origin.
-- Mail through Symfony Mailer (`MAILER_DSN`); in development Mailpit in `compose.yaml` catches every mail.
+- Mail through Symfony Mailer (`MAILER_DSN`, sender `MAILER_FROM`); in development Mailpit in `compose.yaml` catches
+  every mail. Login codes and invitations go out as plain Dutch text; the log never holds message parameters.
+- Login with a code by mail: `POST /api/v1/auth/login-code` answers the same for any address and mails an active
+  member a six-digit code for 60 minutes, at most 3 requests per address and 10 per IP address in an hour;
+  `POST /api/v1/auth/login-code/verify` logs in with the code and the id of the request, at most 5 attempts.
+- Invitations: a link that logs a member in once within 48 hours (`POST /api/v1/auth/invitation`), sent by a
+  coordinator or admin (`InviteMember`).
+- Stay logged in for 90 days with `"rememberMe": true`; a new password ends it on every device.
+- `POST /api/v1/auth/confirm` with the password makes a session recent; a new password needs a login or confirmation
+  of the last 15 minutes, otherwise 403 `reauthentication_required`. The audit entry of a login names its method.
 - A member chooses to hear about rounds that seek a buddy (`ChangeOpenRoundNotifications`), only for themselves.
 - A round list covers at most 93 days.
 - Sample data: `app:fixtures:load demo|test|edge` in `dev` and `test`, built through the use cases with a fixed seed

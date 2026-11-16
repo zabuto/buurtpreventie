@@ -10,6 +10,7 @@ meeting_point_name_taken: Er is al een startpunt met deze naam.
 outcome_archived: Deze uitkomst wordt niet meer gebruikt.
 outcome_name_taken: Er is al een uitkomst met deze naam.
 member_inactive: Dit lid is niet actief.
+invitee_inactive: Dit lid is niet actief. Een uitnodiging heeft dan geen zin.
 round_already_reported: Er is al een terugmelding voor deze ronde.
 round_has_started: Deze ronde is al begonnen.
 round_is_full: Deze ronde is vol.
@@ -27,10 +28,14 @@ invalid_name: Deze naam klopt niet. Gebruik minstens één letter of cijfer.
 invalid_input: Niet alle gegevens kloppen.
 bad_request: Dit verzoek kan de app niet lezen.
 login_failed: Het e-mailadres of het wachtwoord klopt niet.
+login_code_wrong: Deze code klopt niet.
+login_code_ended: Deze code werkt niet meer. Vraag een nieuwe code aan.
+invitation_ended: Deze uitnodiging werkt niet meer. Vraag een inlogcode aan, of vraag de beheerder om een nieuwe uitnodiging.
 csrf_check_failed: De app kon niet controleren of dit verzoek van deze site komt. Laad de pagina opnieuw en probeer het nog eens.
 unauthorized: Je bent niet ingelogd.
 insufficient_scope: Je token mag dit niet. Maak een token met de juiste rechten.
 access_denied: Dit mag je niet doen.
+reauthentication_required: 'Laat zien dat jij het bent: vul je wachtwoord in, of log opnieuw in met een code.'
 not_found: Dit bestaat niet (meer).
 method_not_allowed: Dit kan op dit adres niet.
 not_acceptable: De app kan dit antwoord niet in die vorm geven.

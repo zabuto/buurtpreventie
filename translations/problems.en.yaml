@@ -10,6 +10,7 @@ meeting_point_name_taken: A meeting point with this name exists.
 outcome_archived: This outcome is no longer in use.
 outcome_name_taken: An outcome with this name exists.
 member_inactive: This member is not active.
+invitee_inactive: This member is not active, so an invitation leads nowhere.
 round_already_reported: This round already has a report.
 round_has_started: This round has started.
 round_is_full: This round is full.
@@ -27,10 +28,14 @@ invalid_name: This name is not valid. Use at least one letter or digit.
 invalid_input: Not all details are valid.
 bad_request: The app cannot read this request.
 login_failed: The e-mail address or password is not correct.
+login_code_wrong: This code is not correct.
+login_code_ended: This code no longer works. Ask for a new code.
+invitation_ended: This invitation no longer works. Ask for a login code, or ask an admin for a new invitation.
 csrf_check_failed: The app could not check that this request comes from this site. Reload the page and try again.
 unauthorized: You are not logged in.
 insufficient_scope: Your token may not do this. Create a token with the right scope.
 access_denied: You may not do this.
+reauthentication_required: 'Confirm it is you: enter your password, or log in again with a code.'
 not_found: This does not exist (any more).
 method_not_allowed: This cannot be done at this address.
 not_acceptable: The app cannot answer in that form.

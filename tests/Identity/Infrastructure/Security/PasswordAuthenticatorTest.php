@@ -22,6 +22,7 @@ use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use SensitiveParameter;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
+use Symfony\Component\Clock\MockClock;
 
 #[Group('functional')]
 final class PasswordAuthenticatorTest extends ApiTestCase
@@ -36,7 +37,7 @@ final class PasswordAuthenticatorTest extends ApiTestCase
     ];
 
     #[Test]
-    public function it_logs_the_member_in_with_a_session_on_the_web_channel(): void
+    public function it_logs_the_member_in_with_a_session_on_the_web_channel_as_a_recent_login(): void
     {
         $client = self::client();
         $jan = self::memberWithPassword();
@@ -45,7 +46,34 @@ final class PasswordAuthenticatorTest extends ApiTestCase
         self::assertResponseStatusCodeSame(204);
         $client->request('GET', '/api/v1/_probe-identity');
 
-        self::assertSame(['memberId' => $jan->id()->toRfc4122(), 'roles' => ['walker'], 'channel' => 'web'], self::json($client));
+        self::assertSame(['memberId' => $jan->id()->toRfc4122(), 'roles' => ['walker'], 'channel' => 'web', 'recent' => true], self::json($client));
+    }
+
+    /**
+     * @return iterable<string, array{string, bool}>
+     */
+    public static function momentsAfterTheLogin(): iterable
+    {
+        yield 'at 15 minutes' => ['+15 minutes', true];
+        yield 'a second later' => ['+15 minutes 1 second', false];
+    }
+
+    /**
+     * A sensitive action asks for a recent proof; the session itself holds on.
+     */
+    #[DataProvider('momentsAfterTheLogin')]
+    #[Test]
+    public function it_counts_the_login_as_recent_for_15_minutes(string $later, bool $recent): void
+    {
+        $client = self::client();
+        self::memberWithPassword();
+        self::logIn($client, 'jan@example.org', self::PASSWORD);
+
+        self::service(MockClock::class)->modify($later);
+        $client->request('GET', '/api/v1/_probe-identity');
+
+        self::assertResponseIsSuccessful();
+        self::assertSame($recent, self::json($client)['recent'] ?? null);
     }
 
     #[Test]
@@ -68,7 +96,10 @@ final class PasswordAuthenticatorTest extends ApiTestCase
         self::logIn($client, 'jan@example.org', self::PASSWORD, ip: '192.0.2.57');
 
         self::assertEquals(
-            [new AuditedAction('account.logged_in', 'member', $jan->id(), ['ip' => ['old' => null, 'new' => '192.0.2.0']])],
+            [new AuditedAction('account.logged_in', 'member', $jan->id(), [
+                'ip' => ['old' => null, 'new' => '192.0.2.0'],
+                'method' => ['old' => null, 'new' => 'password'],
+            ])],
             self::service(RecordingAuditTrail::class)->recorded,
         );
         self::assertEquals(new DateTimeImmutable(InMemoryKernel::NOW), self::account($jan)->lastLoginAt());
@@ -113,7 +144,10 @@ final class PasswordAuthenticatorTest extends ApiTestCase
         self::logIn($client, 'jan@example.org', 'lantaarn-paal-43', ip: '2001:db8:85a3:8d3:1319:8a2e:370:7348');
 
         self::assertEquals(
-            [new AuditedAction('account.login_failed', 'member', $jan->id(), ['ip' => ['old' => null, 'new' => '2001:db8:85a3::']])],
+            [new AuditedAction('account.login_failed', 'member', $jan->id(), [
+                'ip' => ['old' => null, 'new' => '2001:db8:85a3::'],
+                'method' => ['old' => null, 'new' => 'password'],
+            ])],
             self::service(RecordingAuditTrail::class)->recorded,
         );
         self::assertNull(self::account($jan)->lastLoginAt());

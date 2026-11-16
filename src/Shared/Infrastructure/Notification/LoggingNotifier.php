@@ -11,7 +11,7 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Logs each notification instead of delivering it. The log names the member by id only, so it holds no contact
- * details.
+ * details, and leaves the parameters out: they can hold a login code or the secret of an invitation.
  */
 final readonly class LoggingNotifier implements Notifier
 {
@@ -26,7 +26,6 @@ final readonly class LoggingNotifier implements Notifier
         $this->logger->info('Notification {type} for member {recipient}', [
             'type' => $notification->type,
             'recipient' => $notification->recipientId->toRfc4122(),
-            'parameters' => $notification->parameters,
         ]);
     }
 }

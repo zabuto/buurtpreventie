@@ -66,6 +66,28 @@ final class ProblemResponderTest extends ApiTestCase
         self::assertSame('urn:buurtpreventie:problem:access_denied', self::json($client)['type'] ?? null);
     }
 
+    /**
+     * The frontend asks for the password or a new code on this code, and retries.
+     */
+    #[Test]
+    public function it_answers_an_action_that_needs_a_recent_login_with_403_and_a_code_of_its_own(): void
+    {
+        $client = self::createClient();
+        self::actingAs($client);
+
+        $client->request('GET', '/api/v1/_probe/not-recent');
+
+        self::assertResponseStatusCodeSame(403);
+        self::assertSame(
+            [
+                'type' => 'urn:buurtpreventie:problem:reauthentication_required',
+                'title' => 'Confirm it is you: enter your password, or log in again with a code.',
+                'status' => 403,
+            ],
+            self::json($client),
+        );
+    }
+
     #[Test]
     public function it_lists_each_invalid_field_with_its_message(): void
     {

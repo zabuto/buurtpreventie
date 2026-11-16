@@ -1,3 +1,9 @@
 framework:
     mailer:
         dsn: '%env(MAILER_DSN)%'
+
+when@test:
+    framework:
+        mailer:
+            # The Symfony CLI points MAILER_DSN at Mailpit when it runs; tests keep their mail to themselves.
+            dsn: 'null://null'

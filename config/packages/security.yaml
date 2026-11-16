@@ -26,8 +26,23 @@ security:
             entry_point: App\Identity\Infrastructure\Security\SessionEntryPoint
             custom_authenticators:
                 - App\Identity\Infrastructure\Security\PasswordAuthenticator
+                - App\Identity\Infrastructure\Security\LoginCodeAuthenticator
+                - App\Identity\Infrastructure\Security\InvitationAuthenticator
+                - App\Identity\Infrastructure\Security\ConfirmPasswordAuthenticator
             login_throttling:
                 limiter: app.login_rate_limiter
+            # "Stay logged in" for 90 days, asked with "rememberMe": true in the body of a login. The cookie is signed
+            # with the moment of the last new password, so a new password ends it on every device.
+            remember_me:
+                secret: '%kernel.secret%'
+                name: bp_remember
+                lifetime: 7776000
+                path: /
+                secure: true
+                httponly: true
+                samesite: lax
+                remember_me_parameter: rememberMe
+                signature_properties: [credentialsVersion]
             logout:
                 path: auth_logout
                 delete_cookies:
