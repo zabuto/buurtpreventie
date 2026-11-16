@@ -108,6 +108,64 @@ final class DoctrineTransactionTest extends KernelTestCase
     }
 
     /**
+     * A mail about a change must leave only once the change is stored: sent from inside the transaction, it goes out
+     * for a change that a later step still undoes.
+     */
+    #[Test]
+    public function it_runs_a_callback_once_the_outermost_run_has_committed(): void
+    {
+        $level = $this->connection->getTransactionNestingLevel();
+        $seen = [];
+
+        $this->transaction->run(function () use (&$seen): void {
+            $this->transaction->run(function () use (&$seen): void {
+                $this->connection->insert('transaction_probe', ['name' => 'stored']);
+                $this->transaction->afterCommit(function () use (&$seen): void {
+                    $seen[] = [$this->connection->getTransactionNestingLevel(), $this->connection->fetchFirstColumn('SELECT name FROM transaction_probe')];
+                });
+            });
+            $seen[] = 'inner run done';
+        });
+
+        $this->assertSame(['inner run done', [$level, ['stored']]], $seen);
+    }
+
+    #[Test]
+    public function it_drops_the_callbacks_of_a_run_that_fails(): void
+    {
+        $ran = false;
+        $refusal = new DomainException('The round is full.');
+
+        $caught = null;
+        try {
+            $this->transaction->run(function () use (&$ran, $refusal): never {
+                $this->transaction->afterCommit(static function () use (&$ran): void {
+                    $ran = true;
+                });
+
+                throw $refusal;
+            });
+        } catch (DomainException $exception) {
+            $caught = $exception;
+        }
+        $this->transaction->run(static fn(): null => null);
+
+        $this->assertSame([$refusal, false], [$caught, $ran]);
+    }
+
+    #[Test]
+    public function it_runs_a_callback_at_once_outside_a_run(): void
+    {
+        $ran = false;
+
+        $this->transaction->afterCommit(static function () use (&$ran): void {
+            $ran = true;
+        });
+
+        $this->assertTrue($ran);
+    }
+
+    /**
      * Doctrine closes the entity manager when a transaction fails; without a reset, the next use case in the same
      * process, such as the next fixture or scheduled job, fails on a closed entity manager.
      */

@@ -102,6 +102,8 @@ versions follow [Semantic Versioning](https://semver.org/).
 - Sample data: `app:fixtures:load demo|test|edge` in `dev` and `test`, built through the use cases with a fixed seed
   and dates from today. The first admin of every set, `beheer@example.org`, and in `demo` one member per role and
   three walkers log in with one made-up password, which the command shows.
+- Messages leave only once the change they are about is committed, never for a change that is rolled back; a
+  delivery that fails after the commit is logged and does not undo the change.
 - Dependabot also updates the Mailpit image in `compose.yaml`, after the same 7-day cooldown.
 - A Postman collection in `postman/` that checks a running app, for the Postman app or Newman.
 - Test coverage per class in the summary of the CI job "Checks" (`composer test:coverage`), as information only.

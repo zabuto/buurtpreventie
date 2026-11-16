@@ -24,4 +24,13 @@ interface Transaction
      * @return T
      */
     public function run(callable $operation): mixed;
+
+    /**
+     * Runs the callback once the outermost run has committed, in the order of the calls; when that run fails, the
+     * callback never runs. Outside a run it runs at once. For what must not happen for a change that is undone, such
+     * as a mail about it.
+     *
+     * @param callable(): void $callback
+     */
+    public function afterCommit(callable $callback): void;
 }

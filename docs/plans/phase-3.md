@@ -361,6 +361,19 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
   een bericht meteen; een fout van de mailer na de commit komt in het log en geeft geen fout aan de aanroeper.
 - `DoctrineTransaction::afterCommit()` en `beforeCommit()` (beslissingen 15 en 24), `AfterCommitNotifier`,
   `ImmediateTransaction` met dezelfde volgorde.
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - `afterCommit()` staat op `Shared\Domain\Transaction`, zodat de fake en de echte transactie hetzelfde contract
+    hebben; `beforeCommit()` komt in T11, met de keten die het gebruikt;
+  - een mislukte geneste run laat de buitenste altijd mislukken (Doctrine sluit de entity manager), dus de wachtrij
+    hoort bij de buitenste run en vervalt als die faalt. Een aparte wachtrij per geneste run zou code zijn voor een
+    situatie die niet kan bestaan;
+  - `AfterCommitNotifier` logt een mislukte levering als `error` met type, lid-id en de exceptie, en levert de
+    volgende berichten gewoon. De melding van de exceptie kan een e-mailadres bevatten (een SMTP-weigering noemt de
+    ontvanger); dat blijft in het serverlog, dat alleen de beheerder van de server ziet;
+  - `services.yaml`: `Notifier` is `AfterCommitNotifier`, die levert via `MailNotifier`;
+  - tests: `DoctrineTransactionTest` (na de buitenste commit, vervalt bij een fout, meteen buiten een run),
+    `AfterCommitNotifierTest` (in memory, ook de mislukte levering) en `AfterCommitDeliveryTest` (databasetest met
+    de bedrading van de app: mail na de commit, niets bij een rollback).
 
 ### T4. Settings-catalogus en wijzigen (test eerst)
 
