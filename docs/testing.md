@@ -179,6 +179,26 @@ the job summary. It is information only: no threshold, and a failure there never
 database, so the Doctrine repositories count low. Locally the same script needs pcov or Xdebug (`XDEBUG_MODE=coverage`)
 and writes `var/coverage/coverage.txt`.
 
+## Postman collection
+
+`postman/buurtpreventie.postman_collection.json` checks a running app from the outside: health, the OpenAPI
+description, the refusals of the login endpoints, a login with a code and, when a password is set, a login with the
+password. It is no part of `composer check` or CI and adds no dependency: import it with
+`postman/local.postman_environment.json` into the Postman app, or run it with Newman:
+
+```sh
+npx newman run postman/buurtpreventie.postman_collection.json \
+  -e postman/local.postman_environment.json --insecure \
+  --env-var mailpitUrl=<the MAILER_WEB_URL of the Symfony CLI> \
+  --env-var password=<the password of the member, if any>
+```
+
+It needs the app running under the Symfony CLI (hence `--insecure` for its local certificate), the database with
+sample data, and Mailpit. `email` is a member of the loaded set (`beheer@example.org` in `test` and `edge`). With
+`mailpitUrl` the collection reads the code from the newest mail; without it, a step that needs the code is skipped
+unless the variable `code` is set by hand. A step that needs a password is skipped without one. The app takes 3
+requests for a code per address in an hour, so a fourth run within the hour answers 429.
+
 ## Security scan
 
 The "Security scan" job in `ci.yml` runs Opengrep with the rules in `.opengrep/rules/`. It runs only

@@ -97,6 +97,7 @@ versions follow [Semantic Versioning](https://semver.org/).
 - A round list covers at most 93 days.
 - Sample data: `app:fixtures:load demo|test|edge` in `dev` and `test`, built through the use cases with a fixed seed
   and dates from today.
+- A Postman collection in `postman/` that checks a running app, for the Postman app or Newman.
 - Test coverage per class in the summary of the CI job "Checks" (`composer test:coverage`), as information only.
 - CI jobs on MariaDB 10.11 and MySQL 8.4: migrations from an empty database, schema validation, every `down()`,
   the database tests and every sample data set.
