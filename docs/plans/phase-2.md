@@ -528,6 +528,18 @@ Dezelfde rondes als T5 van fase 1, nu via de API, in memory en één keer door d
 dag vóór en na beide wissels, aangemaakt met `+01:00`, `+02:00` en `Z`, komt terug als 22:00 met de juiste offset en
 dagdeel `evening`, in `GET /rounds/{id}`, `GET /rounds` en `GET /me/rounds`.
 
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - de wissels van 2027 (28 maart en 31 oktober) in plaats van die van 2026: een ronde in het verleden wordt
+    geweigerd, en de klok van de tests staat op 16 november 2026. Elke avond gaat via `POST /rounds` met de offset
+    van die dag, de andere offset en `Z` (`ClockChangeEvenings`);
+  - in memory (`ClockChangeEndpointsTest`): elke schrijfwijze apart, terug in `GET /rounds/{id}`, `GET /rounds` (de
+    lokale dag, in UTC gevraagd) en `GET /me/rounds`;
+  - door de database (`ClockChangeDatabaseTest`, groepen `database` en `functional`): de vier avonden, elk in een
+    andere schrijfwijze, in één test, met de entity manager geleegd vóór het lezen. Het is de eerste endpointtest op
+    de echte kernel: hij zet de klok van de app stil met `Clock::set()` op `InMemoryKernel::NOW`, want de dienst
+    `clock` is de globale klok van Symfony (`docs/testing.md`);
+  - geen nieuwe endpoints, dus geen nieuwe stap in de Postman-collectie.
+
 ### T10. Na de ronde en analyse (test eerst)
 
 - `POST /rounds/{id}/reports`, `DELETE /reports/{id}`, `POST /rounds/{id}/comments`, `DELETE /comments/{id}`,

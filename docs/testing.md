@@ -53,6 +53,12 @@ cookie. The identity probe also answers whether the proof is recent. Mail goes t
 sender and base address. The kernel counts login attempts in a plain `ArrayAdapter` of its own: a cache pool is
 emptied between two requests of one client, and a pool in files would carry attempts from one test to the next.
 
+A few endpoint tests take the whole path through Doctrine, in the groups `database` and `functional`: they extend
+`ApiTestCase` with `App\Kernel` as kernel class, store their member through the repository and flush, and stop the
+app clock with `Clock::set()` at `InMemoryKernel::NOW`, putting the previous clock back in `tearDown()`. The `clock`
+service of the app is Symfony's global clock, so that is the clock the handlers read. `ClockChangeDatabaseTest` is
+one: the rounds around both clock changes of 2027, planned and read back through the API.
+
 ## Database tests
 
 Database tests run in `buurtpreventie_test`: the database name from `DATABASE_URL` plus `_test`.

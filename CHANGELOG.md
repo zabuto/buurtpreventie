@@ -127,3 +127,6 @@ versions follow [Semantic Versioning](https://semver.org/).
   `GET /api/v1/me/rounds?walked=`; every round carries its status, staffing, open spots and daypart. Signing up and
   withdrawing with `PUT` and `DELETE /api/v1/rounds/{id}/walkers/me`, or `/walkers/{memberId}` for a coordinator,
   answer the same when repeated.
+- Review focus 2 through the API: a round planned at 22:00 on the evenings around both clock changes, with the offset
+  of the day, the other offset or `Z`, comes back at 22:00 with the right offset and in the evening, in one round, in
+  the list and in the own rounds, in memory and once through the database.
