@@ -3,5 +3,5 @@
 {% block content %}
 <p style="margin:0;">{{ 'round.buddy_needed.intro'|trans({}, 'mail', locale) }}</p>
 {{ include('mail/round/_round.html.twig', {round: round, count: 'walkers'}) }}
-<p style="margin:0;">{{ 'round.buddy_needed.why'|trans({}, 'mail', locale) }} <a href="{{ accountLink }}" style="color:{{ brand.color }};">{{ 'round.buddy_needed.account'|trans({}, 'mail', locale) }}</a></p>
+<p style="margin:0;">{{ 'round.buddy_needed.why'|trans({}, 'mail', locale) }} <a href="{{ accountLink }}" class="bp-brand" style="color:{{ brand.color }};">{{ 'round.buddy_needed.account'|trans({}, 'mail', locale) }}</a></p>
 {% endblock %}

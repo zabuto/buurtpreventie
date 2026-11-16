@@ -30,6 +30,7 @@ final readonly class MailRenderer
             'brand' => [
                 'name' => $branding->associationName(),
                 'color' => $branding->primaryColor(),
+                'darkColor' => $branding->primaryDarkColor(),
                 'hasLogo' => null !== $branding->mailLogo(),
                 'canReply' => null !== $branding->contactEmail(),
             ],

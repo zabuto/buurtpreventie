@@ -45,6 +45,12 @@ final readonly class SettingsBranding implements Branding
     }
 
     #[Override]
+    public function primaryDarkColor(): string
+    {
+        return (string) $this->settings()->value(SettingName::PrimaryDarkColor);
+    }
+
+    #[Override]
     public function language(): string
     {
         return (string) $this->settings()->value(SettingName::Language);

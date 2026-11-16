@@ -717,6 +717,11 @@ Per regel eerst het testbestand, dan de regel (beslissing 35). Lokaal gedraaid z
     nog geen ingang (de scheduler volgt in fase 6a) en is alleen in de tests gerenderd;
   - niet gedaan: de mails bekijken in licht, donker en smal (aan de ontwikkelaar, in Mailpit), MySQL (alleen in CI),
     de Postman-collectie met Newman;
+  - **donkere modus in de mail** (gevonden in Mailpit, opgelost): de layout noemde `color-scheme` licht en donker,
+    maar had alleen lichte kleuren inline, dus een mailprogramma in donkere modus liet de mail licht. Een blok
+    `prefers-color-scheme: dark` met `!important` geeft nu een donkere pagina, `#121212` achter de tekst, de donkere
+    primaire kleur (via `Branding::primaryDarkColor()`) voor naam en links en een wit vlak achter het logo; de knop
+    houdt de lichte primaire kleur. `MailNotifierTest` dekt het;
   - gezien, niet opgelost: het laden van `demo` verstuurt twee mails "te weinig lopers" over rondes uit de nagespeelde
     historie, omdat elk bericht in deze fase een mail is; en een teruggedraaide upload (zoals in de fixturetest) laat
     ongebruikte bestanden in `UPLOAD_DIR` staan, die niemand opruimt. Beide als open punt hieronder.

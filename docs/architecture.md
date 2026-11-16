@@ -171,7 +171,7 @@ A handler reaches storage, rights, the audit log and messages only through inter
 | `WriteAction`, `ReadAction` | Mark a handler as changing something, with its voter attribute and audit action, or as only reading | |
 | `Unchanged` | The default of an input field that a JSON Merge Patch leaves out, so a handler keeps the current value where null clears it; `fieldsSetIn()` gives the fields to validate | |
 | `BackedEnumValues` | Gives an enum `values()`, so an input constraint takes its choices from the enum (`Assert\Choice(callback: ...)`) | |
-| `Branding` | Name, sender name, primary colour, language, mail logo and contact address of the association, read afresh for each mail | `Settings\Infrastructure\Branding\SettingsBranding` |
+| `Branding` | Name, sender name, primary colour for light and dark mode, language, mail logo and contact address of the association, read afresh for each mail | `Settings\Infrastructure\Branding\SettingsBranding` |
 | `AppUrl` | The base URL of the app from `DEFAULT_URI`, on a subdomain or under a path; `to('app/#/…')` makes every absolute link that leaves the app outside a request, such as in a mail, so the path of the installation is in each | |
 | `EmailAddress` | An address trimmed and in lower case, with accents kept | |
 | `PhoneNumber` | A phone number as a member types it, with whitespace tidied: digits, spaces, brackets and hyphens, an optional leading plus, at least six digits. Shared, as members and the contact of the association both have one | |
@@ -437,7 +437,10 @@ by type; a type without one is a `LogicException`, and `MailNotifierTest` holds 
 composers. `MailRenderer` renders `templates/mail/<name>.html.twig` and `.txt.twig` on one layout, with styles inline
 and the texts of `translations/mail+intl-icu.<locale>.yaml` in the language of the association; `LocalDateText` writes
 a moment out on the local clock. `MailNotifier` sends from `MAILER_FROM` under the sender name, replies go to the
-contact address, and the logo travels inside the mail (`cid:logo`); without it the layout shows the name. A mail about
+contact address, and the logo travels inside the mail (`cid:logo`); without it the layout shows the name. The colours
+are inline for light mode; a `prefers-color-scheme: dark` block with `!important` gives a mail program that follows dark
+mode a dark page, `#121212` behind the text, the dark primary colour for the name and links, and a white plate behind
+the logo, while the button keeps the light primary colour that white text needs. A mail about
 a round names date, time, daypart, meeting point and how many walk, never who, nor a phone number, address or note
 (`RoundFacts`); a link leads to the round in the app. A deleted round is gone when its mail is written, so
 `round.cancelled` carries the start.

@@ -117,7 +117,7 @@ versions follow [Semantic Versioning](https://semver.org/).
 - Every message is a mail in HTML and text, in Dutch or English as the association sets it, with its name, colour
   and logo: login code, invitation, reminder, a round that seeks a buddy, a walker who withdrew and a cancelled
   round. A mail names no member, phone number, address or note; replies go to the contact address of the
-  association.
+  association. In dark mode a mail turns dark, with the dark primary colour of the association.
 - The reminder goes out as many days ahead as the setting `reminderDaysAhead` says, counted on the local clock.
 - With the setting `apiAccess` off, every API token is refused from its next request and no new token can be made
   (409 `api_tokens_disabled`); members still list and revoke their tokens.

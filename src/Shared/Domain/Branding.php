@@ -22,6 +22,11 @@ interface Branding
     public function primaryColor(): string;
 
     /**
+     * The primary colour of dark mode, with enough contrast against `#121212` for text and links.
+     */
+    public function primaryDarkColor(): string;
+
+    /**
      * `nl` or `en`: members have no language of their own.
      */
     public function language(): string;

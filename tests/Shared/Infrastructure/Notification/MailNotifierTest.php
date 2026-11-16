@@ -153,6 +153,29 @@ final class MailNotifierTest extends ApiTestCase
         );
     }
 
+    /**
+     * The layout declares light and dark, so a mail program that follows dark mode leaves the colours to the mail; without
+     * dark styles of its own the mail stays light on a dark screen.
+     */
+    #[Test]
+    public function it_turns_dark_in_dark_mode_with_the_dark_primary_colour_of_the_association(): void
+    {
+        self::bootKernel();
+        self::setting('brand.primary_dark', '#9ad3a5');
+
+        self::service(MailNotifier::class)->send(new Notification(self::member()->id(), 'account.login_code', ['code' => '482 913', 'minutes' => 60]));
+
+        $html = (string) self::sentMail()->getHtmlBody();
+        self::assertSame(
+            [true, true, true],
+            [
+                \str_contains($html, '@media (prefers-color-scheme: dark)'),
+                \str_contains($html, 'background:#121212 !important'),
+                \str_contains($html, 'color:#9ad3a5 !important'),
+            ],
+        );
+    }
+
     #[Test]
     public function it_mails_nothing_to_a_deactivated_member_and_logs_that_without_the_parameters(): void
     {
