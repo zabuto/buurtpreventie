@@ -4,13 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Identity\Infrastructure\Security;
 
-use App\Identity\Domain\Account;
-use App\Identity\Domain\PasswordHasher;
-use App\Membership\Domain\Member;
 use App\Shared\Domain\AuditedAction;
-use App\Tests\Identity\Fake\InMemoryAccountRepository;
 use App\Tests\Shared\Fake\RecordingAuditTrail;
-use App\Tests\Support\ApiTestCase;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use SensitiveParameter;
@@ -21,11 +16,8 @@ use Symfony\Bundle\FrameworkBundle\KernelBrowser;
  * before a sensitive action.
  */
 #[Group('functional')]
-final class ConfirmPasswordAuthenticatorTest extends ApiTestCase
+final class ConfirmPasswordAuthenticatorTest extends PasswordLoginTestCase
 {
-    // @mago-expect lint:no-literal-password - a made-up password the test confirms with
-    private const string PASSWORD = 'lantaarn-paal-42';
-
     #[Test]
     public function it_makes_the_session_of_the_member_recent_with_the_right_password(): void
     {
@@ -88,27 +80,9 @@ final class ConfirmPasswordAuthenticatorTest extends ApiTestCase
         self::assertSame('urn:buurtpreventie:problem:unauthorized', self::json($client)['type'] ?? null);
     }
 
-    /**
-     * Every request of a test shares one kernel, so the session and the fakes carry over.
-     */
-    private static function client(): KernelBrowser
-    {
-        $client = self::createClient();
-        $client->disableReboot();
-
-        return $client;
-    }
-
     private static function confirm(KernelBrowser $client, #[SensitiveParameter] string $password, string $ip = '127.0.0.1'): void
     {
         $client->jsonRequest('POST', '/api/v1/auth/confirm', ['password' => $password], ['REMOTE_ADDR' => $ip]);
-    }
-
-    private static function withPassword(Member $member): void
-    {
-        $account = Account::open($member->id());
-        $account->renewPasswordHash(self::service(PasswordHasher::class)->hash(self::PASSWORD));
-        self::service(InMemoryAccountRepository::class)->add($account);
     }
 
     /**

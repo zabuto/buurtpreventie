@@ -24,19 +24,36 @@ abstract class PasswordLoginTestCase extends ApiTestCase
     protected const string PASSWORD = 'lantaarn-paal-42';
 
     /**
-     * Every request of a test shares one kernel, so the session, the fakes and the login attempts carry over.
+     * Every request of a test shares one kernel, so the session, the cookies, the fakes and the login attempts carry
+     * over.
+     *
+     * @param array<array-key, mixed> $server such as HTTPS, for a test that needs the Secure cookie sent back
      */
-    protected static function client(): KernelBrowser
+    protected static function client(array $server = []): KernelBrowser
     {
-        $client = self::createClient();
+        $client = self::createClient(server: $server);
         $client->disableReboot();
 
         return $client;
     }
 
-    protected static function logIn(KernelBrowser $client, string $email, #[SensitiveParameter] string $password, string $ip = '127.0.0.1'): void
-    {
-        $client->jsonRequest('POST', '/api/v1/auth/login', ['email' => $email, 'password' => $password], ['REMOTE_ADDR' => $ip]);
+    /**
+     * @param bool|null $rememberMe null leaves the field out of the body
+     */
+    protected static function logIn(
+        KernelBrowser $client,
+        string $email,
+        #[SensitiveParameter]
+        string $password,
+        string $ip = '127.0.0.1',
+        ?bool $rememberMe = null,
+    ): void {
+        $body = ['email' => $email, 'password' => $password];
+        if (null !== $rememberMe) {
+            $body['rememberMe'] = $rememberMe;
+        }
+
+        $client->jsonRequest('POST', '/api/v1/auth/login', $body, ['REMOTE_ADDR' => $ip]);
     }
 
     protected static function memberWithPassword(
@@ -46,11 +63,19 @@ abstract class PasswordLoginTestCase extends ApiTestCase
         ?string $hash = null,
     ): Member {
         $member = MemberFixture::stored(self::service(InMemoryMemberRepository::class), $email, $name, $displayName);
+        self::withPassword($member, $hash);
+
+        return $member;
+    }
+
+    /**
+     * Gives a member who exists, such as the one actingAs() logs in, an account with PASSWORD.
+     */
+    protected static function withPassword(Member $member, ?string $hash = null): void
+    {
         $account = Account::open($member->id());
         $account->renewPasswordHash($hash ?? self::service(PasswordHasher::class)->hash(self::PASSWORD));
         self::service(InMemoryAccountRepository::class)->add($account);
-
-        return $member;
     }
 
     protected static function account(Member $member): Account

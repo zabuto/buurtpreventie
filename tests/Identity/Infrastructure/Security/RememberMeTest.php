@@ -4,13 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Identity\Infrastructure\Security;
 
-use App\Identity\Domain\Account;
 use App\Identity\Domain\PasswordHasher;
-use App\Membership\Domain\Member;
-use App\Tests\Identity\Fake\InMemoryAccountRepository;
-use App\Tests\Membership\Fake\InMemoryMemberRepository;
-use App\Tests\Membership\Fake\MemberFixture;
-use App\Tests\Support\ApiTestCase;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -21,18 +15,15 @@ use Symfony\Component\Clock\MockClock;
  * "Stay logged in": a signed cookie that starts a new session for 90 days, until the member sets a new password.
  */
 #[Group('functional')]
-final class RememberMeTest extends ApiTestCase
+final class RememberMeTest extends PasswordLoginTestCase
 {
-    // @mago-expect lint:no-literal-password - a made-up password the test logs in with
-    private const string PASSWORD = 'lantaarn-paal-42';
-
     #[Test]
     public function it_sets_a_secure_http_only_cookie_for_90_days_when_the_member_asks(): void
     {
-        $client = self::client();
+        $client = self::client(['HTTPS' => 'on']);
         self::memberWithPassword();
 
-        self::logIn($client, rememberMe: true);
+        self::logIn($client, 'jan@example.org', self::PASSWORD, rememberMe: true);
 
         $cookie = self::rememberMeCookie($client);
         self::assertNotNull($cookie);
@@ -49,10 +40,10 @@ final class RememberMeTest extends ApiTestCase
     #[Test]
     public function it_sets_no_cookie_without_the_wish(): void
     {
-        $client = self::client();
+        $client = self::client(['HTTPS' => 'on']);
         self::memberWithPassword();
 
-        self::logIn($client, rememberMe: false);
+        self::logIn($client, 'jan@example.org', self::PASSWORD, rememberMe: false);
 
         self::assertResponseStatusCodeSame(204);
         self::assertNull(self::rememberMeCookie($client));
@@ -61,9 +52,9 @@ final class RememberMeTest extends ApiTestCase
     #[Test]
     public function it_starts_a_new_session_on_the_web_channel_from_the_cookie_that_is_not_recent(): void
     {
-        $client = self::client();
+        $client = self::client(['HTTPS' => 'on']);
         $jan = self::memberWithPassword();
-        self::logIn($client, rememberMe: true);
+        self::logIn($client, 'jan@example.org', self::PASSWORD, rememberMe: true);
 
         self::endSession($client);
         $client->request('GET', '/api/v1/_probe-identity');
@@ -75,9 +66,9 @@ final class RememberMeTest extends ApiTestCase
     #[Test]
     public function it_takes_the_cookie_no_more_once_the_member_sets_a_new_password(): void
     {
-        $client = self::client();
+        $client = self::client(['HTTPS' => 'on']);
         $jan = self::memberWithPassword();
-        self::logIn($client, rememberMe: true);
+        self::logIn($client, 'jan@example.org', self::PASSWORD, rememberMe: true);
 
         self::service(MockClock::class)->modify('+1 day');
         self::account($jan)->changePassword(self::service(PasswordHasher::class)->hash('een ander lang wachtwoord'), self::service(MockClock::class)->now());
@@ -90,30 +81,14 @@ final class RememberMeTest extends ApiTestCase
     #[Test]
     public function it_clears_the_cookie_at_logout(): void
     {
-        $client = self::client();
+        $client = self::client(['HTTPS' => 'on']);
         self::memberWithPassword();
-        self::logIn($client, rememberMe: true);
+        self::logIn($client, 'jan@example.org', self::PASSWORD, rememberMe: true);
 
         $client->request('POST', '/api/v1/auth/logout');
 
         self::assertResponseStatusCodeSame(204);
         self::assertNull(self::rememberMeCookie($client));
-    }
-
-    /**
-     * Every request of a test shares one kernel, so the session, the cookies and the fakes carry over.
-     */
-    private static function client(): KernelBrowser
-    {
-        $client = self::createClient(server: ['HTTPS' => 'on']);
-        $client->disableReboot();
-
-        return $client;
-    }
-
-    private static function logIn(KernelBrowser $client, bool $rememberMe): void
-    {
-        $client->jsonRequest('POST', '/api/v1/auth/login', ['email' => 'jan@example.org', 'password' => self::PASSWORD, 'rememberMe' => $rememberMe]);
     }
 
     /**
@@ -127,23 +102,5 @@ final class RememberMeTest extends ApiTestCase
     private static function rememberMeCookie(KernelBrowser $client): ?Cookie
     {
         return $client->getCookieJar()->get('bp_remember', '/', 'localhost');
-    }
-
-    private static function memberWithPassword(): Member
-    {
-        $member = MemberFixture::stored(self::service(InMemoryMemberRepository::class), 'jan@example.org', 'Jan Bakker', 'Jan B.');
-        $account = Account::open($member->id());
-        $account->renewPasswordHash(self::service(PasswordHasher::class)->hash(self::PASSWORD));
-        self::service(InMemoryAccountRepository::class)->add($account);
-
-        return $member;
-    }
-
-    private static function account(Member $member): Account
-    {
-        $account = self::service(InMemoryAccountRepository::class)->ofMember($member->id());
-        self::assertNotNull($account);
-
-        return $account;
     }
 }
