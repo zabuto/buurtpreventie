@@ -150,3 +150,7 @@ versions follow [Semantic Versioning](https://semver.org/).
 - The OpenAPI description covers every route, the login routes of the firewall included, and names the problem
   answers of every operation; a test holds it to the router and to the Postman collection. A controller may carry
   OpenAPI attributes to document its endpoint.
+- An HTTP matrix test runs every route against every role, next to the matrix of the voters, and a test signs a
+  member up with a personal API token alone, as curl would. In the `demo` sample set the walker who uses the API has
+  a token that reads and writes, whose secret the fixture command shows; `docs/getting-started.md` walks through
+  signing up with curl.

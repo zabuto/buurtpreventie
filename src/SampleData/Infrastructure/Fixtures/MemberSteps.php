@@ -101,13 +101,15 @@ final readonly class MemberSteps
     }
 
     /**
-     * A read-only API token for 90 days; its secret is shown once and dropped here, as nobody uses a sample token.
+     * @param list<string> $scopes
+     *
+     * @return string the secret, which the use case shows only here
      */
-    public function giveApiAccess(SampleMember $member, DateTimeImmutable $at, string $name): void
+    public function giveApiAccess(SampleMember $member, DateTimeImmutable $at, string $name, array $scopes, DateTimeImmutable $expiresAt): string
     {
-        $this->as($member, $at, fn(): CreateApiTokenOutput => ($this->giveApiAccess)(
-            new CreateApiToken($name, ['read'], $at->modify('+90 days')->format(\DATE_ATOM), $member->id),
-        ));
+        return $this->as($member, $at, fn(): CreateApiTokenOutput => ($this->giveApiAccess)(
+            new CreateApiToken($name, $scopes, $expiresAt->format(\DATE_ATOM), $member->id),
+        ))->token;
     }
 
     /**

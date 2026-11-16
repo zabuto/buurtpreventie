@@ -54,11 +54,13 @@ sender and base address. The kernel counts login attempts in a plain `ArrayAdapt
 emptied between two requests of one client, and a pool in files would carry attempts from one test to the next.
 
 A few endpoint tests take the whole path through Doctrine, in the groups `database` and `functional`: they extend
-`ApiTestCase` with `App\Kernel` as kernel class, store their member through the repository and flush, and stop the
-app clock with `Clock::set()` at `InMemoryKernel::NOW`, putting the previous clock back in `tearDown()`. The `clock`
+`ApiTestCase` with `App\Kernel` as kernel class, store their member through the repository and flush, and stop the app
+clock with `Clock::set()` at `InMemoryKernel::NOW`, putting the previous clock back in `tearDown()`. The `clock`
 service of the app is Symfony's global clock, so that is the clock the handlers read. `ClockChangeDatabaseTest` is
 one: the rounds around both clock changes of 2027, planned and read back through the API. `AuditLogDatabaseTest` is
 another: a failed login through the API, then the log of the admin, which shows the shortened IP address only.
+`SignUpWithApiTokenDatabaseTest` is the curl scenario: a member logs in, makes a token and signs up with that token
+alone; a token that may only read gets 403 `insufficient_scope`.
 
 ## Database tests
 
@@ -114,6 +116,13 @@ paths, 404 with an id in the path, 422 with a body or query parameters); and eve
 to `{{baseUrl}}` matches a path and method of the spec, a `{parameter}` standing for one segment.
 
 ## Rights and write actions
+
+`tests/Shared/HttpMatrixTest.php` runs every route against nobody logged in, a member without a role and a member
+with exactly one role, over HTTP on the in-memory kernel. Each request goes to data that exists, with a valid body,
+so only the rights can refuse it: a principal that may not act gets 401 (`unauthorized`) or 403 (`access_denied`),
+one that may gets anything else, the 403 `reauthentication_required` of a login that is not recent included. Where a
+right depends on a relation, the row takes the data of someone else. A guard test in the same class requires a row
+for every route of the app, and no row without a route.
 
 - `tests/Shared/AuthorizationMatrixTest.php` runs every voter attribute against nobody signed in, the
   system, and a member with no role or exactly one role, with a row per relation where a right depends

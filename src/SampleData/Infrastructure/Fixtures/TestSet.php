@@ -22,11 +22,13 @@ final readonly class TestSet implements FixtureSet
     }
 
     #[Override]
-    public function load(DateTimeImmutable $now): void
+    public function load(DateTimeImmutable $now): array
     {
         $at = $now->modify('-1 day');
         $admin = $this->members->firstAdmin($at, new SampleProfile('beheer@example.org', 'Bea Beheer', 'Bea', '06 0000 0001'));
         $this->patrol->meetingPoint($admin, $at, 'Buurthuis');
         $this->patrol->standardOutcomes($admin, $at);
+
+        return [];
     }
 }

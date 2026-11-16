@@ -264,6 +264,25 @@ final class LoadFixturesCommandTest extends KernelTestCase
         $this->assertStringContainsString(SamplePassword::VALUE, $tester->getDisplay());
     }
 
+    /**
+     * The curl scenario of docs/getting-started.md signs the demo member up with this token, so it may write.
+     */
+    #[Test]
+    public function it_shows_the_api_token_of_the_demo_member_that_reads_and_writes(): void
+    {
+        Clock::set(new MockClock(new DateTimeImmutable('2026-11-15T12:00:00+01:00')));
+        $tester = $this->tester();
+
+        $tester->execute(['set' => 'demo'], ['interactive' => false]);
+
+        $this->assertSame(1, \preg_match('/bpt_[0-9a-f]{64}/', $tester->getDisplay(), $secret));
+        $token = $this->connection->fetchAssociative(
+            'SELECT m.email, t.scopes FROM api_token t JOIN member m ON m.id = t.member_id WHERE t.secret_hash = UNHEX(?) AND t.expires_at > ?',
+            [\hash('sha256', $secret[0]), '2026-11-15 11:00:00'],
+        );
+        $this->assertSame(['email' => 'priya.sharma@example.org', 'scopes' => 'read,write'], $token);
+    }
+
     #[Test]
     public function it_refuses_an_unknown_set_and_keeps_the_database(): void
     {

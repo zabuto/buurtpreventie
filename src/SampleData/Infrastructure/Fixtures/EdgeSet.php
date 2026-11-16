@@ -27,7 +27,7 @@ final readonly class EdgeSet implements FixtureSet
     }
 
     #[Override]
-    public function load(DateTimeImmutable $now): void
+    public function load(DateTimeImmutable $now): array
     {
         $clockChange = self::lastClockChange($now);
         $start = $clockChange->modify('-30 days');
@@ -51,6 +51,8 @@ final readonly class EdgeSet implements FixtureSet
         $this->upcoming($people, $now->modify('-2 days'), $now, $meetingPoint);
 
         $this->members->erase($admin, $people['erik'], $now->modify('-1 hour'));
+
+        return [];
     }
 
     /**

@@ -72,9 +72,12 @@ final class LoadFixturesCommand extends Command
 
         $now = $this->clock->now();
         $this->timeline->begin($now);
-        $this->sets[$name]->load($now);
+        $notes = $this->sets[$name]->load($now);
 
-        $io->success(\sprintf('Loaded the %s set. Every member logs in with the password %s; the admin is beheer@example.org.', $name, SamplePassword::VALUE));
+        $io->success([
+            \sprintf('Loaded the %s set. The admin beheer@example.org logs in with the password %s.', $name, SamplePassword::VALUE),
+            ...$notes,
+        ]);
 
         return Command::SUCCESS;
     }

@@ -418,6 +418,11 @@ The first admin of every set is `beheer@example.org` with the password in `Sampl
 set; in `demo` one member per role and three walkers in different situations have it too. Each sets it through
 `SetPassword`, as a member would. The others have none: every hash costs the real hasher half a second.
 
+In `demo` the walker who uses the API gets a token that reads and writes for 90 days, through `CreateApiToken`. A set
+returns what the developer needs to know afterwards from `FixtureSet::load()`, and the command shows it: here the
+secret of that token, which the app keeps only as a hash, for the curl scenario of
+[getting-started.md](getting-started.md#sign-up-with-curl).
+
 | Set | Contents |
 | --- | --- |
 | `demo` | Twenty members with every role, rounds from three months back to six weeks ahead, mostly in the evening, more than a quarter without a buddy, a few full ones, reports with now and then an incident, a deactivated member and an erased member in the history |

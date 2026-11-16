@@ -685,6 +685,23 @@ volledig IP-adres in de uitvoer, CSV met een vaste kolomvolgorde en formules gen
   de analist, de coördinator en drie lopers het (een met een naamgenoot, een die de API gebruikt, een die gestopt
   is). Elk zet het via `SetPassword`; het wachtwoord staat in `SamplePassword` en het commando toont het. De lokale
   Postman-omgeving logt in als `beheer@example.org`. Het token van het demolid volgt hier nog.
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - `HttpMatrixTest` (in memory): elke route tegen niet ingelogd, geen rol en precies één rol, 342 gevallen. Elk
+    verzoek gaat naar bestaande data met een geldige body, want een 404 of 422 vóór de Voter zou een weigering
+    verbergen. Geweigerd is alleen 401 `unauthorized` of 403 `access_denied`; de 403 `reauthentication_required`
+    komt na de Voters en telt dus als doorgelaten. Waar een recht van een relatie afhangt, neemt de rij de data van een
+    ander (de handlermatrix dekt de relaties). De bewakingstest staat in dezelfde klasse: een rij per route, geen rij
+    zonder route; de probes van de testkernel tellen niet;
+  - `SignUpWithApiTokenDatabaseTest` (database): lid logt in met wachtwoord, maakt een token, en een verzoek met alleen
+    dat token (zonder cookies, zoals `curl`) meldt het aan; met alleen `read` 403 `insufficient_scope`. De klok staat
+    stil met `Clock::set()`, zoals in T9;
+  - het token van het demolid (beslissing 30) is van `priya.sharma`, de loper die de API gebruikt, nu met `read` en
+    `write` (was alleen `read`) zodat het `curl`-scenario werkt, 90 dagen geldig vanaf het laden. `FixtureSet::load()`
+    geeft meldingen terug die het commando toont: zo staat het geheim alleen in de uitvoer, niet in de code. De melding
+    van het commando noemde "every member"; ze noemt nu de beheerder, `docs/getting-started.md` de anderen;
+  - `docs/getting-started.md` beschrijft het `curl`-scenario met plaatshouders voor de datums;
+  - geen nieuwe endpoints, dus geen nieuwe stap in de Postman-collectie. Het `curl`-scenario met de hand tegen de demo
+    staat nog open (zie het eindoverzicht).
 
 ### T16. Opengrep-regels
 
