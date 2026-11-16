@@ -749,6 +749,71 @@ Overgeslagen op verzoek; volgt later.
     Postman-collectie met Newman en het `curl`-scenario met de hand tegen de demo;
   - niet gedaan: push, pull request en merge; die wachten op akkoord.
 
+### T19. JSON Merge Patch voor elke `PATCH` (test eerst)
+
+Besloten op 16 november 2026:
+
+- elke `PATCH` volgt JSON Merge Patch (RFC 7396): een weggelaten veld blijft, `null` maakt een nullable veld leeg
+  (`null` op een verplicht veld is 422), een waarde vervangt. Dat geldt voor `PATCH /rounds/{id}`,
+  `/admin/members/{id}`, `/admin/meeting-points/{id}`, `/admin/outcomes/{id}` en `/me`; bij `/me` wist een lege
+  tekst niet meer, `null` wel;
+- weggelaten en `null` zijn met `?string` niet uit elkaar te houden. De invoer krijgt per veld een type als
+  `string|null|Unchanged`, met de enum `Shared\Domain\Unchanged` als standaardwaarde, zodat de serializer een
+  weggelaten veld als `Unchanged` laat staan. De handler past alleen velden toe die niet `Unchanged` zijn, en de
+  auditregel noemt alleen wat veranderde;
+- een coördinaat gaat als paar: `latitude` en `longitude` allebei weggelaten, allebei `null` of allebei een getal,
+  anders 422;
+- tests per endpoint voor de drie gevallen (weggelaten, `null`, waarde); `HttpMatrixTest`, Postman en docs
+  bijwerken; de notities "ter goedkeuring" over `PATCH` in T8, T11 en T12 sluiten als besloten.
+
+### T20. Formaat van het auditlog via de `Accept`-header (test eerst)
+
+Besloten op 16 november 2026:
+
+- `GET /admin/audit` kiest het formaat met de `Accept`-header: `text/csv` geeft CSV (gestreamd), `application/json`
+  of geen header geeft JSON, een `Accept` die geen van beide toestaat geeft 406; `?format` vervalt;
+- CSV hooguit 10.000 regels; daarboven 422 `too_many_entries` met `count`, nooit afkappen. Dat sluit de notitie
+  "ter goedkeuring" over CSV in T13;
+- Postman en docs bijwerken.
+
+### T21. Geslaagde antwoorden in de OpenAPI-spec (test eerst)
+
+Besloten op 16 november 2026:
+
+- `#[OA\Response]` op elke controller: het geslaagde antwoord (200, 201 of 204) met het schema uit de
+  `…Output`-klasse (Nelmio `Model`) of zonder body. Dat sluit de notitie "niet gedaan" in T14 en T17;
+- `OpenApiCoverageTest` eist voor elke operatie een 2xx;
+- bij `DELETE /rounds/{id}/walkers/me` en `/walkers/{memberId}` staat in de beschrijving dat een herhaling 404 kan
+  geven als de laatste loper de ronde liet vervallen. De server blijft zo; de frontend behandelt 404 bij afmelden als
+  gelukt.
+
+### T22. Eigen rondes per weergave en periode (test eerst)
+
+Besloten op 16 november 2026: `GET /me/rounds?view=upcoming|to_report|all` vervangt `walked`, met een periode.
+
+- `upcoming`: aangemeld en niet begonnen, oplopend; `to_report`: gelopen zonder terugmelding, aflopend; `all`:
+  alles, met `order=asc|desc` (standaard `asc`);
+- `from` en `to` (ISO 8601 met offset) bij elke weergave optioneel, bij `all` verplicht; samen hooguit 93 dagen
+  (`ListingPeriod`), anders 422;
+- `limit` bij elke weergave, standaard 50, hooguit 200;
+- repositoryquery's met integratietest; de tests van T9 (tijdwissel) blijven groen met de nieuwe parameters.
+
+### T23. Vast schema voor contactgegevens (test eerst)
+
+Besloten op 16 november 2026:
+
+- in `/members` staan `phone` en `address` altijd, `null` als het lid niet deelt of niets invulde;
+- in de lopers van `GET /rounds/{id}` staan `name` en `phone` altijd, `null` als de lezer ze niet mag zien;
+- review-focus 3 blijft: zonder toestemming nooit een waarde;
+- OpenAPI-schema's, tests en docs bijwerken.
+
+### T24. Naamgeving in JSON (test eerst)
+
+Besloten op 16 november 2026:
+
+- JSON-sleutels in camelCase, codes en enumwaarden in snake_case; vastgelegd in `docs/architecture.md`;
+- een test controleert elke property-naam in de OpenAPI-spec op camelCase.
+
 ## Afspraken
 
 1. Claude commit in deze privérepo, in kleine commits. Push, pull request en merge alleen na akkoord.

@@ -22,7 +22,7 @@ Buurtpreventie v4 wordt een Symfony 7.4 LTS-backend met een echte REST-API (`/ap
 | --- | --- | --- |
 | 0 | Basis: skelet, CI, docs, codescan | klaar, in `develop` |
 | 1 | Domein, use cases, Voters, auditlog, database, voorbeelddata | klaar, in `develop`; T13 naar fase 5b |
-| 2 | REST-API v1 met inloggen en API-tokens | T1–T15 en T17 klaar, T16 overgeslagen; checks groen, push en pull request wachten op akkoord (`docs/plans/phase-2.md`) |
+| 2 | REST-API v1 met inloggen en API-tokens | T1–T15 en T17 klaar, T16 overgeslagen; vervolgtaken T19–T24 open; push en pull request wachten op akkoord (`docs/plans/phase-2.md`) |
 | 3 | Branding en configuratie | open |
 | 4 | MCP-server | open |
 | 5 | Frontend (Lit, PWA, WCAG 2.2 AA) | open |
