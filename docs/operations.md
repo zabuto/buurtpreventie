@@ -83,6 +83,21 @@ Secrets never go into Git. Overview:
 
 Every new key (database, mail, tick, release signing) gets a row here.
 
+## Audit chain
+
+`symfony console app:audit:verify` checks that no entry in the audit log was changed, removed or inserted
+([ADR 0007](adr/0007-audit-hash-chain.md)). It reports the chain intact through an entry, or the first entry that does
+not hold with the reason, and exits with 1 then, so a cron job can mail a failure. On hosting without SSH, Maintenance
+(phase 6b) shows the same.
+
+- **Note the last position** the command prints, outside the server: someone who can change the database can remove
+  the newest entries and set the head back, which the chain itself cannot show.
+- **Keep `AUDIT_SECRET` in the backup**, apart from the database backup: without it the chain cannot be checked, and
+  with both in one place, whoever takes the backup can rebuild a chain that fits.
+- **Replacing the key is not built.** After a leak of `shared/.env.local`, the chain detects changes by anyone who
+  does not have the leaked key; replacing it needs a key id per entry or a new anchor.
+- Loading sample data empties the log and starts the chain afresh; that happens only in `dev` and `test`.
+
 ## PHP version
 
 The minimum PHP version is the oldest release without a known critical vulnerability, as set in

@@ -149,6 +149,20 @@ for every route of the app, and no row without a route.
   and `#[ReadAction]`, the attribute of every write action has rows in the matrix, the test of every
   write handler has a test starting with `it_records_`, and the matrix asks every voter in `src/`.
 
+## Mail, images and the audit chain
+
+- **Every message has a mail.** `MailNotifierTest` holds every notification type in `src/` against the composers, and
+  `RoundMailsTest` renders each mail about a round in `nl` and `en` with the real Twig setup: the link stays under the
+  path of the base URL, and no name of another walker, phone number, address, e-mail address or note appears.
+  `TranslationKeysTest` requires the same keys in `nl` and `en` in every translation file.
+- **Nothing leaves before the commit.** `AfterCommitDeliveryTest` runs the notifier of the app against the real
+  `DoctrineTransaction`: a mail after the commit, none after a rollback.
+- **Images are made in the test.** `Settings\Fake\TestImages` draws PNGs and JPEGs with GD, a JPEG with a GPS location
+  and a PNG with a script after its end included, so no binary file sits in `tests/`.
+- **Tampering in memory.** `Audit\Fake\TamperedEntry` copies an entry with stored values replaced, through reflection,
+  as someone with access to the database would leave it; `ChainVerifierTest` points at every such change.
+  `VerifyAuditChainDatabaseTest` does the same with SQL.
+
 ## Sample data in CI
 
 The database jobs in `ci.yml` load every set with `app:fixtures:load <set> --no-interaction`, outside

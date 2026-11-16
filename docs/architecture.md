@@ -385,7 +385,7 @@ the log stores whole seconds. It holds at most
 never a file cut short that would look complete. IP addresses
 are shortened when the entry is recorded, so the log never holds a full one.
 
-**Audit chain.** Every entry takes the next position (`chain_position`) and a hash over what never changes: version,
+**Audit chain.** The reasons are in [ADR 0007](adr/0007-audit-hash-chain.md). Every entry takes the next position (`chain_position`) and a hash over what never changes: version,
 position, id, time in whole seconds (UTC), actor id, action, subject, channel, the hash of the changed fields and the
 hash of the entry before it (`AuditEntry::link()`). Both hashes are HMAC-SHA-256 with `AUDIT_SECRET`
 (`HmacChainHasher`), so whoever can change the database but not read that key cannot repair the chain after tampering,
@@ -402,7 +402,18 @@ Entries from before the chain have a position but no hash, and are counted apart
 still remove the newest entries and set the head back to an earlier one they know; the command shows the last
 position, so an admin can note it down elsewhere.
 
-**Settings.** `GET` and `PATCH /admin/settings` (`GetSettings`, `ChangeSettings`) read and change every setting but
+**Settings.** `SettingName` is the one catalogue of what an association sets itself, with each type, default and
+rule; a setting is a row of name and text (`Setting`), so a new one needs no migration, and a stored name outside the
+catalogue counts for nothing. `Settings::with()` checks a change against the whole set, such as a maximum below the
+minimum. The colours follow `BrandPalette`: the primary colour carries text, links and buttons, so it needs 4.5:1, the
+accent marks borders and focus at 3:1 (WCAG 1.4.11), each against the fixed background of its mode, white
+(`LIGHT_BACKGROUND`) and `#121212` (`DARK_BACKGROUND`). The frontend uses those two backgrounds; a weaker colour is the
+422 problem `insufficient_contrast` with the measured and the required ratio. `ChangeSettings` records one
+`setting.changed` entry with old and new per changed name, except contact details, the group link and texts, recorded
+without a value (`SettingName::isAuditedWithValue()`). Other modules read a setting through a use case of Settings:
+`GetReminderLeadTime` for `SendReminders`, `GetApiTokenAccess` for the token authenticator.
+
+`GET` and `PATCH /admin/settings` (`GetSettings`, `ChangeSettings`) read and change every setting but
 the images, `PUT` and `DELETE /admin/settings/images/{logo|icon}` (`ChangeBrandImage`, `RemoveBrandImage`) the
 images, all for the admin (`settings.view`, `settings.change`). `BrandImages` stores every size of an upload before
 the setting names its version, and removes the previous files through `Transaction::afterCommit()`, so a reader

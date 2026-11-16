@@ -131,6 +131,8 @@ versions follow [Semantic Versioning](https://semver.org/).
   characters and a short name of two letters. CI checks the audit chain after loading each set.
 - Opengrep rules `client-file-metadata`, `twig-autoescape-disabled` and `mailer-outside-notifier`, each with a rule
   test.
+- ADR 0007 on the hash chain of the audit log, with what it does not cover; `docs/operations.md` on checking the chain
+  and keeping `AUDIT_SECRET`.
 - Every link in a mail starts at `DEFAULT_URI`, also when the app runs under a path such as
   `https://example.org/buurtpreventie`, with or without a trailing slash.
 - Dependabot also updates the Mailpit image in `compose.yaml`, after the same 7-day cooldown.

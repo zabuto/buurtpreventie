@@ -676,6 +676,22 @@ Per regel eerst het testbestand, dan de regel (beslissing 35). Lokaal gedraaid z
   huisstijl, hashketen, anker; `docs/gotchas.md`: wat opvalt.
 - `docs/plans/plan.md`: Fase 3 afvinken, de afwijkingen (beslissingen 2, 3, 5, 6, 8 en 17) bij Branding en
   configuratie, de endpointtabel; `CHANGELOG.md`; `AGENTS.md` (Commands) voor `app:audit:verify`.
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - ADR 0007 beschrijft de keten uit de code (beslissingen 24 tot en met 32), met als gevolgen wat hij niet dekt: de
+    nieuwste regels met een teruggezette kop, wie de sleutel kan lezen, en de inhoud van een gewiste regel;
+  - `architecture.md` kreeg een alinea over de catalogus, het contrast tegen de vaste achtergronden (wit en `#121212`)
+    en de use cases waarmee andere modules een instelling lezen, en een verwijzing naar ADR 0007; `Branding`,
+    `AppUrl`, `MailComposer`, berichten na de commit en de keten stonden er al sinds hun taak;
+  - `configuration.md` dekte `UPLOAD_DIR`, `AUDIT_SECRET`, de instellingen en hun grenzen al sinds hun taak;
+  - `operations.md` kreeg een paragraaf over `app:audit:verify`, het laatste volgnummer noteren en `AUDIT_SECRET` in
+    de back-up; `testing.md` een paragraaf over de bewakende tests van mail, beelden en de keten;
+  - `glossary.md`: instelling, huisstijl, contrast, groepslink, hashketen, kop, anker en keten controleren;
+  - `gotchas.md`: de geheugengrens van PHPUnit, de verborgen transactie van de testbundel bij een slot, Mago die op
+    een waarschuwing faalt, Rector en `match`, een refresh met slot die niet-geflushte wijzigingen weggooit, en
+    `AUDIT_SECRET` zonder standaard;
+  - `plan.md`: de tabel van Branding en configuratie volgt de code (ook `AUDIT_SECRET`, `UPLOAD_DIR`, de groepslink,
+    de verklaringen als URL en de schakelaar), met de afwijkingen eronder; de voorbeeldinrichting is de set `demo` in
+    plaats van `docs/examples/`, dat niet bestaat; de endpointtabel noemt het manifest en de uploads.
 
 ### T15. Verifiëren en opleveren
 
