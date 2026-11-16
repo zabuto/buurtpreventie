@@ -14,11 +14,11 @@ use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 
 /**
  * The audit log, which takes no change but wiping the name of an erased member; the history of a round and the whole
- * log are read.
+ * log are read. Checking the chain is for the system alone, through the console.
  */
 final readonly class AuditVoter implements CacheableVoterInterface
 {
-    private const array ATTRIBUTES = ['audit.erase_actor_name', 'audit.view_round_history', 'audit.view'];
+    private const array ATTRIBUTES = ['audit.erase_actor_name', 'audit.view_round_history', 'audit.view', 'audit.verify'];
 
     public function __construct(
         private AuditPolicy $policy,
@@ -51,6 +51,10 @@ final readonly class AuditVoter implements CacheableVoterInterface
 
     private function decide(string $attribute, #[SensitiveParameter] TokenInterface $token): bool
     {
+        if ('audit.verify' === $attribute) {
+            return TokenActor::isSystem($token);
+        }
+
         $actor = TokenActor::of($token);
         if (null === $actor) {
             return false;

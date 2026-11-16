@@ -23,7 +23,7 @@ Buurtpreventie v4 wordt een Symfony 7.4 LTS-backend met een echte REST-API (`/ap
 | 0 | Basis: skelet, CI, docs, codescan | klaar, in `develop` |
 | 1 | Domein, use cases, Voters, auditlog, database, voorbeelddata | klaar, in `develop`; T13 naar fase 5b |
 | 2 | REST-API v1 met inloggen en API-tokens | klaar, in `develop` |
-| 3 | Branding en configuratie | in uitvoering: T1–T10 klaar (`docs/plans/phase-3.md`) |
+| 3 | Branding en configuratie | in uitvoering: T1–T11 klaar (`docs/plans/phase-3.md`) |
 | 4 | MCP-server | open |
 | 5 | Frontend (Lit, PWA, WCAG 2.2 AA) | open |
 | 5b | Conversie v3 → v4 | open |
@@ -814,7 +814,7 @@ Fase 3, 4 en 5 hangen alleen van de API af; MCP (fase 4) gaat vóór de frontend
 - [ ] `Setting`-repository met standaardwaarden, `/admin/settings`, logo-upload, `GET /config`, `manifest.webmanifest`.
 - [x] E-mailtemplates (uitnodiging, inlogcode, herinnering, nieuwe ronde zoekt loopmaatje, loopmaatje afgemeld) met branding en `nl`/`en`; altijd met een tekstversie, geen informatie die alleen in een afbeelding staat, en zo min mogelijk persoonsgegevens in de mail zelf.
 - [x] Berichten gaan pas na de commit uit, niet binnen de transactie; een test bewijst dat een teruggedraaide wijziging niets verstuurt.
-- [ ] Hashketen in het auditlog (beslissing 16 van fase 1, besloten op 16 november 2026), vóór de conversie van fase 5b, die de eerste echte regels schrijft. Hij maakt geknoei zichtbaar voor wie de database kan wijzigen maar niet bij de bestanden kan, zoals bij een SQL-injectie of een gelekte databaselogin; wie ook bij de bestanden kan, houdt hij niet tegen.
+- [x] Hashketen in het auditlog (beslissing 16 van fase 1, besloten op 16 november 2026), vóór de conversie van fase 5b, die de eerste echte regels schrijft. Hij maakt geknoei zichtbaar voor wie de database kan wijzigen maar niet bij de bestanden kan, zoals bij een SQL-injectie of een gelekte databaselogin; wie ook bij de bestanden kan, houdt hij niet tegen.
   - **HMAC-SHA-256 met een eigen sleutel** `AUDIT_SECRET` in `shared/.env.local`, buiten de database en los van `APP_SECRET`, zodat het vervangen van `APP_SECRET` de keten niet breekt. Zonder sleutel is een geldige keten niet na te maken. De installer van fase 6a maakt de sleutel aan, zoals de andere geheimen.
   - **De hash dekt alleen wat nooit verandert**: id, tijdstip, lid-id, actie, onderwerp en kanaal, plus de hash van de vorige regel. De naam van de uitvoerder valt erbuiten, zodat wissen hem kan vervangen door "verwijderd lid".
   - **De gewijzigde velden krijgen een eigen hash**, en de keten loopt over die hash. Wissen haalt de inhoud weg en laat de hash staan: van die regel is de inhoud dan niet meer te controleren, de keten wel.

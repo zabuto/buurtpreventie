@@ -32,7 +32,7 @@ These are not stored in files and must be set again on a fork or a recreated rep
 | Workflow | When | What |
 | --- | --- | --- |
 | `ci.yml`, checks job | Every pull request, every push to `develop` and `main` | `composer check` on PHP 8.4; see [testing.md](testing.md) |
-| `ci.yml`, database jobs "Database (MariaDB 10.11)" and "Database (MySQL 8.4)" | Same | A fresh `APP_SECRET` per run, migrations from an empty database, `doctrine:schema:validate`, every `down()` and up again, the database tests with `REQUIRE_DATABASE=1`, and every sample data set; see [testing.md](testing.md#database-tests) |
+| `ci.yml`, database jobs "Database (MariaDB 10.11)" and "Database (MySQL 8.4)" | Same | A fresh `APP_SECRET` and `AUDIT_SECRET` per run, migrations from an empty database, `doctrine:schema:validate`, every `down()` and up again, the database tests with `REQUIRE_DATABASE=1`, and every sample data set; see [testing.md](testing.md#database-tests) |
 | `ci.yml`, security scan job | Same | Opengrep with the rules in `.opengrep/rules/`; see [testing.md](testing.md#security-scan) |
 | `weekly.yml`, audit job | Monday 05:00 UTC and by hand | `composer audit` on `develop`; opens an issue on an advisory |
 | `weekly.yml`, look-ahead job | Same | Newest Symfony 8 on PHP 8.5, all checks; opens an issue on failure. Blocks nothing |
@@ -79,6 +79,7 @@ Secrets never go into Git. Overview:
 | Secret | Where | Since |
 | --- | --- | --- |
 | `APP_SECRET` | `.env.local` locally, `shared/.env.local` on the server | phase 0 |
+| `AUDIT_SECRET` | `.env.local` locally, `shared/.env.local` on the server; in the backup, apart from the database backup, as without it the audit chain cannot be checked | phase 3 |
 
 Every new key (database, mail, tick, release signing) gets a row here.
 

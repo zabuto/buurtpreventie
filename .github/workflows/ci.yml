@@ -136,9 +136,12 @@ jobs:
         run: composer install --no-interaction --no-progress --prefer-dist
 
       # The console runs in dev, where the committed .env holds no APP_SECRET, and remember_me refuses to start
-      # without one; a fresh secret per run, as the installer writes one per installation.
-      - name: Generate APP_SECRET
-        run: echo "APP_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+      # without one; a fresh secret per run, as the installer writes one per installation. The sample data write audit
+      # entries, which need AUDIT_SECRET for the same reason.
+      - name: Generate APP_SECRET and AUDIT_SECRET
+        run: |
+          echo "APP_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+          echo "AUDIT_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
 
       - name: Run the migrations from an empty database
         run: php bin/console doctrine:migrations:migrate --no-interaction

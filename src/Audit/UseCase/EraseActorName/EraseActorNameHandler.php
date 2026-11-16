@@ -13,7 +13,8 @@ use App\Shared\Domain\WriteAction;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * Shows an erased member in the log as "removed member": the name goes, the actions stay.
+ * Shows an erased member in the log as "removed member": the name goes, and so do the changed fields of every entry
+ * about the member, such as the display name the member was added with; the actions stay, and so does the chain.
  */
 #[WriteAction(authorization: 'audit.erase_actor_name', audit: 'audit.actor_name_erased')]
 final readonly class EraseActorNameHandler
@@ -33,6 +34,7 @@ final readonly class EraseActorNameHandler
 
         $this->transaction->run(function () use ($memberId): void {
             $this->entries->eraseActorName($memberId);
+            $this->entries->eraseChangesAbout($memberId);
             $this->auditTrail->record(new AuditedAction('audit.actor_name_erased', 'member', $memberId));
         });
     }

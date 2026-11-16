@@ -587,6 +587,43 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
   geen regel zonder hash; twee gelijktijdige schrijfacties (twee processen, zoals review-focus 1) geven aaneengesloten
   nummers en een kloppende keten, op MariaDB en MySQL; een transactie die een ronde vergrendelt en een auditregel
   schrijft, loopt niet vast tegen een tweede.
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - `Transaction::beforeCommit()` (eigen commit) draait als laatste stap binnen de buitenste run, vóór Doctrine
+    flusht; een callback die een andere toevoegt, draait mee, en buiten een run is het een `LogicException`, omdat
+    een slot daar meteen weer vrijkomt. `ImmediateTransaction` volgt dezelfde volgorde;
+  - **`DoctrineAuditTrail` heet `ChainedAuditTrail`** en staat in `Audit\Infrastructure` (kleine afwijking van
+    beslissing 24): hij gebruikt Doctrine niet meer zelf, maar de repository, `Transaction` en `ChainHasher`, zodat
+    hij in memory te testen is. Elke `record()` meldt één `beforeCommit`-stap aan: kop vergrendelen, regel koppelen,
+    opslaan. Zo is er geen lijst wachtende regels die na een rollback kan blijven hangen;
+  - domein: `ChainLink` (volgnummer en hash), `ChainHasher` (met `HmacChainHasher` in Infrastructure, compacte JSON),
+    `AuditEntry::link()`, `linksTo()`, `hasIntactChanges()` en `eraseChanges()`, en `ChainVerifier` met `ChainReport`,
+    `ChainBreak` en `ChainBreakReason` (`changed_content`, `missing_entry`, `inserted_or_relinked`, `head_mismatch`).
+    Een regel waarvan de hash niet past, beoordeelt de controle op de volgende regel of de kop: linkt die naar zijn
+    opgeslagen hash, dan veranderde een waarde; anders is hij tussengevoegd, hernummerd of verplaatst. Wie een regel
+    weghaalt, de rest hernummert en ook de kop bijwerkt, krijgt de melding "waarde veranderd" (het volgnummer is een
+    waarde); de regel die wordt aangewezen klopt in beide gevallen;
+  - `audit_chain` is een entiteit (`AuditChainMark`), zodat `doctrine:schema:validate` en het leegmaken door de
+    voorbeelddata de tabel kennen. Vergrendelen gaat met `refresh()` en `PESSIMISTIC_WRITE`, omdat de kopie in de
+    entity manager ouder kan zijn; `append()` en `pruneThrough()` flushen meteen, anders leest het volgende slot in
+    dezelfde transactie de kop van vóór de wijziging. Ontbreekt een rij (na het leegmaken door de voorbeelddata), dan
+    begint de keten opnieuw bij 0 (kleine afwijking: het plan noemt alleen de rijen uit de migratie);
+  - de migratie nummert bestaande regels met `ROW_NUMBER()` op tijdstip en id, zet anker en kop op de laatste, en
+    `down()` haalt kolommen en tabel weg. `AuditChainMigrationTest` dekt het, met de migraties in een eigen proces;
+  - `EraseActorName` wist naam en gewijzigde velden (`eraseChangesAbout()`); `VerifyAuditChain` (alleen het systeem,
+    `audit.verify`) leest kop, anker en regels in één transactie, dus uit één momentopname, per 500;
+  - `app:audit:verify` in `Audit\Infrastructure\Console` meldt "intact tot en met regel N (tijdstip)" of de eerste
+    breuk met de reden, het laatste volgnummer om te noteren (beslissing 32), en apart de regels met gewiste inhoud
+    en die van vóór de keten. Exitcode 0 of 1;
+  - `AUDIT_SECRET` staat in `config/services.yaml` zonder standaard; een lege sleutel is een `LogicException`, net als
+    bij `APP_SECRET` voor inlogcodes. `.env.test` heeft een publieke waarde (door de ontwikkelaar toegevoegd: de
+    rechten van Claude staan geen bewerking van `.env.test` toe), CI maakt hem per run;
+  - tests: domein (`ChainLinkTest`, `AuditEntryChainTest`, `ChainVerifierTest` met `TamperedEntry`, een kopie met
+    vervangen waarden via reflectie), `HmacChainHasherTest`, `ChainedAuditTrailTest` (in memory),
+    `VerifyAuditChainHandlerTest` (ook over de grens van een batch), `VerifyAuditChainCommandTest`, en als
+    databasetests `ChainedAuditTrailDatabaseTest`, `DoctrineAuditEntryRepositoryTest`, `AuditChainMigrationTest`,
+    `VerifyAuditChainDatabaseTest` (wijzigen en verwijderen met SQL, wissen, opruimen) en `ConcurrentAuditChainTest`.
+    Zonder het slot op de kop faalt die laatste (met de hand nagegaan); op MySQL draait hij alleen in CI;
+  - ADR 0007 volgt in T14; `app:audit:verify` na het laden van de voorbeelddata in T12.
 
 ### T12. Voorbeelddata (test eerst)
 

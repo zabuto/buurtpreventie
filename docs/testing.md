@@ -88,6 +88,11 @@ database tests with `symfony php vendor/bin/phpunit --group database`.
 - **The schema.** `UuidColumnTest` keeps every UUID column `BINARY(16)`, also on MariaDB, which has a
   type of its own; `UuidColumnIndexTest` requires an index on every UUID column that is not a primary
   key, since no foreign key between modules adds one ([ADR 0005](adr/0005-database-approach.md)).
+- **The audit chain.** The chain runs over the whole log, so a test that checks it empties the log and sets head and
+  anchor to the start first, inside the rolled-back transaction. A test that locks the head opens a transaction of
+  its own: the test bundle keeps its transaction out of sight of the ORM, which refuses a locking read without one.
+  `AuditChainMigrationTest` migrates back to the version before the chain, stores entries as they were, migrates up
+  and checks their positions, head and anchor; it commits, so it leaves the schema at the latest version itself.
 - **The sample data.** `LoadFixturesCommandTest` loads every set and checks what it holds: the same
   people and pattern on any day, the limits of the `demo` set, every hard case in `edge`.
 
@@ -105,6 +110,11 @@ query of another session that stays there waits for a lock. The process list nee
 privilege for the sessions of the own user, unlike the InnoDB lock tables. When the second process
 never waits within ten seconds, the test fails: without the lock on the round, or with a count that
 does not lock, the second sign-up joins next to the first.
+
+`ConcurrentAuditChainTest` uses the same order for the audit chain: two sign-ups for different rounds take
+consecutive positions in an intact chain, as the second waits for the lock on the head; and a sign-up that waits for
+the round held by the first finishes without a deadlock, as the first takes the head only as its last step. It empties
+the log before and after itself.
 
 `MakeUseCaseCommandTest` lets the generator create a use case in a temporary folder, checks that
 `mago format` would not change it, and runs PHPStan at level max with the architecture rules on it. A mistake in the templates thus breaks a test, not

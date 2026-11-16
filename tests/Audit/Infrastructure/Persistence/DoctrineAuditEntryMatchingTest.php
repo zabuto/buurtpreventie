@@ -6,6 +6,7 @@ namespace App\Tests\Audit\Infrastructure\Persistence;
 
 use App\Audit\Domain\AuditEntry;
 use App\Audit\Domain\AuditFilter;
+use App\Audit\Infrastructure\HmacChainHasher;
 use App\Audit\Infrastructure\Persistence\DoctrineAuditEntryRepository;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\Channel;
@@ -39,6 +40,8 @@ final class DoctrineAuditEntryMatchingTest extends KernelTestCase
         $this->entityManager = $entityManager;
         $this->repository = new DoctrineAuditEntryRepository($entityManager);
         $this->action = 'test.' . \bin2hex(\random_bytes(6));
+        // The head is locked only inside a transaction, which the test bundle keeps out of sight of the ORM.
+        $this->entityManager->getConnection()->beginTransaction();
     }
 
     #[Test]
@@ -109,7 +112,8 @@ final class DoctrineAuditEntryMatchingTest extends KernelTestCase
     private function stored(string $subjectType, Uuid $subjectId, Uuid $actorId, string $at): AuditEntry
     {
         $entry = AuditEntry::of(new AuditedAction($this->action, $subjectType, $subjectId), $actorId, 'Jan B.', Channel::Web, new DateTimeImmutable($at));
-        $this->entityManager->persist($entry);
+        $entry->link($this->repository->lockHead(), new HmacChainHasher('audit-key'));
+        $this->repository->append($entry);
 
         return $entry;
     }

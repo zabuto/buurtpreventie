@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace App\Tests\Audit\Infrastructure\Persistence;
 
 use App\Audit\Domain\AuditEntry;
-use App\Audit\Infrastructure\Persistence\DoctrineAuditTrail;
+use App\Audit\Domain\ChainVerifier;
+use App\Audit\Infrastructure\ChainedAuditTrail;
+use App\Audit\Infrastructure\HmacChainHasher;
+use App\Audit\Infrastructure\Persistence\DoctrineAuditEntryRepository;
 use App\Shared\Domain\Actor;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\Channel;
@@ -29,9 +32,12 @@ use Symfony\Component\Uid\Uuid;
  * Every entry is read back after the entity manager forgot it, so the values come from the database.
  */
 #[Group('database')]
-final class DoctrineAuditTrailTest extends KernelTestCase
+final class ChainedAuditTrailDatabaseTest extends KernelTestCase
 {
     private const string NOW = '2026-11-15T12:00:00+00:00';
+    private const string KEY = 'audit-key';
+
+    private ?DoctrineTransaction $transaction = null;
 
     private EntityManagerInterface $entityManager;
 
@@ -81,8 +87,9 @@ final class DoctrineAuditTrailTest extends KernelTestCase
      * did not happen.
      */
     #[Test]
-    public function it_stores_nothing_when_the_transaction_rolls_back(): void
+    public function it_stores_nothing_and_takes_no_position_when_the_transaction_rolls_back(): void
     {
+        $head = $this->repository()->head()->position;
         $round = Uuid::v7();
         $trail = $this->trail(null, Channel::Console);
 
@@ -101,18 +108,41 @@ final class DoctrineAuditTrailTest extends KernelTestCase
 
         $this->assertSame($refusal, $caught);
         $this->assertSame(
-            [],
-            $this->entityManager->getConnection()->fetchFirstColumn('SELECT id FROM audit_entry WHERE subject_id = ?', [$round->toBinary()]),
+            [[], $head],
+            [
+                $this->entityManager->getConnection()->fetchFirstColumn('SELECT id FROM audit_entry WHERE subject_id = ?', [$round->toBinary()]),
+                $this->repository()->head()->position,
+            ],
         );
+    }
+
+    #[Test]
+    public function it_links_each_committed_entry_after_the_head_in_the_database(): void
+    {
+        $head = $this->repository()->head();
+        $trail = $this->trail(null, Channel::Console);
+
+        $this->transaction()->run(static function () use ($trail): void {
+            $trail->record(new AuditedAction('round.created', 'round', Uuid::v7()));
+            $trail->record(new AuditedAction('participation.signed_up', 'round', Uuid::v7()));
+        });
+
+        $this->entityManager->clear();
+        $verifier = new ChainVerifier(new HmacChainHasher(self::KEY), $head);
+        \array_map($verifier->add(...), $this->repository()->chainAfter($head->position, 10));
+        $report = $verifier->finish($this->repository()->head());
+        $this->assertSame([null, $head->position + 2], [$report->break, $report->intactThrough]);
     }
 
     /**
      * @param array<string, string> $names
      */
-    private function trail(?Actor $actor, Channel $channel, array $names = []): DoctrineAuditTrail
+    private function trail(?Actor $actor, Channel $channel, array $names = []): ChainedAuditTrail
     {
-        return new DoctrineAuditTrail(
-            $this->entityManager,
+        return new ChainedAuditTrail(
+            $this->repository(),
+            $this->transaction(),
+            new HmacChainHasher(self::KEY),
             new MockClock(self::NOW),
             new FixedExecutionContext($actor, $channel),
             new FixedMemberNames($names),
@@ -128,12 +158,17 @@ final class DoctrineAuditTrailTest extends KernelTestCase
         return $entries[0];
     }
 
+    private function repository(): DoctrineAuditEntryRepository
+    {
+        return new DoctrineAuditEntryRepository($this->entityManager);
+    }
+
     private function transaction(): DoctrineTransaction
     {
         $registry = self::getContainer()->get(ManagerRegistry::class);
         // @phpstan-ignore method.alreadyNarrowedType (PHPStan reads the type from the container, Mago does not)
         $this->assertInstanceOf(ManagerRegistry::class, $registry);
 
-        return new DoctrineTransaction($registry);
+        return $this->transaction ??= new DoctrineTransaction($registry);
     }
 }

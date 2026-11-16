@@ -35,9 +35,13 @@ services:
         factory: ['App\Shared\Domain\AppUrl', 'fromString']
         arguments: ['%env(DEFAULT_URI)%']
 
-    # Messages leave once the change is committed (AfterCommitNotifier); login codes and invitations go by mail, any
-    # other message reaches the log only (MailNotifier).
+    # Messages leave once the change is committed (AfterCommitNotifier), each by mail (MailNotifier).
     App\Shared\Domain\Notifier: '@App\Shared\Infrastructure\Notification\AfterCommitNotifier'
+
+    # Key of the hash chain in the audit log, apart from APP_SECRET so replacing that leaves the chain intact. No
+    # default: without it no audit entry is written, rather than one the chain cannot check.
+    App\Audit\Infrastructure\HmacChainHasher:
+        arguments: ['%env(AUDIT_SECRET)%']
 
     # Login throttling (security.yaml): a limit per address and IP address, cleared by a successful login, and a
     # higher limit per IP address that a successful login leaves alone.

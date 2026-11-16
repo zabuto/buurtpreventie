@@ -156,7 +156,7 @@ A handler reaches storage, rights, the audit log and messages only through inter
 | --- | --- | --- |
 | `Transaction` | Runs an operation as one unit: a change and its audit entry are stored together or not at all. `afterCommit()` holds a callback until the outermost run has committed and drops it when that run fails; `beforeCommit()` runs one as the last step inside the outermost run, for a lock that must come last | `Shared\Infrastructure\Doctrine\DoctrineTransaction` |
 | `ExecutionContext`, `Channel` | The member performing the action with their roles (an `Actor`), or none for the system, and the channel (`web`, `api`, `mcp`, `cron`, `console`) | `Shared\Infrastructure\Security\TokenExecutionContext`, which reads Symfony's token storage; `RunAs` fills it for console commands, fixtures and the scheduler, an authenticator for HTTP and MCP. A member run through `RunAs` counts as a recent login: whoever runs a console command proved who they are by reaching the server |
-| `AuditTrail`, `AuditedAction` | Records an action; time, actor and channel come from the clock and the execution context | `Audit\Infrastructure\Persistence\DoctrineAuditTrail` |
+| `AuditTrail`, `AuditedAction` | Records an action; time, actor and channel come from the clock and the execution context | `Audit\Infrastructure\ChainedAuditTrail`, which links the entry to the hash chain as the last step of the transaction |
 | `MemberNames` | The display name of a member, or none for an erased one, so another module can record or show who acted | `Membership\Infrastructure\RepositoryMemberNames` |
 | `MemberDirectory`, `MemberProfile`, `MemberIdentity` | Whether a member is active, who wants to hear about open rounds, a member's names and phone number (only with consent), the address mail goes to (none for an inactive member), and the identity the login works with, by id or e-mail address: id, current roles and whether the member may log in | `Membership\Infrastructure\RepositoryMemberDirectory` |
 | `Authorization`, `AccessDenied` | `denyUnlessGranted()` asks the voters of every module and throws `AccessDenied` on a refusal | `Shared\Infrastructure\Security\SymfonyAuthorization` |
@@ -384,6 +384,23 @@ the log stores whole seconds. It holds at most
 10,000 entries: more is the 422 problem `too_many_entries` with their `count` (`AuditEntryRepository::countMatching()`),
 never a file cut short that would look complete. IP addresses
 are shortened when the entry is recorded, so the log never holds a full one.
+
+**Audit chain.** Every entry takes the next position (`chain_position`) and a hash over what never changes: version,
+position, id, time in whole seconds (UTC), actor id, action, subject, channel, the hash of the changed fields and the
+hash of the entry before it (`AuditEntry::link()`). Both hashes are HMAC-SHA-256 with `AUDIT_SECRET`
+(`HmacChainHasher`), so whoever can change the database but not read that key cannot repair the chain after tampering,
+nor recover erased fields from their hash. The actor's name and the changed fields stay outside the chain hash, as
+erasing a member (`EraseActorName`) removes the name and the changed fields of every entry about the member.
+`ChainedAuditTrail` holds the entry until `Transaction::beforeCommit()`, then locks the head (`audit_chain`, row
+`head`) with `SELECT ... FOR UPDATE`, links the entry and moves the head; last, so a transaction never holds the head
+while it waits for another lock, such as that of a round. The row `anchor` keeps the last pruned entry
+(`AuditEntryRepository::pruneThrough()`), from where `app:audit:verify` (`VerifyAuditChain`, `audit.verify`, system
+only) walks the chain in batches of 500 inside one transaction. `ChainVerifier` reports the first position that does
+not hold: a changed value, a missing position, an entry inserted or moved, or a head that does not point at the last
+entry; an entry whose hash does not fit is judged by whether the next entry or the head links to its stored hash.
+Entries from before the chain have a position but no hash, and are counted apart. Whoever can change the database can
+still remove the newest entries and set the head back to an earlier one they know; the command shows the last
+position, so an admin can note it down elsewhere.
 
 **Settings.** `GET` and `PATCH /admin/settings` (`GetSettings`, `ChangeSettings`) read and change every setting but
 the images, `PUT` and `DELETE /admin/settings/images/{logo|icon}` (`ChangeBrandImage`, `RemoveBrandImage`) the
