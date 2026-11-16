@@ -50,7 +50,7 @@ admin sets it, also when it equals the default, and null removes it again.
 | `welcomeTextNl`, `welcomeTextEn`, `emergencyTextNl`, `emergencyTextEn` | Plain text, at most 2,000 characters; an empty line starts a paragraph | the standard text in `translations/settings.<locale>.yaml` |
 | `privacyUrl`, `accessibilityUrl` | An https address of a page of the association | none |
 | `minimumWalkers`, `maximumWalkers` | 1 to 20 and 1 to 50, the maximum at least the minimum; for new rounds only | 2 and 7 |
-| `reminderDaysAhead` | 1 to 7 | 1 |
+| `reminderDaysAhead` | 1 to 7: the reminder covers the rounds of the local calendar day this many days ahead; a round signed up for later than that gets none | 1 |
 | `language` | `nl` or `en` | `nl` |
 | `apiAccess` | `true` or `false`: whether API tokens give access | `true` |
 

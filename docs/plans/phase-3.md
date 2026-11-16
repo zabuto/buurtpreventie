@@ -548,6 +548,13 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
 
 - `SendReminders` leest `GetReminderLeadTime` (beslissing 22). Tests: 1 en 3 dagen vooraf, en rond de tijdwissel
   (review-focus 2: een ronde om 22:00 blijft 22:00 in de mail).
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - `GetReminderLeadTime` in Settings (zonder controller of tool, alleen voor andere modules), en
+    `SendRemindersHandler` telt zoveel `LocalDay::next()` vooruit;
+  - een deelname onthoudt haar herinnering, dus wie zich later aanmeldt dan N dagen vooraf, krijgt er geen.
+    `docs/configuration.md` zegt het; een tweede herinnering vlak voor de ronde valt buiten deze fase;
+  - tests: 1 dag (bestaand) en 3 dagen vooruit, 3 dagen vooruit over de zomertijdwissel van 28 maart 2027, en in
+    `RoundMailsTest` dat een ronde om 22:00 op die dag als 22:00 in de mail staat.
 
 ### T10. Schakelaar voor API-tokens (test eerst)
 

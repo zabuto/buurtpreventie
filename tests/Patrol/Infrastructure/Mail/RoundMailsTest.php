@@ -159,6 +159,27 @@ final class RoundMailsTest extends ApiTestCase
     }
 
     /**
+     * Review focus 2: on 28 March 2027 the clock goes forward, and 22:00 local is 20:00 UTC.
+     */
+    #[Test]
+    public function it_gives_the_time_on_the_local_clock_on_the_day_the_clock_changes(): void
+    {
+        self::bootKernel();
+        $anna = MemberFixture::stored(self::service(InMemoryMemberRepository::class), 'anna@example.org', 'Anna Hughes', 'Anna H.');
+        $round = Round::plan(
+            new RoundStart(new DateTimeImmutable('2027-03-28T20:00:00+00:00')),
+            $anna->id(),
+            new StaffingRule(minimumWalkers: 1, maximumWalkers: 7),
+            new DateTimeImmutable('2026-11-10T09:00:00+00:00'),
+        );
+        self::service(InMemoryRoundRepository::class)->add($round);
+
+        self::service(MailNotifier::class)->send(self::notification('round.reminder', $anna, $round));
+
+        self::assertStringContainsString('zondag 28 maart om 22:00, avondronde.', (string) self::sentMail()->getTextBody());
+    }
+
+    /**
      * The member chose these messages, so the mail says why it came and where to turn it off.
      */
     #[Test]

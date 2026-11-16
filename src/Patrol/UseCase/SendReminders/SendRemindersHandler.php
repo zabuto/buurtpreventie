@@ -9,6 +9,8 @@ use App\Patrol\Domain\Round\Reminders;
 use App\Patrol\Domain\Round\Round;
 use App\Patrol\Domain\Round\RoundRepository;
 use App\Patrol\Domain\Round\RoundStatus;
+use App\Settings\UseCase\GetReminderLeadTime\GetReminderLeadTime;
+use App\Settings\UseCase\GetReminderLeadTime\GetReminderLeadTimeHandler;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\AuditTrail;
 use App\Shared\Domain\Authorization;
@@ -24,8 +26,8 @@ use Psr\Clock\ClockInterface;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * Reminds every active walker once of their rounds of the next local calendar day. Each participation remembers its
- * reminder, so a second run on the same day sends nothing.
+ * Reminds every active walker once of their rounds of the local calendar day as many days ahead as the association
+ * set. Each participation remembers its reminder, so a second run on the same day sends nothing.
  */
 #[WriteAction(authorization: 'round.send_reminders', audit: 'participation.reminded')]
 final readonly class SendRemindersHandler
@@ -39,6 +41,7 @@ final readonly class SendRemindersHandler
         private Notifier $notifier,
         private Transaction $transaction,
         private ClockInterface $clock,
+        private GetReminderLeadTimeHandler $leadTime,
     ) {
     }
 
@@ -48,8 +51,12 @@ final readonly class SendRemindersHandler
 
         $this->transaction->run(function (): void {
             $now = $this->clock->now();
-            $tomorrow = LocalDay::of($now)->next();
-            $rounds = $this->rounds->between($tomorrow->startsAt(), $tomorrow->endsAt());
+            $day = LocalDay::of($now);
+            for ($days = ($this->leadTime)(new GetReminderLeadTime())->daysAhead; $days > 0; --$days) {
+                $day = $day->next();
+            }
+
+            $rounds = $this->rounds->between($day->startsAt(), $day->endsAt());
 
             foreach ($this->reminders->due($rounds, $this->activeWalkerIds($rounds)) as $reminder) {
                 $this->remind($reminder, $now);
