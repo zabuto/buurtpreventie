@@ -591,7 +591,7 @@ dagdeel `evening`, in `GET /rounds/{id}`, `GET /rounds` en `GET /me/rounds`.
     wordt leeg. Besloten op 16 november 2026: JSON Merge Patch (T19);
   - de uitnodiging antwoordt 201 met `{secret}` in plaats van de link (beslissing 28): de link hoort bij de frontend
     (`#/welcome/<secret>`), die haar eigen adres kent. Het geheim is `null` voor een coördinator en voor een lid dat al
-    eens inlogde. Ter goedkeuring;
+    eens inlogde. Besloten op 16 november 2026: het antwoord geeft het geheim, nooit een URL met het geheim erin;
   - het lid-id komt alleen uit het pad, zoals het ronde-id in T8;
   - de Postman-collectie leest als beheerder `/members`, `/admin/members` en één lid, en controleert de 422 voor een
     nieuw lid met een ongeldig adres en de 404 voor de rollen van een onbekend lid. Ze wijzigt niets.
