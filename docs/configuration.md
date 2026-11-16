@@ -45,7 +45,7 @@ admin sets it, also when it equals the default, and null removes it again.
 | `primaryColor`, `accentColor` | `#rrggbb`; at least 4.5:1 and 3:1 against white | `#1f5f8b`, `#c2410c` |
 | `primaryDarkColor`, `accentDarkColor` | `#rrggbb`; at least 4.5:1 and 3:1 against `#121212`, the dark background | `#8cc4e8`, `#fb923c` |
 | `contactName`, `contactEmail`, `contactPhone` | The coordinator members can reach: at most 100 characters, an e-mail address, a phone number | none |
-| `groupUrl` | An invitation to a group in WhatsApp (`https://chat.whatsapp.com/…`) or Signal (`https://signal.group/#…`) | none |
+| `groupUrl` | An invitation to a group in WhatsApp (`https://chat.whatsapp.com/…`) or Signal (`https://signal.group/#…`); `GET /api/v1/config` gives it to a logged-in member only | none |
 | `mailSenderName` | The name mails come from, at most 100 characters; the address stays `MAILER_FROM` | the name of the association |
 | `welcomeTextNl`, `welcomeTextEn`, `emergencyTextNl`, `emergencyTextEn` | Plain text, at most 2,000 characters; an empty line starts a paragraph | the standard text in `translations/settings.<locale>.yaml` |
 | `privacyUrl`, `accessibilityUrl` | An https address of a page of the association | none |

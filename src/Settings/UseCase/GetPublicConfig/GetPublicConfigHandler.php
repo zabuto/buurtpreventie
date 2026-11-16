@@ -17,8 +17,9 @@ use App\Shared\Domain\ExecutionContext;
 use App\Shared\Domain\ReadAction;
 
 /**
- * What the frontend needs to look and speak like the association, its group included, for anyone, logged in or not.
- * The contact of the coordinator is personal data, so a visitor gets the same keys with null.
+ * What the frontend needs to look and speak like the association, for anyone, logged in or not. The contact of the
+ * coordinator is personal data, and the group invitation lets anyone in to see the phone numbers of its members, so a
+ * visitor gets both with the same keys and null.
  */
 #[ReadAction]
 final readonly class GetPublicConfigHandler
@@ -36,7 +37,7 @@ final readonly class GetPublicConfigHandler
         $settings = Settings::of($this->settings->all());
         $language = (string) $settings->value(SettingName::Language);
         $member = null !== $this->context->actor();
-        $group = $settings->value(SettingName::GroupUrl);
+        $group = $member ? $settings->value(SettingName::GroupUrl) : null;
 
         return new GetPublicConfigOutput(
             associationName: (string) $settings->value(SettingName::AssociationName),

@@ -29,7 +29,7 @@ final class PublicConfigEndpointTest extends ApiTestCase
     private const string SECRET = 'bpt_cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd';
 
     #[Test]
-    public function it_gives_a_visitor_the_look_texts_and_group_without_the_contact(): void
+    public function it_gives_a_visitor_the_look_and_texts_without_the_contact_or_the_group(): void
     {
         $client = self::createClient();
         self::configured();
@@ -42,7 +42,7 @@ final class PublicConfigEndpointTest extends ApiTestCase
             [
                 'Eastside Watch',
                 ['name' => null, 'email' => null, 'phone' => null],
-                ['url' => 'https://chat.whatsapp.com/AbCdEfGhIjKlMnOpQrStUv', 'service' => 'whatsapp'],
+                ['url' => null, 'service' => null],
             ],
             [$config['associationName'] ?? null, $config['contact'] ?? null, $config['group'] ?? null],
         );
@@ -51,7 +51,7 @@ final class PublicConfigEndpointTest extends ApiTestCase
     }
 
     #[Test]
-    public function it_gives_a_member_with_a_session_the_contact(): void
+    public function it_gives_a_member_with_a_session_the_contact_and_the_group(): void
     {
         $client = self::createClient();
         $client->disableReboot();
@@ -60,7 +60,14 @@ final class PublicConfigEndpointTest extends ApiTestCase
 
         $client->request('GET', '/api/v1/config');
 
-        self::assertSame(['name' => 'Anna Hughes', 'email' => null, 'phone' => null], self::json($client)['contact'] ?? null);
+        $config = self::json($client);
+        self::assertSame(
+            [
+                ['name' => 'Anna Hughes', 'email' => null, 'phone' => null],
+                ['url' => 'https://chat.whatsapp.com/AbCdEfGhIjKlMnOpQrStUv', 'service' => 'whatsapp'],
+            ],
+            [$config['contact'] ?? null, $config['group'] ?? null],
+        );
     }
 
     #[Test]

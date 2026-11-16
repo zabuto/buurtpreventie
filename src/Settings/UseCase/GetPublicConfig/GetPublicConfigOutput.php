@@ -14,7 +14,7 @@ final readonly class GetPublicConfigOutput
      * @param ?string                                                 $logoUrl       the logo within 512 × 512, as a path from the root of the host; null without a logo
      * @param list<array{size: int, url: string}>                     $icons         every size of the app icon, as a path from the root of the host
      * @param array{name: ?string, email: ?string, phone: ?string}    $contact       the coordinator, for a logged-in member only
-     * @param array{url: ?string, service: ?string}                   $group         the group of the association, for anyone
+     * @param array{url: ?string, service: ?string}                   $group         the group of the association, for a logged-in member only
      */
     public function __construct(
         public string $associationName,
@@ -52,7 +52,7 @@ final readonly class GetPublicConfigOutput
         )]
         public array $contact,
         #[OA\Property(
-            description: 'Null values when the association has no group.',
+            description: 'Null values unless a member is logged in, and when the association has no group.',
             required: ['url', 'service'],
             properties: [
                 new OA\Property(property: 'url', type: ['string', 'null']),

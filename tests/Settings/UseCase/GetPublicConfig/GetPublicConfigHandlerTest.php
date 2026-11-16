@@ -84,22 +84,30 @@ final class GetPublicConfigHandlerTest extends TestCase
     }
 
     /**
-     * The group belongs to the look of the association, like its name and colours.
+     * Whoever holds the invitation can join the group and see the phone number of every member in it.
      */
     #[Test]
-    public function it_gives_anyone_the_group_with_its_service(): void
+    public function it_keeps_the_group_from_a_visitor_with_the_same_keys(): void
     {
         $config = $this->handler()(new GetPublicConfig());
+
+        $this->assertSame(['url' => null, 'service' => null], $config->group);
+    }
+
+    #[Test]
+    public function it_gives_a_member_the_group_with_its_service(): void
+    {
+        $config = $this->handler(new Actor(Uuid::v7(), [Role::Walker]))(new GetPublicConfig());
 
         $this->assertSame(['url' => 'https://signal.group/#CjQKIBYlH4b3Xy6cTz9QJ0p8d2fRk1mWnLsVu5eAtGhOiPqAEhC7', 'service' => 'signal'], $config->group);
     }
 
     #[Test]
-    public function it_gives_null_for_the_group_of_an_association_without_one(): void
+    public function it_gives_a_member_null_for_the_group_of_an_association_without_one(): void
     {
         $this->settings->remove(Setting::of('community.group_url', 'https://signal.group/#CjQKIBYlH4b3Xy6cTz9QJ0p8d2fRk1mWnLsVu5eAtGhOiPqAEhC7'));
 
-        $config = $this->handler()(new GetPublicConfig());
+        $config = $this->handler(new Actor(Uuid::v7(), [Role::Walker]))(new GetPublicConfig());
 
         $this->assertSame(['url' => null, 'service' => null], $config->group);
     }

@@ -21,7 +21,7 @@ final readonly class GetPublicConfigController
     #[Route('/config', name: 'settings_get_public_config', methods: ['GET'])]
     #[OA\Response(
         response: 200,
-        description: 'Name, colours, images, texts, group and staffing of the association; the contact for a member only.',
+        description: 'Name, colours, images, texts and staffing of the association; the contact and the group for a member only.',
         content: new OA\JsonContent(ref: new Model(type: GetPublicConfigOutput::class)),
     )]
     public function __invoke(): JsonResponse

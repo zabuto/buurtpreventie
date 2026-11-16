@@ -153,7 +153,7 @@
                 "config"
               ]
             },
-            "description": "Public: name, colours, images, texts and group of the association. Before any login, so the contact holds null."
+            "description": "Public: name, colours, images and texts of the association. Before any login, so the contact and the group hold null."
           },
           "event": [
             {
@@ -161,13 +161,13 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('answers 200 without the contact', () => {",
+                  "pm.test('answers 200 without the contact or the group', () => {",
                   "    pm.response.to.have.status(200);",
                   "    const config = pm.response.json();",
                   "    pm.expect(config.associationName).to.be.a('string');",
                   "    pm.expect(config.contact).to.eql({ name: null, email: null, phone: null });",
                   "    pm.expect(config.icons.map((icon) => icon.size)).to.eql([512, 192, 180, 32]);",
-                  "    pm.expect(config.group).to.have.all.keys('url', 'service');",
+                  "    pm.expect(config.group).to.eql({ url: null, service: null });",
                   "    pm.collectionVariables.set('iconUrl', config.icons[1].url);",
                   "});"
                 ]

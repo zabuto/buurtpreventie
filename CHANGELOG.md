@@ -112,7 +112,7 @@ versions follow [Semantic Versioning](https://semver.org/).
   JPEG, checked by its content, and store every size the app uses as a fresh PNG without metadata in `UPLOAD_DIR`;
   `GET /api/v1/media/brand/{file}` serves them to anyone, cached for a year.
 - `GET /api/v1/config` for the frontend, public: name, colours, logo and icons, texts in the language of the
-  association, the group link and the staffing defaults; the contact of the coordinator only for a member logged in. `GET /api/v1/manifest.webmanifest` lets a phone install the app under the name, colour and icon of the
+  association and the staffing defaults; the contact of the coordinator and the group link only for a member logged in. `GET /api/v1/manifest.webmanifest` lets a phone install the app under the name, colour and icon of the
   association, started under the path of `DEFAULT_URI`. Without an uploaded icon the app draws a neutral one.
 - Every message is a mail in HTML and text, in Dutch or English as the association sets it, with its name, colour
   and logo: login code, invitation, reminder, a round that seeks a buddy, a walker who withdrew and a cancelled

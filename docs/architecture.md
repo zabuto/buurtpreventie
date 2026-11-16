@@ -394,8 +394,9 @@ neutral icon `DefaultBrandIcon` draws. The answer keeps `Cache-Control: public` 
 the header Symfony reads to leave the cache headers of a session alone.
 
 `GET /config` (`GetPublicConfig`) gives the frontend name, colours, logo and icons, texts in the language of the
-association, the group link with its service and the staffing defaults, to anyone; `contact` keeps its keys with null
-unless a member is logged in, by session or token, since it holds personal data. `GET /manifest.webmanifest`
+association and the staffing defaults, to anyone; `contact` and `group` keep their keys with null unless a member is
+logged in, by session or token: the contact is personal data, and the group invitation lets anyone in to see the phone
+numbers of its members. `GET /manifest.webmanifest`
 (`GetWebManifest`) is the web app manifest, in the member names of its standard. Both give every link as a path from
 `AppUrl::pathTo()`, so the start of the app and every image follow the path of the base URL.
 
