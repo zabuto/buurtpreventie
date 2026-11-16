@@ -90,6 +90,9 @@
         "test": [
             "@php vendor/bin/phpunit"
         ],
+        "test:coverage": [
+            "@php vendor/bin/phpunit --colors=never --coverage-text=var/coverage/coverage.txt"
+        ],
         "test:unit": [
             "@php vendor/bin/phpunit --exclude-group integration --exclude-group functional --exclude-group database"
         ],
@@ -142,6 +145,7 @@
     },
     "scripts-descriptions": {
         "test": "Runs the test suite",
+        "test:coverage": "Runs the test suite and writes the coverage per class to var/coverage/coverage.txt; needs pcov or Xdebug",
         "test:unit": "Runs the in-memory unit tests only",
         "check": "Runs every check CI runs",
         "fix": "Applies Rector, Mago lint fixes and Mago formatting",

@@ -24,7 +24,7 @@ jobs:
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: '8.4'
-          coverage: none
+          coverage: pcov
           extensions: intl, mbstring
           tools: composer:v2
 
@@ -44,6 +44,33 @@ jobs:
       # The same script developers run locally; see docs/testing.md.
       - name: Run all checks
         run: composer check
+
+      # Information only: no threshold, and a failure here never fails the run. This job has no database, so the
+      # Doctrine repositories count low; the database job covers them.
+      - name: Measure test coverage
+        id: coverage
+        continue-on-error: true
+        run: composer test:coverage
+
+      - name: Show the coverage in the job summary
+        if: steps.coverage.outcome == 'success'
+        continue-on-error: true
+        run: |
+          {
+            echo '## Test coverage (without the database)'
+            echo
+            echo '```'
+            sed -n '/Summary:/,/^$/p' var/coverage/coverage.txt
+            echo '```'
+            echo
+            echo '<details><summary>Per class</summary>'
+            echo
+            echo '```'
+            sed -n '/^App\\/,$p' var/coverage/coverage.txt
+            echo '```'
+            echo
+            echo '</details>'
+          } >> "$GITHUB_STEP_SUMMARY"
 
   # Shared hosting offers either database, and Doctrine does not make them alike: generated SQL, collations and
   # locking can differ. Every migration, the schema and the database tests run on both.

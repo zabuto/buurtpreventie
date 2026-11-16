@@ -172,6 +172,13 @@ Locally you can also run them one by one: `composer test`, `vendor/bin/phpstan a
 `vendor/bin/mago format --dry-run`, `vendor/bin/mago lint`, `vendor/bin/mago analyze`,
 `vendor/bin/rector process --dry-run`.
 
+### Coverage
+
+The CI job "Checks" also runs `composer test:coverage` with pcov and puts the totals and the coverage per class in
+the job summary. It is information only: no threshold, and a failure there never fails the run. That job has no
+database, so the Doctrine repositories count low. Locally the same script needs pcov or Xdebug (`XDEBUG_MODE=coverage`)
+and writes `var/coverage/coverage.txt`.
+
 ## Security scan
 
 The "Security scan" job in `ci.yml` runs Opengrep with the rules in `.opengrep/rules/`. It runs only
