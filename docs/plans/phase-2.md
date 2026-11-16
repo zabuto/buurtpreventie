@@ -757,13 +757,15 @@ Per regel eerst het testbestand, dan de regel (beslissing 34). Lokaal gedraaid z
 - `composer test` zonder database (de databasetests slaan over), `symfony composer test` met database en
   `symfony composer check`; uitvoer in het verslag, met elke check die niet draaide.
 - Push en pull request naar `develop` na akkoord; CI groen (alle jobs); merge als squash na akkoord.
-- Uitgevoerd op 16 november 2026 (verifiëren; opleveren wacht op akkoord):
-  - `composer test` zonder database: 1963 tests, 105 overgeslagen (de databasetests), groen;
-  - `symfony composer test` met database: 1963 tests, groen, niets overgeslagen;
-  - `symfony composer check`: groen (validate, audit, container lint, deprecations, Mago format, lint en analyze,
-    Rector, PHPStan met PHPat, PHPUnit);
-  - niet gedraaid: de Opengrep-scan (alleen in CI, en T16 is overgeslagen), MySQL (alleen in CI; lokaal MariaDB), de
-    Postman-collectie met Newman en het `curl`-scenario met de hand tegen de demo;
+- Uitgevoerd op 16 november 2026, na T16 en T19–T24 (verifiëren; opleveren wacht op akkoord):
+  - `composer test` zonder database: 2052 tests, 110 overgeslagen (de databasetests), groen;
+  - `symfony composer test` met database: 2052 tests, groen, niets overgeslagen;
+  - `symfony composer check`: groen (validate, audit, container lint, YAML lint, deprecations, Mago format, lint en
+    analyze, Rector, PHPStan met PHPat, PHPUnit met database: 2052 tests);
+  - de Opengrep-regeltests en de scan lokaal met Opengrep 1.33.1 (T16): 12 van 12 tests groen, 0 bevindingen; zonder
+    Cosign-verificatie, die alleen in CI draait;
+  - niet gedraaid: MySQL (alleen in CI; lokaal MariaDB), de Postman-collectie met Newman en het `curl`-scenario met de
+    hand tegen de demo;
   - niet gedaan: push, pull request en merge; die wachten op akkoord.
 
 ### T19. JSON Merge Patch voor elke `PATCH` (test eerst)
