@@ -61,6 +61,10 @@ Things that are not obvious and cost time when you do not know them.
   another object, so the refresh fails with "Attempting to change readonly property". A query with
   `Query::HINT_REFRESH`, such as `RoundRepository::getForUpdate()`, refreshes the round and its
   walkers, so `Round` and `Participation` keep writable properties.
+- **An entity loaded only when read cannot have a readonly id.** A `ManyToOne` target, such as the meeting point
+  of a round or the outcome of a report, is a lazy object that already holds its id; loading it sets the id again
+  as a new `Uuid` object with the same value, and a readonly property accepts only the identical object. `MeetingPoint` and `Outcome` keep a writable id.
+  Only a test that clears the entity manager before reading the relation sees it.
 - **A refresh with a lock throws away what is not flushed.** `refresh($entity, LockMode::PESSIMISTIC_WRITE)` reads
   the row and overwrites the managed entity; a change made earlier in the same transaction but not yet flushed is
   gone. The audit chain flushes the head after each entry for that reason, or two entries in one transaction would

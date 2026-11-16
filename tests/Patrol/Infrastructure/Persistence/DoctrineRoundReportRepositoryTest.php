@@ -59,6 +59,32 @@ final class DoctrineRoundReportRepositoryTest extends KernelTestCase
         $this->assertSame([$round->id()->toRfc4122(), 'Poort stond open.'], [$read->round()->id()->toRfc4122(), $read->note()]);
     }
 
+    /**
+     * The outcome of a report loads only when read, and Doctrine then sets its id again, which a readonly id refuses.
+     */
+    #[Test]
+    public function it_loads_the_outcome_of_a_report_when_it_is_read(): void
+    {
+        $firstWalker = Uuid::v7();
+        $name = 'Opmerkingen ' . Uuid::v7()->toBase58();
+        $outcome = Outcome::create($name, OutcomeKind::Remarks);
+        $round = Round::plan(
+            new RoundStart(new DateTimeImmutable('2026-11-10T21:00:00+00:00')),
+            $firstWalker,
+            new StaffingRule(minimumWalkers: 1, maximumWalkers: 7),
+            new DateTimeImmutable('2026-11-01T12:00:00+00:00'),
+        );
+        $report = $round->submitReport($firstWalker, $outcome, null, new DateTimeImmutable('2026-11-10T23:00:00+00:00'));
+        $this->entityManager->persist($outcome);
+        $this->entityManager->persist($round);
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+
+        $read = $this->repository->get($report->id());
+
+        $this->assertSame([$name, OutcomeKind::Remarks], [$read->outcome()->name(), $read->outcome()->kind()]);
+    }
+
     #[Test]
     public function it_reports_an_unknown_report(): void
     {
