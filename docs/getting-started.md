@@ -24,7 +24,12 @@ composer install
 ```
 
 Local settings and secrets go in `.env.local`, which stays out of Git. See
-[configuration.md](configuration.md).
+[configuration.md](configuration.md). The app needs `APP_SECRET` there before anything signs or hashes a secret, such
+as a login code, a stay-logged-in cookie or loading the sample data. Make one if `.env.local` has none:
+
+```bash
+echo "APP_SECRET=$(php -r 'echo bin2hex(random_bytes(32));')" >> .env.local
+```
 
 ## Database
 

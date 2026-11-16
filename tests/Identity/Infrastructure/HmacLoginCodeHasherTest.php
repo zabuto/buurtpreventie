@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Identity\Infrastructure;
 
 use App\Identity\Infrastructure\HmacLoginCodeHasher;
+use LogicException;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -32,6 +33,17 @@ final class HmacLoginCodeHasherTest extends TestCase
         $this->assertNotSame($hash, new HmacLoginCodeHasher('key-two')->hash(self::CHALLENGE, '482913'));
         $this->assertNotSame($hash, new HmacLoginCodeHasher('key-one')->hash('fedcba9876543210fedcba9876543210', '482913'));
         $this->assertNotSame($hash, new HmacLoginCodeHasher('key-one')->hash(self::CHALLENGE, '482914'));
+    }
+
+    /**
+     * Without a key a copy of the database tries the million codes as easily as with a plain hash.
+     */
+    #[Test]
+    public function it_refuses_an_empty_key(): void
+    {
+        $this->expectException(LogicException::class);
+
+        new HmacLoginCodeHasher('');
     }
 
     #[Test]

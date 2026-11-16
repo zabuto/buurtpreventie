@@ -87,7 +87,8 @@ versions follow [Semantic Versioning](https://semver.org/).
   every mail. Login codes and invitations go out as plain Dutch text; the log never holds message parameters.
 - Login with a code by mail: `POST /api/v1/auth/login-code` answers the same for any address and mails an active
   member a six-digit code for 60 minutes, at most 3 requests per address and 10 per IP address in an hour;
-  `POST /api/v1/auth/login-code/verify` logs in with the code and the id of the request, at most 5 attempts.
+  `POST /api/v1/auth/login-code/verify` logs in with the code and the id of the request, at most 5 attempts. Without
+  `APP_SECRET` the app refuses to hash a login code.
 - Invitations: a link that logs a member in once within 48 hours (`POST /api/v1/auth/invitation`), sent by a
   coordinator or admin (`InviteMember`).
 - A new password has at least 15 characters of any kind, and at most 4,096 bytes.
