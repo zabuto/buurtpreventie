@@ -48,4 +48,19 @@ final class AuditPolicyTest extends TestCase
             ],
         );
     }
+
+    #[Test]
+    public function it_lets_only_an_admin_view_the_whole_log(): void
+    {
+        $policy = new AuditPolicy();
+
+        $this->assertSame(
+            [true, false, false],
+            [
+                $policy->mayViewLog(new Actor(Uuid::v7(), [Role::Admin])),
+                $policy->mayViewLog(new Actor(Uuid::v7(), [Role::Coordinator])),
+                $policy->mayViewLog(new Actor(Uuid::v7(), [Role::Analyst, Role::Walker])),
+            ],
+        );
+    }
 }

@@ -57,7 +57,8 @@ A few endpoint tests take the whole path through Doctrine, in the groups `databa
 `ApiTestCase` with `App\Kernel` as kernel class, store their member through the repository and flush, and stop the
 app clock with `Clock::set()` at `InMemoryKernel::NOW`, putting the previous clock back in `tearDown()`. The `clock`
 service of the app is Symfony's global clock, so that is the clock the handlers read. `ClockChangeDatabaseTest` is
-one: the rounds around both clock changes of 2027, planned and read back through the API.
+one: the rounds around both clock changes of 2027, planned and read back through the API. `AuditLogDatabaseTest` is
+another: a failed login through the API, then the log of the admin, which shows the shortened IP address only.
 
 ## Database tests
 
@@ -198,7 +199,8 @@ history of a round, and the 404 for a comment on, or deleting a report of, somet
 the member list without e-mail addresses, the admin list and one member, and checks the 422 for a new member with an
 invalid address and the 404 for the roles of a member that does not exist. It lists the meeting points and outcomes,
 for members and as admin, and checks the 409 for an outcome under the name of one that exists and the 404 for
-archiving a meeting point that does not exist. It never sets a valid new password, which would replace the one
+archiving a meeting point that does not exist. It reads the audit log, as JSON with the login among the entries and as
+CSV with its header, and checks the 422 for another format. It never sets a valid new password, which would replace the one
 of the member in the local database, and the token it makes lives one day. It is no part of `composer check` or CI and adds no dependency: import it with
 `postman/local.postman_environment.json` into the Postman app, or run it with Newman:
 

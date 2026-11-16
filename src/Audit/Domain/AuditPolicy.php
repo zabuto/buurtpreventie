@@ -9,7 +9,7 @@ use App\Shared\Domain\Role;
 
 /**
  * The audit log is append-only: the one change is wiping the name of an erased member, part of erasing. A coordinator
- * reads the history of a round.
+ * reads the history of a round, the admin the whole log.
  */
 final readonly class AuditPolicy
 {
@@ -24,5 +24,13 @@ final readonly class AuditPolicy
     public function mayViewRoundHistory(Actor $actor): bool
     {
         return $actor->hasRole(Role::Coordinator);
+    }
+
+    /**
+     * The whole log, with filters and as CSV, for accountability and to find out what happened after a breach.
+     */
+    public function mayViewLog(Actor $actor): bool
+    {
+        return $actor->hasRole(Role::Admin);
     }
 }

@@ -330,6 +330,14 @@ with `PATCH /{id}` (`ChangeMeetingPoint`: name and both coordinates; `ChangeOutc
 can restore that item instead of adding a look-alike. A domain error adds such members by implementing
 `Shared\Domain\RuleViolationDetails`, which `ProblemResponder` reads.
 
+**Audit log.** `GET /admin/audit` (`ListAuditEntries`, voter attribute `audit.view`, for the admin) gives the whole
+log newest first, 50 entries a page with `nextPage`, narrowed by `member` (what the member did and what was done to
+the member), `action`, `from` and `to` (`AuditFilter`, through `AuditEntryRepository::matching()`). Each entry names
+its actor as `member`, `removed_member` or `system`. With `format=csv` it hands over every matching entry as a file,
+read in batches of 500, with a fixed column order, the changes as JSON and every cell that starts with `=`, `+`, `-`,
+`@`, a tab or a carriage return prefixed with an apostrophe, so a spreadsheet never runs it as a formula. IP addresses
+are shortened when the entry is recorded, so the log never holds a full one.
+
 ## Handler and domain
 
 A handler orchestrates: it builds value objects from the input, asks `Authorization`, runs the change

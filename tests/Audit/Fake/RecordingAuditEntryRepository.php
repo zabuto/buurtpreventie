@@ -6,6 +6,7 @@ namespace App\Tests\Audit\Fake;
 
 use App\Audit\Domain\AuditEntry;
 use App\Audit\Domain\AuditEntryRepository;
+use App\Audit\Domain\AuditFilter;
 use Override;
 use Symfony\Component\Uid\Uuid;
 
@@ -54,6 +55,18 @@ final class RecordingAuditEntryRepository implements AuditEntryRepository
         );
 
         return $entries;
+    }
+
+    #[Override]
+    public function matching(AuditFilter $filter, int $offset, int $limit): array
+    {
+        $entries = \array_values(\array_filter($this->entries, $filter->matches(...)));
+        \usort(
+            $entries,
+            static fn(AuditEntry $a, AuditEntry $b): int => [$b->occurredAt(), $b->id()->toRfc4122()] <=> [$a->occurredAt(), $a->id()->toRfc4122()],
+        );
+
+        return \array_slice($entries, $offset, $limit);
     }
 
     #[Override]

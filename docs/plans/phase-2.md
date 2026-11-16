@@ -626,6 +626,25 @@ Repositoryquery's met integratietest op beide databases. Tests: filters, een gew
 volledig IP-adres in de uitvoer, CSV met een vaste kolomvolgorde en formules geneutraliseerd (een cel die met `=`,
 `+`, `-` of `@` begint krijgt een `'` ervoor).
 
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - `ListAuditEntries` (nieuw, Audit, voterattribuut `audit.view` alleen voor de beheerder, rij in de matrix) leest
+    `AuditEntryRepository::matching()` met een `AuditFilter` (nieuw, Audit\Domain), met een integratietest
+    (`DoctrineAuditEntryMatchingTest`); lokaal alleen op MariaDB, MySQL draait in CI;
+  - het filter op lid geeft wat het lid deed én wat met het lid gebeurde (onderwerp `member`): dat zoekt een beheerder
+    na een vraag of een datalek. Actie is een exacte naam, de periode is `from` tot (niet tot en met) `to`, zonder
+    maximum;
+  - 50 regels per pagina met `nextPage`, zoals `/me/activity`. `format=csv` geeft alles wat past, in porties van 500
+    gelezen, zonder paginering en zonder bovengrens. Ter goedkeuring: bij een groot log is dat één lang antwoord;
+  - CSV-kolommen in vaste volgorde: `occurredAt`, `action`, `actor`, `actorId`, `actorName`, `subjectType`,
+    `subjectId`, `channel`, `changes` (JSON). Naast `=`, `+`, `-` en `@` krijgt ook een cel die met een tab of
+    carriage return begint een `'` ervoor (OWASP CSV injection). Het maken van de CSV staat in
+    `ListAuditEntriesOutput::csv()`, met een eigen test, zodat de controller alleen het antwoord kiest;
+  - een gewist lid is `removed_member` zonder naam, zoals in de geschiedenis van een ronde (T10);
+  - "geen volledig IP-adres": het log bewaart alleen ingekorte adressen (T5). `AuditLogDatabaseTest` loopt het hele
+    pad: een mislukte inlog via de API met `192.0.2.57`, daarna het log van de beheerder, dat `192.0.2.0` toont en
+    nooit het volledige adres;
+  - de Postman-collectie leest het log als JSON en als CSV, en controleert de 422 voor een ander formaat.
+
 ### T14. OpenAPI (test eerst)
 
 - De dekkingstest: elke route onder `/api/v1` staat in `docs.json` met zijn methode, en elk pad in de spec bestaat;

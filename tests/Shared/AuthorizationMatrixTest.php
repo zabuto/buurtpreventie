@@ -64,6 +64,7 @@ final class AuthorizationMatrixTest extends TestCase
         yield from self::credentialRows();
         yield 'audit.erase_actor_name' => ['audit.erase_actor_name', static fn(Uuid $actor): Uuid => Uuid::v7(), ['admin']];
         yield 'audit.view_round_history' => ['audit.view_round_history', static fn(Uuid $actor): Uuid => Uuid::v7(), ['coordinator']];
+        yield 'audit.view' => ['audit.view', static fn(Uuid $actor): null => null, ['admin']];
     }
 
     /**

@@ -2577,6 +2577,159 @@
           ]
         },
         {
+          "name": "Audit log",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/audit",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "audit"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get('password')) {",
+                  "    console.log('Skipped: no password set for this member');",
+                  "    pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('lists the newest entries, among them the login', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const actions = pm.response.json().entries.map((entry) => entry.action);",
+                  "    pm.expect(actions).to.include('account.logged_in');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Audit log as CSV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/audit?format=csv&action=account.logged_in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "audit"
+              ],
+              "query": [
+                {
+                  "key": "format",
+                  "value": "csv"
+                },
+                {
+                  "key": "action",
+                  "value": "account.logged_in"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get('password')) {",
+                  "    console.log('Skipped: no password set for this member');",
+                  "    pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('hands over a CSV file with a fixed header', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/csv');",
+                  "    pm.expect(pm.response.text().split('\\n')[0]).to.eql('occurredAt,action,actor,actorId,actorName,subjectType,subjectId,channel,changes');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Audit log in another format",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/audit?format=xml",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "audit"
+              ],
+              "query": [
+                {
+                  "key": "format",
+                  "value": "xml"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get('password')) {",
+                  "    console.log('Skipped: no password set for this member');",
+                  "    pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('answers 422', () => {",
+                  "    pm.response.to.have.status(422);",
+                  "    pm.expect(pm.response.json().type).to.eql('urn:buurtpreventie:problem:invalid_input');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Log out",
           "request": {
             "method": "POST",

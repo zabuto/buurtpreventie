@@ -6,6 +6,7 @@ namespace App\Audit\Infrastructure\Persistence;
 
 use App\Audit\Domain\AuditEntry;
 use App\Audit\Domain\AuditEntryRepository;
+use App\Audit\Domain\AuditFilter;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
 use Symfony\Component\Uid\Uuid;
@@ -53,6 +54,41 @@ final readonly class DoctrineAuditEntryRepository implements AuditEntryRepositor
             ->getQuery()
             ->getResult()
         ;
+    }
+
+    #[Override]
+    public function matching(AuditFilter $filter, int $offset, int $limit): array
+    {
+        $query = $this->entityManager
+            ->createQueryBuilder()
+            ->select('e')
+            ->from(AuditEntry::class, 'e')
+            ->orderBy('e.occurredAt', 'DESC')
+            ->addOrderBy('e.id', 'DESC')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+        ;
+        if (null !== $filter->member) {
+            $query
+                ->andWhere("e.actorId = :member OR (e.subjectType = 'member' AND e.subjectId = :member)")
+                ->setParameter('member', $filter->member, 'uuid')
+            ;
+        }
+
+        if (null !== $filter->action) {
+            $query->andWhere('e.action = :action')->setParameter('action', $filter->action);
+        }
+
+        if (null !== $filter->from) {
+            $query->andWhere('e.occurredAt >= :from')->setParameter('from', $filter->from, 'utc_datetime_immutable');
+        }
+
+        if (null !== $filter->to) {
+            $query->andWhere('e.occurredAt < :to')->setParameter('to', $filter->to, 'utc_datetime_immutable');
+        }
+
+        /** @var list<AuditEntry> */
+        return $query->getQuery()->getResult();
     }
 
     /**

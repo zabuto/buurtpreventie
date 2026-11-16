@@ -22,6 +22,11 @@ interface AuditEntryRepository
     public function bySubject(string $subjectType, Uuid $subjectId): array;
 
     /**
+     * @return list<AuditEntry> the entries that match the filter, newest first
+     */
+    public function matching(AuditFilter $filter, int $offset, int $limit): array;
+
+    /**
      * Wipes the name of the member from every entry the member made; the id stays, so the actions stay attributed
      * to one "removed member".
      */
