@@ -12,6 +12,11 @@ use Symfony\Component\Uid\Uuid;
 interface AuditEntryRepository
 {
     /**
+     * @return list<AuditEntry> the entries of actions the member took, newest first
+     */
+    public function byActor(Uuid $memberId, int $offset, int $limit): array;
+
+    /**
      * Wipes the name of the member from every entry the member made; the id stays, so the actions stay attributed
      * to one "removed member".
      */

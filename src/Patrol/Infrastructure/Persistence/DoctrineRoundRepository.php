@@ -113,4 +113,22 @@ final readonly class DoctrineRoundRepository implements RoundRepository
             ->getResult()
         ;
     }
+
+    /**
+     * A subquery for the same reason as upcomingWithWalker(): every round comes with all its walkers.
+     */
+    #[Override]
+    public function withWalker(Uuid $memberId): array
+    {
+        /** @var list<Round> */
+        return $this->entityManager
+            ->createQuery(\sprintf(
+                'SELECT r FROM %s r WHERE EXISTS (SELECT 1 FROM %s p WHERE p.round = r AND p.memberId = :member) ORDER BY r.startsAt',
+                Round::class,
+                Participation::class,
+            ))
+            ->setParameter('member', $memberId, 'uuid')
+            ->getResult()
+        ;
+    }
 }

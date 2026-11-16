@@ -115,7 +115,7 @@ final class SameOriginGuardTest extends ApiTestCase
         $secret = 'bpt_' . \str_repeat('a', 64);
         self::service(InMemoryApiTokenRepository::class)->add(ApiToken::issue(
             self::actingAs($client)->id(),
-            new TokenTerms('Script', [TokenScope::Write]),
+            new TokenTerms('Script', [TokenScope::Write], new DateTimeImmutable('2027-11-01T00:00:00+00:00')),
             $secret,
             new DateTimeImmutable('2026-11-01T10:00:00+00:00'),
         ));

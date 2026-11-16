@@ -32,4 +32,19 @@ final readonly class InMemoryRoundReportRepository implements RoundReportReposit
 
         throw NotFound::forId('round report', $id);
     }
+
+    #[Override]
+    public function byAuthor(Uuid $authorId): array
+    {
+        $found = [];
+        foreach ($this->rounds->all() as $round) {
+            $report = $round->report();
+            if (null !== $report && $report->authorId()->equals($authorId)) {
+                $found[] = $report;
+            }
+        }
+        \usort($found, static fn(RoundReport $a, RoundReport $b): int => $a->reportedAt() <=> $b->reportedAt());
+
+        return $found;
+    }
 }

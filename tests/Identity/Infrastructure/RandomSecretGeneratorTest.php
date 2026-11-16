@@ -21,7 +21,12 @@ final class RandomSecretGeneratorTest extends TestCase
     {
         $secret = new RandomSecretGenerator()->newSecret();
 
-        $token = ApiToken::issue(Uuid::v7(), new TokenTerms('Script', [TokenScope::Read]), $secret, new DateTimeImmutable('2026-11-15T12:00:00+00:00'));
+        $token = ApiToken::issue(
+            Uuid::v7(),
+            new TokenTerms('Script', [TokenScope::Read], new DateTimeImmutable('2027-11-01T00:00:00+00:00')),
+            $secret,
+            new DateTimeImmutable('2026-11-15T12:00:00+00:00'),
+        );
 
         $this->assertTrue($token->matches($secret));
     }

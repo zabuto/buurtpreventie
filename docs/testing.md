@@ -183,7 +183,10 @@ and writes `var/coverage/coverage.txt`.
 
 `postman/buurtpreventie.postman_collection.json` checks a running app from the outside: health, the OpenAPI
 description, the refusals of the login endpoints, a login with a code and, when a password is set, a login with the
-password. It is no part of `composer check` or CI and adds no dependency: import it with
+password. After the login with a code it walks the own account: profile, a change that changes nothing, an API token
+created, listed, used, refused under `/me/tokens` and revoked, activity, export, and the 403 for a new token or
+password once only the stay-logged-in cookie is left. It never sets a valid new password, which would replace the one
+of the member in the local database, and the token it makes lives one day. It is no part of `composer check` or CI and adds no dependency: import it with
 `postman/local.postman_environment.json` into the Postman app, or run it with Newman:
 
 ```sh

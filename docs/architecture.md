@@ -148,7 +148,7 @@ A handler reaches storage, rights, the audit log and messages only through inter
 | `Shared\Domain` | What it does | Implementation |
 | --- | --- | --- |
 | `Transaction` | Runs an operation as one unit: a change and its audit entry are stored together or not at all | `Shared\Infrastructure\Doctrine\DoctrineTransaction` |
-| `ExecutionContext`, `Channel` | The member performing the action with their roles (an `Actor`), or none for the system, and the channel (`web`, `api`, `mcp`, `cron`, `console`) | `Shared\Infrastructure\Security\TokenExecutionContext`, which reads Symfony's token storage; `RunAs` fills it for console commands, fixtures and the scheduler, an authenticator for HTTP and MCP |
+| `ExecutionContext`, `Channel` | The member performing the action with their roles (an `Actor`), or none for the system, and the channel (`web`, `api`, `mcp`, `cron`, `console`) | `Shared\Infrastructure\Security\TokenExecutionContext`, which reads Symfony's token storage; `RunAs` fills it for console commands, fixtures and the scheduler, an authenticator for HTTP and MCP. A member run through `RunAs` counts as a recent login: whoever runs a console command proved who they are by reaching the server |
 | `AuditTrail`, `AuditedAction` | Records an action; time, actor and channel come from the clock and the execution context | `Audit\Infrastructure\Persistence\DoctrineAuditTrail` |
 | `MemberNames` | The display name of a member, or none for an erased one, so another module can record or show who acted | `Membership\Infrastructure\RepositoryMemberNames` |
 | `MemberDirectory`, `MemberProfile`, `MemberIdentity` | Whether a member is active, who wants to hear about open rounds, a member's names and phone number (only with consent), the address mail goes to (none for an inactive member), and the identity the login works with, by id or e-mail address: id, current roles and whether the member may log in | `Membership\Infrastructure\RepositoryMemberDirectory` |
@@ -259,7 +259,24 @@ A request with an API token carries no cookie and is not checked.
 `TokenScopeGuard` runs right after the firewall and holds a token request to its scopes: `read` for `GET` and
 `HEAD`, `write` for every other method, `admin` for everything under `/api/v1/admin/`. A missing scope is a 403
 problem `insufficient_scope`. The voters then decide on the roles as for any request, so scope and role must both
-allow an action.
+allow an action. `TokenManagementGuard` refuses every token request under `/api/v1/me/tokens` with the 403 problem
+`browser_only`, whatever its scopes: a leaked token can neither list, create nor revoke tokens.
+
+**Own account.** Everything under `/api/v1/me` is about the member logged in, and the controllers there pass no member
+id, so one in the body counts for nothing. `GET /me` (`GetOwnProfile`) shows the whole profile. `PATCH /me`
+(`ChangeOwnContactDetails`) takes phone number, address, consent and notifications about open rounds; a field left out
+stays, empty text removes a phone number or address. Consent and notifications go through `ChangeContactConsent` and
+`ChangeOpenRoundNotifications`, so they are the same audit actions wherever they change. Name, display name and
+e-mail address stay with the admin, so a hijacked session cannot move the address a login code goes to.
+`PUT /me/password` (`SetPassword`) and `POST /me/tokens` (`CreateApiToken`) need a recent login, otherwise the 403
+problem `reauthentication_required`; a login with a code counts, which is how a member replaces a forgotten password.
+A new token expires within 365 days and its secret is only in the answer to `POST`; `GET /me/tokens`
+(`ListApiTokens`) lists the tokens not revoked, and `DELETE /me/tokens/{id}` (`RevokeApiToken`) revokes one.
+`GET /me/activity` (`ListOwnActivity`) gives the member's own audit entries, 50 a page; of an entry about another
+member, such as a role an admin gave, it keeps the action but not who it was about or what changed.
+`GET /me/export` (`ExportOwnData`) gathers profile, rounds, reports and comments (`ExportOwnPatrolData`), tokens and
+every activity entry through the use cases of each module, and of another member it holds a buddy's display name
+only.
 
 ## Handler and domain
 
@@ -385,7 +402,8 @@ interface in the module's `Domain`, and wrap a change and its audit entry in `Tr
 ### Rule 3: controller, tool and output
 
 - A controller depends only on classes in its own use-case folder and on Symfony's HttpFoundation,
-  `HttpKernel\Attribute` and `Routing\Attribute`.
+  `HttpKernel\Attribute`, `Routing\Attribute` and `Routing\Requirement` (such as `Requirement::UUID` for an id in
+  the path).
 - A tool depends only on classes in its own use-case folder and on the MCP SDK.
 - An `Output` depends on no `Domain` at all.
 

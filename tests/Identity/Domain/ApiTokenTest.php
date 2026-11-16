@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Identity\Domain;
 
 use App\Identity\Domain\ApiToken;
+use App\Identity\Domain\InvalidTokenExpiry;
 use App\Identity\Domain\TokenRefusal;
 use App\Identity\Domain\TokenScope;
 use App\Identity\Domain\TokenTerms;
@@ -56,12 +57,31 @@ final class ApiTokenTest extends TestCase
         $this->assertSame($expected, $token->isUsableAt(new DateTimeImmutable($now)));
     }
 
-    #[Test]
-    public function it_is_usable_without_an_expiry(): void
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function expiriesOutsideAYear(): iterable
     {
-        $token = $this->token();
+        yield 'at the moment of issue' => ['2026-11-15T12:00:00+00:00'];
+        yield 'before the moment of issue' => ['2026-11-14T12:00:00+00:00'];
+        yield 'a second after 365 days' => ['2027-11-15T12:00:01+00:00'];
+    }
 
-        $this->assertTrue($token->isUsableAt(new DateTimeImmutable('2036-11-15T12:00:00+00:00')));
+    #[DataProvider('expiriesOutsideAYear')]
+    #[Test]
+    public function it_refuses_an_expiry_that_is_not_within_365_days_after_issue(string $expiresAt): void
+    {
+        $this->expectException(InvalidTokenExpiry::class);
+
+        $this->token(new DateTimeImmutable($expiresAt));
+    }
+
+    #[Test]
+    public function it_accepts_an_expiry_of_exactly_365_days_after_issue(): void
+    {
+        $token = $this->token(new DateTimeImmutable('2027-11-15T12:00:00+00:00'));
+
+        $this->assertEquals(new DateTimeImmutable('2027-11-15T12:00:00+00:00'), $token->expiresAt());
     }
 
     #[Test]
@@ -88,7 +108,7 @@ final class ApiTokenTest extends TestCase
     #[Test]
     public function it_keeps_each_scope_once(): void
     {
-        $terms = new TokenTerms('Script', [TokenScope::Read, TokenScope::Write, TokenScope::Read]);
+        $terms = new TokenTerms('Script', [TokenScope::Read, TokenScope::Write, TokenScope::Read], new DateTimeImmutable('2027-01-01T00:00:00+00:00'));
 
         $token = ApiToken::issue(Uuid::v7(), $terms, self::SECRET, new DateTimeImmutable(self::ISSUED_AT));
 
@@ -116,7 +136,12 @@ final class ApiTokenTest extends TestCase
     {
         $this->expectExceptionObject(new InvalidArgumentException('An API token secret is bpt_ followed by 64 lower-case hex digits.'));
 
-        ApiToken::issue(Uuid::v7(), new TokenTerms('Script', [TokenScope::Read]), $secret, new DateTimeImmutable(self::ISSUED_AT));
+        ApiToken::issue(
+            Uuid::v7(),
+            new TokenTerms('Script', [TokenScope::Read], new DateTimeImmutable('2027-01-01T00:00:00+00:00')),
+            $secret,
+            new DateTimeImmutable(self::ISSUED_AT),
+        );
     }
 
     #[Test]
@@ -124,7 +149,7 @@ final class ApiTokenTest extends TestCase
     {
         $token = ApiToken::issue(
             Uuid::v7(),
-            new TokenTerms('Script', [TokenScope::Read]),
+            new TokenTerms('Script', [TokenScope::Read], new DateTimeImmutable('2027-01-01T00:00:00+00:00')),
             'bpt_' . \str_repeat('f', 64),
             new DateTimeImmutable(self::ISSUED_AT),
         );
@@ -132,7 +157,7 @@ final class ApiTokenTest extends TestCase
         $this->assertTrue($token->matches('bpt_' . \str_repeat('f', 64)));
     }
 
-    private function token(?DateTimeImmutable $expiresAt = null): ApiToken
+    private function token(DateTimeImmutable $expiresAt = new DateTimeImmutable('2027-11-15T12:00:00+00:00')): ApiToken
     {
         return ApiToken::issue(Uuid::v7(), new TokenTerms('Script', [TokenScope::Read], $expiresAt), self::SECRET, new DateTimeImmutable(self::ISSUED_AT));
     }

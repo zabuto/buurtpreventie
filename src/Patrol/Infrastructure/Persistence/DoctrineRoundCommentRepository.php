@@ -46,4 +46,14 @@ final readonly class DoctrineRoundCommentRepository implements RoundCommentRepos
             ->findBy(['round' => $round], ['postedAt' => 'ASC', 'id' => 'ASC'])
         ;
     }
+
+    #[Override]
+    public function byAuthor(Uuid $authorId): array
+    {
+        /** @var list<RoundComment> */
+        return $this->entityManager
+            ->getRepository(RoundComment::class)
+            ->findBy(['authorId' => $authorId], ['postedAt' => 'ASC', 'id' => 'ASC'])
+        ;
+    }
 }

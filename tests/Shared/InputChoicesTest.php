@@ -40,7 +40,7 @@ final class InputChoicesTest extends TestCase
             Role::class,
         ];
         yield 'CreateApiToken scopes' => [
-            static fn(string $value): object => new CreateApiToken('0193a3c0-0000-7000-8000-000000000001', 'Script', [$value]),
+            static fn(string $value): object => new CreateApiToken('Script', [$value], '2027-01-01T00:00:00+00:00'),
             TokenScope::class,
         ];
         yield 'CreateOutcome kind' => [

@@ -449,6 +449,47 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
 - Tests: het geheim staat alleen in het antwoord van `POST /me/tokens`, nooit in `GET`; een token kan geen token
   maken; zonder recente aanmelding geeft `POST /me/tokens` 403 met `reauthentication_required`; de export bevat geen
   gegevens van andere leden behalve weergavenamen.
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - `PUT /me/password` roept `SetPassword` aan zonder `memberId` (afwijking van beslissing 16, zie T6). De hele weg
+    staat in `SetPasswordControllerTest`: na inloggen met een code zet het lid een nieuw wachtwoord zonder het oude;
+    de sessie die het zette blijft, ook met haar onthoud-cookie; een sessie en een onthoud-cookie van een ander
+    toestel niet meer;
+  - de controllers onder `/me` geven nooit een `memberId` door: een lid-id in de body telt niet. `memberId` is
+    optioneel in `CreateApiToken`, `SetPassword` en `ChangeOwnContactDetails` (beslissing 22). `ChangeContactConsent`
+    en `ChangeOpenRoundNotifications` houden een verplicht `memberId`: ze hebben geen eigen endpoint, `PATCH /me`
+    roept ze aan;
+  - `PATCH /me` is `ChangeOwnContactDetails` (beslissing 27): telefoon, adres, toestemming en meldingen. Een veld dat
+    ontbreekt of `null` is, blijft; lege tekst wist telefoon of adres. Toestemming en meldingen gaan via hun eigen
+    use case, zodat de auditacties dezelfde blijven, en alleen als de waarde verandert (de frontend stuurt het hele
+    formulier). Telefoon en adres krijgen `member.contact_details_changed` met de veldnamen zonder waarden, zoals
+    `ChangeMember`. Voterattribuut `member.change_contact_details`, alleen voor het lid zelf;
+  - `CreateApiToken` eist een recente sessie en een verloopdatum (beslissingen 15 en 19). `ApiToken::issue()`
+    weigert een datum die niet na het aanmaken ligt of meer dan 365 dagen later (`InvalidTokenExpiry`, 422
+    `invalid_token_expiry`). De auditregel noemt ook de verloopdatum. Migratie `Version20261116120000` maakt
+    `api_token.expires_at` verplicht en geeft een token zonder datum eerst een einde 365 dagen na het aanmaken;
+    `down()` maakt de kolom weer nullable;
+  - `RunAs::member()` telt als recente aanmelding: wie een consolecommando draait, bewees wie hij is door de server te
+    bereiken. Zo maken de voorbeelddata hun token nog via `CreateApiToken`, nu met 90 dagen geldigheid;
+  - beslissing 18 zit in `TokenManagementGuard`, naast `TokenScopeGuard`: elk verzoek met een token onder
+    `/api/v1/me/tokens` krijgt 403 `browser_only`, ook `GET` en `DELETE`. Dat volgt beslissing 17 (regels per
+    verzoek, niet in de Voters);
+  - `ListApiTokens` (nieuw) toont de tokens die niet ingetrokken zijn, nieuwste eerst, ook verlopen tokens, zodat het
+    lid ziet waarom een script stopte. `DELETE /me/tokens/{tokenId}` antwoordt 204; een token van een ander lid
+    geeft 403;
+  - regel 3 staat in een controller ook `Symfony\Component\Routing\Requirement` toe, voor `Requirement::UUID` in
+    een pad;
+  - `GET /me/activity` is `ListOwnActivity` (Audit), met `AuditEntryRepository::byActor()` en een integratietest:
+    50 regels per pagina (`?page=`), nieuwste eerst, met `nextPage`. Van een regel over een ander lid
+    (`AuditEntry::isAboutAnotherMemberThan()`) blijven de actie en het soort onderwerp, niet het id en niet de
+    wijzigingen;
+  - `GET /me/export` is `ExportOwnData` (Membership) als JSON-bestand (`Content-Disposition: attachment`). Het roept
+    `GetOwnProfile`, `ExportOwnPatrolData` (nieuw, Patrol), `ListApiTokens` en elke pagina van `ListOwnActivity` aan.
+    Patrol kreeg `RoundRepository::withWalker()` met een integratietest, en `byAuthor()` voor terugmeldingen en
+    opmerkingen. Van een loopmaatje staat alleen de weergavenaam in de export;
+  - de lees-handlers onder `/me` nemen altijd de uitvoerder en hebben geen voterattribuut: er is geen ander lid om
+    te kiezen. Zonder uitvoerder gooien ze `AccessDenied`;
+  - de Postman-collectie loopt na het inloggen met een code het eigen account door, met de 403 voor een nieuw token
+    of wachtwoord zodra alleen de onthoud-cookie over is. Ze zet nooit een geldig nieuw wachtwoord.
 
 ### T8. Rondes en aanmelden (test eerst)
 
@@ -501,6 +542,8 @@ volledig IP-adres in de uitvoer, CSV met een vaste kolomvolgorde en formules gen
 
 - De dekkingstest: elke route onder `/api/v1` staat in `docs.json` met zijn methode, en elk pad in de spec bestaat;
   elk endpoint documenteert zijn problem-antwoorden.
+- Elk request in `postman/buurtpreventie.postman_collection.json` (methode en pad onder `/api/v1`) staat in
+  `docs.json`, zodat de collectie niet uit de pas loopt met de API; zonder nieuwe afhankelijkheid.
 - Regel 3 uitgebreid (beslissing 23) met een overtreding in de fixtures en een regel in `docs/architecture.md`.
 
 ### T15. HTTP-matrixtest en het `curl`-scenario (test eerst)

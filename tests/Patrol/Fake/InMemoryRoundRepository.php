@@ -71,6 +71,12 @@ final class InMemoryRoundRepository implements RoundRepository
         ));
     }
 
+    #[Override]
+    public function withWalker(Uuid $memberId): array
+    {
+        return $this->sortedWhere(static fn(Round $round): bool => $round->isSignedUp($memberId));
+    }
+
     public function has(Round $round): bool
     {
         return \array_key_exists($round->id()->toRfc4122(), $this->rounds);

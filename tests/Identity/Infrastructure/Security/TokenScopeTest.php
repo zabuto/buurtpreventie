@@ -52,7 +52,7 @@ final class TokenScopeTest extends ApiTestCase
         $jan = MemberFixture::stored(self::service(InMemoryMemberRepository::class), 'jan@example.org', 'Jan Bakker', 'Jan B.');
         self::service(InMemoryApiTokenRepository::class)->add(ApiToken::issue(
             $jan->id(),
-            new TokenTerms('Script', $scopes),
+            new TokenTerms('Script', $scopes, new DateTimeImmutable('2027-11-01T00:00:00+00:00')),
             self::SECRET,
             new DateTimeImmutable('2026-11-01T10:00:00+00:00'),
         ));
@@ -69,7 +69,7 @@ final class TokenScopeTest extends ApiTestCase
         $jan = MemberFixture::stored(self::service(InMemoryMemberRepository::class), 'jan@example.org', 'Jan Bakker', 'Jan B.');
         self::service(InMemoryApiTokenRepository::class)->add(ApiToken::issue(
             $jan->id(),
-            new TokenTerms('Script', [TokenScope::Read]),
+            new TokenTerms('Script', [TokenScope::Read], new DateTimeImmutable('2027-11-01T00:00:00+00:00')),
             self::SECRET,
             new DateTimeImmutable('2026-11-01T10:00:00+00:00'),
         ));

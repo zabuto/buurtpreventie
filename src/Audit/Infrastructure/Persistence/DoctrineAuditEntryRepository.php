@@ -17,6 +17,25 @@ final readonly class DoctrineAuditEntryRepository implements AuditEntryRepositor
     ) {
     }
 
+    #[Override]
+    public function byActor(Uuid $memberId, int $offset, int $limit): array
+    {
+        /** @var list<AuditEntry> */
+        return $this->entityManager
+            ->createQueryBuilder()
+            ->select('e')
+            ->from(AuditEntry::class, 'e')
+            ->where('e.actorId = :member')
+            ->setParameter('member', $memberId, 'uuid')
+            ->orderBy('e.occurredAt', 'DESC')
+            ->addOrderBy('e.id', 'DESC')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
     /**
      * One bulk update: a member may have thousands of entries, and loading each would cost as many objects.
      */

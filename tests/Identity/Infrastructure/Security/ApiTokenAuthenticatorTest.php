@@ -155,7 +155,7 @@ final class ApiTokenAuthenticatorTest extends ApiTestCase
         return MemberFixture::stored(self::service(InMemoryMemberRepository::class), 'jan@example.org', 'Jan Bakker', 'Jan B.');
     }
 
-    private static function token(Member $member, ?DateTimeImmutable $expiresAt = null): ApiToken
+    private static function token(Member $member, DateTimeImmutable $expiresAt = new DateTimeImmutable('2027-11-01T00:00:00+00:00')): ApiToken
     {
         $token = ApiToken::issue(
             $member->id(),

@@ -23,4 +23,14 @@ final readonly class DoctrineRoundReportRepository implements RoundReportReposit
     {
         return $this->entityManager->find(RoundReport::class, $id) ?? throw NotFound::forId('round report', $id);
     }
+
+    #[Override]
+    public function byAuthor(Uuid $authorId): array
+    {
+        /** @var list<RoundReport> */
+        return $this->entityManager
+            ->getRepository(RoundReport::class)
+            ->findBy(['authorId' => $authorId], ['reportedAt' => 'ASC', 'id' => 'ASC'])
+        ;
+    }
 }

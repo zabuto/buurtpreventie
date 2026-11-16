@@ -25,6 +25,7 @@ invalid_period: Kies een periode van hooguit drie maanden, met het einde na het 
 invalid_staffing_defaults: Het aantal lopers klopt niet. Het maximum moet minstens zo groot zijn als het minimum.
 invalid_email_address: Dit e-mailadres klopt niet.
 invalid_name: Deze naam klopt niet. Gebruik minstens één letter of cijfer.
+invalid_token_expiry: Kies een einddatum voor het token binnen 365 dagen.
 invalid_input: Niet alle gegevens kloppen.
 bad_request: Dit verzoek kan de app niet lezen.
 login_failed: Het e-mailadres of het wachtwoord klopt niet.
@@ -34,6 +35,7 @@ invitation_ended: Deze uitnodiging werkt niet meer. Vraag een inlogcode aan, of 
 csrf_check_failed: De app kon niet controleren of dit verzoek van deze site komt. Laad de pagina opnieuw en probeer het nog eens.
 unauthorized: Je bent niet ingelogd.
 insufficient_scope: Je token mag dit niet. Maak een token met de juiste rechten.
+browser_only: 'Je tokens beheer je in de app, niet met een token.'
 access_denied: Dit mag je niet doen.
 reauthentication_required: 'Laat zien dat jij het bent: vul je wachtwoord in, of log opnieuw in met een code.'
 not_found: Dit bestaat niet (meer).

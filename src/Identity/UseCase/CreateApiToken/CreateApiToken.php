@@ -13,16 +13,19 @@ final readonly class CreateApiToken
      * @param list<string> $scopes
      */
     public function __construct(
-        #[Assert\Uuid]
-        public string $memberId,
         #[Assert\NotBlank]
         #[Assert\Length(max: 100)]
         public string $name,
         #[Assert\Count(min: 1)]
         #[Assert\All([new Assert\Choice(callback: [TokenScope::class, 'values'])])]
         public array $scopes,
+        /** At most 365 days ahead. */
+        #[Assert\NotBlank]
         #[Assert\DateTime(format: \DATE_ATOM)]
-        public ?string $expiresAt = null,
+        public string $expiresAt,
+        /** Empty for the member acting. */
+        #[Assert\Uuid]
+        public ?string $memberId = null,
     ) {
     }
 }

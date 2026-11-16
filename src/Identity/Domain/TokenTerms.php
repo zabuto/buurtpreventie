@@ -22,7 +22,7 @@ final readonly class TokenTerms
     public function __construct(
         string $name,
         array $scopes,
-        public ?DateTimeImmutable $expiresAt = null,
+        public DateTimeImmutable $expiresAt,
     ) {
         $this->name = \trim($name);
         $this->scopes = \array_values(\array_unique($scopes, \SORT_REGULAR));

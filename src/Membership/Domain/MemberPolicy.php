@@ -21,8 +21,8 @@ final readonly class MemberPolicy
     }
 
     /**
-     * Consent to share contact details and notifications about open rounds are the member's own choice; nobody makes
-     * it for them.
+     * Phone number, address, consent to share them and notifications about open rounds are the member's own choice;
+     * nobody makes it for them.
      */
     public function mayChangeOwnChoice(Actor $actor, Member $member): bool
     {

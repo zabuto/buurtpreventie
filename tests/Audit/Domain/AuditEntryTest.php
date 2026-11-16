@@ -108,4 +108,37 @@ final class AuditEntryTest extends TestCase
 
         $this->assertSame(['displayName' => ['old' => 'Jan B.', 'new' => 'Jan Ba.']], $entry->changes());
     }
+
+    #[Test]
+    public function it_is_about_another_member_when_its_subject_is_a_member_other_than_the_one_reading(): void
+    {
+        $reader = Uuid::v7();
+
+        $entry = AuditEntry::of(
+            new AuditedAction('member.roles_changed', 'member', Uuid::v7()),
+            $reader,
+            'Jan B.',
+            Channel::Web,
+            new DateTimeImmutable(self::NOW),
+        );
+
+        $this->assertTrue($entry->isAboutAnotherMemberThan($reader));
+    }
+
+    #[Test]
+    public function it_is_not_about_another_member_when_its_subject_is_the_reader_or_no_member(): void
+    {
+        $reader = Uuid::v7();
+
+        $own = AuditEntry::of(
+            new AuditedAction('member.consent_changed', 'member', $reader),
+            $reader,
+            'Jan B.',
+            Channel::Web,
+            new DateTimeImmutable(self::NOW),
+        );
+        $round = AuditEntry::of(new AuditedAction('round.created', 'round', Uuid::v7()), $reader, 'Jan B.', Channel::Web, new DateTimeImmutable(self::NOW));
+
+        $this->assertSame([false, false], [$own->isAboutAnotherMemberThan($reader), $round->isAboutAnotherMemberThan($reader)]);
+    }
 }

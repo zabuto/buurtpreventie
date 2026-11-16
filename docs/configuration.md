@@ -71,12 +71,14 @@ The input of a use case refuses a longer value; the column holds at least as muc
 | --- | --- | --- |
 | Coordinates | Latitude −90 to 90, longitude −180 to 180, six decimals (about 10 cm) | `Coordinates`, `DECIMAL(9,6)` |
 | API token secret | `bpt_` and 64 hexadecimal characters from 32 random bytes, stored as SHA-256; any other value is refused | `ApiToken`, `RandomSecretGenerator` |
-| API token scopes | At least one of `read`, `write` and `admin`; an optional expiry | `CreateApiToken`, `TokenScope` |
+| API token scopes | At least one of `read`, `write` and `admin` | `CreateApiToken`, `TokenScope` |
+| API token expiry | Always, after the moment of creation and at most 365 days later | `ApiToken::MAXIMUM_LIFETIME_IN_DAYS` |
 | Session | Cookie `bp_session`: `Secure`, `HttpOnly`, `SameSite=Lax`; files in `var/sessions/<env>/`; a new id at login | `config/packages/framework.yaml` |
 | Failed logins | 5 per address (or login challenge, or invitation) and IP address in 15 minutes, 30 per IP address in an hour, then 429; a successful login clears the first count | `config/packages/rate_limiter.yaml` |
 | Login code | Six digits, 60 minutes, once, at most 5 attempts; a new request ends the earlier ones | `LoginChallenge` |
 | Login code requests | 3 per address and 10 per IP address in an hour, then 429 | `config/packages/rate_limiter.yaml` |
 | Invitation | `bpi_` and 64 hexadecimal characters, stored as SHA-256; 48 hours, once; a new invitation ends the earlier ones | `Invitation` |
 | Stay logged in | Cookie `bp_remember` for 90 days: `Secure`, `HttpOnly`, `SameSite=Lax`; ends with a new password | `config/packages/security.yaml` |
-| Recent login | 15 minutes after a login or confirmation; needed for a new password | `TokenRecentAuthentication` |
+| Recent login | 15 minutes after a login or confirmation; needed for a new password and a new API token. A console command run as a member counts as recent | `TokenRecentAuthentication`, `RunAs` |
+| Own activity | 50 entries per page, newest first | `ListOwnActivityHandler::PAGE_SIZE` |
 | Audit fields | A field name containing `password`, `secret`, `token` or `hash` is refused | `AuditEntry` |

@@ -95,12 +95,12 @@ final readonly class MemberSteps
     }
 
     /**
-     * A read-only API token; its secret is shown once and dropped here, as nobody uses a sample token.
+     * A read-only API token for 90 days; its secret is shown once and dropped here, as nobody uses a sample token.
      */
     public function giveApiAccess(SampleMember $member, DateTimeImmutable $at, string $name): void
     {
         $this->as($member, $at, fn(): CreateApiTokenOutput => ($this->giveApiAccess)(
-            new CreateApiToken($member->id, $name, ['read']),
+            new CreateApiToken($name, ['read'], $at->modify('+90 days')->format(\DATE_ATOM), $member->id),
         ));
     }
 

@@ -25,6 +25,7 @@ use Symfony\Component\Uid\Uuid;
 final class AuditEntry
 {
     private const string SECRET_FIELD = '/password|secret|token|hash/i';
+    private const string MEMBER_SUBJECT = 'member';
 
     #[ORM\Id]
     #[ORM\Column(type: 'uuid')]
@@ -141,6 +142,15 @@ final class AuditEntry
 
         /** @var array<string, array{old: scalar|null, new: scalar|null}> */
         return \json_decode($this->changes, associative: true, flags: \JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * Whether the entry concerns a member other than $memberId, such as a role an admin gave: what a member reads of
+     * their own actions then leaves out who it was and what changed, as that is about someone else.
+     */
+    public function isAboutAnotherMemberThan(Uuid $memberId): bool
+    {
+        return self::MEMBER_SUBJECT === $this->subjectType && !$this->subjectId->equals($memberId);
     }
 
     public function eraseActorName(): void

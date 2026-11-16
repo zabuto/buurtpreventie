@@ -113,3 +113,10 @@ versions follow [Semantic Versioning](https://semver.org/).
 - Personal API tokens in `Authorization: Bearer`: looked up by hash on every request, refused at once when revoked,
   expired or when the member is deactivated or erased, held to their scopes (`read`, `write`, `admin`), and the
   last use recorded at most once a minute.
+- Own account: `GET /api/v1/me` shows the profile; `PATCH /api/v1/me` changes phone number, address, consent and
+  notifications about open rounds, never name or e-mail address; `PUT /api/v1/me/password` sets a new password in a
+  recent session, also after a login with a code; `GET /api/v1/me/activity` lists the member's own actions a page at
+  a time; `GET /api/v1/me/export` hands over all own data as a JSON file, of other members only display names.
+- `GET`, `POST` and `DELETE /api/v1/me/tokens`: a new API token needs a recent session and an end date within 365
+  days, and shows its secret only in the answer that created it; a request with an API token gets 403
+  `browser_only` there. Every API token expires; tokens without an end date get one 365 days after they were made.

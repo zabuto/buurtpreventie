@@ -25,6 +25,7 @@ invalid_period: Choose a period of at most three months that ends after it start
 invalid_staffing_defaults: The number of walkers is not valid. The maximum must be at least the minimum.
 invalid_email_address: This e-mail address is not valid.
 invalid_name: This name is not valid. Use at least one letter or digit.
+invalid_token_expiry: Choose an end date for the token within 365 days.
 invalid_input: Not all details are valid.
 bad_request: The app cannot read this request.
 login_failed: The e-mail address or password is not correct.
@@ -34,6 +35,7 @@ invitation_ended: This invitation no longer works. Ask for a login code, or ask 
 csrf_check_failed: The app could not check that this request comes from this site. Reload the page and try again.
 unauthorized: You are not logged in.
 insufficient_scope: Your token may not do this. Create a token with the right scope.
+browser_only: 'Manage your tokens in the app, not with a token.'
 access_denied: You may not do this.
 reauthentication_required: 'Confirm it is you: enter your password, or log in again with a code.'
 not_found: This does not exist (any more).

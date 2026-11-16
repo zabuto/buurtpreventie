@@ -24,6 +24,8 @@ final class ApiToken
 
     private const int USE_RECORDING_INTERVAL = 60;
 
+    public const int MAXIMUM_LIFETIME_IN_DAYS = 365;
+
     #[ORM\Id]
     #[ORM\Column(type: 'uuid')]
     private readonly Uuid $id;
@@ -44,8 +46,8 @@ final class ApiToken
     #[ORM\Column(length: 100)]
     private readonly string $name;
 
-    #[ORM\Column(type: 'utc_datetime_immutable', nullable: true)]
-    private readonly ?DateTimeImmutable $expiresAt;
+    #[ORM\Column(type: 'utc_datetime_immutable')]
+    private readonly DateTimeImmutable $expiresAt;
 
     private function __construct(
         #[ORM\Column(type: 'uuid')]
@@ -67,11 +69,15 @@ final class ApiToken
      * The secret comes from the SecretGenerator, never from a person: a typed or truncated secret is guessable.
      *
      * @throws InvalidArgumentException for a secret that is not bpt_ followed by 64 lower-case hex digits
+     * @throws InvalidTokenExpiry for an expiry not after $now or more than 365 days after it
      */
     public static function issue(Uuid $memberId, TokenTerms $terms, #[SensitiveParameter] string $secret, DateTimeImmutable $now): self
     {
         if (1 !== \preg_match(self::SECRET_FORMAT, $secret)) {
             throw new InvalidArgumentException('An API token secret is bpt_ followed by 64 lower-case hex digits.');
+        }
+        if ($terms->expiresAt <= $now || $terms->expiresAt > $now->modify(\sprintf('+%d days', self::MAXIMUM_LIFETIME_IN_DAYS))) {
+            throw new InvalidTokenExpiry(\sprintf('A token expires within %d days after it is issued.', self::MAXIMUM_LIFETIME_IN_DAYS));
         }
 
         return new self($memberId, $terms, $secret, $now);
@@ -113,7 +119,7 @@ final class ApiToken
         return \array_map(TokenScope::from(...), $this->scopes);
     }
 
-    public function expiresAt(): ?DateTimeImmutable
+    public function expiresAt(): DateTimeImmutable
     {
         return $this->expiresAt;
     }
@@ -158,7 +164,7 @@ final class ApiToken
     {
         return match (true) {
             null !== $this->revokedAt => TokenRefusal::Revoked,
-            null !== $this->expiresAt && $now >= $this->expiresAt => TokenRefusal::Expired,
+            $now >= $this->expiresAt => TokenRefusal::Expired,
             !$memberIsActive => TokenRefusal::MemberInactive,
             default => null,
         };
@@ -171,7 +177,7 @@ final class ApiToken
 
     public function isUsableAt(DateTimeImmutable $now): bool
     {
-        return null === $this->revokedAt && (null === $this->expiresAt || $now < $this->expiresAt);
+        return null === $this->revokedAt && $now < $this->expiresAt;
     }
 
     /**
