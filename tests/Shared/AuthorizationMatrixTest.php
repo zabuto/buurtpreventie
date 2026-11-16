@@ -130,6 +130,7 @@ final class AuthorizationMatrixTest extends TestCase
         yield 'member.change_contact_details of oneself' => ['member.change_contact_details', 'member:self', self::MEMBERS];
         yield 'member.change_contact_details of another member' => ['member.change_contact_details', 'member:other', []];
         yield 'member.list' => ['member.list', $nobody, [...self::MEMBERS, 'system']];
+        yield 'member.view' => ['member.view', $nobody, ['admin']];
     }
 
     /**

@@ -306,6 +306,20 @@ outcome with a null note and no comments. `GET /reports?from=&to=&outcome=` (`Li
 `system`, which the frontend words. It reads the log only, so a deleted round keeps its history; a round the log does
 not know is not found.
 
+**Members.** `GET /members` (`GetMemberSummaries`) lists the active members by display name for every member; a
+coordinator or admin sees the full name as well. Phone number and address show only for a member who consents to share
+them, to everyone alike, and the e-mail address never does. Everything else about a member is under `/admin/members`,
+for the admin (voter attribute `member.view` and the other `member.*` attributes): `GET` lists every member that is
+not erased, deactivated ones included, and `GET /admin/members/{id}` (`GetMember`) shows one, both with e-mail
+address, contact details, roles and choices (`ListMembers`); `POST` (`AddMember`) adds a member, `PATCH
+/admin/members/{id}` (`ChangeMember`) replaces name, display name, e-mail address, contact details and certificate,
+`PUT /admin/members/{id}/roles` (`ChangeMemberRoles`) sets the roles, `POST` and `DELETE
+/admin/members/{id}/deactivation` (`DeactivateMember`, `ReactivateMember`) deactivate and reactivate, `DELETE
+/admin/members/{id}` (`EraseMember`) erases. Changing roles and erasing need a recent login, otherwise the 403 problem
+`reauthentication_required`. `POST /admin/members/{id}/invitation` (`InviteMember`) sends an invitation, also for a
+coordinator; the answer holds the secret only for an admin inviting a member who never logged in, and the frontend
+makes the link of it.
+
 ## Handler and domain
 
 A handler orchestrates: it builds value objects from the input, asks `Authorization`, runs the change

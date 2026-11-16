@@ -135,3 +135,8 @@ versions follow [Semantic Versioning](https://semver.org/).
   period of at most 93 days for analysts and coordinators, and `GET /api/v1/rounds/{id}/history` the history of a
   round for coordinators, with an erased member as a removed member. The note of a report and the comments of a
   round are for its walkers, analysts and coordinators only, also in `GET /api/v1/rounds/{id}`.
+- Members: `GET /api/v1/members` lists the active members, with phone number and address only for a member who
+  consents and never an e-mail address. Under `/api/v1/admin/members` the admin lists, shows, adds and changes
+  members, sets roles, deactivates, reactivates and erases them, and has an invitation sent; changing roles and
+  erasing need a recent login. The secret of an invitation is in the answer only for an admin inviting a member who
+  never logged in.

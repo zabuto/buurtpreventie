@@ -13,7 +13,7 @@ use App\Shared\Domain\Role;
 final readonly class MemberPolicy
 {
     /**
-     * Adding, changing, roles, (de)activating and erasing.
+     * Viewing every member with contact details, adding, changing, roles, (de)activating and erasing.
      */
     public function mayManage(Actor $actor): bool
     {

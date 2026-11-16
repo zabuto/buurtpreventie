@@ -59,6 +59,10 @@
     {
       "key": "roundId",
       "value": ""
+    },
+    {
+      "key": "memberId",
+      "value": ""
     }
   ],
   "item": [
@@ -1970,6 +1974,273 @@
               ]
             },
             "description": "Checks the refusal only: deleting a real report would change the local database."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get('password')) {",
+                  "    console.log('Skipped: no password set for this member');",
+                  "    pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('answers 404', () => {",
+                  "    pm.response.to.have.status(404);",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Members",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/members",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "members"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get('password')) {",
+                  "    console.log('Skipped: no password set for this member');",
+                  "    pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('lists active members without an e-mail address', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const members = pm.response.json().members;",
+                  "    pm.expect(members).to.be.an('array').that.is.not.empty;",
+                  "    for (const member of members) {",
+                  "        pm.expect(member).to.not.have.property('email');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Members as admin",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/members",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "members"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get('password')) {",
+                  "    console.log('Skipped: no password set for this member');",
+                  "    pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('lists every member with an e-mail address', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const members = pm.response.json().members;",
+                  "    pm.expect(members[0]).to.have.property('email');",
+                  "    pm.collectionVariables.set('memberId', members[0].id);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "One member as admin",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/members/{{memberId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "members",
+                "{{memberId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get('password')) {",
+                  "    console.log('Skipped: no password set for this member');",
+                  "    pm.execution.skipRequest();",
+                  "}",
+                  "if (!pm.variables.get('memberId')) {",
+                  "    console.log('Skipped: no member listed');",
+                  "    pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('shows the member', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.json().id).to.eql(pm.variables.get('memberId'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add a member with an invalid address",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/members",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "members"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"geen adres\",\n  \"name\": \"Voorbeeld Lid\",\n  \"displayName\": \"Voorbeeld L.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Checks the refusal only: a valid member would be added to the local database."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get('password')) {",
+                  "    console.log('Skipped: no password set for this member');",
+                  "    pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('answers 422', () => {",
+                  "    pm.response.to.have.status(422);",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Roles of a member that does not exist",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/members/0193a3c0-0000-7000-8000-000000000001/roles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "members",
+                "0193a3c0-0000-7000-8000-000000000001",
+                "roles"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roles\": [\"walker\"]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Checks the refusal only: changing the roles of a real member would change the local database."
           },
           "event": [
             {

@@ -577,6 +577,25 @@ dagdeel `evening`, in `GET /rounds/{id}`, `GET /rounds` en `GET /me/rounds`.
   aan de coördinator via `/members`; met toestemming telefoon en adres, nooit e-mail; gedeactiveerde en gewiste leden
   staan niet in `/members` (uit T7 van fase 1); rollen wijzigen en wissen vragen een recente aanmelding; de link in
   het antwoord van de uitnodiging alleen voor een lid dat nooit inlogde.
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - `GET /members` is `GetMemberSummaries`: nu alleen actieve leden (het veld `active` vervalt), met `phone` en
+    `address` alleen bij toestemming, voor iedereen gelijk, en nooit een e-mailadres; coördinator en beheerder zien
+    ook de volledige naam. Review-focus 3 staat in de handlertest (elke rol) en via de API in `/members` en
+    `GET /rounds/{id}`, voor een loper en een coördinator;
+  - `ListMembers` en `GetMember` (nieuw, voterattribuut `member.view` alleen voor de beheerder, rij in de matrix)
+    geven alles wat de beheerder beheert: e-mailadres, naam, weergavenaam, telefoon, adres, rollen, actief,
+    certificaat, toestemming en meldingen. De lijst toont gedeactiveerde leden, geen gewiste: daar valt niets meer te
+    beheren. Geen laatste inlog: die staat in Identity;
+  - `ChangeMemberRoles` en `EraseMember` eisen een recente aanmelding (beslissing 15), in de handler zoals
+    `CreateApiToken`, met een test per handler en via de API;
+  - `PATCH /admin/members/{id}` volgt `ChangeMember`: alle velden worden vervangen, een weggelaten telefoon of adres
+    wordt leeg. Ter goedkeuring, net als bij `PATCH /rounds/{id}` in T8;
+  - de uitnodiging antwoordt 201 met `{secret}` in plaats van de link (beslissing 28): de link hoort bij de frontend
+    (`#/welcome/<secret>`), die haar eigen adres kent. Het geheim is `null` voor een coördinator en voor een lid dat al
+    eens inlogde. Ter goedkeuring;
+  - het lid-id komt alleen uit het pad, zoals het ronde-id in T8;
+  - de Postman-collectie leest als beheerder `/members`, `/admin/members` en één lid, en controleert de 422 voor een
+    nieuw lid met een ongeldig adres en de 404 voor de rollen van een onbekend lid. Ze wijzigt niets.
 
 ### T12. Catalogi (test eerst)
 

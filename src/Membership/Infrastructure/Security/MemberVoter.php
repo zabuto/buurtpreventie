@@ -32,6 +32,7 @@ final readonly class MemberVoter implements CacheableVoterInterface
         'member.change_open_round_notifications',
         'member.change_contact_details',
         'member.list',
+        'member.view',
     ];
 
     public function __construct(
