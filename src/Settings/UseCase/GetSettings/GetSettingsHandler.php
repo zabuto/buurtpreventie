@@ -62,7 +62,7 @@ final readonly class GetSettingsHandler
             apiAccess: '1' === $value(SettingName::ApiAccess),
             defaults: \array_values(\array_map(
                 static fn(SettingName $name): string => $name->field(),
-                \array_filter(SettingName::cases(), $settings->isDefault(...)),
+                \array_filter(SettingName::cases(), static fn(SettingName $name): bool => !$name->isUploaded() && $settings->isDefault($name)),
             )),
         );
     }

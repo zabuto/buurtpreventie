@@ -27,6 +27,7 @@ insufficient_contrast: This colour is hard to see on its background. Choose a da
 invalid_color: Write a colour as # with six characters, such as #1f5f8b.
 invalid_setting: This value does not fit this setting.
 invalid_group_link: This is not an invitation to a group in WhatsApp or Signal.
+unsupported_image: The app cannot use this image. Check which images fit and choose another one.
 invalid_email_address: This e-mail address is not valid.
 invalid_name: This name is not valid. Use at least one letter or digit.
 invalid_token_expiry: Choose an end date for the token within 365 days.

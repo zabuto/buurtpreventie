@@ -41,6 +41,8 @@ final class SettingsTest extends TestCase
                 'brand.accent' => '#c2410c',
                 'brand.primary_dark' => '#8cc4e8',
                 'brand.accent_dark' => '#fb923c',
+                'brand.logo' => null,
+                'brand.icon' => null,
                 'contact.name' => null,
                 'contact.email' => null,
                 'contact.phone' => null,
@@ -78,6 +80,7 @@ final class SettingsTest extends TestCase
         yield 'switch off' => [SettingName::ApiAccess, false, '0'];
         yield 'switch on' => [SettingName::ApiAccess, true, '1'];
         yield 'language' => [SettingName::Language, 'en', 'en'];
+        yield 'version of an uploaded logo' => [SettingName::Logo, '3f2a9c1d0b8e7f65', '3f2a9c1d0b8e7f65'];
     }
 
     #[Test]
@@ -107,6 +110,7 @@ final class SettingsTest extends TestCase
         yield 'reminder on the day itself' => [SettingName::ReminderDaysAhead, 0, InvalidSetting::class];
         yield 'reminder more than a week ahead' => [SettingName::ReminderDaysAhead, 8, InvalidSetting::class];
         yield 'language without texts' => [SettingName::Language, 'de', InvalidSetting::class];
+        yield 'file name for an icon' => [SettingName::Icon, '../icon.png', InvalidSetting::class];
         yield 'text for a switch' => [SettingName::ApiAccess, 'yes', InvalidSetting::class];
         yield 'text for a number' => [SettingName::MinimumWalkers, 'two', InvalidSetting::class];
         yield 'switch for a text' => [SettingName::ContactName, true, InvalidSetting::class];

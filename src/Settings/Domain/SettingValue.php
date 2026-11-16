@@ -52,6 +52,7 @@ final readonly class SettingValue
             SettingName::GroupUrl => GroupLink::fromString($value)->url,
             SettingName::PrivacyUrl, SettingName::AccessibilityUrl => self::webAddress($name, $value),
             SettingName::Language => self::language($value),
+            SettingName::Logo, SettingName::Icon => BrandImageFile::checkedVersion($name, $value),
             default => $value,
         };
     }

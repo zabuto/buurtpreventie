@@ -16,6 +16,9 @@ use App\Patrol\Domain\Round\Round;
 use App\Patrol\Domain\Round\RoundComment;
 use App\Patrol\Domain\Round\RoundStart;
 use App\Patrol\Domain\Round\StaffingRule;
+use App\Settings\Domain\BrandImageFile;
+use App\Settings\Domain\BrandImageKind;
+use App\Settings\Domain\Setting;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\Channel;
 use App\Shared\Domain\Role;
@@ -30,6 +33,9 @@ use App\Tests\Patrol\Fake\InMemoryMeetingPointRepository;
 use App\Tests\Patrol\Fake\InMemoryOutcomeRepository;
 use App\Tests\Patrol\Fake\InMemoryRoundCommentRepository;
 use App\Tests\Patrol\Fake\InMemoryRoundRepository;
+use App\Tests\Settings\Fake\InMemoryBrandImages;
+use App\Tests\Settings\Fake\InMemorySettingRepository;
+use App\Tests\Settings\Fake\TestImages;
 use App\Tests\Support\ApiTestCase;
 use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -67,11 +73,11 @@ final class HttpMatrixTest extends ApiTestCase
     private const string NEW_PASSWORD = 'een-lang-nieuw-wachtwoord';
 
     /**
-     * Per route: method, path, JSON body or null, and the principals let through. A path names the data of the world
-     * in braces: {round} ahead and {pastRound} walked, both of Piet; {piet}; {report} and {comment} of Piet on the
-     * walked round; {outcome}; {meetingPoint}; {token} of the principal.
+     * Per route: method, path, JSON body, the bytes of a file or null, and the principals let through. A path names the
+     * data of the world in braces: {round} ahead and {pastRound} walked, both of Piet; {piet}; {report} and {comment}
+     * of Piet on the walked round; {outcome}; {meetingPoint}; {token} of the principal; {logo}, a file of the logo.
      *
-     * @return array<string, array{string, string, array<string, mixed>|null, list<string>}>
+     * @return array<string, array{string, string, array<string, mixed>|string|null, list<string>}>
      */
     private static function rows(): array
     {
@@ -85,7 +91,7 @@ final class HttpMatrixTest extends ApiTestCase
     }
 
     /**
-     * @return array<string, array{string, string, array<string, mixed>|null, list<string>}>
+     * @return array<string, array{string, string, array<string, mixed>|string|null, list<string>}>
      */
     private static function publicRows(): array
     {
@@ -98,11 +104,12 @@ final class HttpMatrixTest extends ApiTestCase
             'auth_login_code_verify' => ['POST', '/api/v1/auth/login-code/verify', ['challengeId' => \str_repeat('0', 32), 'code' => '123456'], self::EVERYONE],
             'auth_invitation' => ['POST', '/api/v1/auth/invitation', ['secret' => 'bpi_' . \str_repeat('0', 64)], self::EVERYONE],
             'auth_confirm' => ['POST', '/api/v1/auth/confirm', ['password' => self::WRONG_PASSWORD], self::MEMBERS],
+            'settings_get_brand_image' => ['GET', '/api/v1/media/brand/{logo}', null, self::EVERYONE],
         ];
     }
 
     /**
-     * @return array<string, array{string, string, array<string, mixed>|null, list<string>}>
+     * @return array<string, array{string, string, array<string, mixed>|string|null, list<string>}>
      */
     private static function ownAccountRows(): array
     {
@@ -128,7 +135,7 @@ final class HttpMatrixTest extends ApiTestCase
     }
 
     /**
-     * @return array<string, array{string, string, array<string, mixed>|null, list<string>}>
+     * @return array<string, array{string, string, array<string, mixed>|string|null, list<string>}>
      */
     private static function roundRows(): array
     {
@@ -148,7 +155,7 @@ final class HttpMatrixTest extends ApiTestCase
     }
 
     /**
-     * @return array<string, array{string, string, array<string, mixed>|null, list<string>}>
+     * @return array<string, array{string, string, array<string, mixed>|string|null, list<string>}>
      */
     private static function afterRoundRows(): array
     {
@@ -163,7 +170,7 @@ final class HttpMatrixTest extends ApiTestCase
     }
 
     /**
-     * @return array<string, array{string, string, array<string, mixed>|null, list<string>}>
+     * @return array<string, array{string, string, array<string, mixed>|string|null, list<string>}>
      */
     private static function adminRows(): array
     {
@@ -200,6 +207,8 @@ final class HttpMatrixTest extends ApiTestCase
             'audit_list_audit_entries' => ['GET', '/api/v1/admin/audit', null, ['admin']],
             'settings_get' => ['GET', '/api/v1/admin/settings', null, ['admin']],
             'settings_change' => ['PATCH', '/api/v1/admin/settings', ['associationName' => 'Buurtpreventie Oost'], ['admin']],
+            'settings_change_brand_image' => ['PUT', '/api/v1/admin/settings/images/logo', TestImages::png(64, 32), ['admin']],
+            'settings_remove_brand_image' => ['DELETE', '/api/v1/admin/settings/images/logo', null, ['admin']],
         ];
     }
 
@@ -228,8 +237,8 @@ final class HttpMatrixTest extends ApiTestCase
         $client->request(
             $method,
             \strtr($path, $world),
-            server: null === $body ? [] : ['CONTENT_TYPE' => 'application/json'],
-            content: null === $body ? null : \strtr(\json_encode($body, \JSON_THROW_ON_ERROR), $world),
+            server: \is_array($body) ? ['CONTENT_TYPE' => 'application/json'] : [],
+            content: \is_array($body) ? \strtr(\json_encode($body, \JSON_THROW_ON_ERROR), $world) : $body,
         );
 
         $expected = match (true) {
@@ -314,7 +323,11 @@ final class HttpMatrixTest extends ApiTestCase
             new DateTimeImmutable(RoundFixture::CREATED_AT),
         ));
 
+        $logo = self::service(InMemoryBrandImages::class)->store(BrandImageKind::Logo, TestImages::png(64, 32));
+        self::service(InMemorySettingRepository::class)->add(Setting::of('brand.logo', $logo));
+
         return [
+            '{logo}' => BrandImageFile::of(BrandImageKind::Logo, 512, $logo)->name(),
             '{round}' => $round->id()->toRfc4122(),
             '{pastRound}' => $pastRound->id()->toRfc4122(),
             '{piet}' => $piet->id()->toRfc4122(),

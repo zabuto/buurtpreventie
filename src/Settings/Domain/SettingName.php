@@ -18,6 +18,8 @@ enum SettingName: string
     case AccentColor = 'brand.accent';
     case PrimaryDarkColor = 'brand.primary_dark';
     case AccentDarkColor = 'brand.accent_dark';
+    case Logo = 'brand.logo';
+    case Icon = 'brand.icon';
     case ContactName = 'contact.name';
     case ContactEmail = 'contact.email';
     case ContactPhone = 'contact.phone';
@@ -48,6 +50,14 @@ enum SettingName: string
     public function field(): string
     {
         return \lcfirst($this->name);
+    }
+
+    /**
+     * Whether an upload of its image sets it, rather than a change of the settings.
+     */
+    public function isUploaded(): bool
+    {
+        return self::Logo === $this || self::Icon === $this;
     }
 
     /**

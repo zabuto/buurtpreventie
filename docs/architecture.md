@@ -33,7 +33,7 @@ tests/                the same folders as src/, plus Architecture/, Database/, D
 | `Membership` | Members, roles, consent, certificate |
 | `Identity` | Login, login codes, invitations, passwords, API tokens |
 | `Audit` | Recording and showing the audit log |
-| `Settings` | The default minimum and maximum walkers of a new round; branding and texts from phase 3 |
+| `Settings` | What an association sets for itself: name, colours, logo and icon, contact, texts, walkers of a new round, reminder, language and access with API tokens |
 | `Maintenance` | Health check, updates, installer, legacy import |
 | `SampleData` | Made-up sample data, loaded through the use cases of the other modules; see [Sample data](#sample-data) |
 
@@ -381,6 +381,15 @@ the log stores whole seconds. It holds at most
 10,000 entries: more is the 422 problem `too_many_entries` with their `count` (`AuditEntryRepository::countMatching()`),
 never a file cut short that would look complete. IP addresses
 are shortened when the entry is recorded, so the log never holds a full one.
+
+**Settings.** `GET` and `PATCH /admin/settings` (`GetSettings`, `ChangeSettings`) read and change every setting but
+the images, `PUT` and `DELETE /admin/settings/images/{logo|icon}` (`ChangeBrandImage`, `RemoveBrandImage`) the
+images, all for the admin (`settings.view`, `settings.change`). `BrandImages` stores every size of an upload before
+the setting names its version, and removes the previous files through `Transaction::afterCommit()`, so a reader
+always finds the files the setting names. `GET /media/brand/{file}` (`GetBrandImage`) is public: `BrandImageFile`
+reads kind, size and version from the name, and anything outside that pattern, or a version no setting names, is
+not found before a path is made. The answer keeps `Cache-Control: public` for a logged-in member too, through the
+header Symfony reads to leave the cache headers of a session alone.
 
 ## Handler and domain
 

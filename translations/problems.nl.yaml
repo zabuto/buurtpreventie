@@ -27,6 +27,7 @@ insufficient_contrast: Deze kleur is niet goed te zien op de achtergrond. Kies e
 invalid_color: Een kleur schrijf je als # met zes tekens, bijvoorbeeld #1f5f8b.
 invalid_setting: Deze waarde past niet bij deze instelling.
 invalid_group_link: Dit is geen uitnodiging voor een groep in WhatsApp of Signal.
+unsupported_image: Deze afbeelding kan de app niet gebruiken. Kijk welke afbeeldingen passen en kies een andere.
 invalid_email_address: Dit e-mailadres klopt niet.
 invalid_name: Deze naam klopt niet. Gebruik minstens één letter of cijfer.
 invalid_token_expiry: Kies een einddatum voor het token binnen 365 dagen.

@@ -12,7 +12,7 @@ namespace App\Settings\UseCase\GetSettings;
 final readonly class GetSettingsOutput
 {
     /**
-     * @param list<string> $defaults the names of the settings that hold their default
+     * @param list<string> $defaults the names of the settings that hold their default, without the uploaded images
      */
     public function __construct(
         public string $associationName,

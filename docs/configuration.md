@@ -30,6 +30,7 @@ Symfony reads them in this order; a later value wins. Real secrets live only in 
 | `MAILER_DSN` | How mail leaves the app, such as `smtp://user:password@smtp.example.org:587` on a server. Locally the Symfony CLI sets it from the `mailer` container (Mailpit) in `compose.yaml` | `null://null`, which sends nothing; always in `test` |
 | `MAILER_FROM` | Sender of every mail, an address the mail server may send from | `noreply@localhost` (in `config/services.yaml`) |
 | `HSTS_MAX_AGE` | Seconds a browser keeps to HTTPS for this host after an API answer over HTTPS (`Strict-Transport-Security`), such as `31536000` for a year. Opt-in per installation: set it only once HTTPS works there, because a browser that has it refuses the site over HTTP until the time runs out, also when the certificate is lost. Covers this host only, not other subdomains of the domain | `0`, which sends no HSTS (in `config/services.yaml`) |
+| `UPLOAD_DIR` | Absolute path of the folder for uploaded files, outside the web folder: the logo and icon go in `brand/` under it. The PHP user writes there, and a backup includes it | `var/uploads` in the project (in `config/services.yaml`) |
 | `DEFAULT_URI` | Base URL of the app for links outside a web request, such as in e-mails and from the console. A subdomain (`https://buurtpreventie.example.org`) or a path (`https://example.org/buurtpreventie`), without `/public`; a trailing slash makes no difference. Anything but an http or https address with a host and at most a path is an error as soon as the app sends a message | `http://localhost` (in `config/services.yaml`) |
 
 ## Settings of the association
@@ -56,6 +57,25 @@ admin sets it, also when it equals the default, and null removes it again.
 A colour is checked against the other colours and a minimum against the maximum as one set, so a refused value
 leaves every value of the patch unstored. The audit log names each setting that changed with its old and new value,
 except contact details, the group link and texts, which it names without a value.
+
+### Logo and icon
+
+The admin uploads them with `PUT /api/v1/admin/settings/images/logo` and `/icon`, the file itself as the body, and
+puts the default back with `DELETE`. What a file is follows from its content alone: name, extension and
+`Content-Type` count for nothing. A refused file is the 422 problem `unsupported_image` with the `condition` it breaks.
+
+| Condition | Logo | Icon |
+| --- | --- | --- |
+| `format` | PNG or JPEG | PNG or JPEG |
+| `file_size` | at most 2 MB | at most 2 MB |
+| `too_large`, `not_square`, `too_small` | at most 2048 × 2048 pixels, any proportion | square, from 512 × 512 to 2048 × 2048 pixels |
+| Stored as | PNG within 512 × 512 (screen) and within 512 × 128 (mail) | PNG of 512, 192, 180 (Apple) and 32 (favicon) pixels |
+
+Every size is drawn afresh with GD, so only the pixels stay: no metadata such as the place a photo was taken, and
+nothing hidden after the image. A JPEG keeps the orientation of its pixels; GD ignores the rotation a phone notes
+in its metadata. The files are named `<kind>-<size>-<version>.png`, the version from the uploaded content, and
+`GET /api/v1/media/brand/<file>` serves, to anyone, only a file of the version a setting names, cached for a year.
+The files of the previous image go once the change is committed.
 
 ## Fixed limits
 

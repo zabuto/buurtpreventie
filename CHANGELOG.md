@@ -108,6 +108,9 @@ versions follow [Semantic Versioning](https://semver.org/).
   brand colours checked for contrast in light and dark mode, contact of the coordinator, a link to a group in
   WhatsApp or Signal, sender name, welcome and emergency texts in Dutch and English with standard texts, privacy and
   accessibility pages, walkers of new rounds, days ahead of the reminder, language, and access with API tokens.
+- Logo and app icon: `PUT` and `DELETE /api/v1/admin/settings/images/logo` and `/icon` for the admin take a PNG or
+  JPEG, checked by its content, and store every size the app uses as a fresh PNG without metadata in `UPLOAD_DIR`;
+  `GET /api/v1/media/brand/{file}` serves them to anyone, cached for a year.
 - Every link in a mail starts at `DEFAULT_URI`, also when the app runs under a path such as
   `https://example.org/buurtpreventie`, with or without a trailing slash.
 - Dependabot also updates the Mailpit image in `compose.yaml`, after the same 7-day cooldown.

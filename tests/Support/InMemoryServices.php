@@ -17,6 +17,7 @@ use App\Patrol\Domain\Catalogue\OutcomeRepository;
 use App\Patrol\Domain\Round\RoundCommentRepository;
 use App\Patrol\Domain\Round\RoundReportRepository;
 use App\Patrol\Domain\Round\RoundRepository;
+use App\Settings\Domain\BrandImages;
 use App\Settings\Domain\SettingRepository;
 use App\Shared\Domain\AppUrl;
 use App\Shared\Domain\AuditTrail;
@@ -36,6 +37,7 @@ use App\Tests\Patrol\Fake\InMemoryOutcomeRepository;
 use App\Tests\Patrol\Fake\InMemoryRoundCommentRepository;
 use App\Tests\Patrol\Fake\InMemoryRoundReportRepository;
 use App\Tests\Patrol\Fake\InMemoryRoundRepository;
+use App\Tests\Settings\Fake\InMemoryBrandImages;
 use App\Tests\Settings\Fake\InMemorySettingRepository;
 use App\Tests\Shared\Fake\ImmediateTransaction;
 use App\Tests\Shared\Fake\RecordingAuditTrail;
@@ -77,6 +79,7 @@ final readonly class InMemoryServices implements CompilerPassInterface
         LoginCodeGenerator::class => FixedLoginCodeGenerator::class,
         SecretGenerator::class => FixedSecretGenerator::class,
         SettingRepository::class => InMemorySettingRepository::class,
+        BrandImages::class => InMemoryBrandImages::class,
         AuditEntryRepository::class => RecordingAuditEntryRepository::class,
         Transaction::class => ImmediateTransaction::class,
         AuditTrail::class => RecordingAuditTrail::class,

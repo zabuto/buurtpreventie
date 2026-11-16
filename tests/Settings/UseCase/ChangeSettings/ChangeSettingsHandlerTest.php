@@ -160,9 +160,9 @@ final class ChangeSettingsHandlerTest extends TestCase
      * The input lists every setting by its API name, so none of them is out of reach of the admin.
      */
     #[Test]
-    public function it_takes_every_setting_of_the_catalogue(): void
+    public function it_takes_every_setting_of_the_catalogue_but_the_uploaded_images(): void
     {
-        foreach (SettingName::cases() as $name) {
+        foreach (\array_filter(SettingName::cases(), static fn(SettingName $name): bool => !$name->isUploaded()) as $name) {
             $this->assertArrayHasKey($name->value, new ChangeSettings(...[$name->field() => null])->changes(), $name->field());
         }
     }

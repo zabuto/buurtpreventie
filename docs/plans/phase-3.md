@@ -443,6 +443,40 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
   rollback; `/media/brand/` geeft alleen een bestand dat een instelling noemt, met `nosniff` en een cache van een
   jaar; `../` of een andere naam is 404.
 - Auditregel `setting.image_changed` (soort, oude en nieuwe bestandsnaam).
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - domein: `BrandImageKind` (logo en icoon, met de grenzen van beslissing 8 en de maten), `Rendition` (een kader
+    waarin het beeld past, nooit vergroot), `ImageFacts` (wat de kop en de magische bytes zeggen), `BrandImageFile`
+    (naam ↔ soort, maat en versie) en `UnsupportedImage` met `condition` (`format`, `file_size`, `too_large`,
+    `not_square`, `too_small`); `BrandImages` als interface, `FileBrandImages` en `GdBrandImageConverter` in
+    Infrastructure;
+  - **één versie per upload**: de 16 hex-tekens komen van de SHA-256 van het geüploade bestand, en alle maten delen
+    die versie (`logo-512-<versie>.png`, `logo-128-<versie>.png`). De instelling bewaart alleen de versie. Kleine
+    afwijking van beslissing 10 (een hash per bestand): de namen blijven per upload nieuw, en de instelling hoeft
+    geen lijst namen te dragen;
+  - het maillogo past binnen 512 × 128, niet alleen 128 hoog: een heel breed logo blijft zo binnen een mail;
+  - `brand.logo` en `brand.icon` staan in de catalogus (`SettingName::isUploaded()`), maar alleen een upload zet
+    ze: `PATCH` kent ze niet, en `defaults` van `GET /admin/settings` noemt ze niet. `SettingValue` neemt alleen een
+    versie aan;
+  - de auditregel noemt per instelling de oude en nieuwe versie (`{"brand.logo": {"old": …, "new": …}}`); dezelfde
+    upload nog eens verandert niets en schrijft geen regel; `DELETE` zonder upload ook niet;
+  - de bestanden worden vóór de transactie geschreven en de vorige pas na de commit verwijderd. Een rollback laat
+    de nieuwe bestanden ongebruikt staan; `/media/brand/` geeft ze niet, omdat geen instelling ze noemt;
+  - `PUT` leest hooguit 2 MB plus één byte van de body; meer is `file_size` zonder de rest te lezen. Een andere
+    soort dan `logo` of `icon` is 404 op de route;
+  - `GET /media/brand/{bestand}` is publiek (`security.yaml`), met `Cache-Control: public, max-age=31536000,
+    immutable` ook voor een ingelogd lid (Symfony maakt een antwoord na een sessie anders privé) en `nosniff` van
+    `ApiSecurityHeaders`;
+  - `symfony/filesystem` is geen eigen afhankelijkheid, dus schrijven gaat met een tijdelijk bestand en `rename()`
+    in PHP zelf;
+  - het standaardicoon uit de repo komt in T7, met `/config` en het manifest die het noemen;
+  - GD negeert de draaiing die een telefoon in de metadata van een JPEG zet; `docs/configuration.md` zegt het;
+  - `UPLOAD_DIR` staat in `config/services.yaml` (standaard `var/uploads` in het project) en
+    `docs/configuration.md`;
+  - tests: domein (`BrandImageKindTest`, `RenditionTest`, `BrandImageFileTest`), de converter in memory met GD
+    (afgeleide maten, transparantie, GPS en een script achter een PNG weg, elke weigering), `FileBrandImagesTest`
+    (integratie, tijdelijke map), de drie handlers (ook rollback en dezelfde upload twee keer), `BrandImageEndpointTest`
+    en rijen in `HttpMatrixTest` (die ook een ruwe body kan sturen); de Postman-collectie stuurt tekst als logo (422)
+    en vraagt een beeld dat geen instelling noemt (404).
 
 ### T7. `/config` en manifest (test eerst)
 
