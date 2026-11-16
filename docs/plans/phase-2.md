@@ -892,6 +892,18 @@ Besloten op 16 november 2026:
 - review-focus 3 blijft: zonder toestemming nooit een waarde;
 - OpenAPI-schema's, tests en docs bijwerken.
 
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - **afwijking, ter goedkeuring**: ook `name` staat in `/members` altijd, `null` voor een lezer die geen coördinator
+    of beheerder is, zoals bij de lopers van een ronde. Zo heeft elk lid in de lijst dezelfde vorm;
+  - `GetMemberSummariesHandler` en `GetRoundHandler` bouwen elke regel met alle sleutels; de keuze wie wat ziet bleef
+    gelijk (`maySeeFullNames`, `maySeeWalkerPhones`, toestemming in Membership). De tests van review-focus 3 eisen
+    `null` voor telefoon en adres zonder toestemming, bij elke rol, en geen waarde ervan in het antwoord;
+  - Nelmio leest de array-shapes uit de docblock niet, dus de spec noemde de regels een object met vrije velden. Nu
+    staan de velden met `#[OA\Property(items: new OA\Items(...))]` op de output, verplicht en nullable, met een
+    beschrijving wanneer ze `null` zijn. `additionalProperties: false` erbij laat Nelmio falen, dus de vrije velden
+    blijven er ook in (`docs/gotchas.md`). `OpenApiDocumentTest` eist die velden;
+  - de Postman-collectie controleert de vaste sleutels van elk lid in `/members` en van elke loper in één ronde.
+
 ### T24. Naamgeving in JSON (test eerst)
 
 Besloten op 16 november 2026:

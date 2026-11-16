@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Shared\Infrastructure\Http;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -42,6 +43,37 @@ final class OpenApiDocumentTest extends WebTestCase
         $client->request('GET', '/api/v1/docs.json');
 
         self::assertArrayNotHasKey('/api/v1/docs.json', self::paths(self::document($client)));
+    }
+
+    /**
+     * @return iterable<string, array{string, string, list<string>}>
+     */
+    public static function contactDetailLists(): iterable
+    {
+        yield 'members' => ['GetMemberSummariesOutput', 'members', ['name', 'phone', 'address']];
+        yield 'walkers of a round' => ['GetRoundOutput', 'walkers', ['name', 'phone']];
+    }
+
+    /**
+     * Review focus 3 keeps a value out without consent; the field itself stays, so a client reads one shape.
+     *
+     * @param list<string> $nullable
+     */
+    #[DataProvider('contactDetailLists')]
+    #[Test]
+    public function it_describes_contact_details_as_always_present_and_null_when_hidden(string $schema, string $list, array $nullable): void
+    {
+        $client = self::createClient();
+
+        $client->request('GET', '/api/v1/docs.json');
+
+        /** @var array{components: array{schemas: array<string, array{properties: array<string, array{items?: array{required?: list<string>, properties?: array<string, array{type?: string|list<string>}>}}>}>}} $document */
+        $document = self::document($client);
+        $items = $document['components']['schemas'][$schema]['properties'][$list]['items'] ?? [];
+        self::assertSame([], \array_diff($nullable, $items['required'] ?? []));
+        foreach ($nullable as $field) {
+            self::assertContains('null', (array) ($items['properties'][$field]['type'] ?? []), $field);
+        }
     }
 
     /**

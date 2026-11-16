@@ -47,20 +47,20 @@ final readonly class GetMemberSummariesHandler
     }
 
     /**
-     * @return array{id: string, displayName: string|null, name?: string|null, phone?: string|null, address?: string|null}
+     * Every field is always there, null for what the reader may not see, so a client reads one shape.
+     *
+     * @return array{id: string, displayName: string|null, name: string|null, phone: string|null, address: string|null}
      */
     private static function summary(Member $member, bool $withFullName): array
     {
-        $summary = ['id' => $member->id()->toRfc4122(), 'displayName' => $member->displayName()];
-        if ($withFullName) {
-            $summary['name'] = $member->name();
-        }
+        $shares = $member->consentsToContactShare();
 
-        if ($member->consentsToContactShare()) {
-            $summary['phone'] = $member->phone()?->value;
-            $summary['address'] = $member->address();
-        }
-
-        return $summary;
+        return [
+            'id' => $member->id()->toRfc4122(),
+            'displayName' => $member->displayName(),
+            'name' => $withFullName ? $member->name() : null,
+            'phone' => $shares ? $member->phone()?->value : null,
+            'address' => $shares ? $member->address() : null,
+        ];
     }
 }

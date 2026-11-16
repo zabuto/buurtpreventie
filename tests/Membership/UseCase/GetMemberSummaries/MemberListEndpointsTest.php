@@ -60,7 +60,7 @@ final class MemberListEndpointsTest extends ApiTestCase
 
         self::assertResponseIsSuccessful();
         self::assertSame(
-            [['displayName' => 'Piet V.', 'phone' => '06 1234 5678', 'address' => 'Dorpsstraat 1']],
+            [['displayName' => 'Piet V.', 'name' => null, 'phone' => '06 1234 5678', 'address' => 'Dorpsstraat 1']],
             \array_map(static fn(array $member): array => \array_diff_key($member, ['id' => true]), self::members($client)),
         );
     }

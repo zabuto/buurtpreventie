@@ -334,7 +334,10 @@ not know is not found.
 
 **Members.** `GET /members` (`GetMemberSummaries`) lists the active members by display name for every member; a
 coordinator or admin sees the full name as well. Phone number and address show only for a member who consents to share
-them, to everyone alike, and the e-mail address never does. Everything else about a member is under `/admin/members`,
+them, to everyone alike, and the e-mail address never does. The shape stays the same for every reader: `name`,
+`phone` and `address` are always there, null for what the reader may not see or what the member left empty, and the
+walkers in `GET /rounds/{id}` always carry `name` and `phone` the same way. The OpenAPI description names these fields
+with `#[OA\Property]` on the output, because Nelmio does not read an array shape from a docblock. Everything else about a member is under `/admin/members`,
 for the admin (voter attribute `member.view` and the other `member.*` attributes): `GET` lists every member that is
 not erased, deactivated ones included, and `GET /admin/members/{id}` (`GetMember`) shows one, both with e-mail
 address, contact details, roles and choices (`ListMembers`); `POST` (`AddMember`) adds a member, `PATCH

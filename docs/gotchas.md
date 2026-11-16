@@ -92,6 +92,9 @@ Things that are not obvious and cost time when you do not know them.
   therefore sees no input; `ProblemResponsesProcessor` is a processor for that reason.
 - **Nelmio does not read the output of a controller** that returns a `JsonResponse`: the spec lists no success
   answer unless the controller carries an `#[OA\Response]`, which every controller here does.
+- **Nelmio does not read array shapes** (`list<array{id: string, ...}>`) from a docblock: such a list is an object
+  with free properties in the spec. Name the fields with `#[OA\Property(items: new OA\Items(...))]` on the output
+  property. `additionalProperties: false` there makes Nelmio fail, so the spec keeps the free properties as well.
 - **Nelmio finds a response by its status with `===`**: an `#[OA\Response]` carries an integer, a lookup by
   `'404'` misses it and adds a second 404. `ProblemResponsesProcessor` looks for the documented answer itself.
 - **`#[MapQueryString]` answers a validation failure with 404** unless the controller sets

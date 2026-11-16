@@ -91,7 +91,7 @@ final class GetRoundHandlerTest extends TestCase
                 startNote: 'Bij het hek',
                 cancelReason: null,
                 ownerId: $this->jan->toRfc4122(),
-                walkers: [['id' => $this->jan->toRfc4122(), 'displayName' => 'Jan B.', 'name' => 'Jan B. Bakker']],
+                walkers: [['id' => $this->jan->toRfc4122(), 'displayName' => 'Jan B.', 'name' => 'Jan B. Bakker', 'phone' => null]],
                 inactiveWalkerCount: 0,
                 report: null,
                 comments: [],
@@ -159,21 +159,21 @@ final class GetRoundHandlerTest extends TestCase
         $output = $this->handler($directory)(new GetRound($round->id()->toRfc4122()));
 
         $this->assertSame(
-            [[['id' => $this->jan->toRfc4122(), 'displayName' => 'Jan B.', 'name' => 'Jan B. Bakker']], 2],
+            [[['id' => $this->jan->toRfc4122(), 'displayName' => 'Jan B.', 'name' => 'Jan B. Bakker', 'phone' => null]], 2],
             [$output->walkers, $output->inactiveWalkerCount],
         );
     }
 
     #[DataProvider('rolesAndFullNames')]
     #[Test]
-    public function it_shows_the_full_name_only_to_a_coordinator_or_admin(Role $role, bool $seesFullName): void
+    public function it_shows_the_full_name_only_to_a_coordinator_or_admin_and_null_to_anyone_else(Role $role, bool $seesFullName): void
     {
         $round = $this->round(new RoundStart(new DateTimeImmutable(self::UPCOMING)), $this->jan);
         $directory = new FixedMemberDirectory([FixedMemberDirectory::activeProfile($this->jan)]);
 
         $output = $this->handler($directory, new Actor(Uuid::v7(), [$role]))(new GetRound($round->id()->toRfc4122()));
 
-        $this->assertSame($seesFullName ? ['Jan B. Bakker'] : [], \array_column($output->walkers, 'name'));
+        $this->assertSame([$seesFullName ? 'Jan B. Bakker' : null], \array_column($output->walkers, 'name'));
     }
 
     #[Test]
@@ -189,8 +189,8 @@ final class GetRoundHandlerTest extends TestCase
 
         $this->assertSame(
             [
-                ['id' => $this->jan->toRfc4122(), 'displayName' => 'Jan B.', 'phone' => '0612345678'],
-                ['id' => $this->piet->toRfc4122(), 'displayName' => 'Piet V.', 'phone' => null],
+                ['id' => $this->jan->toRfc4122(), 'displayName' => 'Jan B.', 'name' => null, 'phone' => '0612345678'],
+                ['id' => $this->piet->toRfc4122(), 'displayName' => 'Piet V.', 'name' => null, 'phone' => null],
             ],
             $output->walkers,
         );
@@ -218,7 +218,7 @@ final class GetRoundHandlerTest extends TestCase
 
         $output = $this->handler($directory, new Actor(Uuid::v7(), [Role::Walker]))(new GetRound($round->id()->toRfc4122()));
 
-        $this->assertSame([['id' => $this->jan->toRfc4122(), 'displayName' => 'Jan B.']], $output->walkers);
+        $this->assertSame([['id' => $this->jan->toRfc4122(), 'displayName' => 'Jan B.', 'name' => null, 'phone' => null]], $output->walkers);
     }
 
     /**
@@ -235,7 +235,7 @@ final class GetRoundHandlerTest extends TestCase
 
         $output = $this->handler($directory, new Actor($this->piet, [Role::Walker]))(new GetRound($round->id()->toRfc4122()));
 
-        $this->assertSame(['id' => $this->jan->toRfc4122(), 'displayName' => 'Jan B.', 'phone' => null], $output->walkers[0]);
+        $this->assertSame(['id' => $this->jan->toRfc4122(), 'displayName' => 'Jan B.', 'name' => null, 'phone' => null], $output->walkers[0]);
     }
 
     /**
@@ -249,7 +249,7 @@ final class GetRoundHandlerTest extends TestCase
 
         $output = $this->handler($directory)(new GetRound($round->id()->toRfc4122()));
 
-        $this->assertSame([['id' => $this->jan->toRfc4122(), 'displayName' => 'Jan B.', 'name' => 'Jan Bakker']], $output->walkers);
+        $this->assertSame([['id' => $this->jan->toRfc4122(), 'displayName' => 'Jan B.', 'name' => 'Jan Bakker', 'phone' => null]], $output->walkers);
     }
 
     #[Test]

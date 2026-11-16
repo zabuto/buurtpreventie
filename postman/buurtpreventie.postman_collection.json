@@ -1652,6 +1652,9 @@
                   "    for (const field of ['status', 'walkerCount', 'minimumWalkers', 'maximumWalkers', 'openSpots', 'daypart']) {",
                   "        pm.expect(round).to.have.property(field);",
                   "    }",
+                  "    for (const walker of round.walkers) {",
+                  "        pm.expect(walker).to.have.all.keys('id', 'displayName', 'name', 'phone');",
+                  "    }",
                   "});"
                 ]
               }
@@ -2154,12 +2157,12 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('lists active members without an e-mail address', () => {",
+                  "pm.test('lists active members in one shape, without an e-mail address', () => {",
                   "    pm.response.to.have.status(200);",
                   "    const members = pm.response.json().members;",
                   "    pm.expect(members).to.be.an('array').that.is.not.empty;",
                   "    for (const member of members) {",
-                  "        pm.expect(member).to.not.have.property('email');",
+                  "        pm.expect(member).to.have.all.keys('id', 'displayName', 'name', 'phone', 'address');",
                   "    }",
                   "});"
                 ]

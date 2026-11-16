@@ -83,7 +83,7 @@ final readonly class GetRoundHandler
     }
 
     /**
-     * @return list<array{id: string, displayName: string|null, name?: string|null, phone?: string|null}>
+     * @return list<array{id: string, displayName: string|null, name: string|null, phone: string|null}>
      */
     private function walkers(Round $round): array
     {
@@ -120,20 +120,19 @@ final readonly class GetRoundHandler
     }
 
     /**
-     * @return array{id: string, displayName: string|null, name?: string|null, phone?: string|null}
+     * Every field is always there, null for what the reader may not see; the profile holds a phone number only with
+     * consent.
+     *
+     * @return array{id: string, displayName: string|null, name: string|null, phone: string|null}
      */
     private static function walker(MemberProfile $profile, bool $withFullName, bool $withPhone): array
     {
-        $walker = ['id' => $profile->memberId->toRfc4122(), 'displayName' => $profile->displayName];
-        if ($withFullName) {
-            $walker['name'] = $profile->name;
-        }
-
-        if ($withPhone) {
-            $walker['phone'] = $profile->phone;
-        }
-
-        return $walker;
+        return [
+            'id' => $profile->memberId->toRfc4122(),
+            'displayName' => $profile->displayName,
+            'name' => $withFullName ? $profile->name : null,
+            'phone' => $withPhone ? $profile->phone : null,
+        ];
     }
 
     /**
