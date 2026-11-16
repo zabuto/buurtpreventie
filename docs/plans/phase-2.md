@@ -766,7 +766,10 @@ Per regel eerst het testbestand, dan de regel (beslissing 34). Lokaal gedraaid z
     Cosign-verificatie, die alleen in CI draait;
   - niet gedraaid: MySQL (alleen in CI; lokaal MariaDB), de Postman-collectie met Newman en het `curl`-scenario met de
     hand tegen de demo;
-  - niet gedaan: push, pull request en merge; die wachten op akkoord.
+  - opgeleverd op 16 november 2026 met pull request #24, als squash gemergd in `develop`. De eerste CI-run faalde in
+    beide databasejobs: de console draait daar in `dev`, waar de gecommitte `.env` geen `APP_SECRET` heeft, en
+    `remember_me` start niet zonder. Elke databasejob maakt nu per run een eigen `APP_SECRET`
+    (`docs/operations.md`); daarna waren alle jobs groen (checks, security scan, MariaDB 10.11 en MySQL 8.4).
 
 ### T19. JSON Merge Patch voor elke `PATCH` (test eerst)
 
