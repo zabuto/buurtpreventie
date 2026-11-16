@@ -311,7 +311,7 @@ Volgens Fase 3 in het plan (besloten op 16 november 2026); hieronder wat het pla
     - **`mailer-outside-notifier`**: `MailerInterface::send()` buiten `Shared\Infrastructure\Notification`, zodat
       geen mail om de wachtrij na de commit heen gaat.
 
-## Nieuwe afhankelijkheden (ter goedkeuring)
+## Nieuwe afhankelijkheden (goedgekeurd op 16 november 2026)
 
 Versies en datums van Packagist op 16 november 2026. De Composer-cooldown van 24 uur geldt.
 
