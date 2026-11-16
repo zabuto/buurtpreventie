@@ -209,7 +209,7 @@ final class LoadFixturesCommandTest extends KernelTestCase
     }
 
     /**
-     * Every set starts with the admin at the same address, so one login and one Postman environment fit any set.
+     * Every set starts with the admin at the same address, so one login and one set of Hurl variables fit any set.
      */
     #[DataProvider('sets')]
     #[Test]
