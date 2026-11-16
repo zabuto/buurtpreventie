@@ -9,6 +9,7 @@ use App\Shared\Domain\InvalidValue;
 use App\Shared\Domain\NotFound;
 use App\Shared\Domain\ReauthenticationRequired;
 use App\Shared\Domain\RuleViolation;
+use App\Shared\Domain\RuleViolationDetails;
 use App\Shared\Domain\StateConflict;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
@@ -54,7 +55,13 @@ final readonly class ProblemResponder
         $throwable = $event->getThrowable();
         [$status, $code, $headers] = self::classify($throwable);
 
-        $event->setResponse($this->problems->create($status, $code, $headers, self::violations($throwable)));
+        $event->setResponse($this->problems->create(
+            $status,
+            $code,
+            $headers,
+            self::violations($throwable),
+            $throwable instanceof RuleViolationDetails ? $throwable->details() : [],
+        ));
     }
 
     /**

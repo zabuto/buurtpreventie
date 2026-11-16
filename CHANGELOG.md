@@ -140,3 +140,7 @@ versions follow [Semantic Versioning](https://semver.org/).
   members, sets roles, deactivates, reactivates and erases them, and has an invitation sent; changing roles and
   erasing need a recent login. The secret of an invitation is in the answer only for an admin inviting a member who
   never logged in.
+- Catalogues: `GET /api/v1/meeting-points` and `GET /api/v1/outcomes` list what a member can choose; under
+  `/api/v1/admin/meeting-points` and `/api/v1/admin/outcomes` the admin lists them with the archived ones, adds,
+  changes, archives and restores them. A name that is taken answers 409 with the id of the item that holds it and
+  whether that one is archived.

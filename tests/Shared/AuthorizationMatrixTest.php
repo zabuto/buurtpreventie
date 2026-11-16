@@ -109,6 +109,7 @@ final class AuthorizationMatrixTest extends TestCase
         yield 'comment.delete by its author' => ['comment.delete', self::commentBy(...), self::MEMBERS];
 
         yield 'catalogue.manage' => ['catalogue.manage', $nobody, ['admin']];
+        yield 'catalogue.list' => ['catalogue.list', $nobody, [...self::MEMBERS, 'system']];
     }
 
     /**

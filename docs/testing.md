@@ -196,7 +196,9 @@ coming week, one of them, the gaps and the own walked rounds, and checks the 422
 the 404 for signing up for a round that does not exist. As the sample admin it gets the 403 for the reports and the
 history of a round, and the 404 for a comment on, or deleting a report of, something that does not exist. It reads
 the member list without e-mail addresses, the admin list and one member, and checks the 422 for a new member with an
-invalid address and the 404 for the roles of a member that does not exist. It never sets a valid new password, which would replace the one
+invalid address and the 404 for the roles of a member that does not exist. It lists the meeting points and outcomes,
+for members and as admin, and checks the 409 for an outcome under the name of one that exists and the 404 for
+archiving a meeting point that does not exist. It never sets a valid new password, which would replace the one
 of the member in the local database, and the token it makes lives one day. It is no part of `composer check` or CI and adds no dependency: import it with
 `postman/local.postman_environment.json` into the Postman app, or run it with Newman:
 

@@ -63,6 +63,10 @@
     {
       "key": "memberId",
       "value": ""
+    },
+    {
+      "key": "outcomeName",
+      "value": ""
     }
   ],
   "item": [
@@ -2241,6 +2245,309 @@
               }
             },
             "description": "Checks the refusal only: changing the roles of a real member would change the local database."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get('password')) {",
+                  "    console.log('Skipped: no password set for this member');",
+                  "    pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('answers 404', () => {",
+                  "    pm.response.to.have.status(404);",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Meeting points",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/meeting-points",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "meeting-points"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get('password')) {",
+                  "    console.log('Skipped: no password set for this member');",
+                  "    pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('lists the meetingPoints to choose from', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const items = pm.response.json().meetingPoints;",
+                  "    pm.expect(items).to.be.an('array');",
+                  "    for (const item of items) {",
+                  "        pm.expect(item.archived).to.eql(false);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Outcomes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/outcomes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "outcomes"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get('password')) {",
+                  "    console.log('Skipped: no password set for this member');",
+                  "    pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('lists the outcomes to choose from', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const items = pm.response.json().outcomes;",
+                  "    pm.expect(items).to.be.an('array');",
+                  "    for (const item of items) {",
+                  "        pm.expect(item.archived).to.eql(false);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Meeting points as admin",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/meeting-points",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "meeting-points"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get('password')) {",
+                  "    console.log('Skipped: no password set for this member');",
+                  "    pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('lists the meetingPoints with the archived ones', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const items = pm.response.json().meetingPoints;",
+                  "    pm.expect(items).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Outcomes as admin",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/outcomes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "outcomes"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get('password')) {",
+                  "    console.log('Skipped: no password set for this member');",
+                  "    pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('lists the outcomes with the archived ones', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const items = pm.response.json().outcomes;",
+                  "    pm.expect(items).to.be.an('array');",
+                  "    pm.collectionVariables.set('outcomeName', items.length > 0 ? items[0].name : '');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Outcome with a name that is taken",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/outcomes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "outcomes"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{outcomeName}}\",\n  \"kind\": \"remarks\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Takes the name of an outcome that exists, so nothing is added to the local database."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get('password')) {",
+                  "    console.log('Skipped: no password set for this member');",
+                  "    pm.execution.skipRequest();",
+                  "}",
+                  "if (!pm.variables.get('outcomeName')) {",
+                  "    console.log('Skipped: no outcome listed');",
+                  "    pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('answers 409 with the outcome that holds the name', () => {",
+                  "    pm.response.to.have.status(409);",
+                  "    const problem = pm.response.json();",
+                  "    pm.expect(problem.type).to.eql('urn:buurtpreventie:problem:outcome_name_taken');",
+                  "    pm.expect(problem.existingId).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Archive a meeting point that does not exist",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/meeting-points/0193a3c0-0000-7000-8000-000000000001/archive",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "meeting-points",
+                "0193a3c0-0000-7000-8000-000000000001",
+                "archive"
+              ]
+            },
+            "description": "Checks the refusal only: archiving a real meeting point would change the local database."
           },
           "event": [
             {

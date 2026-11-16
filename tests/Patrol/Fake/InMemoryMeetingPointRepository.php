@@ -50,4 +50,13 @@ final class InMemoryMeetingPointRepository implements MeetingPointRepository
     {
         return \array_key_exists($meetingPoint->id()->toRfc4122(), $this->items);
     }
+
+    #[Override]
+    public function all(): array
+    {
+        $all = \array_values($this->items);
+        \usort($all, static fn(MeetingPoint $a, MeetingPoint $b): int => $a->nameKey() <=> $b->nameKey());
+
+        return $all;
+    }
 }

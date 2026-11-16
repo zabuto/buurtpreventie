@@ -50,4 +50,13 @@ final class InMemoryOutcomeRepository implements OutcomeRepository
     {
         return \array_key_exists($outcome->id()->toRfc4122(), $this->items);
     }
+
+    #[Override]
+    public function all(): array
+    {
+        $all = \array_values($this->items);
+        \usort($all, static fn(Outcome $a, Outcome $b): int => $a->nameKey() <=> $b->nameKey());
+
+        return $all;
+    }
 }

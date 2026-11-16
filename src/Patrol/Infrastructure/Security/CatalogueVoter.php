@@ -17,7 +17,7 @@ use Symfony\Component\Security\Core\Authorization\Voter\Vote;
  */
 final readonly class CatalogueVoter implements CacheableVoterInterface
 {
-    private const array ATTRIBUTES = ['catalogue.manage'];
+    private const array ATTRIBUTES = ['catalogue.manage', 'catalogue.list'];
 
     public function __construct(
         private RoundPolicy $policy,
@@ -41,16 +41,19 @@ final readonly class CatalogueVoter implements CacheableVoterInterface
     {
         foreach ($attributes as $attribute) {
             if (\is_string($attribute) && $this->supportsAttribute($attribute)) {
-                return $this->decide($token) ? self::ACCESS_GRANTED : self::ACCESS_DENIED;
+                return $this->decide($attribute, $token) ? self::ACCESS_GRANTED : self::ACCESS_DENIED;
             }
         }
 
         return self::ACCESS_ABSTAIN;
     }
 
-    private function decide(#[SensitiveParameter] TokenInterface $token): bool
+    private function decide(string $attribute, #[SensitiveParameter] TokenInterface $token): bool
     {
         $actor = TokenActor::of($token);
+        if ('catalogue.list' === $attribute) {
+            return null !== $actor || TokenActor::isSystem($token);
+        }
 
         return null !== $actor && $this->policy->mayManageCatalogue($actor);
     }

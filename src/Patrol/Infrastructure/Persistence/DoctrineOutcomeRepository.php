@@ -80,4 +80,11 @@ final readonly class DoctrineOutcomeRepository implements OutcomeRepository
 
         return OutcomeNameTaken::existing(Uuid::fromBinary($id), $name, (bool) $row['archived']);
     }
+
+    #[Override]
+    public function all(): array
+    {
+        /** @var list<Outcome> */
+        return $this->entityManager->getRepository(Outcome::class)->findBy([], ['nameKey' => 'ASC', 'id' => 'ASC']);
+    }
 }

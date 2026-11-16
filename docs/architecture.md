@@ -320,6 +320,16 @@ address, contact details, roles and choices (`ListMembers`); `POST` (`AddMember`
 coordinator; the answer holds the secret only for an admin inviting a member who never logged in, and the frontend
 makes the link of it.
 
+**Catalogues.** `GET /meeting-points` (`ListMeetingPoints`) and `GET /outcomes` (`ListOutcomes`) give every member the
+items to choose from, by name, without the archived ones (voter attribute `catalogue.list`); under
+`/admin/meeting-points` and `/admin/outcomes` the same use cases list the archived ones too, for the admin
+(`catalogue.manage`). There the admin adds an item with `POST` (`CreateMeetingPoint`, `CreateOutcome`), replaces it
+with `PATCH /{id}` (`ChangeMeetingPoint`: name and both coordinates; `ChangeOutcome`: the name only), archives it with
+`POST /{id}/archive` and restores it with `DELETE /{id}/archive`. A name another item holds, archived or not, is the
+409 problem `meeting_point_name_taken` or `outcome_name_taken` with `existingId` and `existingArchived`, so the admin
+can restore that item instead of adding a look-alike. A domain error adds such members by implementing
+`Shared\Domain\RuleViolationDetails`, which `ProblemResponder` reads.
+
 ## Handler and domain
 
 A handler orchestrates: it builds value objects from the input, asks `Authorization`, runs the change

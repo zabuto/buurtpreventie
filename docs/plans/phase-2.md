@@ -604,6 +604,21 @@ dagdeel `evening`, in `GET /rounds/{id}`, `GET /rounds` en `GET /me/rounds`.
 `DELETE .../archive` (terugzetten). Tests: een gearchiveerd item staat niet in de lijst voor leden; een botsende naam
 geeft 409 met het bestaande item.
 
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - `ListMeetingPoints` en `ListOutcomes` (nieuw) hebben elk één controller met twee routes: `/meeting-points` voor
+    leden (voterattribuut `catalogue.list`, elk lid en het systeem, rij in de matrix) en `/admin/meeting-points` met
+    `withArchived` als routestandaard (`catalogue.manage`). De repositories kregen `all()`, op naam via de opzoeksleutel;
+    dat is een `findBy`, dus zonder integratietest;
+  - "409 met het bestaande item": het problem-antwoord krijgt `existingId` en `existingArchived`. Daarvoor is er
+    `Shared\Domain\RuleViolationDetails` (een domeinfout geeft `details()`, nooit een geheim of gegevens van een ander),
+    dat `ProblemResponder` meegeeft. Alleen `MeetingPointNameTaken` en `OutcomeNameTaken` gebruiken het;
+  - `PATCH` vervangt alle velden, zoals de use cases (startpunt: naam en beide coördinaten; uitkomst: alleen de naam,
+    het soort blijft). Ter goedkeuring, zoals bij T8 en T11;
+  - archiveren en terugzetten zijn `POST` en `DELETE` op `/{id}/archive`, 204, ook als het item al zo stond. Een
+    startpunt met een ronde die nog moet beginnen geeft 409 `meeting_point_in_use`;
+  - de Postman-collectie leest de vier lijsten, en controleert de 409 met een uitkomstnaam die al bestaat (zo komt er
+    niets bij) en de 404 voor het archiveren van een onbekend startpunt.
+
 ### T13. Auditlog voor de beheerder (test eerst)
 
 `GET /admin/audit` met filters op lid, actie en periode, gepagineerd, en `?format=csv` (`ListAuditEntries` nieuw).
