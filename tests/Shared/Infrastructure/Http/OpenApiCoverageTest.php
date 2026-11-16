@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Shared\Infrastructure\Http;
 
+use App\Tests\Support\HurlRequests;
 use App\Tests\Support\OpenApiOperations;
 use App\Tests\Support\OpenApiSuccessAnswers;
-use App\Tests\Support\PostmanRequests;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -15,12 +15,12 @@ use Symfony\Component\Routing\RouterInterface;
 /**
  * The description on /api/v1/docs.json keeps pace with the API: every route is in it with its method, nothing else
  * is, every operation names its successful answer and the problem answers it can give, and every request of the
- * Postman collection exists.
+ * Hurl files exists.
  */
 #[Group('functional')]
 final class OpenApiCoverageTest extends WebTestCase
 {
-    private const string POSTMAN_COLLECTION = __DIR__ . '/../../../../postman/buurtpreventie.postman_collection.json';
+    private const string HURL_FILES = __DIR__ . '/../../../../hurl';
     private const string PUBLIC_PATH = '#^/api/v1/(health|config|manifest\.webmanifest|media/brand/|auth/)#';
 
     #[Test]
@@ -80,19 +80,19 @@ final class OpenApiCoverageTest extends WebTestCase
     }
 
     /**
-     * The collection is kept by hand; a request it holds that the API lacks would fail only when someone runs it.
+     * The Hurl files are written by hand, not generated from the spec, and run only against a live app outside CI; a
+     * request they hold that the API lacks would fail only when someone runs them. No request at all means the files
+     * moved, not that they all fit.
      */
     #[Test]
-    public function it_describes_every_request_of_the_postman_collection(): void
+    public function it_describes_every_request_of_the_hurl_files(): void
     {
         $operations = self::operations();
+        $requests = HurlRequests::fromDirectory(self::HURL_FILES);
 
-        $unknown = \array_values(\array_filter(
-            PostmanRequests::fromFile(self::POSTMAN_COLLECTION),
-            static fn(string $request): bool => !$operations->has($request),
-        ));
+        $unknown = \array_values(\array_filter($requests, static fn(string $request): bool => !$operations->has($request)));
 
-        self::assertSame([], $unknown);
+        self::assertSame([false, []], [[] === $requests, $unknown]);
     }
 
     private static function operations(): OpenApiOperations
