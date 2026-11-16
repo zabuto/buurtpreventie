@@ -1,0 +1,13 @@
+rules:
+  - id: client-file-metadata
+    languages: [php]
+    severity: ERROR
+    message: >-
+      The client chooses the name, extension and type of an upload, so they say nothing about what the file is: a
+      script can arrive as logo.png with image/png. Read the format from the content, as the brand images do with
+      getimagesize() and finfo.
+    patterns:
+      - pattern: $FILE->$METHOD(...)
+      - metavariable-regex:
+          metavariable: $METHOD
+          regex: ^(getClientOriginalName|getClientOriginalExtension|getClientMimeType|guessClientExtension)$

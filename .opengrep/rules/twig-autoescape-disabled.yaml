@@ -1,0 +1,15 @@
+rules:
+  - id: twig-autoescape-disabled
+    languages: [generic]
+    severity: ERROR
+    message: >-
+      Without autoescaping, every value a template prints goes out as HTML, so text a member typed can run as markup
+      or script in an e-mail or the installer. Keep Twig's escaping on, in the configuration and in templates.
+    paths:
+      include:
+        - "*.twig"
+        - "*.yaml"
+        - "*.yml"
+    pattern-either:
+      - pattern-regex: \{%-?\s*autoescape\s+false\b
+      - pattern-regex: (?i)\bautoescape:\s*['"]?false\b

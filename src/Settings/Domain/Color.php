@@ -23,7 +23,7 @@ final readonly class Color
             throw new InvalidColor('A colour is a hash and six hexadecimal digits.');
         }
 
-        return new self(\strtolower($hex));
+        return new self(\mb_strtolower($hex));
     }
 
     /**

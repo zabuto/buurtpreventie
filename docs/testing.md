@@ -271,7 +271,8 @@ in CI, because verifying the downloaded binary needs Cosign. It first runs the r
 `src/`, `config/`, `templates/`, `public/`, `bin/` and `tools/`; any finding fails the job.
 
 A rule is a YAML file with a test file of the same name next to it: `.php`, `.twig` for templates, or
-`.test.yaml` for configuration (Opengrep would read a plain `.yaml` as a rule). In the test file, a comment
+`.test.yaml` for configuration (Opengrep would read a plain `.yaml` as a rule). A rule that covers both templates and
+configuration has one of each, and Opengrep runs both. In the test file, a comment
 `ruleid: <id>` marks the next line as one the rule must report and `ok: <id>` as one it must leave alone. Twig test
 files use HTML comments (`<!-- ruleid: <id> -->`), because Opengrep does not read `{# #}` as an annotation. Rules for
 functions also match the fully qualified call (`\exec()`), the form this code base writes. A `metavariable-regex`
@@ -291,6 +292,9 @@ matches from the start of the text, so a pattern that may match further on start
 | `sql-outside-repository` | `executeQuery`, `executeStatement`, `fetch*`, `createQuery`, `createNativeQuery` and `createQueryBuilder` outside `src/*/Infrastructure/Persistence/` |
 | `weak-random-or-hash` | `md5`, `sha1`, `rand`, `mt_rand`, `uniqid`, `lcg_value` and `str_shuffle`, also `hash()`, `hash_file()` and `hash_hmac()` with `md5` or `sha1`; secrets come from `random_bytes()` and are hashed with SHA-256 |
 | `byte-lowercase` | `strtolower()` and `strtoupper()`, which leave `É` as it is; use `mb_strtolower()` or `LookupKey` |
+| `client-file-metadata` | `getClientOriginalName()`, `getClientOriginalExtension()`, `getClientMimeType()` and `guessClientExtension()`: the client picks name and type of an upload, so the format comes from the content |
+| `twig-autoescape-disabled` | `{% autoescape false %}` in a template and `autoescape: false` in the configuration; its tests are a `.twig` and a `.test.yaml` file |
+| `mailer-outside-notifier` | `send()` on a property or variable whose name holds `mailer`, outside `src/Shared/Infrastructure/Notification/`, so no mail goes around the queue that waits for the commit |
 
 ## No deprecations
 

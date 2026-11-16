@@ -1,0 +1,21 @@
+rules:
+  - id: mailer-outside-notifier
+    languages: [php]
+    severity: ERROR
+    message: >-
+      A mail sent past the Notifier leaves inside the transaction, also for a change that a later step still undoes.
+      Send a Notification; AfterCommitNotifier hands it to MailNotifier once the change is committed.
+    paths:
+      exclude:
+        - "src/Shared/Infrastructure/Notification/"
+    pattern-either:
+      - patterns:
+          - pattern: $this->$PROPERTY->send(...)
+          - metavariable-regex:
+              metavariable: $PROPERTY
+              regex: (?i)^.*mailer
+      - patterns:
+          - pattern: $VARIABLE->send(...)
+          - metavariable-regex:
+              metavariable: $VARIABLE
+              regex: (?i)^\$.*mailer

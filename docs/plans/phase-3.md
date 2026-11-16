@@ -651,6 +651,21 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
 
 Per regel eerst het testbestand, dan de regel (beslissing 35). Lokaal gedraaid zoals in T16 van fase 2.
 
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - `client-file-metadata` vangt de vier methoden op elke ontvanger; `getClientIp()` blijft vrij;
+  - `twig-autoescape-disabled` is één generieke regel met een reguliere expressie voor `.twig`, `.yaml` en `.yml`:
+    `{% autoescape false %}` (ook met `-` en extra spaties) en `autoescape: false` (ook tussen aanhalingstekens of in
+    hoofdletters). Zijn tests staan in een `.twig`- en een `.test.yaml`-bestand; Opengrep draait beide (nagegaan door
+    het YAML-deel van de regel stuk te maken);
+  - `mailer-outside-notifier` herkent de mailer aan de naam: `send()` op een property of variabele met `mailer` in de
+    naam, buiten `src/Shared/Infrastructure/Notification/`. Op type matchen kan Opengrep in PHP niet; een mailer onder
+    een andere naam ontgaat de regel, wat de review moet vangen;
+  - de scan vond één bevinding van een bestaande regel in code van deze fase: `byte-lowercase` op `Color::fromHex()`
+    (T4), nu `mb_strtolower()`; een kleur is ASCII, de uitkomst is gelijk;
+  - lokaal met Opengrep 1.33.1 (de versie die `tools/opengrep-release.php select` kiest) voor macOS, zonder
+    Cosign-verificatie, in de scratchpad: 15 van 15 regeltests groen, 0 bevindingen over `src`, `config`,
+    `templates`, `public`, `bin` en `tools`.
+
 ### T14. ADR 0007 en documentatie
 
 - `docs/adr/0007-audit-hash-chain.md`: beslissingen 24 tot en met 32, met de grens uit 32.
