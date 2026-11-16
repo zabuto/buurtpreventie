@@ -740,6 +740,14 @@ Overgeslagen op verzoek; volgt later.
 - `composer test` zonder database (de databasetests slaan over), `symfony composer test` met database en
   `symfony composer check`; uitvoer in het verslag, met elke check die niet draaide.
 - Push en pull request naar `develop` na akkoord; CI groen (alle jobs); merge als squash na akkoord.
+- Uitgevoerd op 16 november 2026 (verifiëren; opleveren wacht op akkoord):
+  - `composer test` zonder database: 1963 tests, 105 overgeslagen (de databasetests), groen;
+  - `symfony composer test` met database: 1963 tests, groen, niets overgeslagen;
+  - `symfony composer check`: groen (validate, audit, container lint, deprecations, Mago format, lint en analyze,
+    Rector, PHPStan met PHPat, PHPUnit);
+  - niet gedraaid: de Opengrep-scan (alleen in CI, en T16 is overgeslagen), MySQL (alleen in CI; lokaal MariaDB), de
+    Postman-collectie met Newman en het `curl`-scenario met de hand tegen de demo;
+  - niet gedaan: push, pull request en merge; die wachten op akkoord.
 
 ## Afspraken
 
