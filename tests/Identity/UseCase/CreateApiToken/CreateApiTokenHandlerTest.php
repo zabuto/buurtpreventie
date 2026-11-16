@@ -4,16 +4,20 @@ declare(strict_types=1);
 
 namespace App\Tests\Identity\UseCase\CreateApiToken;
 
+use App\Identity\Domain\ApiTokensDisabled;
 use App\Identity\Domain\InvalidTokenExpiry;
 use App\Identity\Domain\TokenScope;
 use App\Identity\UseCase\CreateApiToken\CreateApiToken;
 use App\Identity\UseCase\CreateApiToken\CreateApiTokenHandler;
+use App\Settings\Domain\Setting;
+use App\Settings\UseCase\GetApiTokenAccess\GetApiTokenAccessHandler;
 use App\Shared\Domain\AccessDenied;
 use App\Shared\Domain\Actor;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\ReauthenticationRequired;
 use App\Tests\Identity\Fake\FixedSecretGenerator;
 use App\Tests\Identity\Fake\InMemoryApiTokenRepository;
+use App\Tests\Settings\Fake\InMemorySettingRepository;
 use App\Tests\Shared\Fake\FakeAuthorization;
 use App\Tests\Shared\Fake\FixedExecutionContext;
 use App\Tests\Shared\Fake\FixedRecentAuthentication;
@@ -33,6 +37,7 @@ final class CreateApiTokenHandlerTest extends TestCase
 
     private InMemoryApiTokenRepository $tokens;
     private RecordingAuditTrail $auditTrail;
+    private InMemorySettingRepository $settings;
     private Uuid $memberId;
 
     #[Override]
@@ -40,6 +45,7 @@ final class CreateApiTokenHandlerTest extends TestCase
     {
         $this->tokens = new InMemoryApiTokenRepository();
         $this->auditTrail = new RecordingAuditTrail();
+        $this->settings = new InMemorySettingRepository();
         $this->memberId = Uuid::v7();
     }
 
@@ -115,6 +121,25 @@ final class CreateApiTokenHandlerTest extends TestCase
         $this->assertSame([[], []], [$this->tokens->ofMember($this->memberId), $this->auditTrail->recorded]);
     }
 
+    /**
+     * Switching tokens off is a step after a leak, so no new token may slip in until the admin switches them on.
+     */
+    #[Test]
+    public function it_creates_nothing_while_api_tokens_are_switched_off(): void
+    {
+        $this->settings->add(Setting::of('integrations.api_access', '0'));
+
+        $refusal = null;
+        try {
+            $this->handler()(new CreateApiToken('Script', ['read'], self::IN_90_DAYS));
+        } catch (ApiTokensDisabled $exception) {
+            $refusal = $exception;
+        }
+
+        $this->assertInstanceOf(ApiTokensDisabled::class, $refusal);
+        $this->assertSame([[], []], [$this->tokens->ofMember($this->memberId), $this->auditTrail->recorded]);
+    }
+
     #[Test]
     public function it_refuses_an_expiry_more_than_365_days_ahead(): void
     {
@@ -142,6 +167,7 @@ final class CreateApiTokenHandlerTest extends TestCase
             $this->auditTrail,
             new ImmediateTransaction(),
             new MockClock(self::NOW),
+            new GetApiTokenAccessHandler($this->settings),
         );
     }
 }

@@ -119,6 +119,8 @@ versions follow [Semantic Versioning](https://semver.org/).
   round. A mail names no member, phone number, address or note; replies go to the contact address of the
   association.
 - The reminder goes out as many days ahead as the setting `reminderDaysAhead` says, counted on the local clock.
+- With the setting `apiAccess` off, every API token is refused from its next request and no new token can be made
+  (409 `api_tokens_disabled`); members still list and revoke their tokens.
 - Every link in a mail starts at `DEFAULT_URI`, also when the app runs under a path such as
   `https://example.org/buurtpreventie`, with or without a trailing slash.
 - Dependabot also updates the Mailpit image in `compose.yaml`, after the same 7-day cooldown.

@@ -561,6 +561,19 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
 
 - Tests: uit weigert een geldig token bij het eerstvolgende verzoek, met reden in het log; uit weigert een nieuw
   token met 409; intrekken en bekijken werken; aan werkt zoals ervoor (beslissing 23).
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - `GetApiTokenAccess` in Settings (zonder controller of tool, alleen voor andere modules, zonder Voter: hij wordt
+    gelezen vóór er iemand is ingelogd), met `allowed` uit `integrations.api_access`;
+  - `ApiTokenAuthenticator` leest de schakelaar als eerste stap, vóór het token wordt opgezocht: uit weigert hij elk
+    verzoek met reden `tokens_disabled` (nieuw in `TokenRefusal`), zonder `markUsed()`;
+  - `CreateApiToken` gooit `ApiTokensDisabled` (409 `api_tokens_disabled`, titel in `nl` en `en`) na de
+    Voter-controle en vóór de eis van een recente login, zodat een lid niet eerst opnieuw inlogt om dan een 409 te
+    krijgen. `ListApiTokens` en `RevokeApiToken` lezen de schakelaar niet;
+  - OpenAPI noemt de 409 bij `POST /me/tokens` vanzelf (`ProblemResponsesProcessor`); de Postman-collectie zet de
+    schakelaar niet om, omdat ze tegen de lokale database draait en een vergeten `true` elk token blokkeert;
+  - tests: `GetApiTokenAccessHandlerTest`, `CreateApiTokenHandlerTest` (uit maakt niets en schrijft geen
+    auditregel), `ApiTokenAuthenticatorTest` (uit weigert een geldig token, ook vanaf het eerstvolgende verzoek
+    in dezelfde client) en `ApiTokenEndpointsTest` (409, en lijst en intrekken werken als de schakelaar uit staat).
 
 ### T11. Hashketen (test eerst)
 

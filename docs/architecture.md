@@ -216,7 +216,9 @@ the request:
 The token firewall is stateless. Its authenticator takes every request, so a broken or unknown header is refused
 like a wrong token: an empty 401 with `WWW-Authenticate: Bearer`, and the reason only in the log. It looks the
 token up by the SHA-256 hash of the secret on every request, so a revocation or a deactivation counts at once.
-`ApiToken::refusalAt()` decides why a known token lets nobody in (revoked, expired, member inactive); the member
+Before that it reads the setting `apiAccess` through `GetApiTokenAccess`, one query: switched off, it refuses every
+token (`tokens_disabled`), and `CreateApiToken` refuses a new one with the 409 problem `api_tokens_disabled`, while
+listing and revoking keep working, since revoking is a step after a leak. `ApiToken::refusalAt()` decides why a known token lets nobody in (revoked, expired, member inactive); the member
 comes from `MemberDirectory::identity()`, read afresh, so a changed role counts on the next request.
 
 Under `/api/` a request needs a logged-in member, except `/api/v1/health`, `/api/v1/docs.json`, `/api/v1/config`,

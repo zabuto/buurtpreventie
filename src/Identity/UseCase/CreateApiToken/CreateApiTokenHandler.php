@@ -6,10 +6,13 @@ namespace App\Identity\UseCase\CreateApiToken;
 
 use App\Identity\Domain\ApiToken;
 use App\Identity\Domain\ApiTokenRepository;
+use App\Identity\Domain\ApiTokensDisabled;
 use App\Identity\Domain\InvalidTokenExpiry;
 use App\Identity\Domain\SecretGenerator;
 use App\Identity\Domain\TokenScope;
 use App\Identity\Domain\TokenTerms;
+use App\Settings\UseCase\GetApiTokenAccess\GetApiTokenAccess;
+use App\Settings\UseCase\GetApiTokenAccess\GetApiTokenAccessHandler;
 use App\Shared\Domain\AccessDenied;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\AuditTrail;
@@ -39,11 +42,13 @@ final readonly class CreateApiTokenHandler
         private AuditTrail $auditTrail,
         private Transaction $transaction,
         private ClockInterface $clock,
+        private GetApiTokenAccessHandler $access,
     ) {
     }
 
     /**
      * @throws AccessDenied for another member, or nobody acting
+     * @throws ApiTokensDisabled while the association has API tokens switched off
      * @throws ReauthenticationRequired without a recent login
      * @throws InvalidTokenExpiry for an expiry not within 365 days
      */
@@ -55,6 +60,10 @@ final readonly class CreateApiTokenHandler
         }
 
         $this->authorization->denyUnlessGranted('api_token.create', $memberId);
+        if (!($this->access)(new GetApiTokenAccess())->allowed) {
+            throw ApiTokensDisabled::create();
+        }
+
         if (!$this->recentAuthentication->isRecent()) {
             throw ReauthenticationRequired::forAction('api_token.create');
         }

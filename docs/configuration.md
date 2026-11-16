@@ -52,7 +52,7 @@ admin sets it, also when it equals the default, and null removes it again.
 | `minimumWalkers`, `maximumWalkers` | 1 to 20 and 1 to 50, the maximum at least the minimum; for new rounds only | 2 and 7 |
 | `reminderDaysAhead` | 1 to 7: the reminder covers the rounds of the local calendar day this many days ahead; a round signed up for later than that gets none | 1 |
 | `language` | `nl` or `en` | `nl` |
-| `apiAccess` | `true` or `false`: whether API tokens give access | `true` |
+| `apiAccess` | `true` or `false`: whether API tokens give access. `false` refuses every token from its next request (an empty 401, logged as `tokens_disabled`) and a new token (409 `api_tokens_disabled`); members still list and revoke their tokens | `true` |
 
 A colour is checked against the other colours and a minimum against the maximum as one set, so a refused value
 leaves every value of the patch unstored. The audit log names each setting that changed with its old and new value,

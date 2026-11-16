@@ -15,4 +15,5 @@ enum TokenRefusal: string
     case Revoked = 'revoked';
     case Expired = 'expired';
     case MemberInactive = 'member_inactive';
+    case TokensDisabled = 'tokens_disabled';
 }

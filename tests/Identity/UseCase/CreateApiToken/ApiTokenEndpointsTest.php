@@ -7,8 +7,10 @@ namespace App\Tests\Identity\UseCase\CreateApiToken;
 use App\Identity\Domain\ApiToken;
 use App\Identity\Domain\TokenScope;
 use App\Identity\Domain\TokenTerms;
+use App\Settings\Domain\Setting;
 use App\Tests\Identity\Fake\InMemoryApiTokenRepository;
 use App\Tests\Identity\Infrastructure\Security\PasswordLoginTestCase;
+use App\Tests\Settings\Fake\InMemorySettingRepository;
 use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -78,6 +80,39 @@ final class ApiTokenEndpointsTest extends PasswordLoginTestCase
 
         self::assertResponseStatusCodeSame(403);
         self::assertSame('urn:buurtpreventie:problem:reauthentication_required', self::json($client)['type'] ?? null);
+    }
+
+    #[Test]
+    public function it_refuses_a_new_token_with_a_409_while_api_tokens_are_switched_off(): void
+    {
+        $client = self::loggedIn();
+        self::switchApiTokensOff();
+
+        $client->jsonRequest('POST', '/api/v1/me/tokens', self::NEW_TOKEN);
+
+        self::assertResponseStatusCodeSame(409);
+        self::assertSame('urn:buurtpreventie:problem:api_tokens_disabled', self::json($client)['type'] ?? null);
+    }
+
+    /**
+     * Revoking the tokens of a member is a step after a leak, the moment the admin switches tokens off.
+     */
+    #[Test]
+    public function it_lists_and_revokes_an_own_token_while_api_tokens_are_switched_off(): void
+    {
+        $client = self::loggedIn();
+        $client->jsonRequest('POST', '/api/v1/me/tokens', self::NEW_TOKEN);
+        $id = self::json($client)['id'] ?? null;
+        self::assertIsString($id);
+        self::switchApiTokensOff();
+
+        $client->request('GET', '/api/v1/me/tokens');
+        $listed = self::listedNames($client);
+        $client->request('DELETE', '/api/v1/me/tokens/' . $id);
+
+        self::assertSame(['Agenda'], $listed);
+        self::assertResponseStatusCodeSame(204);
+        self::assertNotNull(self::service(InMemoryApiTokenRepository::class)->get(Uuid::fromString($id))->revokedAt());
     }
 
     #[Test]
@@ -155,6 +190,11 @@ final class ApiTokenEndpointsTest extends PasswordLoginTestCase
 
         self::assertResponseStatusCodeSame(403);
         self::assertSame('urn:buurtpreventie:problem:browser_only', self::json($client)['type'] ?? null);
+    }
+
+    private static function switchApiTokensOff(): void
+    {
+        self::service(InMemorySettingRepository::class)->add(Setting::of('integrations.api_access', '0'));
     }
 
     private static function loggedIn(): KernelBrowser

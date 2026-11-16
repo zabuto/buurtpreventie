@@ -8,9 +8,11 @@ use App\Identity\Domain\ApiToken;
 use App\Identity\Domain\TokenScope;
 use App\Identity\Domain\TokenTerms;
 use App\Membership\Domain\Member;
+use App\Settings\Domain\Setting;
 use App\Tests\Identity\Fake\InMemoryApiTokenRepository;
 use App\Tests\Membership\Fake\InMemoryMemberRepository;
 use App\Tests\Membership\Fake\MemberFixture;
+use App\Tests\Settings\Fake\InMemorySettingRepository;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\InMemoryKernel;
 use App\Tests\Support\RecordingLogger;
@@ -148,6 +150,37 @@ final class ApiTokenAuthenticatorTest extends ApiTestCase
         $client->request('GET', '/api/v1/_probe-identity', server: self::bearer(self::SECRET));
 
         self::assertResponseStatusCodeSame(401);
+    }
+
+    #[Test]
+    public function it_refuses_a_valid_token_while_api_tokens_are_switched_off(): void
+    {
+        $client = self::createClient();
+        $token = self::token(self::member());
+        self::service(InMemorySettingRepository::class)->add(Setting::of('integrations.api_access', '0'));
+
+        $client->request('GET', '/api/v1/_probe-identity', server: self::bearer(self::SECRET));
+
+        self::assertRefusedFor($client, 'tokens_disabled');
+        self::assertNull($token->lastUsedAt());
+    }
+
+    /**
+     * The switch is a step after a leak: a token already in use stops at once, not when a session or cache ends.
+     */
+    #[Test]
+    public function it_refuses_a_token_from_the_first_request_after_api_tokens_were_switched_off(): void
+    {
+        $client = self::createClient();
+        $client->disableReboot();
+        self::token(self::member());
+        $client->request('GET', '/api/v1/_probe-identity', server: self::bearer(self::SECRET));
+        self::assertResponseIsSuccessful();
+
+        self::service(InMemorySettingRepository::class)->add(Setting::of('integrations.api_access', '0'));
+        $client->request('GET', '/api/v1/_probe-identity', server: self::bearer(self::SECRET));
+
+        self::assertRefusedFor($client, 'tokens_disabled');
     }
 
     private static function member(): Member
