@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Membership\Domain;
+namespace App\Tests\Shared\Domain;
 
-use App\Membership\Domain\PhoneNumber;
+use App\Shared\Domain\PhoneNumber;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;

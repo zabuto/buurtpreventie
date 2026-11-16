@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace App\Membership\UseCase\ChangeOwnContactDetails;
 
-use App\Membership\Domain\InvalidPhoneNumber;
 use App\Membership\Domain\Member;
 use App\Membership\Domain\MemberErased;
 use App\Membership\Domain\MemberRepository;
-use App\Membership\Domain\PhoneNumber;
 use App\Membership\UseCase\ChangeContactConsent\ChangeContactConsent;
 use App\Membership\UseCase\ChangeContactConsent\ChangeContactConsentHandler;
 use App\Membership\UseCase\ChangeOpenRoundNotifications\ChangeOpenRoundNotifications;
@@ -18,6 +16,8 @@ use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\AuditTrail;
 use App\Shared\Domain\Authorization;
 use App\Shared\Domain\ExecutionContext;
+use App\Shared\Domain\InvalidPhoneNumber;
+use App\Shared\Domain\PhoneNumber;
 use App\Shared\Domain\Transaction;
 use App\Shared\Domain\Unchanged;
 use App\Shared\Domain\WriteAction;

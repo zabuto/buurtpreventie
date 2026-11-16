@@ -172,6 +172,7 @@ A handler reaches storage, rights, the audit log and messages only through inter
 | `Unchanged` | The default of an input field that a JSON Merge Patch leaves out, so a handler keeps the current value where null clears it; `fieldsSetIn()` gives the fields to validate | |
 | `BackedEnumValues` | Gives an enum `values()`, so an input constraint takes its choices from the enum (`Assert\Choice(callback: ...)`) | |
 | `EmailAddress` | An address trimmed and in lower case, with accents kept | |
+| `PhoneNumber` | A phone number as a member types it, with whitespace tidied: digits, spaces, brackets and hyphens, an optional leading plus, at least six digits. Shared, as members and the contact of the association both have one | |
 | `LookupKey` | The search and uniqueness key of a name: no case, accents or extra whitespace | |
 
 Time comes from `Psr\Clock\ClockInterface` in handlers and as a `DateTimeImmutable $now` argument in

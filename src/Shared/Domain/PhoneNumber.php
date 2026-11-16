@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Membership\Domain;
+namespace App\Shared\Domain;
 
 /**
  * A phone number as a walker types it, with whitespace tidied. Only its characters are checked: walkers call each

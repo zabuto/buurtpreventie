@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-namespace App\Membership\Domain;
+namespace App\Shared\Domain;
 
-use App\Shared\Domain\InvalidValue;
 use InvalidArgumentException;
 
 /**

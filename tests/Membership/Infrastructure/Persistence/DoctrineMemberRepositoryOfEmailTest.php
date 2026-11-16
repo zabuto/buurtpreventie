@@ -6,9 +6,9 @@ namespace App\Tests\Membership\Infrastructure\Persistence;
 
 use App\Membership\Domain\Member;
 use App\Membership\Domain\MemberDetails;
-use App\Membership\Domain\PhoneNumber;
 use App\Membership\Infrastructure\Persistence\DoctrineMemberRepository;
 use App\Shared\Domain\EmailAddress;
+use App\Shared\Domain\PhoneNumber;
 use App\Tests\Database\TestDatabase;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
