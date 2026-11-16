@@ -55,6 +55,14 @@ final readonly class DemoSet implements FixtureSet
     /** Priya reads the rounds into the agenda on her phone. */
     private const string USES_THE_API = 'priya.sharma';
 
+    /**
+     * Who logs in with the sample password besides the admin, analyst and coordinator: a walker who shares a first
+     * name, one who uses the API, and one who stopped, whose login is refused.
+     *
+     * @var list<string>
+     */
+    private const array WITH_PASSWORD = ['jan.bakker', self::USES_THE_API, self::STOPPED];
+
     /** Willem stopped walking; deactivating him withdraws him from the rounds ahead. */
     private const string STOPPED = 'willem.dekker';
 
@@ -74,8 +82,13 @@ final readonly class DemoSet implements FixtureSet
         $random = new Randomizer(new Mt19937(self::SEED));
         $start = SampleCalendar::day($now, DemoRounds::FIRST_DAY - 30, '09:00');
 
-        $admin = $this->members->firstAdmin($start, new SampleProfile('ingrid.deboer@example.org', 'Ingrid de Boer', 'Ingrid', '06 0000 0001'));
-        $this->members->add($admin, $start, new SampleProfile('thomas.visser@example.org', 'Thomas Visser', 'Thomas', '06 0000 0002', [Role::Analyst]));
+        $admin = $this->members->firstAdmin($start, new SampleProfile('beheer@example.org', 'Ingrid de Boer', 'Ingrid', '06 0000 0001'));
+        $analyst = $this->members->add(
+            $admin,
+            $start,
+            new SampleProfile('thomas.visser@example.org', 'Thomas Visser', 'Thomas', '06 0000 0002', [Role::Analyst]),
+        );
+        $this->members->giveSamplePassword($analyst, $start);
         $people = $this->walkers($random, $admin, $start);
         $neighbourhood = new Neighbourhood(
             $people['coordinator'],
@@ -120,6 +133,7 @@ final readonly class DemoSet implements FixtureSet
             ),
         );
 
+        $this->members->giveSamplePassword($coordinator, $at);
         $walkers = [$coordinator];
         $stopped = [];
         $erased = [];
@@ -130,6 +144,9 @@ final readonly class DemoSet implements FixtureSet
                 $at,
                 new SampleProfile($address . '@example.org', $name, $displayName, \sprintf('06 0000 %04d', $index + 11)),
             );
+            if (\in_array($address, self::WITH_PASSWORD, strict: true)) {
+                $this->members->giveSamplePassword($walker, $at);
+            }
             if (self::USES_THE_API === $address) {
                 $this->members->giveApiAccess($walker, $at->modify('+1 day'), 'Agenda op mijn telefoon');
             }

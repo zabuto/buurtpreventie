@@ -69,8 +69,11 @@ symfony console app:fixtures:load demo
 The command empties the database first and asks before it does; `--no-interaction` skips the
 question. Besides `demo` there are `test` (the least an installation needs) and `edge` (the hard
 cases); see [Sample data](architecture.md#sample-data). Every date follows today, so the calendar is
-never empty. The command exists only in `dev` and `test`. Sample members have no password: logging in
-arrives in phase 2.
+never empty. The command exists only in `dev` and `test`. The first admin of every set, `beheer@example.org`, logs in
+with the made-up password `voorbeeld-wachtwoord-buurt`, which the command shows. In `demo` so do the analyst
+(`thomas.visser@example.org`), the coordinator (`fatima.elamrani@example.org`) and three walkers: `jan.bakker`, who
+shares his first name, `priya.sharma`, who uses the API, and `willem.dekker`, who stopped and is refused. Any other
+member logs in with a code by mail.
 
 ## Start
 

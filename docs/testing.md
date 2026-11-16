@@ -198,8 +198,9 @@ HTTPS_PROXY=http://127.0.0.1:7080 npx newman run postman/buurtpreventie.postman_
 The local environment reaches the app at `https://buurtpreventie.wip`, the domain of the Symfony CLI's local proxy
 (`symfony proxy:status`), which stays the same whatever port the server got. Newman does not read the proxy setting of
 the system, hence `HTTPS_PROXY`; the Postman app does when it uses the system proxy. Without the proxy, pass the
-address `symfony server:list` shows for this directory: `--env-var baseUrl=https://127.0.0.1:<port>`. Add
-`--env-var password=…` for a member with a password and `--env-var email=…` for a member of another sample set.
+address `symfony server:list` shows for this directory: `--env-var baseUrl=https://127.0.0.1:<port>`. The local
+environment logs in as `beheer@example.org` with the sample password, the first admin of every sample set; add
+`--env-var email=…` for another sample member.
 
 `--insecure` skips the check of the TLS certificate. The Symfony CLI serves HTTPS with a certificate from its own
 local certificate authority, which the browser trusts through the system keychain; Newman runs on Node.js, which
@@ -207,7 +208,7 @@ reads its own list of authorities and not the keychain, so it refuses that certi
 nothing: the connection never leaves the machine. Never pass `--insecure` for a server elsewhere, where the check is
 what proves the server is the real one. The Postman app has the same switch: Settings → SSL certificate verification.
 
-It needs the app running under the Symfony CLI, the database with sample data, and Mailpit. `email` is a member of the loaded set (`beheer@example.org` in `test` and `edge`). Only the
+It needs the app running under the Symfony CLI, the database with sample data, and Mailpit. Only the
 local environment sets `mailpitUrl`, for the request "Read the code from Mailpit (local only)", which takes the code
 from the newest mail; without it that request is skipped, and a step that needs the code runs only once the variable
 `code` is set by hand. A step that needs a password is skipped without one. The app takes 3

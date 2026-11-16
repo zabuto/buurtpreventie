@@ -7,6 +7,8 @@ namespace App\SampleData\Infrastructure\Fixtures;
 use App\Identity\UseCase\CreateApiToken\CreateApiToken;
 use App\Identity\UseCase\CreateApiToken\CreateApiTokenHandler;
 use App\Identity\UseCase\CreateApiToken\CreateApiTokenOutput;
+use App\Identity\UseCase\SetPassword\SetPassword;
+use App\Identity\UseCase\SetPassword\SetPasswordHandler;
 use App\Membership\UseCase\AddFirstAdmin\AddFirstAdmin;
 use App\Membership\UseCase\AddFirstAdmin\AddFirstAdminHandler;
 use App\Membership\UseCase\AddFirstAdmin\AddFirstAdminOutput;
@@ -47,6 +49,7 @@ final readonly class MemberSteps
         private DeactivateMemberHandler $deactivateMember,
         private EraseMemberHandler $eraseMember,
         private CreateApiTokenHandler $giveApiAccess,
+        private SetPasswordHandler $giveLogin,
     ) {
     }
 
@@ -57,7 +60,10 @@ final readonly class MemberSteps
             $input,
         )));
 
-        return new SampleMember($output->id, new Actor(Uuid::fromString($output->id), [Role::Admin]));
+        $admin = new SampleMember($output->id, new Actor(Uuid::fromString($output->id), [Role::Admin]));
+        $this->giveSamplePassword($admin, $at);
+
+        return $admin;
     }
 
     public function add(SampleMember $admin, DateTimeImmutable $at, SampleProfile $profile): SampleMember
@@ -102,6 +108,15 @@ final readonly class MemberSteps
         $this->as($member, $at, fn(): CreateApiTokenOutput => ($this->giveApiAccess)(
             new CreateApiToken($name, ['read'], $at->modify('+90 days')->format(\DATE_ATOM), $member->id),
         ));
+    }
+
+    /**
+     * The password of SamplePassword, set by the member as after a login with a code. Only a few members get it:
+     * every hash costs the real hasher half a second.
+     */
+    public function giveSamplePassword(SampleMember $member, DateTimeImmutable $at): void
+    {
+        $this->as($member, $at, fn() => ($this->giveLogin)(new SetPassword(SamplePassword::VALUE)));
     }
 
     /**

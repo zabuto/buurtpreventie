@@ -553,6 +553,12 @@ volledig IP-adres in de uitvoer, CSV met een vaste kolomvolgorde en formules gen
   meldt het aan; met `read` alleen geeft het 403.
 - Voorbeelddata: wachtwoord en token van het demolid (beslissing 30); `docs/getting-started.md` beschrijft het
   `curl`-scenario.
+- Het wachtwoord is naar voren gehaald, op 16 november 2026, na T7, voor de Postman-collectie. Afwijking van
+  beslissing 30, besloten op 16 november 2026: niet elk voorbeeldlid krijgt het, want echt hashen kost een halve
+  seconde per lid. De eerste beheerder van elke set (ook `test`) heet `beheer@example.org`; in `demo` krijgen ook
+  de analist, de coördinator en drie lopers het (een met een naamgenoot, een die de API gebruikt, een die gestopt
+  is). Elk zet het via `SetPassword`; het wachtwoord staat in `SamplePassword` en het commando toont het. De lokale
+  Postman-omgeving logt in als `beheer@example.org`. Het token van het demolid volgt hier nog.
 
 ### T16. Opengrep-regels
 

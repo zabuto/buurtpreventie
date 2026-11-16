@@ -354,6 +354,10 @@ then, and its audit entries carry that moment; a step after the start of the loa
 change to a rule or the model therefore breaks the sample data at once, instead of leaving rows that
 no use case could have written.
 
+The first admin of every set is `beheer@example.org` with the password in `SamplePassword`, so one login fits any
+set; in `demo` one member per role and three walkers in different situations have it too. Each sets it through
+`SetPassword`, as a member would. The others have none: every hash costs the real hasher half a second.
+
 | Set | Contents |
 | --- | --- |
 | `demo` | Twenty members with every role, rounds from three months back to six weeks ahead, mostly in the evening, more than a quarter without a buddy, a few full ones, reports with now and then an incident, a deactivated member and an erased member in the history |
