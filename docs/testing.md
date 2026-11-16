@@ -189,9 +189,11 @@ password. It is no part of `composer check` or CI and adds no dependency: import
 ```sh
 npx newman run postman/buurtpreventie.postman_collection.json \
   -e postman/local.postman_environment.json --insecure \
-  --env-var mailpitUrl=<the MAILER_WEB_URL of the Symfony CLI> \
-  --env-var password=<the password of the member, if any>
+  --env-var "mailpitUrl=$(symfony var:export MAILER_WEB_URL)"
 ```
+
+Add `--env-var password=…` for a member with a password, `--env-var email=…` for a member of another sample set, and
+`--env-var baseUrl=…` when the app runs on another address than `https://127.0.0.1:8000`.
 
 It needs the app running under the Symfony CLI (hence `--insecure` for its local certificate), the database with
 sample data, and Mailpit. `email` is a member of the loaded set (`beheer@example.org` in `test` and `edge`). Only the
