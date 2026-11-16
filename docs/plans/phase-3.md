@@ -387,6 +387,36 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
   te zwakke kleur geeft 422 `insufficient_contrast` met de verhoudingen; contrast tegen bekende paren uit WCAG; de
   auditregel noemt alleen wat veranderde, teksten als `null → null`.
 - Een gewijzigd minimum geldt alleen voor nieuwe rondes (bestaande test van fase 1 blijft groen).
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - `PhoneNumber` en `InvalidPhoneNumber` staan in `Shared\Domain` (eigen commit): het contactnummer van de
+    vereniging volgt dezelfde regel als dat van een lid, en een Domain mag geen andere module gebruiken (regel 1);
+  - domein: `SettingName` (de catalogus, 22 instellingen, met `field()` als naam in de API), `Settings` (de set met
+    standaarden, `with()` controleert een wijziging tegen de hele set), `SettingValue` (opschonen per instelling),
+    `Color` met de contrastverhouding van WCAG 2.2, `BrandPalette` (beslissing 11), `GroupLink` met `GroupService`
+    (beslissing 4a) en de fouten `InvalidSetting`, `InvalidColor`, `InsufficientContrast` (met `setting`, `ratio`
+    naar beneden afgerond en `required`) en `InvalidGroupLink`, met titels in `nl` en `en`;
+  - `ContrastRatio` werd `Color::contrastWith()`; de verwachte verhoudingen in de tests zijn met de hand
+    nagerekend, met de grijzen net boven en net onder elke grens;
+  - de toegang met API-tokens heet `integrations.api_access` (`apiAccess`): een veldnaam met `token` weigert het
+    auditlog (vastgesteld in `AuditEntry`);
+  - een opgeslagen naam die niet (meer) in de catalogus staat, telt niet mee; een onbekende naam in een wijziging is
+    `InvalidSetting`;
+  - `GET /admin/settings` geeft elke instelling met de waarde die geldt, en `defaults` met de namen die op hun
+    standaard staan. Een tekst zonder eigen waarde toont de standaardtekst uit `translations/settings.{nl,en}.yaml`
+    (`StandardTexts`, met `TranslatedStandardTexts` in Infrastructure), zodat de beheerder bewerkt wat leden zien.
+    De spoedtekst noemt 112, 0900-8844, 14 met het netnummer van de gemeente en de groepsapp van de buurt, zonder
+    een echte gemeente;
+  - `PATCH /admin/settings` (`settings.change`) en `GET /admin/settings` (`settings.view`), beide alleen de
+    beheerder (`SettingsPolicy`, `SettingsVoter`). Eén auditregel `setting.changed` op onderwerp `settings` met het
+    nul-UUID (één set per installatie); contact, groepslink en teksten als `null → null`;
+  - een waarde gelijk aan de standaard wordt wel opgeslagen; `null` haalt de rij weg. `SettingRepository` kreeg
+    `all()` en `remove()`, zonder eigen query, dus zonder integratietest;
+  - `GetPublicConfig` volgt in T7, `GetReminderLeadTime` in T9 en de toegangscontrole in T10, elk met de taak die
+    hem gebruikt. Tot T10 slaat `apiAccess` alleen de keuze op;
+  - Mago staat 20 cases per enum toe; `SettingName` heeft een `@mago-expect` met de reden: de catalogus is bewust één
+    lijst;
+  - de Postman-collectie leest de instellingen, stuurt een lege patch en controleert de 422 voor een te lichte
+    primaire kleur; `docs/configuration.md` heeft een tabel met elke instelling.
 
 ### T5. Basis-URL (test eerst)
 

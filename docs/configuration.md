@@ -1,7 +1,8 @@
 # Configuration
 
-Technical settings are environment variables. Settings an association changes itself (name, logo,
-texts) live in the database and the admin screens; those arrive in phase 3.
+Technical settings are environment variables. Settings an association changes itself (name, colours,
+contact, texts) live in the database; the admin reads them with `GET /api/v1/admin/settings` and changes them with
+`PATCH /api/v1/admin/settings`, a JSON Merge Patch where null restores the default.
 
 ## Files
 
@@ -31,6 +32,31 @@ Symfony reads them in this order; a later value wins. Real secrets live only in 
 | `HSTS_MAX_AGE` | Seconds a browser keeps to HTTPS for this host after an API answer over HTTPS (`Strict-Transport-Security`), such as `31536000` for a year. Opt-in per installation: set it only once HTTPS works there, because a browser that has it refuses the site over HTTP until the time runs out, also when the certificate is lost. Covers this host only, not other subdomains of the domain | `0`, which sends no HSTS (in `config/services.yaml`) |
 | `DEFAULT_URI` | Base URL of the app for links outside a web request, such as in e-mails and from the console. A subdomain (`https://buurtpreventie.example.org`) or a path (`https://example.org/buurtpreventie`), without `/public` | `http://localhost` (in `config/services.yaml`) |
 
+## Settings of the association
+
+Every setting, by its name in the API. The catalogue is `Settings\Domain\SettingName`; a value is stored once the
+admin sets it, also when it equals the default, and null removes it again.
+
+| Setting | Takes | Default |
+| --- | --- | --- |
+| `associationName` | Text, at most 100 characters | Buurtpreventie |
+| `associationShortName` | Text under the icon on a home screen, at most 30 characters | Buurtpreventie |
+| `primaryColor`, `accentColor` | `#rrggbb`; at least 4.5:1 and 3:1 against white | `#1f5f8b`, `#c2410c` |
+| `primaryDarkColor`, `accentDarkColor` | `#rrggbb`; at least 4.5:1 and 3:1 against `#121212`, the dark background | `#8cc4e8`, `#fb923c` |
+| `contactName`, `contactEmail`, `contactPhone` | The coordinator members can reach: at most 100 characters, an e-mail address, a phone number | none |
+| `groupUrl` | An invitation to a group in WhatsApp (`https://chat.whatsapp.com/…`) or Signal (`https://signal.group/#…`) | none |
+| `mailSenderName` | The name mails come from, at most 100 characters; the address stays `MAILER_FROM` | the name of the association |
+| `welcomeTextNl`, `welcomeTextEn`, `emergencyTextNl`, `emergencyTextEn` | Plain text, at most 2,000 characters; an empty line starts a paragraph | the standard text in `translations/settings.<locale>.yaml` |
+| `privacyUrl`, `accessibilityUrl` | An https address of a page of the association | none |
+| `minimumWalkers`, `maximumWalkers` | 1 to 20 and 1 to 50, the maximum at least the minimum; for new rounds only | 2 and 7 |
+| `reminderDaysAhead` | 1 to 7 | 1 |
+| `language` | `nl` or `en` | `nl` |
+| `apiAccess` | `true` or `false`: whether API tokens give access | `true` |
+
+A colour is checked against the other colours and a minimum against the maximum as one set, so a refused value
+leaves every value of the patch unstored. The audit log names each setting that changed with its old and new value,
+except contact details, the group link and texts, which it names without a value.
+
 ## Fixed limits
 
 Values in the code that no setting changes. A new limit gets a row here.
@@ -40,7 +66,7 @@ Values in the code that no setting changes. A new limit gets a row here.
 | Limit | Value | Where |
 | --- | --- | --- |
 | Local clock | `Europe/Amsterdam` for dayparts, calendar days, reminders and buddy calls; stored instants are UTC | `LocalTime::ZONE` |
-| Default walkers of a new round | Minimum 2, maximum 7, until an admin changes the settings `patrol.minimum_walkers` and `patrol.maximum_walkers` (screens in phase 3) | `StaffingDefaults` |
+| Default walkers of a new round | Minimum 2, maximum 7, until an admin changes the settings `minimumWalkers` and `maximumWalkers` | `StaffingDefaults` |
 | Walkers of one round | Minimum at least 1, maximum at least the minimum; fixed when the round is created | `StaffingRule` |
 | Dayparts | `morning` before 12:00, `afternoon` before 18:00, `evening` from 18:00 | `Daypart` |
 | Start of a round | After the moment it is created or moved; no change once started | `RoundStart`, `Round::change()` |

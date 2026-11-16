@@ -219,7 +219,7 @@ history of a round, and the 404 for a comment on, or deleting a report of, somet
 the member list in one shape without e-mail addresses, the admin list and one member, and checks the 422 for a new member with an
 invalid address, the 422 for null as the name of a member and the 404 for the roles of a member that does not exist. It lists the meeting points and outcomes,
 for members and as admin, and checks the 409 for an outcome under the name of one that exists and the 404 for
-archiving a meeting point that does not exist, and the 422 for half a position. It reads the audit log, as JSON with the login among the entries and as
+archiving a meeting point that does not exist, and the 422 for half a position. It reads the settings, sends a patch without fields, and checks the 422 for a primary colour without enough contrast, which changes nothing. It reads the audit log, as JSON with the login among the entries and as
 CSV with its header (`Accept: text/csv`), and checks the 406 for another format. It never sets a valid new password, which would replace the one
 of the member in the local database, and the token it makes lives one day. It is no part of `composer check` or CI and adds no dependency: import it with
 `postman/local.postman_environment.json` into the Postman app, or run it with Newman:

@@ -23,6 +23,10 @@ empty_comment: Write something in the comment.
 invalid_staffing_rule: The number of walkers is not valid. The maximum must be at least the minimum.
 invalid_period: Choose a period of at most three months that ends after it starts.
 invalid_staffing_defaults: The number of walkers is not valid. The maximum must be at least the minimum.
+insufficient_contrast: This colour is hard to see on its background. Choose a darker or lighter colour.
+invalid_color: Write a colour as # with six characters, such as #1f5f8b.
+invalid_setting: This value does not fit this setting.
+invalid_group_link: This is not an invitation to a group in WhatsApp or Signal.
 invalid_email_address: This e-mail address is not valid.
 invalid_name: This name is not valid. Use at least one letter or digit.
 invalid_token_expiry: Choose an end date for the token within 365 days.

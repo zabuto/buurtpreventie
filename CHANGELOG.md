@@ -104,6 +104,10 @@ versions follow [Semantic Versioning](https://semver.org/).
   three walkers log in with one made-up password, which the command shows.
 - Messages leave only once the change they are about is committed, never for a change that is rolled back; a
   delivery that fails after the commit is logged and does not undo the change.
+- Settings of the association: `GET` and `PATCH /api/v1/admin/settings` for the admin, with name, short name, four
+  brand colours checked for contrast in light and dark mode, contact of the coordinator, a link to a group in
+  WhatsApp or Signal, sender name, welcome and emergency texts in Dutch and English with standard texts, privacy and
+  accessibility pages, walkers of new rounds, days ahead of the reminder, language, and access with API tokens.
 - Dependabot also updates the Mailpit image in `compose.yaml`, after the same 7-day cooldown.
 - A Postman collection in `postman/` that checks a running app, for the Postman app or Newman.
 - Test coverage per class in the summary of the CI job "Checks" (`composer test:coverage`), as information only.

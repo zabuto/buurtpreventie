@@ -198,6 +198,8 @@ final class HttpMatrixTest extends ApiTestCase
             'patrol_archive_outcome' => ['POST', '/api/v1/admin/outcomes/{outcome}/archive', null, ['admin']],
             'patrol_restore_outcome' => ['DELETE', '/api/v1/admin/outcomes/{outcome}/archive', null, ['admin']],
             'audit_list_audit_entries' => ['GET', '/api/v1/admin/audit', null, ['admin']],
+            'settings_get' => ['GET', '/api/v1/admin/settings', null, ['admin']],
+            'settings_change' => ['PATCH', '/api/v1/admin/settings', ['associationName' => 'Buurtpreventie Oost'], ['admin']],
         ];
     }
 

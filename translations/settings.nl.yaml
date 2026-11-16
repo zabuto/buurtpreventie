@@ -1,0 +1,12 @@
+# Standard texts for the text settings an association has not written itself; plain text, an empty line starts a
+# paragraph. B1 Dutch.
+text.welcome: |
+    Welkom bij de buurtpreventie. Hier zie je welke rondes nog een loopmaatje zoeken. Loop je mee? Meld je dan aan bij een ronde.
+text.emergency: |
+    Is er gevaar of gebeurt er nu iets ernstigs? Bel 112.
+
+    Geen spoed, wel de politie nodig? Bel 0900-8844.
+
+    Iets kapot of vies op straat? Meld het bij de gemeente: bel 14 en het netnummer van je gemeente, of gebruik de app van je gemeente.
+
+    Wat je in de buurt ziet, deel je in de groepsapp van de buurt. De app van de buurtpreventie is daar niet voor.
