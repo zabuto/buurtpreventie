@@ -85,7 +85,7 @@ final readonly class ProblemResponsesProcessor
 
     private static function describe(OA\Operation $operation, int $status): void
     {
-        $response = Util::getIndexedCollectionItem($operation, OA\Response::class, (string) $status);
+        $response = self::documented($operation, $status) ?? Util::getIndexedCollectionItem($operation, OA\Response::class, (string) $status);
         if (!Undefined::isDefault($response->description)) {
             return;
         }
@@ -93,5 +93,18 @@ final readonly class ProblemResponsesProcessor
         $response->description = self::DESCRIPTIONS[$status] ?? '';
         $mediaType = Util::getIndexedCollectionItem($response, OA\MediaType::class, 'application/problem+json');
         Util::getChild($mediaType, OA\Schema::class)->ref = '#/components/schemas/Problem';
+    }
+
+    /**
+     * An answer an attribute documents carries its status as an integer, which the lookup of Nelmio, comparing
+     * strictly with the string, would miss and then add a second time.
+     */
+    private static function documented(OA\Operation $operation, int $status): ?OA\Response
+    {
+        if (Undefined::isDefault($operation->responses)) {
+            return null;
+        }
+
+        return \array_find($operation->responses, static fn(OA\Response $response): bool => (string) $response->response === (string) $status);
     }
 }

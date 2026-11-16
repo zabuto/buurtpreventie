@@ -111,7 +111,8 @@ does not lock, the second sign-up joins next to the first.
 the next use case. What the templates contain is unit-tested in memory in `UseCaseTemplatesTest`.
 
 `OpenApiCoverageTest` reads `/api/v1/docs.json` on the regular test kernel: every route under `/api/v1` is in it with
-its method and nothing else is; every operation names the problem answers it can give (401 and 403 off the public
+its method and nothing else is; every operation names its successful answer (204 without a body, any other with a
+schema for each media type) and the problem answers it can give (401 and 403 off the public
 paths, 404 with an id in the path, 422 with a body or query parameters); and every request of the Postman collection
 to `{{baseUrl}}` matches a path and method of the spec, a `{parameter}` standing for one segment.
 

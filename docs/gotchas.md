@@ -91,7 +91,9 @@ Things that are not obvious and cost time when you do not know them.
 - **Nelmio adds request bodies and query parameters in swagger-php processors**, after every describer. A describer
   therefore sees no input; `ProblemResponsesProcessor` is a processor for that reason.
 - **Nelmio does not read the output of a controller** that returns a `JsonResponse`: the spec lists no success
-  answer unless the controller carries an `#[OA\Response]`.
+  answer unless the controller carries an `#[OA\Response]`, which every controller here does.
+- **Nelmio finds a response by its status with `===`**: an `#[OA\Response]` carries an integer, a lookup by
+  `'404'` misses it and adds a second 404. `ProblemResponsesProcessor` looks for the documented answer itself.
 - **`#[MapQueryString]` answers a validation failure with 404** unless the controller sets
   `validationFailedStatusCode: 422`, as every controller here does.
 - **A `+` in a query string reads as a space**, so `?from=2026-11-16T00:00:00+01:00` fails validation. A client sends

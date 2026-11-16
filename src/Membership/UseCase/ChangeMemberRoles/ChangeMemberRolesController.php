@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Membership\UseCase\ChangeMemberRoles;
 
+use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
@@ -22,6 +23,7 @@ final readonly class ChangeMemberRolesController
      * The member comes from the path: the body needs no member id, and one it carries counts for nothing.
      */
     #[Route('/admin/members/{memberId}/roles', name: 'membership_change_member_roles', requirements: ['memberId' => Requirement::UUID], methods: ['PUT'])]
+    #[OA\Response(response: 204, description: 'The roles are set.')]
     public function __invoke(
         string $memberId,
         #[MapRequestPayload(serializationContext: ['default_constructor_arguments' => [ChangeMemberRoles::class => ['memberId' => '']]])]

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Shared\Infrastructure\Http;
 
 use App\Tests\Support\OpenApiOperations;
+use App\Tests\Support\OpenApiSuccessAnswers;
 use App\Tests\Support\PostmanRequests;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
@@ -13,7 +14,8 @@ use Symfony\Component\Routing\RouterInterface;
 
 /**
  * The description on /api/v1/docs.json keeps pace with the API: every route is in it with its method, nothing else
- * is, every operation names the problem answers it can give, and every request of the Postman collection exists.
+ * is, every operation names its successful answer and the problem answers it can give, and every request of the
+ * Postman collection exists.
  */
 #[Group('functional')]
 final class OpenApiCoverageTest extends WebTestCase
@@ -49,6 +51,32 @@ final class OpenApiCoverageTest extends WebTestCase
         }
 
         self::assertSame([], $missing);
+    }
+
+    /**
+     * A 204 has no body; any other success names the schema of its body, so a client knows what it gets.
+     */
+    #[Test]
+    public function it_names_the_successful_answer_of_every_operation(): void
+    {
+        $missing = OpenApiSuccessAnswers::undescribedIn(self::operations());
+
+        self::assertSame([], $missing);
+    }
+
+    /**
+     * The last walker who withdraws takes the round with them, so the frontend treats this 404 as withdrawn.
+     */
+    #[Test]
+    public function it_tells_that_a_repeated_withdrawal_can_find_no_round(): void
+    {
+        $operations = self::operations()->operations;
+
+        foreach (['DELETE /api/v1/rounds/{roundId}/walkers/me', 'DELETE /api/v1/rounds/{roundId}/walkers/{memberId}'] as $operation) {
+            /** @var array{description?: string} $notFound */
+            $notFound = $operations[$operation]['responses'][404] ?? [];
+            self::assertStringContainsString('last walker', $notFound['description'] ?? '', $operation);
+        }
     }
 
     /**

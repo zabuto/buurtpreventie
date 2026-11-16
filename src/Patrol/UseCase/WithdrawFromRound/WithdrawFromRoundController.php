@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Patrol\UseCase\WithdrawFromRound;
 
+use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Attribute\Route;
@@ -26,6 +27,12 @@ final readonly class WithdrawFromRoundController
         name: 'patrol_withdraw_member_from_round',
         requirements: ['roundId' => Requirement::UUID, 'memberId' => Requirement::UUID],
         methods: ['DELETE'],
+    )]
+    #[OA\Response(response: 204, description: 'Withdrawn, also when the member was not signed up.')]
+    #[OA\Response(
+        response: 404,
+        description: 'No round under this id. A repeated withdrawal gets this when the last walker left: the round went with them.',
+        content: new OA\MediaType(mediaType: 'application/problem+json', schema: new OA\Schema(ref: '#/components/schemas/Problem')),
     )]
     public function __invoke(string $roundId, ?string $memberId = null): Response
     {

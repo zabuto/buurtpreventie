@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Patrol\UseCase\ChangeOutcome;
 
+use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
@@ -22,6 +23,7 @@ final readonly class ChangeOutcomeController
      * The outcome comes from the path: the body needs no id, and one it carries counts for nothing.
      */
     #[Route('/admin/outcomes/{outcomeId}', name: 'patrol_change_outcome', requirements: ['outcomeId' => Requirement::UUID], methods: ['PATCH'])]
+    #[OA\Response(response: 204, description: 'Changed.')]
     public function __invoke(
         string $outcomeId,
         #[MapRequestPayload(serializationContext: ['default_constructor_arguments' => [ChangeOutcome::class => ['outcomeId' => '']]])]

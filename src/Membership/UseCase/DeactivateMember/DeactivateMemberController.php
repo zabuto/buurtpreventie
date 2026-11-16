@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Membership\UseCase\DeactivateMember;
 
+use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Attribute\Route;
@@ -18,6 +19,7 @@ final readonly class DeactivateMemberController
     }
 
     #[Route('/admin/members/{memberId}/deactivation', name: 'membership_deactivate_member', requirements: ['memberId' => Requirement::UUID], methods: ['POST'])]
+    #[OA\Response(response: 204, description: 'Deactivated.')]
     public function __invoke(string $memberId): Response
     {
         ($this->handler)(new DeactivateMember($memberId));

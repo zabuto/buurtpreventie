@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Identity\UseCase\RevokeApiToken;
 
+use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Attribute\Route;
@@ -18,6 +19,7 @@ final readonly class RevokeApiTokenController
     }
 
     #[Route('/me/tokens/{tokenId}', name: 'identity_revoke_api_token', requirements: ['tokenId' => Requirement::UUID], methods: ['DELETE'])]
+    #[OA\Response(response: 204, description: 'Revoked.')]
     public function __invoke(string $tokenId): Response
     {
         ($this->handler)(new RevokeApiToken($tokenId));

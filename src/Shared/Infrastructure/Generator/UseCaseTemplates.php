@@ -66,6 +66,8 @@ final readonly class UseCaseTemplates
 
                 namespace {$namespace};
 
+                use Nelmio\\ApiDocBundle\\Attribute\\Model;
+                use OpenApi\\Attributes as OA;
                 use Symfony\\Component\\HttpFoundation\\JsonResponse;
                 use Symfony\\Component\\HttpKernel\\Attribute\\AsController;
                 use Symfony\\Component\\HttpKernel\\Attribute\\MapRequestPayload;
@@ -80,6 +82,11 @@ final readonly class UseCaseTemplates
                     }
 
                     #[Route('{$path}', name: '{$routeName}', methods: ['POST'])]
+                    #[OA\\Response(
+                        response: 200,
+                        description: 'The output of {$name}.',
+                        content: new OA\\JsonContent(ref: new Model(type: {$name}Output::class)),
+                    )]
                     public function __invoke(#[MapRequestPayload] {$name} \$input): JsonResponse
                     {
                         return new JsonResponse((\$this->handler)(\$input));

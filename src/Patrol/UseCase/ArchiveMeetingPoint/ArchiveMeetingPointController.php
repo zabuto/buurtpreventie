@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Patrol\UseCase\ArchiveMeetingPoint;
 
+use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Attribute\Route;
@@ -23,6 +24,7 @@ final readonly class ArchiveMeetingPointController
         requirements: ['meetingPointId' => Requirement::UUID],
         methods: ['POST'],
     )]
+    #[OA\Response(response: 204, description: 'Archived, also when it already was.')]
     public function __invoke(string $meetingPointId): Response
     {
         ($this->handler)(new ArchiveMeetingPoint($meetingPointId));

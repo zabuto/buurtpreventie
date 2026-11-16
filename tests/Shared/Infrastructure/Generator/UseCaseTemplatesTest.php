@@ -46,6 +46,19 @@ final class UseCaseTemplatesTest extends TestCase
         self::assertStringContainsString('public function __invoke(SignUpForRound $input): SignUpForRoundOutput', $handler);
     }
 
+    /**
+     * OpenApiCoverageTest refuses an operation without a successful answer, so a new use case starts with one.
+     */
+    #[Test]
+    public function controller_documents_the_output_as_its_successful_answer(): void
+    {
+        $templates = new UseCaseTemplates();
+
+        $controller = $templates->render('Patrol', 'SignUpForRound')['SignUpForRoundController.php'];
+
+        self::assertStringContainsString('content: new OA\\JsonContent(ref: new Model(type: SignUpForRoundOutput::class)),', $controller);
+    }
+
     #[Test]
     public function controller_starts_as_post_on_the_kebab_cased_name(): void
     {

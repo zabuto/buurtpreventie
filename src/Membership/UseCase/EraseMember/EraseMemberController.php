@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Membership\UseCase\EraseMember;
 
+use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Attribute\Route;
@@ -18,6 +19,7 @@ final readonly class EraseMemberController
     }
 
     #[Route('/admin/members/{memberId}', name: 'membership_erase_member', requirements: ['memberId' => Requirement::UUID], methods: ['DELETE'])]
+    #[OA\Response(response: 204, description: 'Erased.')]
     public function __invoke(string $memberId): Response
     {
         ($this->handler)(new EraseMember($memberId));

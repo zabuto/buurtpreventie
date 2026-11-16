@@ -807,7 +807,8 @@ Besloten op 16 november 2026:
 - Uitgevoerd op 16 november 2026, met deze keuzes:
   - de controller kiest het formaat met `AcceptHeader` op volgorde van voorkeur: `application/json`,
     `application/*`, `*/*` of geen header geeft JSON, `text/csv` of `text/*` CSV; een type met `q=0` telt niet;
-  - **afwijking van regel 3, ter goedkeuring**: de controller gooit `NotAcceptableHttpException` voor de 406, die
+  - afwijking van regel 3, besloten op 16 november 2026 (RFC 9110, 406 met een problem-body volgens RFC 9457): de
+    controller gooit `NotAcceptableHttpException` voor de 406, die
     `ProblemResponder` al als `not_acceptable` gaf. Regel 3 staat alleen die ene klasse toe, niet heel
     `HttpKernel\Exception`. Zonder die uitzondering kon de 406 alleen zonder problem-body of via een eigen listener;
   - de invoer heeft `allEntries` (met `#[Ignore]`) in plaats van `format`: de querystring kan het niet zetten en de
@@ -821,8 +822,8 @@ Besloten op 16 november 2026:
     bij, dan schuift de rest een plek op en staat één regel twee keer in het bestand. Dat gold al vóór deze taak; een
     vaste bovengrens `to` (het moment van de aanvraag) lost het op;
   - de OpenAPI-spec beschrijft de 200 met `application/json` (schema `ListAuditEntriesOutput`) en `text/csv`, en de
-    406; de 422 noemt `too_many_entries` in de samenvatting van de operatie, want een tweede 422 naast die van
-    `#[MapQueryString]` weigert swagger-php;
+    406, en de 422 met `too_many_entries` (in T21 als eigen antwoord, na de reparatie van
+    `ProblemResponsesProcessor`);
   - de Postman-collectie vraagt de CSV met `Accept: text/csv` en controleert de 406 voor `Accept: application/xml`.
     De 422 boven 10.000 regels staat alleen in de tests: de lokale database heeft er zo veel niet;
   - `docs/testing.md` noemt ook de drie Postman-stappen van T19, die daar ontbraken.
@@ -837,6 +838,23 @@ Besloten op 16 november 2026:
 - bij `DELETE /rounds/{id}/walkers/me` en `/walkers/{memberId}` staat in de beschrijving dat een herhaling 404 kan
   geven als de laatste loper de ronde liet vervallen. De server blijft zo; de frontend behandelt 404 bij afmelden als
   gelukt.
+
+- Uitgevoerd op 16 november 2026, met deze keuzes:
+  - elke controller heeft een `#[OA\Response]`: 200, 201 of 202 met `new OA\JsonContent(ref: new Model(type:
+    …Output::class))`, of 204 zonder body, met een korte beschrijving van wat het antwoord betekent (bijvoorbeeld
+    "Archived, also when it already was."). `GET /admin/audit` had zijn 200 al uit T20, met JSON en CSV;
+  - `DELETE /rounds/{id}/walkers/me` en `/walkers/{memberId}` beschrijven hun 404: een herhaling krijgt die als de
+    laatste loper de ronde liet vervallen;
+  - **gevonden en gerepareerd**: `ProblemResponsesProcessor` zocht een bestaand antwoord met de opzoeking van Nelmio,
+    die de status strikt vergelijkt. Een `#[OA\Response]` geeft een getal, de processor zocht `'404'`, en maakte zo
+    een tweede 404 (swagger-php waarschuwde alleen). Hij zoekt nu zelf het gedocumenteerde antwoord. Daardoor kan de
+    422 van het auditlog `too_many_entries` alsnog als eigen antwoord noemen;
+  - `OpenApiCoverageTest` eist per operatie een 2xx: een 204 zonder body, elk ander antwoord met een schema per
+    mediatype (`OpenApiSuccessAnswers`, een eigen klasse omdat Mago `OpenApiOperations` anders te complex vond), en de
+    beschrijving van de 404 bij afmelden;
+  - de generator `app:make:use-case` zet in de nieuwe controller een 200 met de `…Output`-klasse, zodat een nieuwe use
+    case de dekkingstest haalt; de beschrijving past de ontwikkelaar aan;
+  - geen nieuwe endpoints, dus geen nieuwe stap in de Postman-collectie.
 
 ### T22. Eigen rondes per weergave en periode (test eerst)
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Patrol\UseCase\SignUpForRound;
 
+use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Attribute\Route;
@@ -27,6 +28,7 @@ final readonly class SignUpForRoundController
         requirements: ['roundId' => Requirement::UUID, 'memberId' => Requirement::UUID],
         methods: ['PUT'],
     )]
+    #[OA\Response(response: 204, description: 'Signed up, also when the member already was.')]
     public function __invoke(string $roundId, ?string $memberId = null): Response
     {
         ($this->handler)(new SignUpForRound($roundId, $memberId));

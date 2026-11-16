@@ -110,6 +110,11 @@ final readonly class CheckHealthController
     }
 
     #[Route('/health', name: 'maintenance_check_health', methods: ['GET'])]
+    #[OA\Response(
+        response: 200,
+        description: 'The app answers.',
+        content: new OA\JsonContent(ref: new Model(type: CheckHealthOutput::class)),
+    )]
     public function __invoke(): JsonResponse
     {
         return new JsonResponse(($this->handler)(new CheckHealth()));
@@ -117,7 +122,9 @@ final readonly class CheckHealthController
 }
 ```
 
-A use case with input receives it through `#[MapRequestPayload]`; the generator sets that up.
+A use case with input receives it through `#[MapRequestPayload]`; the generator sets that up. Nelmio cannot read the
+output from a `JsonResponse`, so `#[OA\Response]` names the successful answer: the status with the `…Output` class
+as its schema, or a 204 without a body.
 
 **Tool** (`CheckHealthTool.php`). As thin as the controller, with the same handler.
 
@@ -534,11 +541,12 @@ frontend in phase 5.
 The spec on `/api/v1/docs.json` comes from NelmioApiDocBundle: paths, path parameters, request bodies
 (`#[MapRequestPayload]`) and query parameters (`#[MapQueryString]`) from the controllers. The routes the firewall
 answers (`/auth/login`, `/auth/login-code/verify`, `/auth/invitation`, `/auth/confirm`, `/auth/logout`) and the
-`Problem` schema are written out in `config/packages/nelmio_api_doc.yaml`.
+`Problem` schema are written out in `config/packages/nelmio_api_doc.yaml`. Every controller names its successful answer
+with `#[OA\Response]`: 200, 201 or 202 with the `…Output` class as a Nelmio `Model`, or 204 without a body.
 `Shared\Infrastructure\Http\ProblemResponsesProcessor` gives every operation its problem answers: 401 and 403 off the
 public paths, 404 with an id in the path, 409 for a change, 422 with a body or query parameters. It is a swagger-php
 processor rather than a describer, because Nelmio adds bodies and query parameters in processors of its own, after
-every describer.
+every describer. An answer a controller documents itself, such as the 404 of a repeated withdrawal, stays.
 
 **Why.** `OpenApiCoverageTest` holds the spec to the router and to the Postman collection, so neither drifts from the
 API.

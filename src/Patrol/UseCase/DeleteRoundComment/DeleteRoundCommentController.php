@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Patrol\UseCase\DeleteRoundComment;
 
+use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Attribute\Route;
@@ -18,6 +19,7 @@ final readonly class DeleteRoundCommentController
     }
 
     #[Route('/comments/{commentId}', name: 'patrol_delete_round_comment', requirements: ['commentId' => Requirement::UUID], methods: ['DELETE'])]
+    #[OA\Response(response: 204, description: 'Deleted.')]
     public function __invoke(string $commentId): Response
     {
         ($this->handler)(new DeleteRoundComment($commentId));

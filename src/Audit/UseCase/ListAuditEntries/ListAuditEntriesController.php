@@ -38,8 +38,7 @@ final readonly class ListAuditEntriesController
     }
 
     /**
-     * JSON a page at a time, or with Accept: text/csv every matching entry at once as a file, streamed. More than
-     * 10,000 entries for a file is the 422 problem too_many_entries with their count.
+     * JSON a page at a time, or with Accept: text/csv every matching entry at once as a file, streamed.
      */
     #[Route('/admin/audit', name: 'audit_list_audit_entries', methods: ['GET'])]
     #[OA\Response(
@@ -53,6 +52,11 @@ final readonly class ListAuditEntriesController
     #[OA\Response(
         response: 406,
         description: 'Accept allows neither application/json nor text/csv (not_acceptable).',
+        content: new OA\MediaType(mediaType: 'application/problem+json', schema: new OA\Schema(ref: '#/components/schemas/Problem')),
+    )]
+    #[OA\Response(
+        response: 422,
+        description: 'The query is invalid (violations), or more than 10,000 entries match for a CSV file (too_many_entries, with count).',
         content: new OA\MediaType(mediaType: 'application/problem+json', schema: new OA\Schema(ref: '#/components/schemas/Problem')),
     )]
     public function __invoke(

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Patrol\UseCase\ChangeRound;
 
+use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
@@ -22,6 +23,7 @@ final readonly class ChangeRoundController
      * The round comes from the path: the body needs no round id, and one it carries counts for nothing.
      */
     #[Route('/rounds/{roundId}', name: 'patrol_change_round', requirements: ['roundId' => Requirement::UUID], methods: ['PATCH'])]
+    #[OA\Response(response: 204, description: 'Changed.')]
     public function __invoke(
         string $roundId,
         #[MapRequestPayload(serializationContext: ['default_constructor_arguments' => [ChangeRound::class => ['roundId' => '']]])]

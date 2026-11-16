@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Patrol\UseCase\ListOutcomes;
 
+use Nelmio\ApiDocBundle\Attribute\Model;
+use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Attribute\Route;
@@ -21,6 +23,11 @@ final readonly class ListOutcomesController
      */
     #[Route('/outcomes', name: 'patrol_list_outcomes', methods: ['GET'])]
     #[Route('/admin/outcomes', name: 'patrol_list_all_outcomes', defaults: ['withArchived' => true], methods: ['GET'])]
+    #[OA\Response(
+        response: 200,
+        description: 'The outcomes by name; under /admin/ the archived ones too.',
+        content: new OA\JsonContent(ref: new Model(type: ListOutcomesOutput::class)),
+    )]
     public function __invoke(bool $withArchived = false): JsonResponse
     {
         return new JsonResponse(($this->handler)(new ListOutcomes($withArchived)));
