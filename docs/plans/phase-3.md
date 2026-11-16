@@ -722,6 +722,10 @@ Per regel eerst het testbestand, dan de regel (beslissing 35). Lokaal gedraaid z
     `prefers-color-scheme: dark` met `!important` geeft nu een donkere pagina, `#121212` achter de tekst, de donkere
     primaire kleur (via `Branding::primaryDarkColor()`) voor naam en links en een wit vlak achter het logo; de knop
     houdt de lichte primaire kleur. `MailNotifierTest` dekt het;
+  - opgeleverd op 17 november 2026: pull request #28 naar `develop`, CI groen op alle jobs (Checks, Database op
+    MariaDB 10.11 en MySQL 8.4, Security scan), gemerged als squash. Daarna, op dezelfde dag: #29 herstelt de 500
+    van `GET /rounds` bij een ronde op een ontmoetingspunt, gevonden met de Hurl-bestanden, en #30 brengt die
+    bestanden (`phase-3-hurl.md`);
   - gezien, niet opgelost: het laden van `demo` verstuurt twee mails "te weinig lopers" over rondes uit de nagespeelde
     historie, omdat elk bericht in deze fase een mail is; en een teruggedraaide upload (zoals in de fixturetest) laat
     ongebruikte bestanden in `UPLOAD_DIR` staan, die niemand opruimt. Beide als open punt hieronder.

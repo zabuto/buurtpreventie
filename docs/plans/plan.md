@@ -16,14 +16,14 @@ Buurtpreventie v4 wordt een Symfony 7.4 LTS-backend met een echte REST-API (`/ap
 - Licentie PolyForm Noncommercial 1.0.0; README in het Engels met een korte Nederlandse samenvatting; docs in het Engels, behalve de woordenlijst en de plannen; code, API, AGENTS.md, CLAUDE.md en alle map- en bestandsnamen in het Engels.
 - Weinig afhankelijkheden, geen deprecations, tests vóór code, en overdraagbaar aan een andere ontwikkelaar (zie Overdraagbaarheid). Een beter domeinmodel gaat voor compatibiliteit met v3; data gaat over via conversie.
 
-**Fasen en stand van de MVP** (bijgewerkt op 16 november 2026; details in Implementatieplan):
+**Fasen en stand van de MVP** (bijgewerkt op 17 november 2026; details in Implementatieplan):
 
 | Fase | Inhoud | Stand |
 | --- | --- | --- |
 | 0 | Basis: skelet, CI, docs, codescan | klaar, in `develop` |
 | 1 | Domein, use cases, Voters, auditlog, database, voorbeelddata | klaar, in `develop`; T13 naar fase 5b |
 | 2 | REST-API v1 met inloggen en API-tokens | klaar, in `develop` |
-| 3 | Branding en configuratie | in uitvoering: T1–T14 klaar, T15 open (`docs/plans/phase-3.md`) |
+| 3 | Branding en configuratie | klaar, in `develop` |
 | 4 | MCP-server | open |
 | 5 | Frontend (Lit, PWA, WCAG 2.2 AA) | open |
 | 5b | Conversie v3 → v4 | open |
