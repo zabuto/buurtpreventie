@@ -11,6 +11,8 @@ parameters:
     env(DEFAULT_URI): 'http://localhost'
     # Sender of every mail; the real address goes in .env.local.
     env(MAILER_FROM): 'noreply@localhost'
+    # HSTS stays off until an installation opts in with a max-age in seconds, once HTTPS works there.
+    env(HSTS_MAX_AGE): '0'
 
 services:
     # default configuration for services in *this* file

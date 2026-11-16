@@ -637,7 +637,7 @@ De vereniging is verwerkingsverantwoordelijke: zij stelt de privacyverklaring, b
 **Beveiliging.**
 
 - Alleen HTTPS; de installer weigert zonder.
-- Beveiligingsheaders: de API stuurt een CSP die niets toestaat, `nosniff`, `Referrer-Policy: no-referrer` en `Cross-Origin-Opener-Policy: same-origin` (fase 1); de frontend krijgt een eigen CSP en `Permissions-Policy` (fase 5), HSTS volgt in fase 6a.
+- Beveiligingsheaders: de API stuurt een CSP die niets toestaat, `nosniff`, `Referrer-Policy: no-referrer` en `Cross-Origin-Opener-Policy: same-origin` (fase 1); de frontend krijgt een eigen CSP en `Permissions-Policy` (fase 5). HSTS staat in de API per installatie aan met `HSTS_MAX_AGE` (opt-in, sinds fase 2, zonder `includeSubDomains`); de installer van fase 6a kan het zetten na zijn HTTPS-controle.
 - Wachtwoorden en tokens alleen gehasht opgeslagen.
 - Elk geheim maakt de app zelf, met `random_bytes`, en niemand typt het in: API-tokens, inloglinks, wachtwoord-reset, het installer-token, `APP_SECRET` en de tick-sleutel. Zo kan er geen kort of zelfbedacht geheim in komen. De installer schrijft `APP_SECRET` en `TICK_SECRET` in `shared/.env.local`; Onderhoud vervangt de tick-sleutel met een knop, zonder invoerveld. Het domein weigert een geheim dat niet het gegenereerde formaat heeft.
 - Rechten via rollen en Voters, gecontroleerd met de matrixtest.

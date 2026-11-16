@@ -110,6 +110,7 @@ Every response under `/api/` carries (`ApiSecurityHeaders`):
 | `X-Content-Type-Options` | `nosniff` | A browser never reads JSON as HTML or script |
 | `Referrer-Policy` | `no-referrer` | No API URL leaks to another site |
 | `Cross-Origin-Opener-Policy` | `same-origin` | Another site that opens the API in a window cannot reach it |
+| `Strict-Transport-Security` | `max-age=<HSTS_MAX_AGE>`, over HTTPS only, and only when an installation opts in | The browser keeps to HTTPS for this host, so an `http://` address typed on a hostile network cannot be intercepted before the redirect |
 
 In debug mode Symfony drops the policy from an error page, so its exception page can show; in `prod`
 the error response keeps it.
