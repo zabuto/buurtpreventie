@@ -820,7 +820,7 @@ Fase 3, 4 en 5 hangen alleen van de API af; MCP (fase 4) gaat vóór de frontend
   - `app:audit:verify` meldt "intact tot en met …" of de eerste regel die niet klopt; Onderhoud (fase 6b) toont hetzelfde.
   - Tests: een gewijzigde, verwijderde of tussengevoegde regel valt op; wissen en opruimen breken de keten niet; twee gelijktijdige schrijfacties op MariaDB en MySQL geven een kloppende keten.
 
-**Klaar als:** een tweede vereniging alleen via het beheerscherm een eigen naam, logo, kleuren en teksten krijgt, zonder codewijziging.
+**Klaar als:** een tweede vereniging alleen via `/admin/settings` en de logo-upload (API) een eigen naam, logo, kleuren en teksten krijgt, zonder codewijziging; het beheerscherm in fase 5 gebruikt dezelfde endpoints.
 
 ### Fase 4 — MCP-server
 
