@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Shared\Domain;
 
+use LogicException;
 use Throwable;
 
 /**
@@ -33,4 +34,15 @@ interface Transaction
      * @param callable(): void $callback
      */
     public function afterCommit(callable $callback): void;
+
+    /**
+     * Runs the callback as the last step of the outermost run, inside its transaction, in the order of the calls; a
+     * callback that another one adds runs too. When the run fails first, the callback never runs; when the callback
+     * fails, the run fails. For a lock that must be taken last, such as the head of the audit chain.
+     *
+     * @param callable(): void $callback
+     *
+     * @throws LogicException outside a run, where no commit follows and a lock would end at once
+     */
+    public function beforeCommit(callable $callback): void;
 }

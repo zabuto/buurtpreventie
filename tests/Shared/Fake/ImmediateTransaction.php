@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Tests\Shared\Fake;
 
 use App\Shared\Domain\Transaction;
+use LogicException;
 use Override;
 use Throwable;
 
 /**
  * Runs the operation at once and records the nesting depth of each run; whether a failed operation leaves no trace
- * is DoctrineTransaction's concern and has its own database test. Callbacks after the commit follow the same order as
- * there: after the outermost run, dropped when it fails.
+ * is DoctrineTransaction's concern and has its own database test. Callbacks follow the same order as there: before
+ * the commit as the last step of the outermost run, after the commit once it is done, both dropped when it fails.
  */
 final class ImmediateTransaction implements Transaction
 {
@@ -19,6 +20,9 @@ final class ImmediateTransaction implements Transaction
     public array $depths = [];
 
     private int $depth = 0;
+
+    /** @var list<callable(): void> */
+    private array $beforeCommit = [];
 
     /** @var list<callable(): void> */
     private array $afterCommit = [];
@@ -30,8 +34,13 @@ final class ImmediateTransaction implements Transaction
 
         try {
             $result = $operation();
+            while (1 === $this->depth && [] !== $this->beforeCommit) {
+                $callback = \array_shift($this->beforeCommit);
+                $callback();
+            }
         } catch (Throwable $exception) {
             if (1 === $this->depth) {
+                $this->beforeCommit = [];
                 $this->afterCommit = [];
             }
 
@@ -61,5 +70,15 @@ final class ImmediateTransaction implements Transaction
         }
 
         $this->afterCommit[] = $callback;
+    }
+
+    #[Override]
+    public function beforeCommit(callable $callback): void
+    {
+        if (0 === $this->depth) {
+            throw new LogicException('A callback before the commit needs a running transaction.');
+        }
+
+        $this->beforeCommit[] = $callback;
     }
 }

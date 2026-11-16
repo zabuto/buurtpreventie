@@ -154,7 +154,7 @@ A handler reaches storage, rights, the audit log and messages only through inter
 
 | `Shared\Domain` | What it does | Implementation |
 | --- | --- | --- |
-| `Transaction` | Runs an operation as one unit: a change and its audit entry are stored together or not at all. `afterCommit()` holds a callback until the outermost run has committed and drops it when that run fails | `Shared\Infrastructure\Doctrine\DoctrineTransaction` |
+| `Transaction` | Runs an operation as one unit: a change and its audit entry are stored together or not at all. `afterCommit()` holds a callback until the outermost run has committed and drops it when that run fails; `beforeCommit()` runs one as the last step inside the outermost run, for a lock that must come last | `Shared\Infrastructure\Doctrine\DoctrineTransaction` |
 | `ExecutionContext`, `Channel` | The member performing the action with their roles (an `Actor`), or none for the system, and the channel (`web`, `api`, `mcp`, `cron`, `console`) | `Shared\Infrastructure\Security\TokenExecutionContext`, which reads Symfony's token storage; `RunAs` fills it for console commands, fixtures and the scheduler, an authenticator for HTTP and MCP. A member run through `RunAs` counts as a recent login: whoever runs a console command proved who they are by reaching the server |
 | `AuditTrail`, `AuditedAction` | Records an action; time, actor and channel come from the clock and the execution context | `Audit\Infrastructure\Persistence\DoctrineAuditTrail` |
 | `MemberNames` | The display name of a member, or none for an erased one, so another module can record or show who acted | `Membership\Infrastructure\RepositoryMemberNames` |
