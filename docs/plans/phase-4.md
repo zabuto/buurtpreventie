@@ -424,6 +424,17 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
   `sign_up_for_round`; de auditregel heeft kanaal `mcp`. Welk tijdperk elke client sprak, komt in het verslag.
 - Push en pull request naar `develop` na akkoord; CI groen (alle jobs); merge als squash.
 
+- Met de hand op 17 november 2026, tegen de demo op `https://buurtpreventie.wip` met het token van een loper:
+  - **MCP Inspector 2.13** verbond met protocol `2025-11-25` (het handshake-tijdperk, met sessie) en zag 13 tools, de
+    resource en beide prompts. De resource geeft geen contactgegevens; `monthly_report` en `plan_week` geven hun
+    periode in lokale tijd; `staffing_gaps` met 31 dagen gaf zes rondes; `round_statistics` weigerde de loper met
+    `access_denied`. De Inspector waarschuwde voor typen als lijst in de invoerschema's; dat is hersteld, met een
+    bewaker in `McpMatrixTest`;
+  - **Claude Code** gebruikte `staffing_gaps` en `sign_up_for_round`; de aanmelding staat in het auditlog op kanaal
+    `mcp`. Een aanmelding voor een ronde waar de loper al op stond, veranderde niets en schreef geen regel;
+  - curl en Node bereiken het lokale domein alleen via de proxy van de Symfony CLI: `docs/getting-started.md` zegt het,
+    met de stappen van deze test.
+
 ## Afspraken
 
 1. Claude commit op `feature/phase-4` in kleine commits en pusht de branch. De pull request gaat pas open na akkoord;
@@ -452,3 +463,9 @@ Gemeld, niet in deze fase opgelost:
   instelling die notities en opmerkingen toch via MCP geeft, standaard uit, volgt als een vereniging erom vraagt.
 - **STDIO controleert het token één keer**, bij het starten: een ingetrokken token werkt in een draaiend
   `mcp:server` tot het proces stopt. Opnieuw controleren per verzoek kan, als STDIO meer dan lokaal gebruikt wordt.
+- **Of de vrager zelf op een ronde staat** geven `staffing_gaps` en `list_rounds` niet. Claude Code zette daardoor de
+  eigen rondes van de loper tussen de rondes om bij aan te schuiven en had een extra call nodig. Een veld `signedUp`
+  in beide (ook op REST) helpt de client en het scherm van fase 5.
+- **De server kondigt `resources: {"subscribe": true}` aan** zonder meldingen te versturen (`subscriptions.bus: none`);
+  dat komt uit de bundle. Een client die zich abonneert, krijgt niets.
+
