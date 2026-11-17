@@ -8,6 +8,7 @@ use App\Identity\Domain\ApiToken;
 use App\Identity\Domain\ApiTokenRepository;
 use App\Identity\Domain\TokenRefusal;
 use App\Identity\Domain\TokenScope;
+use App\Identity\Infrastructure\Mcp\McpSwitch;
 use App\Settings\UseCase\GetApiTokenAccess\GetApiTokenAccess;
 use App\Settings\UseCase\GetApiTokenAccess\GetApiTokenAccessHandler;
 use App\Shared\Domain\Channel;
@@ -81,6 +82,7 @@ final class ApiTokenAuthenticator extends AbstractAuthenticator
             static fn(): MemberUser => new MemberUser($identity->memberId, $identity->roles),
         ));
         $passport->setAttribute(self::SCOPES, $token->scopes());
+        $passport->setAttribute(TokenExecutionContext::CHANNEL, McpSwitch::isMcp($request->getPathInfo()) ? Channel::Mcp : Channel::Api);
 
         return $passport;
     }
@@ -89,7 +91,7 @@ final class ApiTokenAuthenticator extends AbstractAuthenticator
     public function createToken(Passport $passport, string $firewallName): TokenInterface
     {
         $token = parent::createToken($passport, $firewallName);
-        $token->setAttribute(TokenExecutionContext::CHANNEL, Channel::Api);
+        $token->setAttribute(TokenExecutionContext::CHANNEL, $passport->getAttribute(TokenExecutionContext::CHANNEL, Channel::Api));
         $token->setAttribute(self::SCOPES, $passport->getAttribute(self::SCOPES, []));
 
         return $token;
