@@ -59,6 +59,7 @@ final class SettingsTest extends TestCase
                 'patrol.reminder_days_ahead' => '1',
                 'app.language' => 'nl',
                 'integrations.api_access' => '1',
+                'integrations.mcp' => '0',
             ],
             $values,
         );
@@ -79,6 +80,7 @@ final class SettingsTest extends TestCase
         yield 'number' => [SettingName::ReminderDaysAhead, 3, '3'];
         yield 'switch off' => [SettingName::ApiAccess, false, '0'];
         yield 'switch on' => [SettingName::ApiAccess, true, '1'];
+        yield 'MCP switched on' => [SettingName::McpAccess, true, '1'];
         yield 'language' => [SettingName::Language, 'en', 'en'];
         yield 'version of an uploaded logo' => [SettingName::Logo, '3f2a9c1d0b8e7f65', '3f2a9c1d0b8e7f65'];
     }

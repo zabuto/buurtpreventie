@@ -37,6 +37,7 @@ final readonly class GetSettingsOutput
         public int $reminderDaysAhead,
         public string $language,
         public bool $apiAccess,
+        public bool $mcpAccess,
         public array $defaults,
     ) {
     }

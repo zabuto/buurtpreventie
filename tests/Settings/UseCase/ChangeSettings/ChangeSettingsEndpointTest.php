@@ -32,6 +32,7 @@ final class ChangeSettingsEndpointTest extends ApiTestCase
             'contactName' => null,
             'reminderDaysAhead' => 2,
             'apiAccess' => false,
+            'mcpAccess' => true,
         ]);
         self::assertResponseStatusCodeSame(204);
         $client->jsonRequest('GET', '/api/v1/admin/settings');
@@ -40,13 +41,14 @@ final class ChangeSettingsEndpointTest extends ApiTestCase
         /** @var array<string, mixed> $settings */
         $settings = self::json($client);
         self::assertSame(
-            ['Buurtpreventie Oost', '#0b4f6c', null, 2, false, 'Buurtpreventie'],
+            ['Buurtpreventie Oost', '#0b4f6c', null, 2, false, true, 'Buurtpreventie'],
             [
                 $settings['associationName'],
                 $settings['primaryColor'],
                 $settings['contactName'],
                 $settings['reminderDaysAhead'],
                 $settings['apiAccess'],
+                $settings['mcpAccess'],
                 $settings['associationShortName'],
             ],
         );

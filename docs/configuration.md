@@ -54,6 +54,7 @@ admin sets it, also when it equals the default, and null removes it again.
 | `reminderDaysAhead` | 1 to 7: the reminder covers the rounds of the local calendar day this many days ahead; a round signed up for later than that gets none | 1 |
 | `language` | `nl` or `en` | `nl` |
 | `apiAccess` | `true` or `false`: whether API tokens give access. `false` refuses every token from its next request (an empty 401, logged as `tokens_disabled`) and a new token (409 `api_tokens_disabled`); members still list and revoke their tokens | `true` |
+| `mcpAccess` | `true` or `false`: whether the MCP server at `/mcp` answers. `false` answers every request there with 404 from its next request, and `mcp:server` does not start; API tokens keep working on REST. With `apiAccess` `false` the MCP server refuses every token (401) | `false` |
 
 A colour is checked against the other colours and a minimum against the maximum as one set, so a refused value
 leaves every value of the patch unstored. The audit log names each setting that changed with its old and new value,

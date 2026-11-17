@@ -30,7 +30,7 @@ final readonly class SettingValue
         return match ($name) {
             SettingName::MinimumWalkers, SettingName::MaximumWalkers => (string) self::number($name, $value),
             SettingName::ReminderDaysAhead => self::daysAhead($value),
-            SettingName::ApiAccess => self::toggle($name, $value),
+            SettingName::ApiAccess, SettingName::McpAccess => self::toggle($name, $value),
             default => self::text($name, \is_string($value) ? $value : throw self::wrongType($name)),
         };
     }

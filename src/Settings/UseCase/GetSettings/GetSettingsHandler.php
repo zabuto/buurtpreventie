@@ -60,6 +60,7 @@ final readonly class GetSettingsHandler
             reminderDaysAhead: (int) $value(SettingName::ReminderDaysAhead),
             language: (string) $value(SettingName::Language),
             apiAccess: '1' === $value(SettingName::ApiAccess),
+            mcpAccess: '1' === $value(SettingName::McpAccess),
             defaults: \array_values(\array_map(
                 static fn(SettingName $name): string => $name->field(),
                 \array_filter(SettingName::cases(), static fn(SettingName $name): bool => !$name->isUploaded() && $settings->isDefault($name)),
