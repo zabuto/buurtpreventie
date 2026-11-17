@@ -26,7 +26,7 @@ enum StatisticsGrouping: string
     {
         return match ($this) {
             self::Month => LocalTime::of($startsAt)->format('Y-m'),
-            self::Weekday => \strtolower(LocalTime::of($startsAt)->format('l')),
+            self::Weekday => \mb_strtolower(LocalTime::of($startsAt)->format('l')),
             self::Daypart => Daypart::of($startsAt)->value,
         };
     }
