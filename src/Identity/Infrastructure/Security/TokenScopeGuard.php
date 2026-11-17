@@ -47,8 +47,7 @@ final readonly class TokenScopeGuard
     {
         return match (true) {
             \str_starts_with($request->getPathInfo(), self::ADMIN_PREFIX) => TokenScope::Admin,
-            McpSwitch::isMcp($request->getPathInfo()) => TokenScope::Read,
-            $request->isMethodSafe() => TokenScope::Read,
+            $request->isMethodSafe() || McpSwitch::isMcp($request->getPathInfo()) => TokenScope::Read,
             default => TokenScope::Write,
         };
     }

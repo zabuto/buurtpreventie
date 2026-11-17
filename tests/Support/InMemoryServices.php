@@ -111,6 +111,10 @@ final readonly class InMemoryServices implements CompilerPassInterface
         $container->getDefinition(AppUrl::class)->setArguments(['https://example.org/buurtpreventie/']);
         $container->getDefinition(MailComposers::class)->setPublic(true);
 
+        // DNS rebinding protection of the MCP server: the host of the base URL above, next to the configured one, which
+        // the container insists stays in use.
+        $container->getDefinition('mcp.server.buurtpreventie.middleware_factory')->setArgument(0, ['example.org', '%env(key:host:url:DEFAULT_URI)%']);
+
         $container->setDefinition('cache.login_attempts', new Definition(ArrayAdapter::class))->setPublic(true);
 
         $container->register('logger', RecordingLogger::class)->setPublic(true);

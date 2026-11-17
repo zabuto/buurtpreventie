@@ -19,7 +19,7 @@ mcp:
                 store: file
             subscriptions:
                 bus: none
-            registry: '*'
+            registry: ['App\']
 
 when@dev:
     mcp:
