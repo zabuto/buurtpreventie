@@ -7,6 +7,7 @@ namespace App\Shared\Infrastructure\Mcp;
 use Mcp\Exception\ServiceNotFoundException;
 use Override;
 use Psr\Container\ContainerInterface;
+use Symfony\Component\DependencyInjection\Attribute\AutowireLocator;
 
 /**
  * The tools, prompts and resources of the MCP server by class, for the SDK to call. The bundle keeps its own lookup
@@ -17,9 +18,15 @@ final readonly class McpElements implements ContainerInterface
     /** @var list<ContainerInterface> */
     private array $kinds;
 
-    public function __construct(ContainerInterface ...$kinds)
-    {
-        $this->kinds = \array_values($kinds);
+    public function __construct(
+        #[AutowireLocator('mcp.tool')]
+        ContainerInterface $tools,
+        #[AutowireLocator('mcp.prompt')]
+        ContainerInterface $prompts,
+        #[AutowireLocator('mcp.resource')]
+        ContainerInterface $resources,
+    ) {
+        $this->kinds = [$tools, $prompts, $resources];
     }
 
     #[Override]
