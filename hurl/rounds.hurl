@@ -52,10 +52,12 @@ jsonpath "$.walkers[?!@.name]" not exists
 jsonpath "$.walkers[?!@.phone]" not exists
 jsonpath "$.walkers[0].*" count == 4
 
+# The admin walks no rounds, so no gap is one of theirs.
 GET {{baseUrl}}/api/v1/staffing-gaps
 HTTP 200
 [Asserts]
 jsonpath "$.gaps" isList
+jsonpath "$.gaps[?@.signedUp != false]" not exists
 
 GET {{baseUrl}}/api/v1/staffing-gaps?days=32
 HTTP 422

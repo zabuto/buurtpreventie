@@ -17,7 +17,8 @@ final readonly class ListRoundsOutput
      *     maximumWalkers: int,
      *     openSpots: int,
      *     meetingPoint: string|null,
-     * }> $rounds
+     *     signedUp: bool,
+     * }> $rounds by start; signedUp says whether the member asking walks the round
      */
     public function __construct(
         public array $rounds,

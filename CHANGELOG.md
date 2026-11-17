@@ -221,3 +221,6 @@ versions follow [Semantic Versioning](https://semver.org/).
   the incidents per month, without notes or authors.
 - `GET /api/v1/staffing-gaps?days=` limits the gaps to the next 1 to 31 days.
 - ADR 0008 on the MCP server, and `docs/user-guide/mcp.md` on connecting Claude Code and the MCP Inspector.
+- `GET /api/v1/rounds`, `GET /api/v1/staffing-gaps` and the tools `list_rounds` and `staffing_gaps` say per round
+  whether the member asking walks it (`signedUp`), so a client tells a round of their own that seeks a buddy from one
+  to join.

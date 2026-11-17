@@ -11,7 +11,7 @@ use Mcp\Schema\ToolAnnotations;
 
 #[McpTool(
     name: 'list_rounds',
-    description: 'Rounds that start in a period of at most 93 days, earliest first, each with its status, walkers signed up, minimum and maximum, open spots, daypart and meeting point. Times are in Europe/Amsterdam.',
+    description: 'Rounds that start in a period of at most 93 days, earliest first, each with its status, walkers signed up, minimum and maximum, open spots, daypart, meeting point and whether you walk it (signedUp). Times are in Europe/Amsterdam.',
     annotations: new ToolAnnotations(title: 'Rounds in a period', readOnlyHint: true, openWorldHint: false),
 )]
 final readonly class ListRoundsTool

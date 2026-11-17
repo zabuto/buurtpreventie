@@ -10,13 +10,16 @@ use App\Patrol\Domain\Round\Round;
 use App\Patrol\Domain\Round\RoundRepository;
 use App\Patrol\Domain\Round\RoundStatus;
 use App\Shared\Domain\Authorization;
+use App\Shared\Domain\ExecutionContext;
 use App\Shared\Domain\LocalTime;
 use App\Shared\Domain\ReadAction;
 use DateTimeImmutable;
 use Psr\Clock\ClockInterface;
+use Symfony\Component\Uid\Uuid;
 
 /**
- * Lists the rounds that start in a period, by start, optionally with one status only.
+ * Lists the rounds that start in a period, by start, optionally with one status only, each with whether the member
+ * asking walks it.
  */
 #[ReadAction]
 final readonly class ListRoundsHandler
@@ -24,6 +27,7 @@ final readonly class ListRoundsHandler
     public function __construct(
         private RoundRepository $rounds,
         private Authorization $authorization,
+        private ExecutionContext $executionContext,
         private ClockInterface $clock,
     ) {
     }
@@ -44,7 +48,12 @@ final readonly class ListRoundsHandler
             static fn(Round $round): bool => null === $status || $round->status($now) === $status,
         );
 
-        return new ListRoundsOutput(\array_values(\array_map(static fn(Round $round): array => self::summary($round, $now), $rounds)));
+        $memberId = $this->executionContext->actor()?->memberId;
+
+        return new ListRoundsOutput(\array_values(\array_map(
+            static fn(Round $round): array => self::summary($round, $now, $memberId),
+            $rounds,
+        )));
     }
 
     /**
@@ -58,9 +67,10 @@ final readonly class ListRoundsHandler
      *     maximumWalkers: int,
      *     openSpots: int,
      *     meetingPoint: string|null,
+     *     signedUp: bool,
      * }
      */
-    private static function summary(Round $round, DateTimeImmutable $now): array
+    private static function summary(Round $round, DateTimeImmutable $now, ?Uuid $memberId): array
     {
         return [
             'id' => $round->id()->toRfc4122(),
@@ -72,6 +82,7 @@ final readonly class ListRoundsHandler
             'maximumWalkers' => $round->staffingRule()->maximumWalkers,
             'openSpots' => $round->openSpots($now),
             'meetingPoint' => $round->meetingPoint()?->name(),
+            'signedUp' => null !== $memberId && $round->isSignedUp($memberId),
         ];
     }
 }
