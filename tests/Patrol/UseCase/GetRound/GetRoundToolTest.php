@@ -28,7 +28,7 @@ final class GetRoundToolTest extends McpTestCase
 
         $rest = self::rest($browser, '/api/v1/rounds/' . $round->id()->toRfc4122());
         self::assertIsArray($rest['walkers']);
-        self::assertContains('Piet K. Fullname', \array_column($rest['walkers'], 'name'));
+        self::assertContains('Piet K. Fullname', self::column($rest['walkers'], 'name'));
         $rest['walkers'] = \array_map(
             static fn(mixed $walker): array => \is_array($walker) ? ['id' => $walker['id'], 'displayName' => $walker['displayName']] : [],
             $rest['walkers'],

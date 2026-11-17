@@ -37,7 +37,7 @@ final class ListMyRoundsToolTest extends McpTestCase
 
         $rounds = self::call(self::connect($browser), 'my_rounds', ['view' => 'to_report']);
 
-        self::assertSame([$walked->id()->toRfc4122()], \array_column((array) ($rounds['rounds'] ?? []), 'id'));
+        self::assertSame([$walked->id()->toRfc4122()], self::column($rounds['rounds'] ?? [], 'id'));
         self::assertSame(self::rest($browser, '/api/v1/me/rounds', ['view' => 'to_report']), $rounds);
     }
 
@@ -49,6 +49,6 @@ final class ListMyRoundsToolTest extends McpTestCase
 
         $problem = self::failure(self::connect($browser), 'my_rounds', ['view' => 'everything']);
 
-        self::assertSame(['view'], \array_column((array) ($problem['violations'] ?? []), 'field'));
+        self::assertSame(['view'], self::column($problem['violations'] ?? [], 'field'));
     }
 }

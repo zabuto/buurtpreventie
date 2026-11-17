@@ -70,6 +70,6 @@ final class CreateRoundToolTest extends McpTestCase
 
         $problem = self::failure(self::connect($browser), 'create_round', ['startsAt' => '2026-11-20T21:00:00+01:00', 'startNote' => \str_repeat('a', 501)]);
 
-        self::assertSame(['startNote'], \array_column((array) ($problem['violations'] ?? []), 'field'));
+        self::assertSame(['startNote'], self::column($problem['violations'] ?? [], 'field'));
     }
 }

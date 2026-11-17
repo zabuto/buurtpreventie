@@ -36,6 +36,6 @@ final class ListRoundsToolTest extends McpTestCase
         $problem = self::failure(self::connect($browser), 'list_rounds', ['from' => 'next week', 'to' => '2026-11-23T00:00:00+01:00']);
 
         self::assertSame('urn:buurtpreventie:problem:invalid_input', $problem['type']);
-        self::assertSame(['from'], \array_column((array) ($problem['violations'] ?? []), 'field'));
+        self::assertSame(['from'], self::column($problem['violations'] ?? [], 'field'));
     }
 }

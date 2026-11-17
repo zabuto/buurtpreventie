@@ -26,7 +26,7 @@ final class ListMeetingPointsToolTest extends McpTestCase
 
         $listed = self::call(self::connect($browser), 'list_meeting_points');
 
-        self::assertSame(['Speeltuin'], \array_column((array) ($listed['meetingPoints'] ?? []), 'name'));
+        self::assertSame(['Speeltuin'], self::column($listed['meetingPoints'] ?? [], 'name'));
         self::assertSame(self::rest($browser, '/api/v1/meeting-points'), $listed);
     }
 }

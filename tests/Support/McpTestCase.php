@@ -8,7 +8,11 @@ use App\Identity\Domain\ApiToken;
 use App\Identity\Domain\TokenScope;
 use App\Identity\Domain\TokenTerms;
 use App\Membership\Domain\Member;
+use App\Patrol\Domain\Catalogue\MeetingPoint;
+use App\Patrol\Domain\Catalogue\Outcome;
+use App\Patrol\Domain\Catalogue\OutcomeKind;
 use App\Patrol\Domain\Round\Round;
+use App\Patrol\Domain\Round\RoundComment;
 use App\Patrol\Domain\Round\RoundStart;
 use App\Patrol\Domain\Round\StaffingRule;
 use App\Settings\Domain\Setting;
@@ -18,6 +22,9 @@ use App\Shared\Domain\Role;
 use App\Tests\Identity\Fake\InMemoryApiTokenRepository;
 use App\Tests\Membership\Fake\InMemoryMemberRepository;
 use App\Tests\Membership\Fake\MemberFixture;
+use App\Tests\Patrol\Fake\InMemoryMeetingPointRepository;
+use App\Tests\Patrol\Fake\InMemoryOutcomeRepository;
+use App\Tests\Patrol\Fake\InMemoryRoundCommentRepository;
 use App\Tests\Patrol\Fake\InMemoryRoundRepository;
 use App\Tests\Settings\Fake\InMemorySettingRepository;
 use App\Tests\Shared\Fake\RecordingAuditTrail;
@@ -224,11 +231,58 @@ abstract class McpTestCase extends ApiTestCase
         return $result->structuredContent;
     }
 
+    /**
+     * One field of each item of a list in an answer, such as the ids of the rounds.
+     *
+     * @return list<mixed>
+     */
+    protected static function column(mixed $list, string $key): array
+    {
+        self::assertIsArray($list);
+
+        return \array_values(\array_map(static fn(mixed $item): mixed => \is_array($item) ? $item[$key] ?? null : null, $list));
+    }
+
     protected static function text(CallToolResult $result): string
     {
         return \implode("\n", \array_map(
             static fn(mixed $content): string => $content instanceof TextContent && \is_string($content->text) ? $content->text : '',
             $result->content,
         ));
+    }
+
+    /**
+     * Arguments every tool accepts, on a walked round of two walkers who consented to sharing contact details, with a
+     * report and a comment. Each tool takes the ones it knows; a tool for a round gets the walked one, which its voter
+     * judges.
+     *
+     * @return array<string, mixed>
+     */
+    protected static function toolArguments(): array
+    {
+        $outcome = Outcome::create('Opmerkingen', OutcomeKind::Remarks);
+        self::service(InMemoryOutcomeRepository::class)->add($outcome);
+        $meetingPoint = MeetingPoint::create('Speeltuin');
+        self::service(InMemoryMeetingPointRepository::class)->add($meetingPoint);
+
+        $piet = self::walker('Piet K.');
+        $walked = self::round('2026-11-14T20:00:00+00:00', $piet, self::walker('Kees V.'));
+        $walked->submitReport($piet->id(), $outcome, 'Lamp kapot bij de speeltuin.', new DateTimeImmutable('2026-11-15T08:00:00+00:00'));
+        self::service(InMemoryRoundCommentRepository::class)->add(RoundComment::post(
+            $walked,
+            $piet->id(),
+            'Ik neem een zaklamp mee.',
+            new DateTimeImmutable('2026-11-15T09:00:00+00:00'),
+        ));
+
+        return [
+            'roundId' => $walked->id()->toRfc4122(),
+            'outcomeId' => $outcome->id()->toRfc4122(),
+            'meetingPointId' => $meetingPoint->id()->toRfc4122(),
+            'from' => '2026-11-01T00:00:00+01:00',
+            'to' => '2026-12-01T00:00:00+01:00',
+            'startsAt' => '2026-11-25T21:00:00+01:00',
+            'text' => 'Tot dan.',
+        ];
     }
 }
