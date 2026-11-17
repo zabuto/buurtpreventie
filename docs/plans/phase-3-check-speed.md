@@ -1,7 +1,8 @@
 # Fase 3, aanvulling: waar `symfony composer check` zijn tijd laat
 
-Status: afgerond op 17 november 2026. De oorzaak is gevonden en verholpen (maatregel H); de check haalt de
-streeftijd. De overige maatregelen zijn niet nodig voor die streeftijd en blijven open voor als de testsuite groeit.
+Status: afgerond op 17 november 2026. Twee runs op één testdatabase maakten elkaar rood; maatregel H verhelpt dat.
+Eén run alleen duurt 127 seconden, binnen de streeftijd. De overige maatregelen zijn niet nodig voor die streeftijd
+en blijven open voor als de testsuite groeit.
 
 Bron: `composer.json` (script `check`), `phpunit.dist.xml`, `phpstan.dist.neon`, `rector.php`, `mago.toml`,
 `.github/workflows/ci.yml`, `config/packages/doctrine.yaml`, `config/packages/nelmio_api_doc.yaml`,
@@ -19,11 +20,10 @@ Klaar als:
 - er een tabel is met de tijd per stap van `check`, lokaal gemeten (Gemeten, tabel 1);
 - elke stap die meer dan 10% van de totale tijd kost een verklaring heeft die met een meting is bevestigd: alleen
   PHPUnit, en de tijd per testklasse staat onder Vastgesteld 4;
-- de oorzaak van de ruim tien minuten bevestigd is (Vastgesteld 12, Gemeten);
+- de oorzaak van de ruim tien minuten zo ver mogelijk is nagegaan (Vastgesteld 12, Gemeten);
 - de keuze uit de maatregelen is goedgekeurd (Beslissingen 6 en 7).
 
-De varianten met en zonder Xdebug en met en zonder cache (T2, T3) zijn niet zonder storing gemeten. Ze zijn niet
-nodig voor de streeftijd en staan onder Open punten.
+De variant met en zonder analysecache (T3) is niet gemeten: PHPStan en Rector nemen samen 2 seconden.
 
 ## Vastgesteld
 
@@ -65,9 +65,11 @@ nodig voor de streeftijd en staan onder Open punten.
     '_test%env(default::TEST_TOKEN)%'`), en elke run met databasetests begint met `doctrine:database:drop`. Twee runs
     met dezelfde naam halen dus elkaars tabellen weg. `grant-prefixed-databases.sh` geeft de gebruiker elke database
     met het voorvoegsel `buurtpreventie_`, dus een eigen naam per run kan zonder extra rechten.
-12. **De ruim tien minuten kwamen van twee sessies tegelijk.** Een andere sessie van Claude Code draaide op dezelfde
-    machine PHPUnit met databasetests in dezelfde testdatabase. Rode runs vielen per klasse om met
-    `Table … doesn't exist` (Gemeten, tabel 2), en een rode run moet opnieuw. Alleen draait de check in 129 seconden.
+12. **Twee runs op één testdatabase maken elkaar rood, niet traag.** Een andere sessie van Claude Code draaide op
+    dezelfde machine PHPUnit met databasetests in dezelfde testdatabase. Rode runs vielen per klasse om met
+    `Table … doesn't exist` of een deadlock (Gemeten, tabel 2 en 4). Eén run duurt dan hooguit 50 seconden langer;
+    geen enkele gemeten run kwam in de buurt van tien minuten. Wat wel optelt tot tien minuten: drie of vier runs
+    na elkaar, omdat een rode run opnieuw moet. Dat is aannemelijk, maar niet gemeten.
 13. **DAMA houdt een transactie open tot `TestRunner\Finished`** (`PHPUnitExtension`), en `DROP DATABASE` wacht op die
     transactie zonder tijdslimiet. Een drop op `ExecutionFinished` liet de run na de laatste test hangen; op
     `Application\Finished` is de transactie al teruggedraaid.
@@ -104,33 +106,52 @@ sessie draaide tegelijk tests, dus de tijden zijn eerder te hoog dan te laag.
 | twee keer `phpunit --group database` tegelijk, één met `TEST_TOKEN=_keep` | 63 s | beide groen, `_keep` blijft staan |
 | `phpunit --group database` zonder bereikbare database | 2 s | alles overgeslagen, geen drop |
 
-- PHPUnit is ruim 90% van de check; de andere stappen nemen samen 8 tot 11 seconden.
-- Het verschil met en zonder Xdebug valt binnen de ruis van tabel 2.
-- Twee databaseruns tegelijk kosten samen niet meer tijd dan één: de databasetests wachten vooral op de database,
-  niet op de processor.
+**Tabel 4: hermeting met maatregel H**, 17 november 2026, zonder andere sessie, alles groen tenzij anders vermeld.
+
+| Meting | Totaal | PHPUnit |
+| --- | --- | --- |
+| check alleen, Xdebug (twee runs) | 127 s, 127 s | 119 s |
+| check alleen, `XDEBUG_MODE=off` (twee runs) | 88 s, 88 s | 81 s |
+| PHPUnit zonder de groepen `integration`, `functional` en `database` (1160 tests) | 6 s | |
+| PHPUnit groepen `integration` en `functional` zonder `database` (1219 tests) | 48 s | |
+| PHPUnit groep `database` (147 tests) | 62 s | |
+| twee checks tegelijk, elk een eigen database | 128 s, 129 s | |
+| twee checks tegelijk op één database (`TEST_TOKEN=_shared`, 5 s na elkaar gestart) | 175 s, 138 s, beide rood | |
+
+- PHPUnit is ruim 90% van de check; de andere stappen nemen samen 8 tot 10 seconden, ook zonder Xdebug.
+- Xdebug kost 39 seconden, 30% van de check, bijna helemaal in PHPUnit.
+- De databasetests zijn 6% van de tests en de helft van de tijd van PHPUnit, en lokaal twee keer zo traag als in
+  CI.
+- Twee checks tegelijk met elk een eigen database duren even lang als één: de processor is geen knelpunt.
+- Op één gedeelde database zijn beide runs rood, met `Table … doesn't exist` en deadlocks, en tot 50 seconden
+  trager.
+- De groepen `integration` en `functional` onder `symfony php` geven één rode test,
+  `ApiSecurityHeadersTest::it_sends_no_hsts_without_an_opt_in`: de Symfony CLI zet `HSTS_MAX_AGE` uit de lokale
+  omgeving, en de test gaat ervan uit dat die variabele ontbreekt. Onder `symfony composer check` is hij groen. Los
+  van dit plan (Open punten).
 
 ## Hypotheses
 
-1. **Xdebug vertraagt wat geen eigen herstart heeft.** Deels bevestigd: PHPUnit en de console-stappen draaien met
-   Xdebug (Vastgesteld 10). De winst is niet zonder storing gemeten (Open punten).
+1. **Xdebug vertraagt wat geen eigen herstart heeft.** Bevestigd: PHPUnit en de console-stappen draaien met Xdebug
+   (Vastgesteld 10), en dat kost 39 seconden (tabel 4). Niet de oorzaak van de tien minuten.
 2. **De analysecaches gaan verloren tussen runs.** Verworpen voor de volledige check: die deelt de cache met de eigen
    shell (Vastgesteld 8). PHPStan en Rector samen nemen 5 seconden.
 3. **Een paar testklassen doen hetzelfde dure werk vaak.** Bevestigd in de tijden per klasse (Vastgesteld 4 tot en
    met 7); de winst per maatregel is niet gemeten.
-4. **De database onder Docker op macOS maakt de databasetests trager.** Bevestigd: 62 seconden lokaal, 29 in CI. De
-   oorzaak is niet onderzocht.
-5. **Twee sessies tegelijk delen de testdatabase.** Bevestigd en de oorzaak van de ruim tien minuten (Vastgesteld 11
-   en 12).
+4. **De database onder Docker op macOS maakt de databasetests trager.** Bevestigd: 62 seconden lokaal, 29 in CI,
+   de helft van PHPUnit (tabel 4). De oorzaak is niet onderzocht.
+5. **Twee sessies tegelijk delen de testdatabase.** Bevestigd: de runs worden rood en tot 50 seconden trager
+   (Vastgesteld 11 en 12). Eén run haalt geen tien minuten; herhaalde runs na rood wel, maar dat is niet gemeten.
 
 ## Taken
 
 Elke meting buiten de sandbox (de Symfony-console leest `.env`), met de database en Mailpit van `compose.yaml` aan.
 De gebruiker start de services. Uitkomsten in `$TMPDIR`, niet in de repo.
 
-- **T1. Nulmeting per stap.** Gedaan, met de tijd per stap uit `symfony composer check -v` (tabel 1 en 2). PHPUnit
-  per groep en met `--log-junit` is niet gedaan.
-- **T2. Xdebug.** Gedaan: Composer geeft Xdebug door aan `@php`-scripts. Niet gedaan: of PHPStan en Rector zonder
-  Xdebug herstarten, en de meting met `XDEBUG_MODE=off` zonder storing.
+- **T1. Nulmeting per stap.** Gedaan, met de tijd per stap uit `symfony composer check -v` en PHPUnit per groep
+  (tabel 1, 2 en 4). De tijd per test met `--log-junit` is niet gedaan; Vastgesteld 4 komt uit de cache van PHPUnit.
+- **T2. Xdebug.** Gedaan: Composer geeft Xdebug door aan `@php`-scripts, en de check zonder Xdebug is 39 seconden
+  sneller (tabel 4). Niet apart nagegaan: of PHPStan en Rector zonder Xdebug herstarten; samen nemen ze 2 seconden.
 - **T3. Caches.** Gedaan: welke `TMPDIR` een run buiten de sandbox ziet (Vastgesteld 8). Niet gedaan: PHPStan, Rector
   en Mago met en zonder cache in `var/cache/`.
 - **T4. Dure tests.** Niet gedaan.
@@ -151,7 +172,8 @@ De gebruiker start de services. Uitkomsten in `$TMPDIR`, niet in de repo.
 
 Open, niet nodig voor de streeftijd:
 
-- **A. Xdebug uit voor de checks**: `@putenv XDEBUG_MODE=off` vooraan in `check` en `test`. Kost: niets in CI;
+- **A. Xdebug uit voor de checks**: `@putenv XDEBUG_MODE=off` vooraan in `check` en `test`. Winst 39 seconden
+  (tabel 4), de grootste van alle maatregelen. Kost: niets in CI;
   `test:coverage` lokaal blijft `XDEBUG_MODE=coverage` nodig hebben. Of Xdebug standaard uit in de eigen `php.ini`:
   een keuze voor de machine, buiten de repo.
 - **B. Een vaste plek voor de analysecaches**: `tmpDir: %currentWorkingDirectory%/var/cache/phpstan` en
@@ -199,7 +221,9 @@ Open, niet nodig voor de streeftijd:
 
 ## Open punten
 
-- T2 en T3 zonder storing herhalen, en T4, zodra de check de streeftijd nadert.
+- T4, en maatregel A, zodra de check de streeftijd nadert.
 - Waarom de databasetests lokaal twee keer zo lang duren als in CI (hypothese 4).
+- `ApiSecurityHeadersTest::it_sends_no_hsts_without_an_opt_in` hangt af van `HSTS_MAX_AGE` in de omgeving en faalt
+  onder `symfony php vendor/bin/phpunit` (tabel 4). Buiten deze aanvulling.
 - Twee sessies in één werkmap delen ook de uitgecheckte branch; een eigen `git worktree` per sessie voorkomt dat.
   Buiten deze aanvulling.
