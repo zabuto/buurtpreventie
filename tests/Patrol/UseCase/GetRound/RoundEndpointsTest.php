@@ -274,6 +274,34 @@ final class RoundEndpointsTest extends ApiTestCase
     }
 
     #[Test]
+    public function it_limits_the_gaps_to_the_days_asked(): void
+    {
+        $client = self::client();
+        $member = self::actingAs($client);
+        $soon = self::storedRound('2026-11-16T20:00:00+00:00', $member->id());
+        self::storedRound('2026-11-20T20:00:00+00:00', $member->id());
+
+        $client->request('GET', '/api/v1/staffing-gaps', ['days' => 2]);
+
+        self::assertResponseIsSuccessful();
+        $gaps = self::json($client)['gaps'];
+        self::assertIsArray($gaps);
+        self::assertCount(1, $gaps);
+        self::assertSame($soon->id()->toRfc4122(), \is_array($gaps[0]) ? $gaps[0]['id'] : null);
+    }
+
+    #[Test]
+    public function it_refuses_gaps_for_more_than_31_days(): void
+    {
+        $client = self::client();
+        self::actingAs($client);
+
+        $client->request('GET', '/api/v1/staffing-gaps', ['days' => 32]);
+
+        self::assertResponseStatusCodeSame(422);
+    }
+
+    #[Test]
     public function it_refuses_a_visitor_who_is_not_logged_in(): void
     {
         $client = self::client();
