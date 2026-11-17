@@ -276,11 +276,24 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
 - Test eerst: `SymfonyReleaseLineTest` met de uitzondering; `composer deprecations` blijft schoon; de container
   bouwt in `dev`, `test` en `prod`.
 
+- Uitgevoerd op 17 november 2026, met deze keuzes:
+  - `symfony/mcp-bundle` v0.15.0, `mcp/sdk` v0.9.0 en `nyholm/psr7` 1.8.2 geïnstalleerd, met de indirecte pakketten
+    uit de tabel; `php-http/discovery` staat in `allow-plugins` op `false`. Het recept zette ook
+    `config/packages/http_discovery.yaml` neer (PSR-17-aliassen); die blijft, zoals elk recept;
+  - `SymfonyReleaseLineTest` kent `symfony/mcp-bundle` als pakket met een eigen nummering;
+  - `config/packages/mcp.yaml`: één patroon `App\` voor tools, prompts en resources. De bundle weigert een patroon dat
+    geen enkele service raakt, dus de configuratie met tools kwam pas in de commit van de eerste tool (T4).
+
 ### T3. MCP-schakelaar (test eerst)
 
 - `integrations.mcp` in `SettingName`, `GetMcpAccess`, de listener van beslissing 7 en de weigering van `mcp:server`.
 - Tests: standaard uit; uit geeft 404 op `GET`, `POST` en `DELETE /mcp`, met en zonder token, zonder `markUsed()`;
   aan werkt; uitzetten weigert het eerstvolgende verzoek; een auditregel `setting.changed`.
+
+- Uitgevoerd op 17 november 2026, met deze keuzes:
+  - de opgeslagen naam is `integrations.mcp`, het veld `mcpAccess`; `GetMcpAccess` in Settings, zonder Voter;
+  - `McpSwitch` (`Identity\Infrastructure\Mcp`, prioriteit 16, vóór de firewall) geeft de 404 als problem+json,
+    zodat `/mcp` uit niet anders klinkt dan een onbekende route.
 
 ### T4. Token, kanaal en scope op `/mcp` (test eerst)
 
@@ -292,6 +305,22 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
 - Tests: geldig token, verlopen, ingetrokken, inactief lid, tokens uit, `read` zonder `write` op een schrijftool,
   beide tijdperken.
 
+- Uitgevoerd op 17 november 2026, met deze keuzes:
+  - **`/mcp` kreeg een eigen firewall** (`mcp`, stateless, alleen `ApiTokenAuthenticator`) in plaats van een
+    uitbreiding van `BearerRequestMatcher`: zo valt een verzoek zonder header ook bij de tokenauthenticator (lege 401),
+    en telt een sessiecookie nooit. De authenticator zet kanaal `mcp` op `/mcp`;
+  - **de scope per tool zit in een reference handler, niet in een listener op `RequestEvent`** (afwijking van
+    beslissing 11): een exceptie in een listener van de SDK ontsnapt als 500. `McpServerFactory` bouwt de server van
+    de bundle met een eigen reference handler (`config/services.yaml`): `ScopedReferenceHandler` (Identity) eist de
+    scope, `ProblemReferenceHandler` (Shared) maakt van elke fout een toolresultaat. `McpElements` geeft de SDK de
+    tools, prompts en resources per klasse, omdat de bundle zijn eigen lijst privé houdt;
+  - `Problem` haalt de vertaling van een fout uit `ProblemResponder`, zodat REST en MCP dezelfde code, titel en
+    veldfouten geven; `ProblemResponder` behandelt `/mcp` als API;
+  - `CheckHealthTool` is weg (voorstel uit T4): een AI-client heeft niets aan de gezondheidscheck;
+  - tests: `McpSwitchTest`, `McpAccessTest` (drie protocolversies, geen token, alleen een sessiecookie, ingetrokken,
+    tokens uit) en `FindStaffingGapsToolTest`; `KernelHttpClient` en `McpTestCase` in `tests/Support`. Elk lid mag
+    rondes lezen, dus bij een leestool voor elk lid weigert alleen de scope, niet de rol.
+
 ### T5. Invoer en fouten (test eerst)
 
 - `ToolInput` en `InvalidToolInput` (beslissing 10), de foutvertaling (beslissing 18), regel 3 in `ArchitectureRules`
@@ -299,10 +328,17 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
 - Tests: een ongeldige datum geeft `invalid_input` met het veld; `NotFound`, `AccessDenied`, een regel uit het domein
   en een onverwachte fout krijgen elk hun code; de laatste zonder details.
 
+- Uitgevoerd op 17 november 2026, samen met T4: `ToolInput` gooit dezelfde `UnprocessableEntityHttpException` met
+  `ValidationFailedException` als de REST-laag, zodat `Problem` de veldfouten op dezelfde manier leest.
+
 ### T6. Leestools (test eerst)
 
 - `list_rounds`, `get_round` (beslissing 13), `my_rounds`, `list_meeting_points`, `list_outcomes`, met annotaties.
 - Per tool: antwoord, scope, rol en pariteit (beslissingen 25 en 26).
+
+- Uitgevoerd op 17 november 2026, met deze keuzes:
+  - `get_round` bouwt zijn antwoord veld voor veld en geeft van elke loper alleen `id` en `displayName`;
+  - `list_meeting_points` en `list_outcomes` hebben geen argumenten en geen `ToolInput`: er is niets te valideren.
 
 ### T7. Schrijftools (test eerst)
 
@@ -311,6 +347,12 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
 - Per tool: antwoord, scope, rol, pariteit en een auditregel met kanaal `mcp`; aan- en afmelden twee keer geeft
   hetzelfde resultaat.
 
+- Uitgevoerd op 17 november 2026, met deze keuzes:
+  - aan- en afmelden hebben geen output (REST: 204), dus de tool geeft een bevestiging (`roundId` met `signedUp` of
+    `withdrawn`);
+  - de pariteitstest van een schrijftool doet dezelfde handeling via REST met hetzelfde token en vergelijkt de
+    auditactie, met kanaal `mcp` tegen `api`; `RecordingAuditTrail` bewaart daarvoor het kanaal.
+
 ### T8. `RoundStatistics` en `SummariseRoundReports` (test eerst)
 
 - Beide use cases met controller en tool (beslissingen 14 en 15), `round.statistics` in Voter en matrixtests, OpenAPI
@@ -318,10 +360,23 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
 - Tests in memory: groeperen per maand, weekdag en dagdeel rond de tijdwissel (review-focus 2), percentages met en
   zonder afgelopen rondes, de vorige periode, een periode van 367 dagen geweigerd; een samenvatting zonder notities.
 
+- Uitgevoerd op 17 november 2026, met deze keuzes:
+  - domein in `Patrol\Domain\Statistics`: `StatisticsPeriod` (hooguit 366 dagen; hele lokale maanden vergelijken met
+    evenveel maanden ervoor, zodat oktober met heel september gaat), `StatisticsGrouping` en `RoundTally`;
+  - `round.statistics` staat in `ReportVoter`, met dezelfde regel als `report.list` (`ReportReadingPolicy`);
+  - `SummariseRoundReports` gebruikt ook `StatisticsPeriod`, dus tot een jaar (de lijst terugmeldingen blijft 93 dagen);
+  - het antwoord heeft elke groep van de periode, ook zonder rondes, zodat een gat als nul zichtbaar is.
+
 ### T9. Resource en prompts (test eerst)
 
 - `buurtpreventie://config`, `monthly_report` en `plan_week` (beslissingen 20 en 21).
 - Tests: inhoud van de resource zonder contact; argumenten van de prompts, ook een ongeldige maand.
+
+- Uitgevoerd op 17 november 2026, met deze keuzes:
+  - **`plan_week` vraagt alleen `list_rounds`** (afwijking van beslissing 21): die geeft de status al, en
+    `staffing_gaps` kijkt hooguit 31 dagen vooruit, dus een latere week bleef leeg;
+  - een ongeldige maand of datum is een `PromptGetException`, die de SDK als fout van het verzoek geeft;
+  - de resource gebruikt `GetPublicConfig` van Settings voor naam, taal en bezetting.
 
 ### T10. Rate limit, DNS-rebinding en contactgegevens (test eerst)
 
@@ -329,6 +384,16 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
 - Tests: het 61e verzoek in een minuut is 429 met `Retry-After`, per token apart; een vreemde `Host` en `Origin`
   worden geweigerd, geen `Origin` gaat door; de test van beslissing 27 over alle tools, resource en prompts;
   `McpMatrixTest` en de bewaker dat elke tool een pariteitstest heeft.
+
+- Uitgevoerd op 17 november 2026, met deze keuzes:
+  - de teller van de rate limit gebruikt het id van het token (`ApiTokenAuthenticator::TOKEN_ID`), na de firewall;
+  - `/mcp` krijgt ook de beveiligingsheaders van de API (`ApiSecurityHeaders`);
+  - STDIO: `StdioAuthentication` laat `ApiTokenAuthenticator` het token uit `MCP_TOKEN` controleren, dus dezelfde
+    regels als HTTP. Het token wordt één keer gecontroleerd, bij het starten;
+  - bewakers: `McpToolGuardTest` (elke tool een `readOnlyHint` en een eigen test met pariteit), `McpMatrixTest` (de
+    tools van het plan, scope per tool, een beheerder alleen de tools voor elk lid) en `McpContactDetailsTest`. Die
+    laatste faalt als `get_round` de lopers ongefilterd doorgeeft (met de hand nagegaan);
+  - `app:make:use-case` maakt een tool met `#[McpTool]`, annotaties en `ToolInput`.
 
 ### T11. Documentatie
 
@@ -339,6 +404,11 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
   koppelen), `docs/testing.md` (SDK-client, pariteit, contactgegevens), `docs/glossary.md` (tool, resource, prompt),
   `docs/gotchas.md`; `plan.md` (Fase 4 afvinken, afwijkingen bij MCP-server, endpointtabel met `/stats` en
   `/reports/summary`, Fasen en stand); `CHANGELOG.md`; `AGENTS.md` (Commands: `mcp:server`).
+
+- Uitgevoerd op 17 november 2026: ADR 0008, `docs/architecture.md` (sectie MCP server, firewall, scope, regel 3,
+  statistieken), `docs/configuration.md` (`mcpAccess`, `MCP_TOKEN`, de host uit `DEFAULT_URI`, de grenzen),
+  `docs/testing.md` (MCP-tests), `docs/glossary.md`, `docs/gotchas.md` (sectie MCP), `docs/user-guide/mcp.md`,
+  `plan.md`, `CHANGELOG.md` en `AGENTS.md`.
 
 ### T12. Verifiëren en opleveren
 
@@ -372,3 +442,8 @@ Gemeld, niet in deze fase opgelost:
 - **`mcp/sdk` 0.10 en de bundle 1.0** komen met een eigen pull request zodra een uitgebrachte bundle ze ondersteunt.
 - **OAuth voor MCP-clients** blijft U10.
 - **Het beheerscherm** voor de MCP-schakelaar bouwt fase 5 op `PATCH /admin/settings`.
+- **Door leden getypte tekst** (notitie, opmerking, startnotitie) gaat ongefilterd naar de client, net als in de app.
+  Een telefoonnummer dat een lid in een opmerking typt, bereikt zo de AI-client. Filteren op patronen is onbetrouwbaar;
+  een hint in de app bij het typen ("geen contactgegevens") kan in fase 5.
+- **STDIO controleert het token één keer**, bij het starten: een ingetrokken token werkt in een draaiend
+  `mcp:server` tot het proces stopt. Opnieuw controleren per verzoek kan, als STDIO meer dan lokaal gebruikt wordt.

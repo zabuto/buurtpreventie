@@ -204,3 +204,19 @@ versions follow [Semantic Versioning](https://semver.org/).
 - Opengrep rules `request-value-in-query`, `secret-compared-with-equals`, `security-disabled` and
   `insecure-session-cookie`, each with a rule test; `sql-built-from-strings` leaves the `set()` of response headers
   alone.
+- MCP server at `/mcp` (Streamable HTTP, both protocol eras) and `symfony console mcp:server` (STDIO, with an API
+  token in `MCP_TOKEN`), through `symfony/mcp-bundle` and `mcp/sdk`, both pinned to their minor. Off until an admin
+  sets `mcpAccess`; off, `/mcp` answers 404 to every request. Only API tokens give access, on the channel `mcp` in the
+  audit log; a token may make 60 requests a minute, and the server answers only for the host of `DEFAULT_URI`.
+- Thirteen tools, each the `…Tool` adapter of a use case with a parity test against REST: `list_rounds`, `get_round`,
+  `my_rounds`, `staffing_gaps`, `list_meeting_points`, `list_outcomes`, `sign_up_for_round`, `withdraw_from_round`,
+  `create_round`, `report_round_result`, `add_round_comment`, `report_summary` and `round_statistics`. A tool that
+  only reads needs the scope `read`, any other `write`; a failed call is a tool result with the problem REST would
+  answer. No tool, resource or prompt gives a phone number, address or e-mail address.
+- The resource `buurtpreventie://config` and the prompts `monthly_report` and `plan_week`.
+- `GET /api/v1/stats?from=&to=&groupBy=` (`RoundStatistics`): how the rounds of a period of at most a year went per
+  month, weekday or daypart, next to the period before, for analysts and coordinators.
+- `GET /api/v1/reports/summary?from=&to=` (`SummariseRoundReports`): the reports of a period counted per outcome, and
+  the incidents per month, without notes or authors.
+- `GET /api/v1/staffing-gaps?days=` limits the gaps to the next 1 to 31 days.
+- ADR 0008 on the MCP server, and `docs/user-guide/mcp.md` on connecting Claude Code and the MCP Inspector.
