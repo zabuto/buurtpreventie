@@ -14,6 +14,9 @@ never reads the notes and comments of a round: those can be about other people, 
   (`bpt_…`) at once: the app shows it only then. Keep it like a password; revoke it in the app when you no longer use
   it or think someone else has it.
 
+To try it on the demo of a development machine, see
+[An AI client on the demo](../getting-started.md#an-ai-client-on-the-demo).
+
 ## Claude Code
 
 Add the server once, with the address of your app and your token:

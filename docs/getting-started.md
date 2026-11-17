@@ -146,6 +146,57 @@ The browser reaches `.wip` domains only when the system or browser proxy uses
 [Setting up the local proxy](https://symfony.com/doc/current/setup/symfony_cli.html#setting-up-the-local-proxy).
 After `symfony server:start -d`, the health check answers on `https://buurtpreventie.wip/api/v1/health`.
 
+### An AI client on the demo
+
+The MCP server answers only for the host of `DEFAULT_URI`, which the Symfony CLI sets to its local domain, so this
+runs on `https://buurtpreventie.wip`. Load the demo (see [Sample data](#sample-data)) and note the secret of the token
+of `priya.sharma`, a walker whose token reads and writes.
+
+MCP is off on every installation until an admin switches it on; until then `/mcp` answers 404:
+
+```bash
+B=https://buurtpreventie.wip
+curl -s -c /tmp/bp.jar -H 'Sec-Fetch-Site: same-origin' -H 'Content-Type: application/json' \
+  -d '{"email":"beheer@example.org","password":"voorbeeld-wachtwoord-buurt"}' "$B/api/v1/auth/login"
+curl -s -b /tmp/bp.jar -X PATCH -H 'Sec-Fetch-Site: same-origin' -H 'Content-Type: application/json' \
+  -d '{"mcpAccess":true}' -w '%{http_code}\n' "$B/api/v1/admin/settings"
+```
+
+The second command prints `204`. The MCP Inspector and Claude Code run on Node, which knows neither the local proxy
+nor the certificate authority of the Symfony CLI. In the shell that starts them:
+
+```bash
+export HTTPS_PROXY="$(symfony proxy:url)"
+export NODE_EXTRA_CA_CERTS="$HOME/Library/Application Support/symfony-cli/certs/rootCA.pem"
+```
+
+That path holds on macOS; elsewhere the certificate authority is `rootCA.pem` in the `certs` folder of the Symfony
+CLI.
+
+**MCP Inspector.** Start it with `npx @modelcontextprotocol/inspector`. In its page, pick the transport "Streamable
+HTTP", the address `https://buurtpreventie.wip/mcp` and the header `Authorization: Bearer <secret>`, and connect. It
+lists 13 tools, the resource `buurtpreventie://config` and the prompts `monthly_report` and `plan_week`, and shows the
+protocol revision it speaks. `staffing_gaps` with `days` 7 answers the rounds of the coming week that need walkers.
+
+**Claude Code.** In a folder outside this project, so its MCP configuration stays out of the repository:
+
+```bash
+claude mcp add --transport http buurtpreventie https://buurtpreventie.wip/mcp \
+  --header "Authorization: Bearer <secret>"
+claude
+```
+
+Ask "Which rounds still need a buddy this week?", which calls `staffing_gaps`, then "Sign me up for the first one",
+which calls `sign_up_for_round` after Claude asks to confirm. The audit log then shows the sign-up on the channel
+`mcp`:
+
+```bash
+curl -s -b /tmp/bp.jar "$B/api/v1/admin/audit?action=participation.signed_up"
+```
+
+`claude mcp remove buurtpreventie` removes the server again. What the server offers, and how a member connects to an
+installation, is in [the user guide](user-guide/mcp.md).
+
 ## Test and check
 
 | Command | What it does |
