@@ -38,6 +38,7 @@ use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPasspor
 final class ApiTokenAuthenticator extends AbstractAuthenticator
 {
     public const string SCOPES = 'scopes';
+    public const string TOKEN_ID = 'token_id';
 
     private const string SECRET_PATTERN = '/^Bearer (bpt_[0-9a-f]{64})\z/';
 
@@ -82,6 +83,7 @@ final class ApiTokenAuthenticator extends AbstractAuthenticator
             static fn(): MemberUser => new MemberUser($identity->memberId, $identity->roles),
         ));
         $passport->setAttribute(self::SCOPES, $token->scopes());
+        $passport->setAttribute(self::TOKEN_ID, $token->id()->toRfc4122());
         $passport->setAttribute(TokenExecutionContext::CHANNEL, McpSwitch::isMcp($request->getPathInfo()) ? Channel::Mcp : Channel::Api);
 
         return $passport;
@@ -93,6 +95,7 @@ final class ApiTokenAuthenticator extends AbstractAuthenticator
         $token = parent::createToken($passport, $firewallName);
         $token->setAttribute(TokenExecutionContext::CHANNEL, $passport->getAttribute(TokenExecutionContext::CHANNEL, Channel::Api));
         $token->setAttribute(self::SCOPES, $passport->getAttribute(self::SCOPES, []));
+        $token->setAttribute(self::TOKEN_ID, $passport->getAttribute(self::TOKEN_ID));
 
         return $token;
     }

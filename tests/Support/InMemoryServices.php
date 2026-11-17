@@ -116,6 +116,7 @@ final readonly class InMemoryServices implements CompilerPassInterface
         $container->getDefinition('mcp.server.buurtpreventie.middleware_factory')->setArgument(0, ['example.org', '%env(key:host:url:DEFAULT_URI)%']);
 
         $container->setDefinition('cache.login_attempts', new Definition(ArrayAdapter::class))->setPublic(true);
+        $container->setDefinition('cache.mcp_requests', new Definition(ArrayAdapter::class))->setPublic(true);
 
         $container->register('logger', RecordingLogger::class)->setPublic(true);
         $container->setAlias(RecordingLogger::class, 'logger')->setPublic(true);

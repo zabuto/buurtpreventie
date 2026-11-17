@@ -46,6 +46,7 @@ final class McpSwitchTest extends ApiTestCase
         self::assertResponseStatusCodeSame(404);
         self::assertResponseHeaderSame('Content-Type', 'application/problem+json');
         self::assertSame('urn:buurtpreventie:problem:not_found', self::json($client)['type']);
+        self::assertResponseHeaderSame('X-Content-Type-Options', 'nosniff');
         self::assertNull($token->lastUsedAt());
     }
 
