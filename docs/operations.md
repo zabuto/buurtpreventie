@@ -8,7 +8,7 @@ phase 6.
 - Repository: `zabuto/buurtpreventie`. The original developer owns it; a handover goes through a fork
   (see Overdraagbaarheid in [plans/plan.md](plans/plan.md)).
 - Branches: `develop` is the default branch until the first release; work arrives there through pull requests
-  from `feature/<short-name>`, each merged as one squash commit. `main` holds released versions only,
+  from `feature/<short-name>`, or `bugfix/<short-name>` for a bug fix, each merged as one squash commit. `main` holds released versions only,
   tagged `vX.Y.Z`; a release merges `develop` into `main` with a merge commit, because a squash would
   leave `main` with commits `develop` lacks and make every next release conflict. Urgent fixes go
   through `hotfix/<short-name>` from `main`, back into `main` and `develop`.

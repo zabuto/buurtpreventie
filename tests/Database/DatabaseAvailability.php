@@ -22,22 +22,23 @@ final readonly class DatabaseAvailability
     private function __construct(
         private ?string $skipReason,
         private ?string $failure,
+        private bool $reachedTheServer,
     ) {
     }
 
     public static function ready(): self
     {
-        return new self(null, null);
+        return new self(null, null, reachedTheServer: true);
     }
 
     public static function unreachable(string $problem): self
     {
-        return new self(self::START_DATABASE . ' ' . $problem, null);
+        return new self(self::START_DATABASE . ' ' . $problem, null, reachedTheServer: false);
     }
 
     public static function broken(string $problem): self
     {
-        return new self(null, 'Preparing the database schema failed: ' . $problem);
+        return new self(null, 'Preparing the database schema failed: ' . $problem, reachedTheServer: true);
     }
 
     public static function notPrepared(): self
@@ -46,7 +47,16 @@ final readonly class DatabaseAvailability
             null,
             'No database schema was prepared: give the test class #[Group(\'database\')], and keep DatabaseSchemaExtension'
                 . ' in phpunit.dist.xml.',
+            reachedTheServer: false,
         );
+    }
+
+    /**
+     * Whether the preparation got as far as the server, so the run may have left a database to drop.
+     */
+    public function reachedTheServer(): bool
+    {
+        return $this->reachedTheServer;
     }
 
     public function enforce(bool $required): void

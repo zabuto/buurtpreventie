@@ -59,9 +59,9 @@ Create the tables, and bring them up to date after every pull that adds a migrat
 symfony console doctrine:migrations:migrate
 ```
 
-Tests use `buurtpreventie_test` on the same server. On an empty data volume,
-`docker/database/grant-prefixed-databases.sh` gives the database user every database starting with
-`buurtpreventie_`. A volume created before that script lacks the grant; `docker compose down --volumes` and starting again adds it.
+Tests use a database of their own per run, such as `buurtpreventie_test_run1a2b3c4d`, on the same
+server. On an empty data volume, `docker/database/grant-prefixed-databases.sh` gives the database
+user every database starting with `buurtpreventie_`. A volume created before that script lacks the grant; `docker compose down --volumes` and starting again adds it.
 
 ## Sample data
 
@@ -165,5 +165,6 @@ What each check does: [testing.md](testing.md).
    [glossary.md](glossary.md). Code and texts follow [code-style.md](code-style.md) and
    [writing.md](writing.md).
 3. Follow [Adding a feature](architecture.md#adding-a-feature).
-4. Work on a `feature/<short-name>` branch from `develop` and deliver through a pull request.
+4. Work on a `feature/<short-name>` branch from `develop`, or `bugfix/<short-name>` for a bug fix,
+   and deliver through a pull request.
    `composer check` must be green.

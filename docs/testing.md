@@ -64,8 +64,9 @@ alone; a token that may only read gets 403 `insufficient_scope`.
 
 ## Database tests
 
-Database tests run in `buurtpreventie_test`: the database name from `DATABASE_URL` plus `_test`.
-Locally, start the database as in [getting-started.md](getting-started.md#database) and run the
+Every run has a test database of its own: the database name from `DATABASE_URL` plus `_test` and the
+`TEST_TOKEN`, such as `buurtpreventie_test_run1a2b3c4d`. Two runs on one machine, from two terminals or
+two agent sessions, never drop each other's tables. Locally, start the database as in [getting-started.md](getting-started.md#database) and run the
 tests through the Symfony CLI, which sets `DATABASE_URL`: `symfony composer test`, or only the
 database tests with `symfony php vendor/bin/phpunit --group database`.
 
@@ -73,6 +74,15 @@ database tests with `symfony php vendor/bin/phpunit --group database`.
   `tests/Database/DatabaseSchemaExtension` drops and creates the test database and runs the
   migrations, once per run. It uses `bin/console` in separate processes, because MariaDB and MySQL
   commit every DDL statement at once, which would end the transaction of the test bundle.
+- **One database per run.** Without a `TEST_TOKEN`, `DatabaseSchemaExtension` picks one
+  (`_run` and eight hex digits) and drops the database when the run ends, failed tests or not. A
+  `TEST_TOKEN` you set keeps its database after the run, to look into:
+  `TEST_TOKEN=_keep symfony php vendor/bin/phpunit --group database` leaves `buurtpreventie_test_keep`.
+- **A run that was killed** leaves its database behind, and may leave a connection open on the
+  server that blocks dropping it. List and remove leftovers with
+  `docker compose exec database mariadb -uroot -proot -e "SHOW DATABASES LIKE 'buurtpreventie\_test\_%'"`
+  and ``DROP DATABASE `buurtpreventie_test_run1a2b3c4d` ``; `SHOW PROCESSLIST` and `KILL <id>` end
+  a connection that holds it.
 - **Every test rolls back.** `dama/doctrine-test-bundle` wraps each test in a transaction and rolls
   it back afterwards. A test that needs a table of its own creates a `TEMPORARY` table, which
   commits nothing.
