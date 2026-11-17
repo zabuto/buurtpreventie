@@ -128,3 +128,20 @@ Things that are not obvious and cost time when you do not know them.
 - **A route parameter does not reach `#[MapRequestPayload]`.** For an id in the path, the controller fills the id of
   the input with the serializer context `default_constructor_arguments` and replaces it with the one from the path,
   so an id in the body counts for nothing.
+
+## MCP
+
+- **Every pattern under `registry` in `config/packages/mcp.yaml` must match a service** with an MCP attribute, or
+  the container fails to build.
+- **A listener on an event of the SDK cannot refuse a call**: an exception there escapes the transport as a 500. A
+  check per tool belongs in a reference handler, as `ScopedReferenceHandler` does.
+- **The SDK publishes a nullable parameter as a type list** (`["null", "string"]`). That is valid JSON Schema, but a
+  client with one type per property rejects it; `#[Schema(type: 'string')]` on the parameter gives one type.
+- **The SDK checks the arguments against the input schema before any reference handler**: a missing argument is a
+  JSON-RPC error (`-32602`), not a tool result with a problem.
+- **`ping` does not exist in revision `2026-07-28`**, and a request of that revision needs
+  `io.modelcontextprotocol/clientCapabilities` in its `_meta`. A test by hand sends `tools/list` with both.
+- **An environment variable in a service argument must stay in use**: a test kernel that replaces the argument of
+  `mcp.server.buurtpreventie.middleware_factory` outright gets "Environment variables … are never used", so
+  `InMemoryServices` keeps the variable next to `example.org`.
+

@@ -53,6 +53,7 @@ final class GetSettingsHandlerTest extends TestCase
                 reminderDaysAhead: 2,
                 language: 'nl',
                 apiAccess: false,
+                mcpAccess: false,
                 defaults: [
                     'associationShortName',
                     'primaryColor',
@@ -71,6 +72,7 @@ final class GetSettingsHandlerTest extends TestCase
                     'minimumWalkers',
                     'maximumWalkers',
                     'language',
+                    'mcpAccess',
                 ],
             ),
             $output,

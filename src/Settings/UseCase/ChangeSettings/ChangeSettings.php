@@ -90,6 +90,8 @@ final readonly class ChangeSettings implements GroupSequenceProviderInterface
         public string|Unchanged|null $language = Unchanged::Field,
         /** Off refuses every API token at once, as after a data breach; tokens can still be viewed and revoked. */
         public bool|Unchanged|null $apiAccess = Unchanged::Field,
+        /** Off answers every request to /mcp with 404; API tokens keep working on REST. */
+        public bool|Unchanged|null $mcpAccess = Unchanged::Field,
     ) {
     }
 
@@ -151,6 +153,7 @@ final readonly class ChangeSettings implements GroupSequenceProviderInterface
             'reminderDaysAhead' => $this->reminderDaysAhead,
             'language' => $this->language,
             'apiAccess' => $this->apiAccess,
+            'mcpAccess' => $this->mcpAccess,
         ];
     }
 }

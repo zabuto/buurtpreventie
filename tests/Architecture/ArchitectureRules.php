@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Architecture;
 
+use App\Shared\Infrastructure\Mcp\ToolInput;
 use PHPat\Selector\Selector;
 use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
@@ -122,10 +123,11 @@ final readonly class ArchitectureRules
                     Selector::inNamespace($namespace),
                     Selector::inNamespace('Mcp'),
                     Selector::inNamespace('Symfony\AI\McpBundle'),
+                    Selector::classname(ToolInput::class),
                 )
                 ->because(
-                    'An MCP tool is a thin adapter: it maps the tool call onto the input and calls the handler in its'
-                        . ' own folder. '
+                    'An MCP tool is a thin adapter: it maps the tool call onto the input, validates it with ToolInput'
+                        . ' and calls the handler in its own folder. '
                         . self::DOCS
                         . 'rule-3-controller-tool-and-output',
                 );

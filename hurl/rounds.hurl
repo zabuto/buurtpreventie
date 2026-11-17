@@ -57,6 +57,11 @@ HTTP 200
 [Asserts]
 jsonpath "$.gaps" isList
 
+GET {{baseUrl}}/api/v1/staffing-gaps?days=32
+HTTP 422
+[Asserts]
+jsonpath "$.violations[0].field" == "days"
+
 # Only walked rounds without a report.
 GET {{baseUrl}}/api/v1/me/rounds?view=to_report
 HTTP 200
@@ -81,8 +86,18 @@ HTTP 403
 [Asserts]
 jsonpath "$.type" == "urn:buurtpreventie:problem:access_denied"
 
-# Only analysts and coordinators list the reports.
+# Only analysts and coordinators list the reports, summarise them and read the statistics.
 GET {{baseUrl}}/api/v1/reports?from=2026-11-01T00:00:00Z&to=2026-12-01T00:00:00Z
+HTTP 403
+[Asserts]
+header "Content-Type" contains "application/problem+json"
+
+GET {{baseUrl}}/api/v1/reports/summary?from=2026-11-01T00:00:00Z&to=2026-12-01T00:00:00Z
+HTTP 403
+[Asserts]
+header "Content-Type" contains "application/problem+json"
+
+GET {{baseUrl}}/api/v1/stats?from=2026-11-01T00:00:00Z&to=2026-12-01T00:00:00Z&groupBy=month
 HTTP 403
 [Asserts]
 header "Content-Type" contains "application/problem+json"

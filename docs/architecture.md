@@ -19,10 +19,12 @@ src/
     Infrastructure/
       Persistence/    Doctrine repositories: the only place for queries
       Security/       voters
+      Mcp/            MCP resources and prompts, and the guards of the MCP server
                       and other integrations: console commands, sample data, e-mail
   Shared/
     Domain/           building blocks for every module: value objects and interfaces such as AuditTrail
-    Infrastructure/   shared technical code: Doctrine types and transaction, Symfony authorization, the generator
+    Infrastructure/   shared technical code: Doctrine types and transaction, Symfony authorization, problems,
+                      the MCP plumbing, the generator
   Kernel.php
 tests/                the same folders as src/, plus Architecture/, Database/, Dependencies/ and Tools/
 ```
@@ -33,7 +35,7 @@ tests/                the same folders as src/, plus Architecture/, Database/, D
 | `Membership` | Members, roles, consent, certificate |
 | `Identity` | Login, login codes, invitations, passwords, API tokens |
 | `Audit` | Recording and showing the audit log |
-| `Settings` | What an association sets for itself: name, colours, logo and icon, contact, texts, walkers of a new round, reminder, language and access with API tokens |
+| `Settings` | What an association sets for itself: name, colours, logo and icon, contact, texts, walkers of a new round, reminder, language, and access with API tokens and over MCP |
 | `Maintenance` | Health check, updates, installer, legacy import |
 | `SampleData` | Made-up sample data, loaded through the use cases of the other modules; see [Sample data](#sample-data) |
 
@@ -51,9 +53,7 @@ A `UseCase/<Name>/` folder holds only these files, all `final readonly`:
 | `<Name>Handler.php` | Orchestration: permission, transaction, domain calls, audit entry, notifications; returns the output | yes |
 | `<Name>Output.php` | Output: scalars and arrays only, no entities | when there is output |
 | `<Name>Controller.php` | REST adapter: request to input, call the handler, return JSON | when there is a REST entry |
-| `<Name>Tool.php` | MCP adapter: tool call to input, call the handler | when there is an MCP entry |
-
-The tool gets its MCP binding in phase 4; until then it is a plain class that calls the handler.
+| `<Name>Tool.php` | MCP adapter: tool call to input, validate it, call the handler | when there is an MCP entry |
 
 ## Worked example: CheckHealth
 
@@ -126,11 +126,11 @@ A use case with input receives it through `#[MapRequestPayload]`; the generator 
 output from a `JsonResponse`, so `#[OA\Response]` names the successful answer: the status with the `…Output` class
 as its schema, or a 204 without a body.
 
-**Tool** (`CheckHealthTool.php`). As thin as the controller, with the same handler.
+**Tool.** CheckHealth has none: an AI client has no use for the health check. A use case with a tool is in
+[MCP server](#mcp-server).
 
-**Tests** in `tests/Maintenance/UseCase/CheckHealth/`: a unit test for the handler, a test that the
-tool returns the handler output unchanged, and a functional test for the endpoint (the answer, and
-that `POST` is refused).
+**Tests** in `tests/Maintenance/UseCase/CheckHealth/`: a unit test for the handler and a functional test for the
+endpoint (the answer, and that `POST` is refused).
 
 ## Adding a feature
 
@@ -142,8 +142,9 @@ that `POST` is refused).
    attribute and audit action, a rule in the policy of its module, and rows in
    `tests/Shared/AuthorizationMatrixTest.php`; a read handler carries `#[ReadAction]`.
    `tests/Shared/HandlerGuardTest.php` fails when one of these is missing.
-5. Set the route and method in the controller. Delete the controller or tool when the use case has
-   no such entry point.
+5. Set the route and method in the controller, and name, description and annotations of the tool. Delete the
+   controller or tool when the use case has no such entry point. A tool gets a test of its own with a parity test
+   against the controller; `tests/Shared/McpToolGuardTest.php` fails without one.
 6. Run `composer check`. An architecture error names the rule and links to the section below.
 7. Update `docs/` and `CHANGELOG.md`.
 
@@ -206,10 +207,11 @@ its own. Doctrine nests it with a savepoint, so a failure in either undoes both.
 ## Authentication
 
 The reasons for this design are in [ADR 0006](adr/0006-authentication.md). Two firewalls guard `/api/`, picked by
-the request:
+the request, and a third the MCP server at `/mcp`:
 
 | Firewall | Takes | Authenticator | Channel |
 | --- | --- | --- | --- |
+| `mcp` | Every request to `/mcp`, with or without a header | `Identity\Infrastructure\Security\ApiTokenAuthenticator` | `mcp` |
 | `api_token` | Every API request with an `Authorization` header, whatever its scheme | `Identity\Infrastructure\Security\ApiTokenAuthenticator` | `api` |
 | `browser` | Every other request, with a session | `PasswordAuthenticator`, `LoginCodeAuthenticator`, `InvitationAuthenticator`, `ConfirmPasswordAuthenticator` and Symfony's `remember_me`, all in `Identity\Infrastructure\Security` except the last | `web` |
 
@@ -272,7 +274,8 @@ Safari on iOS 15. Symfony's `SameOriginCsrfTokenManager` decides. A refusal is t
 A request with an API token carries no cookie and is not checked.
 
 `TokenScopeGuard` runs right after the firewall and holds a token request to its scopes: `read` for `GET` and
-`HEAD`, `write` for every other method, `admin` for everything under `/api/v1/admin/`. A missing scope is a 403
+`HEAD` and for every request to `/mcp`, `write` for every other method, `admin` for everything under
+`/api/v1/admin/`. A missing scope is a 403
 problem `insufficient_scope`. The voters then decide on the roles as for any request, so scope and role must both
 allow an action. `TokenManagementGuard` refuses every token request under `/api/v1/me/tokens` with the 403 problem
 `browser_only`, whatever its scopes: a leaked token can neither list, create nor revoke tokens.
@@ -314,7 +317,8 @@ otherwise the 422 problem `invalid_coordinates`.
 **Rounds.** `GET /rounds?from=&to=&status=` (`ListRounds`) lists the rounds that start in a period of at most 93 days,
 otherwise the 422 problem `invalid_period`; a `+` in an offset reads as a space in a query string, so a client sends
 `%2B` or `Z`. `GET /rounds/{id}` (`GetRound`) shows one round with its walkers, report and comments; `GET
-/staffing-gaps` (`FindStaffingGaps`) the rounds that have not started and seek a buddy; `GET
+/staffing-gaps?days=` (`FindStaffingGaps`) the rounds that have not started and seek a buddy, with `days` (1 to 31)
+only those that start within that many days; `GET
 /me/rounds?view=&from=&to=&order=&limit=` (`ListMyRounds`) the rounds of the member logged in, through
 `RoundRepository::forWalker()` with a `WalkerRoundQuery`: `upcoming` (the default) the ones that have not started,
 earliest first; `to_report` the walked ones without a report, latest first, where walked is what `RoundStatus` derives
@@ -337,7 +341,15 @@ comments. The note of a report and the comments may be about a suspect, so `Repo
 them for the walkers of the round, analysts, coordinators and the system: `GET /rounds/{id}` gives anyone else the
 outcome with a null note and no comments. `GET /reports?from=&to=&outcome=` (`ListRoundReports`, voter attribute
 `report.list`) lists the reports of the rounds that start in a period of at most 93 days (`ListingPeriod`, shared with
-`ListRounds`), with notes, for analysts and coordinators. `GET /rounds/{id}/history` (`GetRoundHistory`, Audit,
+`ListRounds`), with notes, for analysts and coordinators. `GET /reports/summary?from=&to=` (`SummariseRoundReports`, also
+`report.list`) counts those reports per outcome and the incidents per local month, without notes or authors, over a
+period of at most 366 days (`StatisticsPeriod`). `GET /stats?from=&to=&groupBy=` (`RoundStatistics`, voter attribute
+`round.statistics`, for analysts and coordinators) counts per local month, weekday or daypart (`StatisticsGrouping`)
+how the rounds of such a period went: planned, walked, not walked, cancelled, still to come and incidents, with
+percentages over the rounds that are over (`RoundTally`), next to the period before (`StatisticsPeriod::previous()`:
+as many whole months before, or one just as long). Every group of the period is in the answer, also without rounds.
+The status of a round is derived, so the handler counts in PHP over the rounds of the period, and never per walker.
+`GET /rounds/{id}/history` (`GetRoundHistory`, Audit,
 `audit.view_round_history`) gives a coordinator the audit entries about the round, oldest first, through
 `AuditEntryRepository::bySubject()`; each names its actor as `member`, `removed_member` (erased, without a name) or
 `system`, which the frontend words. It reads the log only, so a deleted round keeps its history; a round the log does
@@ -411,7 +423,8 @@ accent marks borders and focus at 3:1 (WCAG 1.4.11), each against the fixed back
 422 problem `insufficient_contrast` with the measured and the required ratio. `ChangeSettings` records one
 `setting.changed` entry with old and new per changed name, except contact details, the group link and texts, recorded
 without a value (`SettingName::isAuditedWithValue()`). Other modules read a setting through a use case of Settings:
-`GetReminderLeadTime` for `SendReminders`, `GetApiTokenAccess` for the token authenticator.
+`GetReminderLeadTime` for `SendReminders`, `GetApiTokenAccess` for the token authenticator, `GetMcpAccess` for the
+MCP server.
 
 `GET` and `PATCH /admin/settings` (`GetSettings`, `ChangeSettings`) read and change every setting but
 the images, `PUT` and `DELETE /admin/settings/images/{logo|icon}` (`ChangeBrandImage`, `RemoveBrandImage`) the
@@ -444,6 +457,69 @@ the logo, while the button keeps the light primary colour that white text needs.
 a round names date, time, daypart, meeting point and how many walk, never who, nor a phone number, address or note
 (`RoundFacts`); a link leads to the round in the app. A deleted round is gone when its mail is written, so
 `round.cancelled` carries the start.
+
+## MCP server
+
+The reasons are in [ADR 0008](adr/0008-mcp-server.md). `symfony/mcp-bundle` serves one server, `buurtpreventie`
+(`config/packages/mcp.yaml`), over Streamable HTTP at `/mcp` and over STDIO with `symfony console mcp:server`.
+
+**Tools.** A tool is the `…Tool` class of its use case, with `#[McpTool]`: name, description and `ToolAnnotations`.
+It maps its arguments onto the input, validates that with `ToolInput` and calls its handler; the output goes back as
+`structuredContent` and as JSON text. An optional argument carries `#[Schema(type: …)]`, so its schema has one type
+and the argument is simply left out: the SDK would otherwise publish `["null", "string"]`, which some clients, such as
+Gemini, reject.
+
+| Tool | Use case | Scope | Who (voter attribute) |
+| --- | --- | --- | --- |
+| `list_rounds`, `get_round`, `my_rounds`, `staffing_gaps` | `ListRounds`, `GetRound`, `ListMyRounds`, `FindStaffingGaps` | `read` | every member |
+| `list_meeting_points`, `list_outcomes` | `ListMeetingPoints`, `ListOutcomes` (never archived) | `read` | every member |
+| `report_summary`, `round_statistics` | `SummariseRoundReports`, `RoundStatistics` | `read` | analyst, coordinator |
+| `sign_up_for_round`, `withdraw_from_round`, `create_round` | `SignUpForRound`, `WithdrawFromRound`, `CreateRound` | `write` | walker |
+| `report_round_result`, `add_round_comment` | `ReportRoundResult`, `AddRoundComment` | `write` | walker of the round, coordinator |
+
+A tool acts only for the member of the token: none takes a member id, so acting on behalf of someone stays in the
+app. `get_round` gives each walker its id and display name only, never the full name or phone number, whatever the
+consent. It gives the outcome of the report with the note `null` and no comments: members type those freely, often
+about a suspect, and over MCP that text would leave the association for the provider of the AI client; they are read
+in the app. `startNote` and `cancelReason` stay, short practical text a client needs to plan, in their own field;
+the instructions of the server call such text data, not instructions. `withdraw_from_round` carries `destructiveHint: true`, because the
+last walker who withdraws makes the round lapse.
+
+**Scope and failures.** `McpServerFactory` builds the server of the bundle with a reference handler of this app around
+the one of the SDK (`config/services.yaml`). `ScopedReferenceHandler` asks `read` for a tool with `readOnlyHint: true`
+and `write` for any other, before the tool runs. `ProblemReferenceHandler` turns a failed tool call into a result with
+`isError: true` and the problem REST would answer (`Problem`, `ProblemResponses::body()`): code, translated title,
+field errors and details; an unexpected failure is `internal_error` without details, logged. The bundle keeps its
+lookup of tools private, so `McpElements` gives the SDK the tools, prompts and resources by class.
+
+**Resource and prompts.** `buurtpreventie://config` (`Patrol\Infrastructure\Mcp\ConfigResource`) gives the name and
+language of the association, the minimum and maximum walkers of a new round, and the meeting points and outcomes,
+never the contact. The prompts `monthly_report(month)` and `plan_week(weekStart?)` hold no data: they name the tools
+to call and the period in local time, and ask for an answer in the language of the association, so the client
+fetches only what the member of the token may see.
+
+**A request to `/mcp`** passes, in this order:
+
+1. `McpSwitch`, before the firewall: with `mcpAccess` off every request is the 404 problem `not_found`, and no token
+   is looked up.
+2. The `mcp` firewall: an API token only. Without one, or with a session cookie alone, an empty 401 with
+   `WWW-Authenticate: Bearer`; a session would let another site act as the member.
+3. `TokenScopeGuard`: `read`.
+4. `McpRateLimit`: 60 requests a minute per token id (`mcp_per_token`, counted in files in `cache.mcp_requests`);
+   above it the 429 problem `too_many_requests` with `Retry-After`.
+5. The DNS rebinding protection of the bundle: the `Host` must be the host of `DEFAULT_URI`, and an `Origin`, when a
+   client sends one, that same origin; in `dev` the MCP Inspector at `http://localhost:6274` too. Otherwise 403.
+6. Per tool call the scope, then the voter in the handler.
+
+`ProblemResponder` and `ApiSecurityHeaders` treat `/mcp` as part of the API.
+
+**Protocol eras.** A client of revision `2026-07-28` needs no session. A client of the handshake era (`2025-11-25`
+and older) gets a session that keeps only the negotiated revision, in files under `var/cache/<env>/mcp-sessions/`;
+who acts comes from the token on every request, never from the session.
+
+**STDIO.** `StdioAuthentication` runs before `mcp:server` starts: with MCP on and the secret of an API token in
+`MCP_TOKEN`, `ApiTokenAuthenticator` checks it, and the command runs as that member on the channel `mcp`; otherwise it
+stops with exit code 1. The token is checked once, when the process starts.
 
 ## Handler and domain
 
@@ -583,7 +659,8 @@ interface in the module's `Domain`, and wrap a change and its audit entry in `Tr
   the OpenAPI library stays out. The one HTTP exception it may throw is `NotAcceptableHttpException`, for a client
   whose Accept header allows no format the endpoint gives: that choice is HTTP alone, and `ProblemResponder` turns it
   into the 406 problem `not_acceptable`.
-- A tool depends only on classes in its own use-case folder and on the MCP SDK.
+- A tool depends only on classes in its own use-case folder, on the MCP SDK and on `Shared\Infrastructure\Mcp\ToolInput`,
+  which validates the input it builds with the constraints REST applies while it maps a request.
 - An `Output` depends on no `Domain` at all.
 
 **Why.** Adapters stay thin, so REST and MCP allow exactly the same. The output is the public

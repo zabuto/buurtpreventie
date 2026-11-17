@@ -52,6 +52,27 @@ services:
             $localFactory: '@limiter.login_per_address'
             $secret: '%kernel.secret%'
 
+    # The MCP server of the bundle, with a reference handler of this app around the SDK's own: the outer one reports a
+    # failed tool call as a problem, the inner one checks the scope of the token first.
+    mcp.server.buurtpreventie:
+        class: Mcp\Server
+        factory: ['App\Shared\Infrastructure\Mcp\McpServerFactory', 'build']
+        arguments: ['@mcp.server.buurtpreventie.builder', '@app.mcp.references']
+
+    app.mcp.references:
+        class: Mcp\Capability\Registry\ReferenceHandler
+        arguments: ['@App\Shared\Infrastructure\Mcp\McpElements']
+
+    App\Identity\Infrastructure\Mcp\ScopedReferenceHandler:
+        decorates: app.mcp.references
+        decoration_priority: 10
+        arguments: { $inner: '@.inner' }
+
+    App\Shared\Infrastructure\Mcp\ProblemReferenceHandler:
+        decorates: app.mcp.references
+        decoration_priority: 0
+        arguments: { $inner: '@.inner' }
+
 when@test:
     services:
         # Tests assert behaviour; the default logger would print expected errors, such as a 405, between the results.

@@ -93,4 +93,5 @@ The plan lives in docs/plans/plan.md and is leading. Read it before every phase.
   vendor/bin/rector process --dry-run. PHPStan reads var/cache/dev: run symfony console cache:warmup first.
 - Load fixtures: symfony console app:fixtures:load demo|test|edge (empties the database first; dev and test only).
 - Check the audit chain: symfony console app:audit:verify (exit code 1 when an entry was changed, removed or inserted).
+- MCP over STDIO: MCP_TOKEN=<API token> symfony console mcp:server (with mcpAccess on).
 - Database tests only: symfony php vendor/bin/phpunit --group database.

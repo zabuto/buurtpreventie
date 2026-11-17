@@ -36,6 +36,21 @@ final class UseCaseTemplatesTest extends TestCase
         }
     }
 
+    /**
+     * McpToolGuardTest refuses a tool that does not say whether it only reads, since that decides its scope.
+     */
+    #[Test]
+    public function tool_starts_as_a_reading_tool_on_the_snake_cased_name_that_validates_its_input(): void
+    {
+        $templates = new UseCaseTemplates();
+
+        $tool = $templates->render('Patrol', 'SignUpForRound')['SignUpForRoundTool.php'];
+
+        self::assertStringContainsString("name: 'sign_up_for_round',", $tool);
+        self::assertStringContainsString('annotations: new ToolAnnotations(readOnlyHint: true, openWorldHint: false),', $tool);
+        self::assertStringContainsString('$this->input->validated(new SignUpForRound())', $tool);
+    }
+
     #[Test]
     public function handler_takes_the_input_and_returns_the_output(): void
     {

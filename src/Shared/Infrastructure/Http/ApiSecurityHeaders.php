@@ -10,13 +10,14 @@ use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
- * The API answers with JSON only, so its responses may load, embed and frame nothing. Pages outside the API, such
- * as the installer, need their own policy.
+ * The API and the MCP server answer with JSON only, so their responses may load, embed and frame nothing. Pages
+ * outside them, such as the installer, need their own policy.
  */
 #[AsEventListener(event: KernelEvents::RESPONSE)]
 final readonly class ApiSecurityHeaders
 {
     private const string API_PREFIX = '/api/';
+    private const string MCP_PATH = '/mcp';
 
     /**
      * @param int $hstsMaxAge seconds a browser keeps to HTTPS for this host; 0 sends no HSTS. Opt-in per installation:
@@ -32,7 +33,8 @@ final readonly class ApiSecurityHeaders
     public function __invoke(ResponseEvent $event): void
     {
         $request = $event->getRequest();
-        if (!\str_starts_with($request->getPathInfo(), self::API_PREFIX)) {
+        $path = $request->getPathInfo();
+        if (!\str_starts_with($path, self::API_PREFIX) && self::MCP_PATH !== $path) {
             return;
         }
 

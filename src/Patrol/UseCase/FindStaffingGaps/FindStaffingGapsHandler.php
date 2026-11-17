@@ -14,8 +14,8 @@ use DateTimeImmutable;
 use Psr\Clock\ClockInterface;
 
 /**
- * Finds the rounds that have not started and lack walkers, by start. A full round is never a gap: its maximum is
- * never below its minimum.
+ * Finds the rounds that have not started and lack walkers, by start, optionally only those that start within a number
+ * of days. A full round is never a gap: its maximum is never below its minimum.
  */
 #[ReadAction]
 final readonly class FindStaffingGapsHandler
@@ -32,9 +32,13 @@ final readonly class FindStaffingGapsHandler
         $this->authorization->denyUnlessGranted('round.list');
 
         $now = $this->clock->now();
+        $until = null === $input->days ? null : $now->modify(\sprintf('+%d days', $input->days));
         $gaps = \array_filter(
             $this->rounds->upcoming($now),
-            static fn(Round $round): bool => RoundStatus::SeekingBuddy === $round->status($now),
+            static fn(Round $round): bool => (
+                RoundStatus::SeekingBuddy === $round->status($now)
+                && (null === $until || $round->startsAt() < $until)
+            ),
         );
 
         return new FindStaffingGapsOutput(\array_values(\array_map(static fn(Round $round): array => self::gap($round, $now), $gaps)));

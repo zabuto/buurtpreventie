@@ -74,6 +74,9 @@ dezelfde naam.
 | Scope | `TokenScope`: `read`, `write`, `admin` | Wat een API-token mag: lezen, wijzigen, of `/api/v1/admin/`; rol en scope moeten allebei kloppen |
 | Geschiedenis van een ronde | `GetRoundHistory` | De auditregels over één ronde, voor de coördinator |
 | Terugmeldingen | `ListRoundReports` | De terugmeldingen van een periode met notities, voor analist en coördinator |
+| Samenvatting terugmeldingen | `SummariseRoundReports`, `report_summary` | Aantallen terugmeldingen per uitkomst en incidenten per maand, zonder notities of namen |
+| Statistieken | `RoundStatistics`, `round_statistics`, `RoundTally` | Hoe de rondes van een periode gingen, per maand, weekdag of dagdeel, naast de periode ervoor; nooit per loper |
+| Loopmaatje gezocht | `FindStaffingGaps`, `staffing_gaps` | Komende rondes die nog lopers nodig hebben |
 | API-token | `ApiToken` | Persoonlijke sleutel voor scripts en MCP, met scopes `read`, `write` en `admin`; alleen de hash wordt bewaard |
 | Tijdtrigger, tick | `app:scheduler:run`, `POST /api/v1/system/tick` | Start taken op een vast moment |
 | Gezondheidscheck | `CheckHealth`, `GET /api/v1/health` | Antwoordt `ok` als de app draait |
@@ -87,3 +90,7 @@ dezelfde naam.
 | Handler | `<Naam>Handler` | Rechten, regels en auditlog |
 | Uitvoer | `<Naam>Output` | Wat REST en MCP teruggeven |
 | Adapter | `<Naam>Controller`, `<Naam>Tool` | Dunne laag voor REST of MCP |
+| MCP-server | `/mcp`, `mcp:server`, instelling `mcpAccess` | Ingang voor AI-clients zoals Claude Code; standaard uit, per vereniging aan te zetten |
+| Tool | `<Naam>Tool`, naam in snake_case (`sign_up_for_round`) | Handeling die een AI-client via MCP aanroept, met dezelfde handler als REST |
+| Resource | `buurtpreventie://config` | Gegevens die een AI-client via MCP leest |
+| Prompt | `monthly_report`, `plan_week` | Kant-en-klare opdracht voor een AI-client, zonder gegevens erin |

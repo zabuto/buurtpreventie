@@ -16,11 +16,11 @@ use Symfony\Component\Security\Core\Authorization\Voter\CacheableVoterInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 
 /**
- * The one report of a walked round, and the reports of all rounds for analysis.
+ * The one report of a walked round, and the reports and statistics of all rounds for analysis.
  */
 final readonly class ReportVoter implements CacheableVoterInterface
 {
-    private const array ATTRIBUTES = ['report.submit', 'report.delete', 'report.list'];
+    private const array ATTRIBUTES = ['report.submit', 'report.delete', 'report.list', 'round.statistics'];
 
     public function __construct(
         private RoundPolicy $policy,
@@ -61,7 +61,7 @@ final readonly class ReportVoter implements CacheableVoterInterface
 
         return match ($attribute) {
             'report.submit' => $subject instanceof Round && $this->policy->mayReport($actor, $subject),
-            'report.list' => $this->readingPolicy->mayListReports($actor),
+            'report.list', 'round.statistics' => $this->readingPolicy->mayListReports($actor),
             default => $subject instanceof RoundReport && $this->policy->mayDeleteReport($actor, $subject),
         };
     }

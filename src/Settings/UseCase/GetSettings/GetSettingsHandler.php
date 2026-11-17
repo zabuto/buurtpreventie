@@ -60,10 +60,19 @@ final readonly class GetSettingsHandler
             reminderDaysAhead: (int) $value(SettingName::ReminderDaysAhead),
             language: (string) $value(SettingName::Language),
             apiAccess: '1' === $value(SettingName::ApiAccess),
-            defaults: \array_values(\array_map(
-                static fn(SettingName $name): string => $name->field(),
-                \array_filter(SettingName::cases(), static fn(SettingName $name): bool => !$name->isUploaded() && $settings->isDefault($name)),
-            )),
+            mcpAccess: '1' === $value(SettingName::McpAccess),
+            defaults: self::defaults($settings),
         );
+    }
+
+    /**
+     * @return list<string> the fields that hold their default; an uploaded image is set by its upload only
+     */
+    private static function defaults(Settings $settings): array
+    {
+        return \array_values(\array_map(
+            static fn(SettingName $name): string => $name->field(),
+            \array_filter(SettingName::cases(), static fn(SettingName $name): bool => !$name->isUploaded() && $settings->isDefault($name)),
+        ));
     }
 }

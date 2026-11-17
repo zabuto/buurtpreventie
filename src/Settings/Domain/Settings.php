@@ -134,6 +134,7 @@ final readonly class Settings
             SettingName::MaximumWalkers => (string) StaffingDefaults::MAXIMUM,
             SettingName::ReminderDaysAhead, SettingName::ApiAccess => '1',
             SettingName::Language => 'nl',
+            SettingName::McpAccess => '0',
             default => null,
         };
     }

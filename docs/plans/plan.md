@@ -24,7 +24,7 @@ Buurtpreventie v4 wordt een Symfony 7.4 LTS-backend met een echte REST-API (`/ap
 | 1 | Domein, use cases, Voters, auditlog, database, voorbeelddata | klaar, in `develop`; T13 naar fase 5b |
 | 2 | REST-API v1 met inloggen en API-tokens | klaar, in `develop` |
 | 3 | Branding en configuratie | klaar, in `develop` |
-| 4 | MCP-server | open |
+| 4 | MCP-server | klaar, in `develop` |
 | 5 | Frontend (Lit, PWA, WCAG 2.2 AA) | open |
 | 5b | Conversie v3 → v4 | open |
 | 6a | Installeren en releasen | open |
@@ -466,12 +466,12 @@ Regels die daaruit volgen:
 | Publiek | `GET /config` (huisstijl, teksten, minimum- en maximumaantal lopers; contact en groepslink alleen voor een ingelogd lid), `GET /manifest.webmanifest` | iedereen |
 | Sessie | `POST /auth/login`, `POST /auth/logout`, `POST /auth/confirm` (opnieuw bevestigen; geen aparte wachtwoord-reset, zie Fase 2) | iedereen |
 | Eigen account | `GET/PATCH /me`, `PUT /me/password`, `GET/POST/DELETE /me/tokens` | lid |
-| Rondes | `GET /rounds?from=&to=&status=`, `GET /rounds/{id}`, `POST /rounds`, `PATCH /rounds/{id}`, `DELETE /rounds/{id}`, `POST /rounds/{id}/cancellation`, `GET /staffing-gaps` | lid leest; loper maakt aan; coördinator wijzigt/verwijdert/annuleert |
+| Rondes | `GET /rounds?from=&to=&status=`, `GET /rounds/{id}`, `POST /rounds`, `PATCH /rounds/{id}`, `DELETE /rounds/{id}`, `POST /rounds/{id}/cancellation`, `GET /staffing-gaps?days=` | lid leest; loper maakt aan; coördinator wijzigt/verwijdert/annuleert |
 | Aanmelden | `PUT /rounds/{id}/walkers/me`, `DELETE /rounds/{id}/walkers/me` | loper |
 | Na de ronde | `GET /me/rounds?walked=1`, `POST /rounds/{id}/reports`, `DELETE /reports/{id}`, `POST /rounds/{id}/comments`, `DELETE /comments/{id}` | loper (eigen items), coördinator |
 | Leden | `GET /members` (contactgegevens alleen bij toestemming) | lid |
 | Keuzelijsten | `GET /meeting-points`, `GET /outcomes` (alleen niet gearchiveerd) | lid |
-| Analyse | `GET /reports?from=&to=&outcome=`, `GET /stats?period=` | analist |
+| Analyse | `GET /reports?from=&to=&outcome=`, `GET /reports/summary?from=&to=`, `GET /stats?from=&to=&groupBy=` | analist, coördinator |
 | Beheer | `/admin/members` (CRUD, rollen, (de)activeren, uitnodiging), `/admin/meeting-points`, `/admin/outcomes` (met archiveren en terugzetten), `GET/PATCH /admin/settings`, `PUT/DELETE /admin/settings/images/{logo\|icon}` | beheerder; uitnodigen ook coördinator |
 | Systeem | `POST /system/tick` (geheime sleutel; draait herinneringen) | cron |
 | Inloggen per e-mail | `POST /auth/login-code`, `POST /auth/login-code/verify` (code van zes cijfers), `POST /auth/invitation` (uitnodiging) | iedereen |
@@ -509,12 +509,12 @@ De MCP-server is een dunne laag op `/mcp` die dezelfde use cases en Voters aanro
 | `list_rounds` | Rondes in een periode, met bezetting en of het minimum gehaald is | `read` | lid |
 | `get_round` | Eén ronde: tijd, startpunt, lopers, meldingen | `read` | lid |
 | `my_rounds` | Eigen komende en gelopen rondes, open terugmeldingen | `read` | lid |
-| `staffing_gaps` | Rondes de komende N dagen die nog een loopmaatje zoeken | `read` | lid |
+| `staffing_gaps` | Rondes de komende N dagen (`days`, 1 tot en met 31) die nog een loopmaatje zoeken | `read` | lid |
 | `sign_up_for_round` / `withdraw_from_round` | Aan- en afmelden | `write` | loper |
 | `create_round` | Nieuwe ronde op datum, tijd, startpunt | `write` | loper |
 | `report_round_result` | Uitkomst + notitie na de ronde | `write` | loper |
 | `add_round_comment` | Opmerking bij een ronde | `write` | loper van die ronde, coördinator |
-| `report_summary` | Aantallen per uitkomst en incidenten in een periode | `read` | analist |
+| `report_summary` | Aantallen per uitkomst en incidenten in een periode | `read` | analist, coördinator |
 | `list_meeting_points`, `list_outcomes` | Keuzelijsten | `read` | lid |
 | `round_statistics` | Aantallen gepland, gelopen, niet gelopen (geen loopmaatje) en incidenten, per maand, weekdag of dagdeel, met percentages en vergelijking met de vorige periode | `read` | analist, coördinator |
 
@@ -542,13 +542,17 @@ De MCP-server is een dunne laag op `/mcp` die dezelfde use cases en Voters aanro
 
 - Elk verzoek werkt als het lid van het token; scope én rol moeten kloppen.
 - Uitvoer bevat alleen wat nodig is: geen telefoonnummers of adressen, ook niet bij toestemming.
-- Notities en opmerkingen zijn door leden getypte tekst; tool-uitvoer zet ze in een apart veld, zodat clients ze als data behandelen en niet als instructie.
+- Notities en opmerkingen zijn door leden getypte tekst, vaak over een verdachte; MCP geeft ze niet (besloten op 17 november 2026, fase 4): `get_round` geeft de uitkomst van de terugmelding zonder notitie en geen opmerkingen. Startnotitie en reden van annulering staan in een eigen veld, zodat clients ze als data behandelen en niet als instructie.
 - Schrijftools krijgen MCP-annotaties (`readOnlyHint`, `destructiveHint: false`, `idempotentHint` bij aan-/afmelden).
 - Rate limit per token met `symfony/rate-limiter` op de bestandscache.
 - DNS-rebinding-bescherming van de bundle met de eigen hostnaam als enige toegestane host.
 - Elke schrijfactie via MCP komt in het auditlog met kanaal `mcp`.
 
-**Transport.** Streamable HTTP, JSON-antwoorden zonder SSE-stream, sessieloos; het `2026-07-28`-tijdperk wordt standaard bediend, het handshake-tijdperk zonder sessies. Daarnaast `symfony console mcp:server` over STDIO voor lokaal gebruik door de ontwikkelaar.
+**Transport.** Streamable HTTP, JSON-antwoorden zonder SSE-stream, sessieloos; het `2026-07-28`-tijdperk wordt standaard bediend, het handshake-tijdperk met een sessie in bestanden. Daarnaast `symfony console mcp:server` over STDIO voor lokaal gebruik door de ontwikkelaar, met een API-token in `MCP_TOKEN`.
+
+**Aan en uit.** De instelling `mcpAccess` staat standaard uit; uit geeft `/mcp` op elk verzoek 404, nog vóór het token wordt opgezocht. Alleen API-tokens geven toegang, geen browsersessie.
+
+Afwijkingen in fase 4 (`docs/plans/phase-4.md`, beslissingen 3, 12, 15 en 16, en T9): het handshake-tijdperk werkt in de SDK alleen met een sessiestore, dus het krijgt een sessie in bestanden die alleen het onderhandelde protocol bewaart; `report_summary` kreeg een eigen use case (`SummariseRoundReports`, ook op `GET /reports/summary`) en is, net als de lijst terugmeldingen, voor analist én coördinator; `staffing_gaps` kreeg `days`, ook op REST; `withdraw_from_round` heeft `destructiveHint: true`, omdat de laatste loper die zich afmeldt de ronde laat vervallen; `plan_week` vraagt alleen `list_rounds`, die de status al geeft.
 
 ## Auditlog
 
@@ -836,9 +840,9 @@ Fase 3, 4 en 5 hangen alleen van de API af; MCP (fase 4) gaat vóór de frontend
 
 ### Fase 4 — MCP-server
 
-- [ ] `symfony/mcp-bundle` + `mcp/sdk` (minor vastgepind), tools als `…Tool`-klasse in de map van de use case: dunne wrappers om de handler, met een pariteitstest tegen de REST-controller.
-- [ ] Use case `RoundStatistics` met de tool `round_statistics` (het scherm volgt in uitbreiding U5); token-scopes, rate limit, audit `via: mcp`, DNS-rebinding-instelling.
-- [ ] Tests met de SDK-client in PHPUnit: elke tool, en elke tool geweigerd zonder juiste scope of rol.
+- [x] `symfony/mcp-bundle` + `mcp/sdk` (minor vastgepind), tools als `…Tool`-klasse in de map van de use case: dunne wrappers om de handler, met een pariteitstest tegen de REST-controller. De uitwerking staat in `docs/plans/phase-4.md` en [ADR 0008](../adr/0008-mcp-server.md); de afwijkingen staan bij MCP-server.
+- [x] Use case `RoundStatistics` met de tool `round_statistics` (het scherm volgt in uitbreiding U5); token-scopes, rate limit, audit `via: mcp`, DNS-rebinding-instelling.
+- [x] Tests met de SDK-client in PHPUnit: elke tool, en elke tool geweigerd zonder juiste scope of rol.
 
 **Klaar als:** de MCP Inspector alle tools ziet en Claude Code met een token `staffing_gaps` en `sign_up_for_round` kan gebruiken.
 

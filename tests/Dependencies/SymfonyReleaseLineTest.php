@@ -15,8 +15,11 @@ use PHPUnit\Framework\TestCase;
 #[Group('integration')]
 final class SymfonyReleaseLineTest extends TestCase
 {
-    /** Symfony packages with a release line of their own. */
-    private const array OWN_RELEASE_LINE = ['/^symfony\/flex$/', '/^symfony\/polyfill-/', '/-contracts$/'];
+    /**
+     * Symfony packages with a release line of their own. The MCP bundle is split from symfony/ai, which numbers its
+     * releases apart from the components.
+     */
+    private const array OWN_RELEASE_LINE = ['/^symfony\/flex$/', '/^symfony\/polyfill-/', '/-contracts$/', '/^symfony\/mcp-bundle$/'];
 
     #[Test]
     public function every_required_symfony_component_uses_the_release_line(): void

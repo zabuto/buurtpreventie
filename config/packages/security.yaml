@@ -12,6 +12,13 @@ security:
             # Ensure dev tools and static assets are always allowed
             pattern: ^/(_profiler(/|$)|(_wdt|assets|build)/)
             security: false
+        # The MCP server takes API tokens only: a session cookie would let another site act as the member there.
+        mcp:
+            pattern: ^/mcp(/|$)
+            stateless: true
+            provider: members
+            custom_authenticators:
+                - App\Identity\Infrastructure\Security\ApiTokenAuthenticator
         # Every API request with an Authorization header; the authenticator takes each one, so a broken header is
         # refused and logged instead of passing as a request without a session.
         api_token:
@@ -54,6 +61,7 @@ security:
         - { path: ^/api/v1/auth/, roles: PUBLIC_ACCESS }
         - { path: ^/api/v1/media/brand/, roles: PUBLIC_ACCESS }
         - { path: ^/api/, roles: IS_AUTHENTICATED }
+        - { path: ^/mcp(/|$), roles: IS_AUTHENTICATED }
 
 when@test:
     security:

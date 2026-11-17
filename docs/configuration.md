@@ -30,9 +30,10 @@ Symfony reads them in this order; a later value wins. Real secrets live only in 
 | `DATABASE_URL` | Database connection. Locally the Symfony CLI sets it from the `database` container in `compose.yaml`; on a server it goes in `shared/.env.local`, such as `mysql://db_user:db_password@localhost:3306/db_name?charset=utf8mb4` for MariaDB and MySQL alike. URL-encode special characters in the password (`@` becomes `%40`, `:` `%3A`, `/` `%2F`, `#` `%23`, `%` `%25`), or the connection fails with a misleading error. Leave out `serverVersion`: hosts upgrade without notice, and a stale version makes Doctrine generate SQL for the wrong platform; without it, DBAL reads the version when it connects. Tests add `_test` to the database name | none; in `test`, an unreachable address in `.env.test`, so the kernel boots and the database tests skip |
 | `MAILER_DSN` | How mail leaves the app, such as `smtp://user:password@smtp.example.org:587` on a server. Locally the Symfony CLI sets it from the `mailer` container (Mailpit) in `compose.yaml` | `null://null`, which sends nothing; always in `test` |
 | `MAILER_FROM` | Sender of every mail, an address the mail server may send from | `noreply@localhost` (in `config/services.yaml`) |
+| `MCP_TOKEN` | The secret of an API token for `symfony console mcp:server` (MCP over STDIO), which runs as the member of that token with its scopes. Set it where the MCP client starts the command, such as `env` in its configuration, never in a committed file. Without it, or with a token that is refused, the command does not start | none |
 | `HSTS_MAX_AGE` | Seconds a browser keeps to HTTPS for this host after an API answer over HTTPS (`Strict-Transport-Security`), such as `31536000` for a year. Opt-in per installation: set it only once HTTPS works there, because a browser that has it refuses the site over HTTP until the time runs out, also when the certificate is lost. Covers this host only, not other subdomains of the domain | `0`, which sends no HSTS (in `config/services.yaml`) |
 | `UPLOAD_DIR` | Absolute path of the folder for uploaded files, outside the web folder: the logo and icon go in `brand/` under it. The PHP user writes there, and a backup includes it | `var/uploads` in the project (in `config/services.yaml`) |
-| `DEFAULT_URI` | Base URL of the app for links outside a web request, such as in e-mails and from the console. A subdomain (`https://buurtpreventie.example.org`) or a path (`https://example.org/buurtpreventie`), without `/public`; a trailing slash makes no difference. Anything but an http or https address with a host and at most a path is an error as soon as the app sends a message | `http://localhost` (in `config/services.yaml`) |
+| `DEFAULT_URI` | Base URL of the app for links outside a web request, such as in e-mails and from the console. A subdomain (`https://buurtpreventie.example.org`) or a path (`https://example.org/buurtpreventie`), without `/public`; a trailing slash makes no difference. Anything but an http or https address with a host and at most a path is an error as soon as the app sends a message. Its host is the only host the MCP server answers (DNS rebinding protection) | `http://localhost` (in `config/services.yaml`) |
 
 ## Settings of the association
 
@@ -54,6 +55,7 @@ admin sets it, also when it equals the default, and null removes it again.
 | `reminderDaysAhead` | 1 to 7: the reminder covers the rounds of the local calendar day this many days ahead; a round signed up for later than that gets none | 1 |
 | `language` | `nl` or `en` | `nl` |
 | `apiAccess` | `true` or `false`: whether API tokens give access. `false` refuses every token from its next request (an empty 401, logged as `tokens_disabled`) and a new token (409 `api_tokens_disabled`); members still list and revoke their tokens | `true` |
+| `mcpAccess` | `true` or `false`: whether the MCP server at `/mcp` answers. `false` answers every request there with 404 from its next request, and `mcp:server` does not start; API tokens keep working on REST. With `apiAccess` `false` the MCP server refuses every token (401) | `false` |
 
 A colour is checked against the other colours and a minimum against the maximum as one set, so a refused value
 leaves every value of the patch unstored. The audit log names each setting that changed with its old and new value,
@@ -95,6 +97,8 @@ Values in the code that no setting changes. A new limit gets a row here.
 | Dayparts | `morning` before 12:00, `afternoon` before 18:00, `evening` from 18:00 | `Daypart` |
 | Start of a round | After the moment it is created or moved; no change once started | `RoundStart`, `Round::change()` |
 | Round and report lists | A period that ends after its start and lasts at most 93 days: a quarter in local time, the hour the clocks go back included | `ListingPeriod` |
+| Statistics and summary of the reports | A period that ends after its start and lasts at most 366 days; whole local months compare with as many months before, any other period with one just as long right before | `StatisticsPeriod` |
+| Staffing gaps | `days` from 1 to 31; without it every upcoming round | `FindStaffingGaps` |
 | Own rounds | 50 by default, at most 200 per answer (`limit`) | `ListMyRounds` |
 | Buddy call | Once per round, at the first of 5, 3 or 1 days before the start (local clock) that falls after the round was created; at once for a round created less than a day ahead | `BuddyCall::LEAD_DAYS` |
 | Reminder | One message per active walker per local calendar day, for all their rounds of that day | `Reminders` |
@@ -129,6 +133,8 @@ The input of a use case refuses a longer value; the column holds at least as muc
 | Failed logins | 5 per address (or login challenge, or invitation) and IP address in 15 minutes, 30 per IP address in an hour, then 429; a successful login clears the first count | `config/packages/rate_limiter.yaml` |
 | Login code | Six digits, 60 minutes, once, at most 5 attempts; a new request ends the earlier ones | `LoginChallenge` |
 | Login code requests | 3 per address and 10 per IP address in an hour, then 429 | `config/packages/rate_limiter.yaml` |
+| MCP requests | 60 per API token in a minute, then 429 with `Retry-After`; counted in files | `config/packages/rate_limiter.yaml` (`mcp_per_token`) |
+| MCP sessions | Only for a client of the handshake era: the negotiated revision, one hour, in `var/cache/<env>/mcp-sessions/` | `config/packages/mcp.yaml` |
 | Invitation | `bpi_` and 64 hexadecimal characters, stored as SHA-256; 48 hours, once; a new invitation ends the earlier ones | `Invitation` |
 | Stay logged in | Cookie `bp_remember` for 90 days: `Secure`, `HttpOnly`, `SameSite=Lax`; ends with a new password | `config/packages/security.yaml` |
 | Recent login | 15 minutes after a login or confirmation; needed for a new password, a new API token, changing roles and erasing a member. A console command run as a member counts as recent | `TokenRecentAuthentication`, `RunAs` |

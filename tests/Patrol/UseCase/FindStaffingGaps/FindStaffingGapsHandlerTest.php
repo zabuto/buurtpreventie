@@ -96,6 +96,17 @@ final class FindStaffingGapsHandlerTest extends TestCase
     }
 
     #[Test]
+    public function it_finds_only_the_gaps_that_start_within_the_number_of_days_asked(): void
+    {
+        $tomorrow = $this->round(new RoundStart(new DateTimeImmutable('2026-11-16T11:59:00+00:00')), walkers: 1);
+        $this->round(new RoundStart(new DateTimeImmutable('2026-11-16T12:00:00+00:00')), walkers: 1);
+
+        $output = $this->handler()(new FindStaffingGaps(days: 1));
+
+        $this->assertSame([$tomorrow->id()->toRfc4122()], \array_column($output->gaps, 'id'));
+    }
+
+    #[Test]
     public function it_returns_nothing_when_access_is_denied(): void
     {
         $this->round(new RoundStart(new DateTimeImmutable('2026-11-16T21:00:00+00:00')), walkers: 1);
