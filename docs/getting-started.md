@@ -102,8 +102,9 @@ curl -s -o /dev/null -w '%{http_code}\n' -X PUT -H "Authorization: Bearer $TOKEN
 ```
 
 `DELETE` on the same address withdraws her. A token that may only read gets `403` with `insufficient_scope`; a
-token that is revoked or expired gets `401`. Without the local domain, use the address the Symfony CLI prints, and
-`-k` when curl refuses its certificate.
+token that is revoked or expired gets `401`. curl reaches the local domain only through the local proxy:
+`export HTTPS_PROXY="$(symfony proxy:url)"` first. Without the local domain, use the address the Symfony CLI prints,
+and `-k` when curl refuses its certificate.
 
 ## Start
 
@@ -152,18 +153,8 @@ The MCP server answers only for the host of `DEFAULT_URI`, which the Symfony CLI
 runs on `https://buurtpreventie.wip`. Load the demo (see [Sample data](#sample-data)) and note the secret of the token
 of `priya.sharma`, a walker whose token reads and writes.
 
-MCP is off on every installation until an admin switches it on; until then `/mcp` answers 404:
-
-```bash
-B=https://buurtpreventie.wip
-curl -s -c /tmp/bp.jar -H 'Sec-Fetch-Site: same-origin' -H 'Content-Type: application/json' \
-  -d '{"email":"beheer@example.org","password":"voorbeeld-wachtwoord-buurt"}' "$B/api/v1/auth/login"
-curl -s -b /tmp/bp.jar -X PATCH -H 'Sec-Fetch-Site: same-origin' -H 'Content-Type: application/json' \
-  -d '{"mcpAccess":true}' -w '%{http_code}\n' "$B/api/v1/admin/settings"
-```
-
-The second command prints `204`. The MCP Inspector and Claude Code run on Node, which knows neither the local proxy
-nor the certificate authority of the Symfony CLI. In the shell that starts them:
+Outside a browser the local domain resolves only through the local proxy, and Node (the MCP Inspector and Claude
+Code) knows neither that proxy nor the certificate authority of the Symfony CLI. In the shell for every step below:
 
 ```bash
 export HTTPS_PROXY="$(symfony proxy:url)"
@@ -171,7 +162,19 @@ export NODE_EXTRA_CA_CERTS="$HOME/Library/Application Support/symfony-cli/certs/
 ```
 
 That path holds on macOS; elsewhere the certificate authority is `rootCA.pem` in the `certs` folder of the Symfony
-CLI.
+CLI. Without the proxy, curl stops with "Could not resolve host"; `-sS` shows that error, `-s` alone hides it.
+
+MCP is off on every installation until an admin switches it on; until then `/mcp` answers 404:
+
+```bash
+B=https://buurtpreventie.wip
+curl -sS -c /tmp/bp.jar -H 'Sec-Fetch-Site: same-origin' -H 'Content-Type: application/json' \
+  -d '{"email":"beheer@example.org","password":"voorbeeld-wachtwoord-buurt"}' "$B/api/v1/auth/login"
+curl -sS -b /tmp/bp.jar -X PATCH -H 'Sec-Fetch-Site: same-origin' -H 'Content-Type: application/json' \
+  -d '{"mcpAccess":true}' -w '%{http_code}\n' "$B/api/v1/admin/settings"
+```
+
+The second command prints `204`.
 
 **MCP Inspector.** Start it with `npx @modelcontextprotocol/inspector`. In its page, pick the transport "Streamable
 HTTP", the address `https://buurtpreventie.wip/mcp` and the header `Authorization: Bearer <secret>`, and connect. It
@@ -191,7 +194,7 @@ which calls `sign_up_for_round` after Claude asks to confirm. The audit log then
 `mcp`:
 
 ```bash
-curl -s -b /tmp/bp.jar "$B/api/v1/admin/audit?action=participation.signed_up"
+curl -sS -b /tmp/bp.jar "$B/api/v1/admin/audit?action=participation.signed_up"
 ```
 
 `claude mcp remove buurtpreventie` removes the server again. What the server offers, and how a member connects to an
