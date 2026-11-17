@@ -17,6 +17,11 @@ final class TestDatabase
         self::$availability = $availability;
     }
 
+    public static function reachedTheServer(): bool
+    {
+        return self::$availability?->reachedTheServer() ?? false;
+    }
+
     /**
      * Call first in the set-up of every database test: it skips or fails the test unless the schema is ready.
      * REQUIRE_DATABASE=1 turns a skip into a failure.

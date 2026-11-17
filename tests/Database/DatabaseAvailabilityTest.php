@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Database;
 
 use PHPUnit\Framework\AssertionFailedError;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\SkippedWithMessageException;
 use PHPUnit\Framework\TestCase;
@@ -59,6 +60,27 @@ final class DatabaseAvailabilityTest extends TestCase
         $this->expectExceptionMessageMatches('/Migration Version20261115 failed/');
 
         $availability->enforce(required: false);
+    }
+
+    /**
+     * @return iterable<string, array{DatabaseAvailability, bool}>
+     */
+    public static function outcomes(): iterable
+    {
+        yield 'ready' => [DatabaseAvailability::ready(), true];
+        yield 'broken migration' => [DatabaseAvailability::broken('Migration Version20261115 failed'), true];
+        yield 'unreachable' => [DatabaseAvailability::unreachable('Connection refused'), false];
+        yield 'not prepared' => [DatabaseAvailability::notPrepared(), false];
+    }
+
+    /**
+     * Without the server there is nothing to drop at the end of the run, and trying would wait for the connection.
+     */
+    #[DataProvider('outcomes')]
+    #[Test]
+    public function it_knows_whether_the_preparation_reached_the_server(DatabaseAvailability $availability, bool $reached): void
+    {
+        $this->assertSame($reached, $availability->reachedTheServer());
     }
 
     #[Test]

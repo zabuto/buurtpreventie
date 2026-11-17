@@ -11,8 +11,9 @@ use PHPUnit\Runner\Extension\ParameterCollection;
 use PHPUnit\TextUI\Configuration\Configuration;
 
 /**
- * Builds the test database from empty with the migrations, once per run, before the database tests. The recipe file
- * tests/bootstrap.php stays as Symfony ships it, so this cannot live there.
+ * Builds the test database from empty with the migrations, once per run, before the database tests, in a database of
+ * the run's own that it drops at the end. The recipe file tests/bootstrap.php stays as Symfony ships it, so this
+ * cannot live there.
  */
 final readonly class DatabaseSchemaExtension implements Extension
 {
@@ -20,5 +21,8 @@ final readonly class DatabaseSchemaExtension implements Extension
     public function bootstrap(Configuration $configuration, Facade $facade, ParameterCollection $parameters): void
     {
         $facade->registerSubscriber(new PrepareSchemaForDatabaseTests());
+        if (RunDatabaseToken::claim()) {
+            $facade->registerSubscriber(new DropRunDatabase());
+        }
     }
 }

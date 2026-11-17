@@ -59,9 +59,9 @@ Create the tables, and bring them up to date after every pull that adds a migrat
 symfony console doctrine:migrations:migrate
 ```
 
-Tests use `buurtpreventie_test` on the same server. On an empty data volume,
-`docker/database/grant-prefixed-databases.sh` gives the database user every database starting with
-`buurtpreventie_`. A volume created before that script lacks the grant; `docker compose down --volumes` and starting again adds it.
+Tests use a database of their own per run, such as `buurtpreventie_test_run1a2b3c4d`, on the same
+server. On an empty data volume, `docker/database/grant-prefixed-databases.sh` gives the database
+user every database starting with `buurtpreventie_`. A volume created before that script lacks the grant; `docker compose down --volumes` and starting again adds it.
 
 ## Sample data
 

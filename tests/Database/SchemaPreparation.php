@@ -16,7 +16,7 @@ final readonly class SchemaPreparation
 
     public static function fromEmpty(): DatabaseAvailability
     {
-        $failure = self::console('doctrine:database:drop', '--force', '--if-exists');
+        $failure = self::drop();
         if (null !== $failure) {
             return DatabaseAvailability::unreachable($failure);
         }
@@ -27,6 +27,14 @@ final readonly class SchemaPreparation
         }
 
         return DatabaseAvailability::ready();
+    }
+
+    /**
+     * @return string|null the output of a failed drop, on one line; null on success or when there was no database
+     */
+    public static function drop(): ?string
+    {
+        return self::console('doctrine:database:drop', '--force', '--if-exists');
     }
 
     /**
