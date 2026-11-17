@@ -18,7 +18,8 @@ final readonly class FindStaffingGapsOutput
      *     walkersNeeded: int,
      *     openSpots: int,
      *     meetingPoint: string|null,
-     * }> $gaps
+     *     signedUp: bool,
+     * }> $gaps by start; signedUp says whether the member asking walks the round
      */
     public function __construct(
         public array $gaps,

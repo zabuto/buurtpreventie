@@ -325,7 +325,8 @@ earliest first; `to_report` the walked ones without a report, latest first, wher
 (started, staffed, not cancelled); `all` every round, `order=asc` (the default) or `desc`. A period (`from` and `to`
 together, at most 93 days by `ListingPeriod`) narrows any view and `all` needs one, otherwise the 422 problem
 `invalid_period`; `limit` is 50 by default and at most 200. Every round in these answers has `status`, `walkerCount`, `minimumWalkers`, `maximumWalkers`,
-`openSpots` and `daypart`. `POST /rounds` (`CreateRound`) plans a round and answers 201 with its id; `PATCH
+`openSpots` and `daypart`; in `/rounds` and `/staffing-gaps` also `signedUp`, whether the member asking walks it, so a
+client tells a round of their own that seeks a buddy from one to join. `POST /rounds` (`CreateRound`) plans a round and answers 201 with its id; `PATCH
 /rounds/{id}` (`ChangeRound`) changes start, meeting point and start note; `DELETE
 /rounds/{id}` (`DeleteRound`) deletes a round that has not started; `POST /rounds/{id}/cancellation` (`CancelRound`)
 records that a started round was not walked, with an optional reason. A round id comes from the path only: the

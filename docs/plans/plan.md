@@ -443,7 +443,7 @@ Verbeteringen ten opzichte van v3:
 - **Tijd zonder verrassingen:** `startsAt` in UTC opgeslagen, getoond in Europe/Amsterdam, met Symfony Clock zodat tests de tijd vastzetten.
 - **Value objects** voor wat regels heeft: `EmailAddress`, `PhoneNumber`, `Daypart`, `RoundStatus`, `StaffingRule`.
 
-**Status van een ronde** wordt afgeleid, niet opgeslagen: `seeking_buddy` (minder lopers dan het minimum), `staffed` (minimum gehaald), `walked` (voorbij en gehaald), `not_walked` (voorbij zonder loopmaatje) en `cancelled` (begonnen maar niet gelopen, zoals bij een no-show of overmacht). "Vol" is geen status maar een veld: `openSpots` is het maximum min het aantal lopers zolang de ronde niet begonnen is, en 0 vanaf de start; een volle ronde is `staffed`. Elke ronde in API en MCP bevat `status`, `walkerCount`, `minimumWalkers`, `maximumWalkers`, `openSpots` en `daypart`: `morning` vóór 12:00, `afternoon` tot 18:00, `evening` vanaf 18:00, zoals de v3-kalender ze al indeelt.
+**Status van een ronde** wordt afgeleid, niet opgeslagen: `seeking_buddy` (minder lopers dan het minimum), `staffed` (minimum gehaald), `walked` (voorbij en gehaald), `not_walked` (voorbij zonder loopmaatje) en `cancelled` (begonnen maar niet gelopen, zoals bij een no-show of overmacht). "Vol" is geen status maar een veld: `openSpots` is het maximum min het aantal lopers zolang de ronde niet begonnen is, en 0 vanaf de start; een volle ronde is `staffed`. Elke ronde in API en MCP bevat `status`, `walkerCount`, `minimumWalkers`, `maximumWalkers`, `openSpots` en `daypart`, en in de lijsten (`/rounds`, `/staffing-gaps`, `list_rounds`, `staffing_gaps`) ook `signedUp`: of de vrager zelf op de ronde staat. `daypart` is `morning` vóór 12:00, `afternoon` tot 18:00, `evening` vanaf 18:00, zoals de v3-kalender ze al indeelt.
 
 Regels die daaruit volgen:
 
@@ -843,6 +843,7 @@ Fase 3, 4 en 5 hangen alleen van de API af; MCP (fase 4) gaat vóór de frontend
 - [x] `symfony/mcp-bundle` + `mcp/sdk` (minor vastgepind), tools als `…Tool`-klasse in de map van de use case: dunne wrappers om de handler, met een pariteitstest tegen de REST-controller. De uitwerking staat in `docs/plans/phase-4.md` en [ADR 0008](../adr/0008-mcp-server.md); de afwijkingen staan bij MCP-server.
 - [x] Use case `RoundStatistics` met de tool `round_statistics` (het scherm volgt in uitbreiding U5); token-scopes, rate limit, audit `via: mcp`, DNS-rebinding-instelling.
 - [x] Tests met de SDK-client in PHPUnit: elke tool, en elke tool geweigerd zonder juiste scope of rol.
+- [x] Aanvulling: `staffing_gaps` en `list_rounds` (en `GET /staffing-gaps` en `GET /rounds`) zeggen per ronde of de vrager er zelf op staat (`signedUp`). Bij de handmatige test zette Claude Code de eigen rondes van een loper anders tussen de rondes om bij aan te schuiven; het scherm van fase 5 heeft het veld ook nodig. Een open punt uit `docs/plans/phase-4.md`.
 
 **Klaar als:** de MCP Inspector alle tools ziet en Claude Code met een token `staffing_gaps` en `sign_up_for_round` kan gebruiken.
 

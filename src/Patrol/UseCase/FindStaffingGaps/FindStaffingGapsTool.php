@@ -11,7 +11,7 @@ use Mcp\Schema\ToolAnnotations;
 
 #[McpTool(
     name: 'staffing_gaps',
-    description: 'Upcoming rounds that still need walkers to reach their minimum, earliest first, with the number of walkers each needs and its open spots.',
+    description: 'Upcoming rounds that still need walkers to reach their minimum, earliest first, with the number of walkers each needs, its open spots and whether you walk it already (signedUp): a round of your own still seeks a buddy, the others you can join.',
     annotations: new ToolAnnotations(title: 'Rounds that seek a buddy', readOnlyHint: true, openWorldHint: false),
 )]
 final readonly class FindStaffingGapsTool

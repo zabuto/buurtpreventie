@@ -11,8 +11,11 @@ use App\Patrol\Domain\Round\StaffingRule;
 use App\Patrol\UseCase\FindStaffingGaps\FindStaffingGaps;
 use App\Patrol\UseCase\FindStaffingGaps\FindStaffingGapsHandler;
 use App\Shared\Domain\AccessDenied;
+use App\Shared\Domain\Actor;
+use App\Shared\Domain\Role;
 use App\Tests\Patrol\Fake\InMemoryRoundRepository;
 use App\Tests\Shared\Fake\FakeAuthorization;
+use App\Tests\Shared\Fake\FixedExecutionContext;
 use DateTimeImmutable;
 use Override;
 use PHPUnit\Framework\Attributes\Test;
@@ -53,6 +56,7 @@ final class FindStaffingGapsHandlerTest extends TestCase
                     'walkersNeeded' => 1,
                     'openSpots' => 2,
                     'meetingPoint' => 'Speeltuin',
+                    'signedUp' => false,
                 ],
             ],
             $output->gaps,
@@ -107,6 +111,29 @@ final class FindStaffingGapsHandlerTest extends TestCase
     }
 
     #[Test]
+    public function it_says_for_each_round_whether_the_member_asking_walks_it(): void
+    {
+        $jan = Uuid::v7();
+        $own = $this->round(new RoundStart(new DateTimeImmutable('2026-11-16T20:00:00+00:00')), walkers: 1, firstWalker: $jan);
+        $this->round(new RoundStart(new DateTimeImmutable('2026-11-16T21:00:00+00:00')), walkers: 1);
+
+        $output = $this->handler(actor: new Actor($jan, [Role::Walker]))(new FindStaffingGaps());
+
+        $this->assertSame([true, false], \array_column($output->gaps, 'signedUp'));
+        $this->assertSame($own->id()->toRfc4122(), $output->gaps[0]['id'] ?? null);
+    }
+
+    #[Test]
+    public function it_says_the_system_walks_no_round(): void
+    {
+        $this->round(new RoundStart(new DateTimeImmutable('2026-11-16T20:00:00+00:00')), walkers: 1);
+
+        $output = $this->handler()(new FindStaffingGaps());
+
+        $this->assertSame([false], \array_column($output->gaps, 'signedUp'));
+    }
+
+    #[Test]
     public function it_returns_nothing_when_access_is_denied(): void
     {
         $this->round(new RoundStart(new DateTimeImmutable('2026-11-16T21:00:00+00:00')), walkers: 1);
@@ -125,9 +152,14 @@ final class FindStaffingGapsHandlerTest extends TestCase
         $this->assertSame([['round.list', null]], $authorization->asked);
     }
 
-    private function round(RoundStart $start, int $walkers): Round
+    private function round(RoundStart $start, int $walkers, ?Uuid $firstWalker = null): Round
     {
-        $round = Round::plan($start, Uuid::v7(), new StaffingRule(minimumWalkers: 2, maximumWalkers: 3), new DateTimeImmutable(self::CREATED_AT));
+        $round = Round::plan(
+            $start,
+            $firstWalker ?? Uuid::v7(),
+            new StaffingRule(minimumWalkers: 2, maximumWalkers: 3),
+            new DateTimeImmutable(self::CREATED_AT),
+        );
         for ($walker = 1; $walker < $walkers; ++$walker) {
             $round->signUp(Uuid::v7(), new DateTimeImmutable(self::CREATED_AT));
         }
@@ -136,8 +168,13 @@ final class FindStaffingGapsHandlerTest extends TestCase
         return $round;
     }
 
-    private function handler(?FakeAuthorization $authorization = null): FindStaffingGapsHandler
+    private function handler(?FakeAuthorization $authorization = null, ?Actor $actor = null): FindStaffingGapsHandler
     {
-        return new FindStaffingGapsHandler($this->rounds, $authorization ?? FakeAuthorization::granting(), new MockClock(self::NOW));
+        return new FindStaffingGapsHandler(
+            $this->rounds,
+            $authorization ?? FakeAuthorization::granting(),
+            new FixedExecutionContext($actor),
+            new MockClock(self::NOW),
+        );
     }
 }

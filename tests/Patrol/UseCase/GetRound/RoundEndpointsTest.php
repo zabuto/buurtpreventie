@@ -273,6 +273,32 @@ final class RoundEndpointsTest extends ApiTestCase
         self::assertResponseStatusCodeSame(422);
     }
 
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function roundLists(): iterable
+    {
+        yield 'the list' => ['/api/v1/rounds?from=2026-11-16T00:00:00Z&to=2026-11-23T00:00:00Z', 'rounds'];
+        yield 'the gaps' => ['/api/v1/staffing-gaps', 'gaps'];
+    }
+
+    #[DataProvider('roundLists')]
+    #[Test]
+    public function it_says_in_a_list_which_rounds_the_member_logged_in_walks(string $path, string $listKey): void
+    {
+        $client = self::client();
+        $member = self::actingAs($client);
+        self::storedRound(self::UPCOMING, $member->id());
+        self::storedRound('2026-11-21T21:00:00+00:00', Uuid::v7());
+
+        $client->request('GET', $path);
+
+        self::assertResponseIsSuccessful();
+        $list = self::json($client)[$listKey];
+        self::assertIsArray($list);
+        self::assertSame([true, false], \array_map(static fn(mixed $round): mixed => \is_array($round) ? $round['signedUp'] ?? null : null, $list));
+    }
+
     #[Test]
     public function it_limits_the_gaps_to_the_days_asked(): void
     {
