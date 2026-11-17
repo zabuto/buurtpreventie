@@ -85,19 +85,20 @@ and `symfony console app:audit:verify` reports it intact.
 ### Sign up with curl
 
 With that token a script signs Priya up for a round, without a session. First the rounds of a period of at most 93
-days, read with the same token; fill in two dates as `2026-01-31T00:00:00Z` (`Z` needs no encoding in a query
-string, a `+` would read as a space):
+days, read with the same token; here from today for a week, with dates as `2026-01-31T00:00:00Z` (`Z` needs no
+encoding in a query string, a `+` would read as a space; `date -v` is the macOS form, GNU `date` takes
+`-d '+7 days'`):
 
 ```bash
 TOKEN=bpt_…   # the secret the command showed
-curl -s -H "Authorization: Bearer $TOKEN" \
-  "https://buurtpreventie.wip/api/v1/rounds?from=<today>T00:00:00Z&to=<a week later>T00:00:00Z"
+curl -sS -H "Authorization: Bearer $TOKEN" \
+  "https://buurtpreventie.wip/api/v1/rounds?from=$(date -u +%F)T00:00:00Z&to=$(date -u -v+7d +%F)T00:00:00Z"
 ```
 
 Take the `id` of a round with open spots and sign up; the answer is `204`, also when she was signed up already:
 
 ```bash
-curl -s -o /dev/null -w '%{http_code}\n' -X PUT -H "Authorization: Bearer $TOKEN" \
+curl -sS -o /dev/null -w '%{http_code}\n' -X PUT -H "Authorization: Bearer $TOKEN" \
   "https://buurtpreventie.wip/api/v1/rounds/<id>/walkers/me"
 ```
 
