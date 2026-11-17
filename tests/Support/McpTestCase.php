@@ -8,11 +8,15 @@ use App\Identity\Domain\ApiToken;
 use App\Identity\Domain\TokenScope;
 use App\Identity\Domain\TokenTerms;
 use App\Membership\Domain\Member;
+use App\Patrol\Domain\Round\Round;
+use App\Patrol\Domain\Round\RoundStart;
+use App\Patrol\Domain\Round\StaffingRule;
 use App\Settings\Domain\Setting;
 use App\Shared\Domain\Role;
 use App\Tests\Identity\Fake\InMemoryApiTokenRepository;
 use App\Tests\Membership\Fake\InMemoryMemberRepository;
 use App\Tests\Membership\Fake\MemberFixture;
+use App\Tests\Patrol\Fake\InMemoryRoundRepository;
 use App\Tests\Settings\Fake\InMemorySettingRepository;
 use DateTimeImmutable;
 use Mcp\Client;
@@ -23,6 +27,7 @@ use Mcp\Schema\Result\CallToolResult;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use SensitiveParameter;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
+use Symfony\Component\Uid\Uuid;
 
 /**
  * A test of the MCP server through the client of the SDK, on the in-memory kernel: the same firewall, switch, scopes
@@ -57,6 +62,59 @@ abstract class McpTestCase extends ApiTestCase
             'Jan B.',
             [] === $roles ? [Role::Walker] : \array_values($roles),
         );
+    }
+
+    /**
+     * Another active member who consents to sharing contact details, so a test sees whether they leak.
+     */
+    protected static function walker(string $displayName, Role ...$roles): Member
+    {
+        $slug = \strtolower((string) \preg_replace('/\W+/', '', $displayName));
+        $member = MemberFixture::stored(
+            self::service(InMemoryMemberRepository::class),
+            $slug . '@example.org',
+            $displayName . ' Fullname',
+            $displayName,
+            [] === $roles ? [Role::Walker] : \array_values($roles),
+        );
+        $member->changeContactConsent(true);
+
+        return $member;
+    }
+
+    /**
+     * A round with these walkers, the first one its owner, minimum 2 and maximum 3.
+     */
+    protected static function round(string $startsAt, Member ...$walkers): Round
+    {
+        $first = \array_shift($walkers);
+        $round = Round::plan(
+            new RoundStart(new DateTimeImmutable($startsAt)),
+            $first?->id() ?? Uuid::v7(),
+            new StaffingRule(minimumWalkers: 2, maximumWalkers: 3),
+            new DateTimeImmutable('2026-11-01T12:00:00+00:00'),
+        );
+        foreach ($walkers as $walker) {
+            $round->signUp($walker->id(), new DateTimeImmutable('2026-11-01T12:00:00+00:00'));
+        }
+        self::service(InMemoryRoundRepository::class)->add($round);
+
+        return $round;
+    }
+
+    /**
+     * The JSON body of the same question over REST, with the token of the test.
+     *
+     * @param array<string, mixed> $query
+     *
+     * @return array<array-key, mixed>
+     */
+    protected static function rest(KernelBrowser $browser, string $path, array $query = []): array
+    {
+        $browser->request('GET', $path, $query, server: ['HTTP_AUTHORIZATION' => 'Bearer ' . self::SECRET]);
+        self::assertResponseIsSuccessful();
+
+        return self::json($browser);
     }
 
     protected static function token(Member $member, TokenScope ...$scopes): ApiToken

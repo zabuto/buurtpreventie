@@ -5,16 +5,10 @@ declare(strict_types=1);
 namespace App\Tests\Patrol\UseCase\FindStaffingGaps;
 
 use App\Identity\Domain\TokenScope;
-use App\Patrol\Domain\Round\Round;
-use App\Patrol\Domain\Round\RoundStart;
-use App\Patrol\Domain\Round\StaffingRule;
-use App\Tests\Patrol\Fake\InMemoryRoundRepository;
 use App\Tests\Support\McpTestCase;
-use DateTimeImmutable;
 use Mcp\Exception\ConnectionException;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
-use Symfony\Component\Uid\Uuid;
 
 #[Group('functional')]
 final class FindStaffingGapsToolTest extends McpTestCase
@@ -28,10 +22,9 @@ final class FindStaffingGapsToolTest extends McpTestCase
         self::round('2026-11-25T20:00:00+00:00');
 
         $gaps = self::call(self::connect($browser), 'staffing_gaps', ['days' => 3]);
-        $browser->request('GET', '/api/v1/staffing-gaps?days=3', server: ['HTTP_AUTHORIZATION' => 'Bearer ' . self::SECRET]);
 
         self::assertCount(1, (array) ($gaps['gaps'] ?? []));
-        self::assertSame(self::json($browser), $gaps);
+        self::assertSame(self::rest($browser, '/api/v1/staffing-gaps', ['days' => 3]), $gaps);
     }
 
     #[Test]
@@ -65,18 +58,5 @@ final class FindStaffingGapsToolTest extends McpTestCase
         self::assertNotNull($refusal);
         self::assertResponseStatusCodeSame(403);
         self::assertSame('urn:buurtpreventie:problem:insufficient_scope', self::json($browser)['type']);
-    }
-
-    private static function round(string $startsAt): Round
-    {
-        $round = Round::plan(
-            new RoundStart(new DateTimeImmutable($startsAt)),
-            Uuid::v7(),
-            new StaffingRule(minimumWalkers: 2, maximumWalkers: 3),
-            new DateTimeImmutable('2026-11-01T12:00:00+00:00'),
-        );
-        self::service(InMemoryRoundRepository::class)->add($round);
-
-        return $round;
     }
 }
