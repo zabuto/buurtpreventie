@@ -170,12 +170,12 @@ MCP is off on every installation until an admin switches it on; until then `/mcp
 ```bash
 B=https://buurtpreventie.wip
 curl -sS -c /tmp/bp.jar -H 'Sec-Fetch-Site: same-origin' -H 'Content-Type: application/json' \
-  -d '{"email":"beheer@example.org","password":"voorbeeld-wachtwoord-buurt"}' "$B/api/v1/auth/login"
+  -d '{"email":"beheer@example.org","password":"voorbeeld-wachtwoord-buurt"}' -w '%{http_code}\n' "$B/api/v1/auth/login"
 curl -sS -b /tmp/bp.jar -X PATCH -H 'Sec-Fetch-Site: same-origin' -H 'Content-Type: application/json' \
   -d '{"mcpAccess":true}' -w '%{http_code}\n' "$B/api/v1/admin/settings"
 ```
 
-The second command prints `204`.
+Both print `204`, without a body.
 
 **MCP Inspector.** Start it with `npx @modelcontextprotocol/inspector`. In its page, pick the transport "Streamable
 HTTP", the address `https://buurtpreventie.wip/mcp` and the header `Authorization: Bearer <secret>`, and connect. It
