@@ -27,6 +27,23 @@ final readonly class ProblemResponses
      */
     public function create(int $status, string $code, array $headers = [], array $violations = [], array $extensions = []): JsonResponse
     {
+        return new JsonResponse(
+            $this->body($status, $code, $violations, $extensions),
+            $status,
+            [...$headers, 'Content-Type' => 'application/problem+json'],
+        );
+    }
+
+    /**
+     * The members of the problem, also for an MCP tool that reports the failure as its result.
+     *
+     * @param list<array{field: string, message: string}> $violations
+     * @param array<string, scalar> $extensions
+     *
+     * @return array<string, mixed>
+     */
+    public function body(int $status, string $code, array $violations = [], array $extensions = []): array
+    {
         $body = [
             'type' => self::TYPE_PREFIX . $code,
             'title' => $this->translator->trans($code, domain: 'problems'),
@@ -35,8 +52,7 @@ final readonly class ProblemResponses
         if ([] !== $violations) {
             $body['violations'] = $violations;
         }
-        $body = [...$body, ...$extensions];
 
-        return new JsonResponse($body, $status, [...$headers, 'Content-Type' => 'application/problem+json']);
+        return [...$body, ...$extensions];
     }
 }
