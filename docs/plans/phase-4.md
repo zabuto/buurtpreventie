@@ -435,6 +435,12 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
   - curl en Node bereiken het lokale domein alleen via de proxy van de Symfony CLI: `docs/getting-started.md` zegt het,
     met de stappen van deze test.
 
+- Opgeleverd op 17 november 2026: pull request #34 naar `develop`, CI groen op alle jobs (Checks, Database op MariaDB
+  10.11 en MySQL 8.4, Security scan), gemerged als squash. Onderweg was de Security scan één keer rood op
+  `strtolower()` in `StatisticsGrouping` (`byte-lowercase`); `mb_strtolower()` herstelde het. Daarna, op dezelfde
+  dag: `signedUp` in `staffing_gaps` en `list_rounds`, uit de open punten hieronder (branch
+  `feature/signed-up-in-round-lists`).
+
 ## Afspraken
 
 1. Claude commit op `feature/phase-4` in kleine commits en pusht de branch. De pull request gaat pas open na akkoord;
@@ -463,9 +469,6 @@ Gemeld, niet in deze fase opgelost:
   instelling die notities en opmerkingen toch via MCP geeft, standaard uit, volgt als een vereniging erom vraagt.
 - **STDIO controleert het token één keer**, bij het starten: een ingetrokken token werkt in een draaiend
   `mcp:server` tot het proces stopt. Opnieuw controleren per verzoek kan, als STDIO meer dan lokaal gebruikt wordt.
-- **Of de vrager zelf op een ronde staat** geven `staffing_gaps` en `list_rounds` niet. Claude Code zette daardoor de
-  eigen rondes van de loper tussen de rondes om bij aan te schuiven en had een extra call nodig. Een veld `signedUp`
-  in beide (ook op REST) helpt de client en het scherm van fase 5.
 - **De server kondigt `resources: {"subscribe": true}` aan** zonder meldingen te versturen (`subscriptions.bus: none`);
   dat komt uit de bundle. Een client die zich abonneert, krijgt niets.
 
