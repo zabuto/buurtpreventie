@@ -17,6 +17,7 @@ final readonly class UseCaseTemplates
         $namespace = \sprintf('App\%s\UseCase\%s', $module, $name);
         $path = '/' . \implode('-', $this->words($name));
         $routeName = \mb_strtolower($module) . '_' . \implode('_', $this->words($name));
+        $toolName = \implode('_', $this->words($name));
 
         return [
             $name . '.php' => <<<PHP
@@ -101,16 +102,26 @@ final readonly class UseCaseTemplates
 
                 namespace {$namespace};
 
+                use App\\Shared\\Infrastructure\\Mcp\\ToolInput;
+                use Mcp\\Capability\\Attribute\\McpTool;
+                use Mcp\\Schema\\ToolAnnotations;
+
+                #[McpTool(
+                    name: '{$toolName}',
+                    description: 'What the tool does, for the model that picks it.',
+                    annotations: new ToolAnnotations(readOnlyHint: true, openWorldHint: false),
+                )]
                 final readonly class {$name}Tool
                 {
                     public function __construct(
                         private {$name}Handler \$handler,
+                        private ToolInput \$input,
                     ) {
                     }
 
-                    public function __invoke({$name} \$input): {$name}Output
+                    public function __invoke(): {$name}Output
                     {
-                        return (\$this->handler)(\$input);
+                        return (\$this->handler)(\$this->input->validated(new {$name}()));
                     }
                 }
 
