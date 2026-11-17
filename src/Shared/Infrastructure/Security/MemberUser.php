@@ -66,7 +66,9 @@ final readonly class MemberUser implements UserInterface, EquatableInterface
         );
     }
 
-    #[Override]
+    /**
+     * No #[Override]: Symfony 8 drops this method from UserInterface, and the attribute would make that a fatal error.
+     */
     #[Deprecated]
     public function eraseCredentials(): void
     {
