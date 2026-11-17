@@ -12,12 +12,15 @@ use App\Patrol\Domain\Round\Round;
 use App\Patrol\Domain\Round\RoundStart;
 use App\Patrol\Domain\Round\StaffingRule;
 use App\Settings\Domain\Setting;
+use App\Shared\Domain\AuditedAction;
+use App\Shared\Domain\Channel;
 use App\Shared\Domain\Role;
 use App\Tests\Identity\Fake\InMemoryApiTokenRepository;
 use App\Tests\Membership\Fake\InMemoryMemberRepository;
 use App\Tests\Membership\Fake\MemberFixture;
 use App\Tests\Patrol\Fake\InMemoryRoundRepository;
 use App\Tests\Settings\Fake\InMemorySettingRepository;
+use App\Tests\Shared\Fake\RecordingAuditTrail;
 use DateTimeImmutable;
 use Mcp\Client;
 use Mcp\Client\Transport\HttpTransport;
@@ -115,6 +118,33 @@ abstract class McpTestCase extends ApiTestCase
         self::assertResponseIsSuccessful();
 
         return self::json($browser);
+    }
+
+    /**
+     * The audit actions recorded so far, each with the channel it came in through.
+     *
+     * @return list<array{string, string}> action name and channel
+     */
+    protected static function audited(): array
+    {
+        $trail = self::service(RecordingAuditTrail::class);
+
+        return \array_map(
+            static fn(AuditedAction $action, Channel $channel): array => [$action->action, $channel->value],
+            $trail->recorded,
+            $trail->channels,
+        );
+    }
+
+    /**
+     * Sends a changing request over REST with the token of the test, for the parity of a writing tool.
+     *
+     * @param array<string, mixed>|null $body
+     */
+    protected static function restWrite(KernelBrowser $browser, string $method, string $path, ?array $body = null): void
+    {
+        $browser->jsonRequest($method, $path, $body ?? [], server: ['HTTP_AUTHORIZATION' => 'Bearer ' . self::SECRET]);
+        self::assertResponseIsSuccessful();
     }
 
     protected static function token(Member $member, TokenScope ...$scopes): ApiToken
