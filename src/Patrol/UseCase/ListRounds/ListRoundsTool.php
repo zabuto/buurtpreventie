@@ -6,6 +6,7 @@ namespace App\Patrol\UseCase\ListRounds;
 
 use App\Shared\Infrastructure\Mcp\ToolInput;
 use Mcp\Capability\Attribute\McpTool;
+use Mcp\Capability\Attribute\Schema;
 use Mcp\Schema\ToolAnnotations;
 
 #[McpTool(
@@ -26,7 +27,7 @@ final readonly class ListRoundsTool
      * @param string $to end of the period (not included), ISO 8601 with offset
      * @param string|null $status only rounds with this status: seeking_buddy, staffed, walked, not_walked or cancelled
      */
-    public function __invoke(string $from, string $to, ?string $status = null): ListRoundsOutput
+    public function __invoke(string $from, string $to, #[Schema(type: 'string')] ?string $status = null): ListRoundsOutput
     {
         return ($this->handler)($this->input->validated(new ListRounds($from, $to, $status)));
     }

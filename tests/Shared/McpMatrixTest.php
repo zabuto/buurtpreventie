@@ -43,6 +43,28 @@ final class McpMatrixTest extends McpTestCase
     }
 
     /**
+     * A type list such as ["null", "string"] is valid JSON Schema, but a client that maps tool schemas onto a dialect
+     * with one type per property, such as Gemini, may reject the tool. An optional argument is left out instead.
+     */
+    #[Test]
+    public function it_gives_every_argument_of_every_tool_a_single_type(): void
+    {
+        $browser = self::mcpBrowser();
+        self::token(self::member());
+
+        $listed = [];
+        foreach (self::connect($browser)->listTools()->tools as $tool) {
+            $properties = $tool->inputSchema['properties'] ?? [];
+            foreach (\is_array($properties) ? $properties : [] as $name => $property) {
+                $listed[$tool->name . '.' . $name] = \is_array($property) ? $property['type'] ?? null : null;
+            }
+        }
+
+        self::assertNotSame([], $listed);
+        self::assertSame([], \array_keys(\array_filter($listed, static fn(mixed $type): bool => !\is_string($type))));
+    }
+
+    /**
      * @return iterable<string, array{string, bool}>
      */
     public static function tools(): iterable

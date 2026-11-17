@@ -6,6 +6,7 @@ namespace App\Patrol\UseCase\FindStaffingGaps;
 
 use App\Shared\Infrastructure\Mcp\ToolInput;
 use Mcp\Capability\Attribute\McpTool;
+use Mcp\Capability\Attribute\Schema;
 use Mcp\Schema\ToolAnnotations;
 
 #[McpTool(
@@ -24,7 +25,7 @@ final readonly class FindStaffingGapsTool
     /**
      * @param int|null $days only rounds that start within this many days from now, 1 to 31; leave out for every upcoming round
      */
-    public function __invoke(?int $days = null): FindStaffingGapsOutput
+    public function __invoke(#[Schema(type: 'integer')] ?int $days = null): FindStaffingGapsOutput
     {
         return ($this->handler)($this->input->validated(new FindStaffingGaps($days)));
     }

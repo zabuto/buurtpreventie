@@ -135,6 +135,8 @@ Things that are not obvious and cost time when you do not know them.
   the container fails to build.
 - **A listener on an event of the SDK cannot refuse a call**: an exception there escapes the transport as a 500. A
   check per tool belongs in a reference handler, as `ScopedReferenceHandler` does.
+- **The SDK publishes a nullable parameter as a type list** (`["null", "string"]`). That is valid JSON Schema, but a
+  client with one type per property rejects it; `#[Schema(type: 'string')]` on the parameter gives one type.
 - **The SDK checks the arguments against the input schema before any reference handler**: a missing argument is a
   JSON-RPC error (`-32602`), not a tool result with a problem.
 - **`ping` does not exist in revision `2026-07-28`**, and a request of that revision needs

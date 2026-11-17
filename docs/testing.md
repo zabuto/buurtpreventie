@@ -153,8 +153,9 @@ for the DNS rebinding protection and counts MCP requests in an `ArrayAdapter`, l
   same audit action, on the channel `mcp` against `api`. `RecordingAuditTrail` keeps the channel of every action.
 - `tests/Shared/McpToolGuardTest.php` holds every `…Tool` class to `#[McpTool]` with a `readOnlyHint` and to a test
   of its own with a parity check.
-- `tests/Shared/McpMatrixTest.php` checks that the server serves the tools of the plan, that a read-only token reaches
-  exactly the tools that only read, and that an administrator reaches only the tools for every member.
+- `tests/Shared/McpMatrixTest.php` checks that the server serves the tools of the plan, that every argument of every
+  tool has a single type, that a read-only token reaches exactly the tools that only read, and that an administrator
+  reaches only the tools for every member.
 - `tests/Shared/McpContactDetailsTest.php` calls every tool, the resource and both prompts as a member who sees the
   most, with walkers who consented to sharing contact details and a note and comment that hold a phone number and an
   e-mail address, and finds none of them (review focus 3).

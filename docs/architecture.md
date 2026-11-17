@@ -465,7 +465,9 @@ The reasons are in [ADR 0008](adr/0008-mcp-server.md). `symfony/mcp-bundle` serv
 
 **Tools.** A tool is the `…Tool` class of its use case, with `#[McpTool]`: name, description and `ToolAnnotations`.
 It maps its arguments onto the input, validates that with `ToolInput` and calls its handler; the output goes back as
-`structuredContent` and as JSON text.
+`structuredContent` and as JSON text. An optional argument carries `#[Schema(type: …)]`, so its schema has one type
+and the argument is simply left out: the SDK would otherwise publish `["null", "string"]`, which some clients, such as
+Gemini, reject.
 
 | Tool | Use case | Scope | Who (voter attribute) |
 | --- | --- | --- | --- |

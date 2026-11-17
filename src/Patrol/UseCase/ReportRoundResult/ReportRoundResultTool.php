@@ -6,6 +6,7 @@ namespace App\Patrol\UseCase\ReportRoundResult;
 
 use App\Shared\Infrastructure\Mcp\ToolInput;
 use Mcp\Capability\Attribute\McpTool;
+use Mcp\Capability\Attribute\Schema;
 use Mcp\Schema\ToolAnnotations;
 
 #[McpTool(
@@ -32,7 +33,7 @@ final readonly class ReportRoundResultTool
      * @param string $outcomeId the id of an outcome from list_outcomes
      * @param string|null $note what happened, at most 5,000 characters; never names or contact details of others
      */
-    public function __invoke(string $roundId, string $outcomeId, ?string $note = null): ReportRoundResultOutput
+    public function __invoke(string $roundId, string $outcomeId, #[Schema(type: 'string')] ?string $note = null): ReportRoundResultOutput
     {
         return ($this->handler)($this->input->validated(new ReportRoundResult($roundId, $outcomeId, $note)));
     }

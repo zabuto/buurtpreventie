@@ -6,6 +6,7 @@ namespace App\Patrol\UseCase\CreateRound;
 
 use App\Shared\Infrastructure\Mcp\ToolInput;
 use Mcp\Capability\Attribute\McpTool;
+use Mcp\Capability\Attribute\Schema;
 use Mcp\Schema\ToolAnnotations;
 
 #[McpTool(
@@ -35,8 +36,11 @@ final readonly class CreateRoundTool
      */
     public function __invoke(
         string $startsAt,
+        #[Schema(type: 'string')]
         ?string $meetingPointId = null,
+        #[Schema(type: 'string')]
         ?string $startNote = null,
+        #[Schema(type: 'string')]
         ?string $comment = null,
     ): CreateRoundOutput {
         return ($this->handler)($this->input->validated(new CreateRound(

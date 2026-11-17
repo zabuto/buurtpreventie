@@ -6,6 +6,7 @@ namespace App\Patrol\UseCase\ListMyRounds;
 
 use App\Shared\Infrastructure\Mcp\ToolInput;
 use Mcp\Capability\Attribute\McpTool;
+use Mcp\Capability\Attribute\Schema;
 use Mcp\Schema\ToolAnnotations;
 
 #[McpTool(
@@ -30,7 +31,9 @@ final readonly class ListMyRoundsTool
      */
     public function __invoke(
         string $view = 'upcoming',
+        #[Schema(type: 'string')]
         ?string $from = null,
+        #[Schema(type: 'string')]
         ?string $to = null,
         string $order = 'asc',
         int $limit = 50,
