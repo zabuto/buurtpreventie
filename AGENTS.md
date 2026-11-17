@@ -37,7 +37,11 @@ The plan lives in docs/plans/plan.md and is leading. Read it before every phase.
   Tests follow Arrange-Act-Assert, check one behaviour each, carry #[Test] with a snake_case
   sentence (it_… for the class under test), never depend on another test, and stay in memory
   unless grouped integration or functional (docs/testing.md).
-- Run every check before calling a task done, and report any check that did not run.
+- While working, run only the tests a change touches, plus the cross-cutting ones it reaches: HttpMatrixTest
+  for a route or Voter, the OpenAPI tests for an endpoint, ArchitectureRulesTest and ModuleStructureTest for a
+  new class or folder.
+- Run the full symfony composer check once before calling a task done, locally and not only in CI, and report
+  any check that did not run.
 - Every write action = audit entry + Voter + a row in the matrix test.
 - New texts in nl and en; screens checked with keyboard only and on a narrow screen.
 - Fixtures and glossary updated when the model changed.
@@ -47,6 +51,8 @@ The plan lives in docs/plans/plan.md and is leading. Read it before every phase.
 
 - Only made-up sample data (symfony console app:fixtures:load demo).
   Never real personal data in the repo, in tests or in fixtures.
+- Every session on the machine shares the development database buurtpreventie: only one session at a time loads
+  sample data into it or runs the app against it, Hurl included.
 - Never commit secrets; they belong in .env.local or shared/.env.local.
 - The committed .env, .env.dev and .env.test are public and hold no secrets: agents may read and
   edit them. .env.local, .env.*.local and shared/.env.local hold secrets: never read or commit them.
@@ -56,6 +62,9 @@ The plan lives in docs/plans/plan.md and is leading. Read it before every phase.
 - Work on a feature/<short-name> branch from develop, in small commits, and merge it
   back into develop through a pull request, always as a squash merge: one commit per pull request,
   with the pull request title as its message.
+- A branch for a GitHub issue starts its short name with the issue number, as GitHub names it
+  (feature/26-<short-name>, hotfix/26-<short-name>). Its pull request description carries
+  "Fixes #26": the squash commit keeps only the title, so the description is what closes the issue.
 - main only holds released versions: a release is develop merged into main (a merge commit, never a
   squash, so main keeps the commits of develop) with a tag vX.Y.Z. Urgent fixes go through hotfix/<short-name> from main, back into main and develop.
 - ../buurtpreventie-legacy is the old repository (MIT): read only, never change it.
