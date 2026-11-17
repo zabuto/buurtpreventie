@@ -59,11 +59,11 @@ The plan lives in docs/plans/plan.md and is leading. Read it before every phase.
 
 ## Way of working
 
-- Work on a feature/<short-name> branch from develop, in small commits, and merge it
-  back into develop through a pull request, always as a squash merge: one commit per pull request,
+- Work on a feature/<short-name> branch from develop (bugfix/<short-name> for a bug fix), in small
+  commits, and merge it back into develop through a pull request, always as a squash merge: one commit per pull request,
   with the pull request title as its message.
 - A branch for a GitHub issue starts its short name with the issue number, as GitHub names it
-  (feature/26-<short-name>, hotfix/26-<short-name>). Its pull request description carries
+  (feature/26-<short-name>, bugfix/26-<short-name>, hotfix/26-<short-name>). Its pull request description carries
   "Fixes #26": the squash commit keeps only the title, so the description is what closes the issue.
 - main only holds released versions: a release is develop merged into main (a merge commit, never a
   squash, so main keeps the commits of develop) with a tag vX.Y.Z. Urgent fixes go through hotfix/<short-name> from main, back into main and develop.

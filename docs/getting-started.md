@@ -165,5 +165,6 @@ What each check does: [testing.md](testing.md).
    [glossary.md](glossary.md). Code and texts follow [code-style.md](code-style.md) and
    [writing.md](writing.md).
 3. Follow [Adding a feature](architecture.md#adding-a-feature).
-4. Work on a `feature/<short-name>` branch from `develop` and deliver through a pull request.
+4. Work on a `feature/<short-name>` branch from `develop`, or `bugfix/<short-name>` for a bug fix,
+   and deliver through a pull request.
    `composer check` must be green.
