@@ -10,7 +10,7 @@ use Mcp\Schema\ToolAnnotations;
 
 #[McpTool(
     name: 'get_round',
-    description: 'One round: start, status, staffing, meeting point, the walkers by display name, its report and its comments. The note of a report and the comments show only for its walkers, coordinators and analysts.',
+    description: 'One round: start, status, staffing, meeting point, the walkers by display name and the outcome of its report. Notes and comments are read in the app only.',
     annotations: new ToolAnnotations(title: 'One round', readOnlyHint: true, openWorldHint: false),
 )]
 final readonly class GetRoundTool
@@ -23,6 +23,8 @@ final readonly class GetRoundTool
 
     /**
      * The walkers lose their full name and phone number: an AI client gets no contact details, not even with consent.
+     * The note of the report and the comments stay out too: members type them freely, often about a suspect, and that
+     * text would leave the association for the provider of the AI client.
      *
      * @param string $roundId the id of the round
      *
@@ -50,8 +52,8 @@ final readonly class GetRoundTool
                 $round->walkers,
             ),
             'inactiveWalkerCount' => $round->inactiveWalkerCount,
-            'report' => $round->report,
-            'comments' => $round->comments,
+            'report' => null === $round->report ? null : [...$round->report, 'note' => null],
+            'comments' => [],
         ];
     }
 }

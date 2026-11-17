@@ -2,7 +2,8 @@
 
 An AI client such as Claude Code can read rounds, find rounds that need a buddy, sign you up and report back, through
 the MCP server of the app. It acts as you, with your roles: it can do what you can do in the app, and nothing more.
-It never gets phone numbers, addresses or e-mail addresses, also not of members who share theirs with you.
+It never gets phone numbers, addresses or e-mail addresses, also not of members who share theirs with you, and it
+never reads the notes and comments of a round: those can be about other people, so they stay in the app.
 
 ## Before you start
 
@@ -41,7 +42,7 @@ Choose the transport "Streamable HTTP", the address `https://…/mcp` of your ap
 | Tool | What it does | Who |
 | --- | --- | --- |
 | `list_rounds` | Rounds in a period, with status and walkers needed | every member |
-| `get_round` | One round with its walkers (display names), report and comments | every member |
+| `get_round` | One round with its walkers (display names) and the outcome of its report; notes and comments only in the app | every member |
 | `my_rounds` | Your own upcoming rounds, or walked ones still waiting for your report | every member |
 | `staffing_gaps` | Upcoming rounds that need walkers | every member |
 | `list_meeting_points`, `list_outcomes` | The choices for a new round and a report | every member |

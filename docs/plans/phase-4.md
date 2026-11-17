@@ -410,6 +410,12 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
   `docs/testing.md` (MCP-tests), `docs/glossary.md`, `docs/gotchas.md` (sectie MCP), `docs/user-guide/mcp.md`,
   `plan.md`, `CHANGELOG.md` en `AGENTS.md`.
 
+- Aanvulling, besloten op 17 november 2026 na T11: **notities en opmerkingen gaan niet via MCP.** `get_round` geeft
+  de uitkomst van de terugmelding met notitie `null` en geen opmerkingen; startnotitie en reden van annulering blijven.
+  Leden typen notities en opmerkingen vrij, vaak over een verdachte, en via MCP gaat die tekst naar de aanbieder van
+  de AI-client. Filteren op patronen is onbetrouwbaar. `McpContactDetailsTest` zet een telefoonnummer en e-mailadres
+  in een notitie en een opmerking, en `GetRoundToolTest` vergelijkt met REST zonder die tekst.
+
 ### T12. Verifiëren en opleveren
 
 - `composer test` zonder database, `symfony composer check`; uitvoer in het verslag, met elke check die niet draaide.
@@ -442,8 +448,7 @@ Gemeld, niet in deze fase opgelost:
 - **`mcp/sdk` 0.10 en de bundle 1.0** komen met een eigen pull request zodra een uitgebrachte bundle ze ondersteunt.
 - **OAuth voor MCP-clients** blijft U10.
 - **Het beheerscherm** voor de MCP-schakelaar bouwt fase 5 op `PATCH /admin/settings`.
-- **Door leden getypte tekst** (notitie, opmerking, startnotitie) gaat ongefilterd naar de client, net als in de app.
-  Een telefoonnummer dat een lid in een opmerking typt, bereikt zo de AI-client. Filteren op patronen is onbetrouwbaar;
-  een hint in de app bij het typen ("geen contactgegevens") kan in fase 5.
+- **Een hint bij het typen** van een notitie of opmerking ("geen namen of contactgegevens") hoort bij fase 5. Een
+  instelling die notities en opmerkingen toch via MCP geeft, standaard uit, volgt als een vereniging erom vraagt.
 - **STDIO controleert het token één keer**, bij het starten: een ingetrokken token werkt in een draaiend
   `mcp:server` tot het proces stopt. Opnieuw controleren per verzoek kan, als STDIO meer dan lokaal gebruikt wordt.

@@ -253,8 +253,8 @@ abstract class McpTestCase extends ApiTestCase
 
     /**
      * Arguments every tool accepts, on a walked round of two walkers who consented to sharing contact details, with a
-     * report and a comment. Each tool takes the ones it knows; a tool for a round gets the walked one, which its voter
-     * judges.
+     * report and a comment that hold a phone number and an e-mail address, as members type them. Each tool takes the
+     * ones it knows; a tool for a round gets the walked one, which its voter judges.
      *
      * @return array<string, mixed>
      */
@@ -267,11 +267,11 @@ abstract class McpTestCase extends ApiTestCase
 
         $piet = self::walker('Piet K.');
         $walked = self::round('2026-11-14T20:00:00+00:00', $piet, self::walker('Kees V.'));
-        $walked->submitReport($piet->id(), $outcome, 'Lamp kapot bij de speeltuin.', new DateTimeImmutable('2026-11-15T08:00:00+00:00'));
+        $walked->submitReport($piet->id(), $outcome, 'Bel me terug op 06 1234 5678.', new DateTimeImmutable('2026-11-15T08:00:00+00:00'));
         self::service(InMemoryRoundCommentRepository::class)->add(RoundComment::post(
             $walked,
             $piet->id(),
-            'Ik neem een zaklamp mee.',
+            'Mail me: piet@example.org.',
             new DateTimeImmutable('2026-11-15T09:00:00+00:00'),
         ));
 

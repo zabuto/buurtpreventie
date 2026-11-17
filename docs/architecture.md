@@ -477,9 +477,10 @@ It maps its arguments onto the input, validates that with `ToolInput` and calls 
 
 A tool acts only for the member of the token: none takes a member id, so acting on behalf of someone stays in the
 app. `get_round` gives each walker its id and display name only, never the full name or phone number, whatever the
-consent. Text members typed (`note`, `text`, `startNote`, `cancelReason`) stays in its own field, and the instructions
-of the server call it data, not instructions. The server does not filter that text: a phone number typed into a
-comment reaches the client as it reaches the app. `withdraw_from_round` carries `destructiveHint: true`, because the
+consent. It gives the outcome of the report with the note `null` and no comments: members type those freely, often
+about a suspect, and over MCP that text would leave the association for the provider of the AI client; they are read
+in the app. `startNote` and `cancelReason` stay, short practical text a client needs to plan, in their own field;
+the instructions of the server call such text data, not instructions. `withdraw_from_round` carries `destructiveHint: true`, because the
 last walker who withdraws makes the round lapse.
 
 **Scope and failures.** `McpServerFactory` builds the server of the bundle with a reference handler of this app around

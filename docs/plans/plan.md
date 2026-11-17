@@ -542,7 +542,7 @@ De MCP-server is een dunne laag op `/mcp` die dezelfde use cases en Voters aanro
 
 - Elk verzoek werkt als het lid van het token; scope én rol moeten kloppen.
 - Uitvoer bevat alleen wat nodig is: geen telefoonnummers of adressen, ook niet bij toestemming.
-- Notities en opmerkingen zijn door leden getypte tekst; tool-uitvoer zet ze in een apart veld, zodat clients ze als data behandelen en niet als instructie.
+- Notities en opmerkingen zijn door leden getypte tekst, vaak over een verdachte; MCP geeft ze niet (besloten op 17 november 2026, fase 4): `get_round` geeft de uitkomst van de terugmelding zonder notitie en geen opmerkingen. Startnotitie en reden van annulering staan in een eigen veld, zodat clients ze als data behandelen en niet als instructie.
 - Schrijftools krijgen MCP-annotaties (`readOnlyHint`, `destructiveHint: false`, `idempotentHint` bij aan-/afmelden).
 - Rate limit per token met `symfony/rate-limiter` op de bestandscache.
 - DNS-rebinding-bescherming van de bundle met de eigen hostnaam als enige toegestane host.

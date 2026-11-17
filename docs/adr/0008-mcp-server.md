@@ -33,8 +33,12 @@ hold anything, including text that reads as an instruction to the model.
 - **Scope per tool from its annotations**: `read` for a tool that only reads, `write` for the rest. Every MCP request
   is a POST, so the scope per HTTP method of the API cannot tell them apart.
 - **No contact details over MCP**, consent or not: a walker shows by id and display name only, and the resource leaves
-  out the contact of the association. Text members typed stays in its own field, and the instructions of the server
-  call it data.
+  out the contact of the association.
+- **No notes or comments over MCP.** A round gives the outcome of its report, without the note, and no comments.
+  Members type them freely, often about a suspect; filtering them for phone numbers and names cannot be relied on.
+  Writing them through a tool stays possible: the client has seen that text already. The start note and the reason
+  for a cancellation stay, as short practical text, in their own field, which the instructions of the server call
+  data.
 - **No tool deletes**, and none manages members, settings or tokens: those stay in the app, where a person confirms.
 - **A limit of 60 requests a minute per token**, counted in files, and the DNS rebinding protection of the bundle with
   the host of the app as the only host.
@@ -50,8 +54,9 @@ hold anything, including text that reads as an instruction to the model.
   `mcp`.
 - Analysts and coordinators get statistics and a summary of the reports over REST too (`/stats`,
   `/reports/summary`), since a tool calls a handler that REST calls as well.
-- A phone number a member types into a note or comment reaches the client as it reaches the app: the server does not
-  filter free text.
+- Notes and comments are read in the app only; an association that wants them over MCP needs a setting of its own,
+  off by default, which does not exist yet.
+- A start note or cancellation reason reaches the client as typed: the server filters no free text.
 - STDIO checks its token once, at start: after revoking a token, a running `mcp:server` stops only when its process
   ends.
 - An update of the SDK or the bundle can break the server; the tests through the client of the SDK, per tool and per

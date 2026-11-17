@@ -21,7 +21,8 @@ final class McpContactDetailsTest extends McpTestCase
 {
     /**
      * A coordinator who also analyses and walks sees the most; even then no tool, resource or prompt gives a phone
-     * number, address or e-mail address, of a walker who consented to sharing them or of the association.
+     * number, address or e-mail address: of a walker who consented to sharing them, of the association, or typed into
+     * a note or comment.
      */
     #[Test]
     public function it_gives_no_contact_details_in_any_answer(): void

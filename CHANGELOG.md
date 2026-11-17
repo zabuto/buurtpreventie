@@ -212,7 +212,8 @@ versions follow [Semantic Versioning](https://semver.org/).
   `my_rounds`, `staffing_gaps`, `list_meeting_points`, `list_outcomes`, `sign_up_for_round`, `withdraw_from_round`,
   `create_round`, `report_round_result`, `add_round_comment`, `report_summary` and `round_statistics`. A tool that
   only reads needs the scope `read`, any other `write`; a failed call is a tool result with the problem REST would
-  answer. No tool, resource or prompt gives a phone number, address or e-mail address.
+  answer. No tool, resource or prompt gives a phone number, address or e-mail address, nor the note of a report or
+  a comment.
 - The resource `buurtpreventie://config` and the prompts `monthly_report` and `plan_week`.
 - `GET /api/v1/stats?from=&to=&groupBy=` (`RoundStatistics`): how the rounds of a period of at most a year went per
   month, weekday or daypart, next to the period before, for analysts and coordinators.

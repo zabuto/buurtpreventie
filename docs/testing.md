@@ -149,15 +149,15 @@ revision `2026-07-28` or, when a test asks, an older one with the handshake. The
 for the DNS rebinding protection and counts MCP requests in an `ArrayAdapter`, like login attempts.
 
 - Every tool has a test next to its handler test with a parity check: the same question over REST with the same
-  token gives the same answer (`get_round` without full name and phone of the walkers), and a write tool gives the
+  token gives the same answer (`get_round` without full name and phone of the walkers, the note of the report and the comments), and a write tool gives the
   same audit action, on the channel `mcp` against `api`. `RecordingAuditTrail` keeps the channel of every action.
 - `tests/Shared/McpToolGuardTest.php` holds every `…Tool` class to `#[McpTool]` with a `readOnlyHint` and to a test
   of its own with a parity check.
 - `tests/Shared/McpMatrixTest.php` checks that the server serves the tools of the plan, that a read-only token reaches
   exactly the tools that only read, and that an administrator reaches only the tools for every member.
 - `tests/Shared/McpContactDetailsTest.php` calls every tool, the resource and both prompts as a member who sees the
-  most, with walkers who consented to sharing contact details, and finds no phone number, address or e-mail address
-  (review focus 3).
+  most, with walkers who consented to sharing contact details and a note and comment that hold a phone number and an
+  e-mail address, and finds none of them (review focus 3).
 - `tests/Identity/Infrastructure/Mcp/` covers the switch, the token-only firewall, both eras, the rate limit, the
   host and origin checks, and STDIO.
 
