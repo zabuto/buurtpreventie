@@ -829,6 +829,7 @@ Fase 3, 4 en 5 hangen alleen van de API af; MCP (fase 4) gaat vóór de frontend
   - **Een slot op één rij met de laatste hash**, als laatste stap van de transactie, zodat twee gelijktijdige schrijfacties nooit aan dezelfde vorige regel koppelen. Het zet alle schrijfacties achter elkaar, wat bij tientallen gebruikers niets uitmaakt; omdat het altijd als laatste komt, kan het niet vastlopen op het slot van een ronde.
   - `app:audit:verify` meldt "intact tot en met …" of de eerste regel die niet klopt; Onderhoud (fase 6b) toont hetzelfde.
   - Tests: een gewijzigde, verwijderde of tussengevoegde regel valt op; wissen en opruimen breken de keten niet; twee gelijktijdige schrijfacties op MariaDB en MySQL geven een kloppende keten.
+- [x] Aanvulling: elke PHPUnit-run krijgt een eigen testdatabase en gooit die aan het eind weg, zodat twee runs op één machine (twee terminals of twee agent-sessies) elkaars tabellen niet weghalen. In `AGENTS.md` staan de afspraken die erbij horen: tijdens het werk alleen de geraakte tests, de volledige `symfony composer check` één keer voordat een taak klaar is, en één sessie tegelijk op de ontwikkeldatabase. De metingen en de afweging staan in `docs/plans/phase-3-check-speed.md`.
 
 **Klaar als:** een tweede vereniging alleen via `/admin/settings` en de logo-upload (API) een eigen naam, logo, kleuren en teksten krijgt, zonder codewijziging; het beheerscherm in fase 5 gebruikt dezelfde endpoints.
 
@@ -1055,7 +1056,8 @@ v4 komt in een **nieuwe repo** `zabuto/buurtpreventie`, met vanaf de eerste comm
 
 **Branches en versies in de nieuwe repo.**
 
-- **`develop`:** hier gebeurt het werk, en tot `v4.0.0` is dit de standaardbranch op GitHub. Elke taak krijgt een eigen branch `feature/<korte-naam>` en gaat via een pull request terug, altijd als squash merge: één commit per pull request.
+- **`develop`:** hier gebeurt het werk, en tot `v4.0.0` is dit de standaardbranch op GitHub. Elke taak krijgt een eigen branch `feature/<korte-naam>`, een bugfix `bugfix/<korte-naam>`, en gaat via een pull request terug, altijd als squash merge: één commit per pull request.
+- **GitHub-issue:** de korte naam van de branch begint met het nummer van het issue (`bugfix/26-<korte-naam>`), en de beschrijving van de pull request bevat `Fixes #26`: de squash commit houdt alleen de titel, dus de beschrijving sluit het issue.
 - **`main`:** alleen uitgebrachte versies. Een release is een merge van `develop` naar `main` (een merge commit, geen squash, zodat `main` de commits van `develop` houdt) met een tag `vX.Y.Z`; die tag start de release-workflow. `v4.0.0` is de MVP; vanaf dan is `main` de standaardbranch.
 - **Spoedfix:** `hotfix/<korte-naam>` vanaf `main`, terug naar `main` met een nieuwe patchtag, én naar `develop`.
 - **Dependabot:** gewone updates richten zich op `develop`; beveiligingsupdates gaan via de standaardbranch.
