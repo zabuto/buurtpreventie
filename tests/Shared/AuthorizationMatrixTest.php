@@ -108,6 +108,7 @@ final class AuthorizationMatrixTest extends TestCase
         yield 'report.delete of another author' => ['report.delete', static fn(Uuid $actor): mixed => self::reportBy(Uuid::v7()), ['coordinator']];
         yield 'report.delete by its author' => ['report.delete', self::reportBy(...), self::MEMBERS];
         yield 'report.list' => ['report.list', $nobody, ['coordinator', 'analyst']];
+        yield 'round.statistics' => ['round.statistics', $nobody, ['coordinator', 'analyst']];
 
         yield 'comment.add on a round of others' => ['comment.add', $roundOfOthers, ['coordinator']];
         yield 'comment.add by a walker of the round' => ['comment.add', $roundWalkedWithBuddy, self::MEMBERS];

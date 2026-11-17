@@ -29,7 +29,7 @@ final readonly class ReportReadingPolicy
     }
 
     /**
-     * The reports of every round, for analysis.
+     * The reports of every round and the statistics they feed, for analysis.
      */
     public function mayListReports(Actor $actor): bool
     {

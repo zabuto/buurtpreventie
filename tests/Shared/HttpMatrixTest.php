@@ -167,6 +167,8 @@ final class HttpMatrixTest extends ApiTestCase
             'patrol_add_round_comment' => ['POST', '/api/v1/rounds/{pastRound}/comments', ['text' => 'Mooie avond.'], ['coordinator']],
             'patrol_delete_round_comment' => ['DELETE', '/api/v1/comments/{comment}', null, ['coordinator']],
             'patrol_list_round_reports' => ['GET', '/api/v1/reports?' . self::PERIOD, null, ['coordinator', 'analyst']],
+            'patrol_summarise_round_reports' => ['GET', '/api/v1/reports/summary?' . self::PERIOD, null, ['coordinator', 'analyst']],
+            'patrol_round_statistics' => ['GET', '/api/v1/stats?' . self::PERIOD, null, ['coordinator', 'analyst']],
             'audit_get_round_history' => ['GET', '/api/v1/rounds/{round}/history', null, ['coordinator']],
         ];
     }
