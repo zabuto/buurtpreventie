@@ -725,7 +725,8 @@ Per regel eerst het testbestand, dan de regel (beslissing 35). Lokaal gedraaid z
   - opgeleverd op 17 november 2026: pull request #28 naar `develop`, CI groen op alle jobs (Checks, Database op
     MariaDB 10.11 en MySQL 8.4, Security scan), gemerged als squash. Daarna, op dezelfde dag: #29 herstelt de 500
     van `GET /rounds` bij een ronde op een ontmoetingspunt, gevonden met de Hurl-bestanden, en #30 brengt die
-    bestanden (`phase-3-hurl.md`);
+    bestanden (`phase-3-hurl.md`). #33 geeft elke testrun een eigen database, zodat twee runs op één machine elkaar
+    niet rood maken, met de afspraken daarover in `AGENTS.md` (`phase-3-check-speed.md`);
   - gezien, niet opgelost: het laden van `demo` verstuurt twee mails "te weinig lopers" over rondes uit de nagespeelde
     historie, omdat elk bericht in deze fase een mail is; en een teruggedraaide upload (zoals in de fixturetest) laat
     ongebruikte bestanden in `UPLOAD_DIR` staan, die niemand opruimt. Beide als open punt hieronder.
