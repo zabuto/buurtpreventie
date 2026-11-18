@@ -396,10 +396,10 @@ Eenvoud in gebruik:
 - **Hulp van de coördinator:** een nieuwe uitnodiging laten sturen, zonder de link zelf te zien, en een loper die het zelf niet lukt namens hem aan- of afmelden; dat staat als "namens" in het auditlog.
 - **Handleiding voor lopers:** één A4 met schermafbeeldingen in `docs/user-guide/`, en dezelfde uitleg in de app onder "Hoe werkt het?".
 
-Testen met echte lopers en toestellen:
+Testen met echte lopers en toestellen doet de vereniging, en zij is verantwoordelijk voor de uitkomst. De ontwikkelaar zoekt geen lopers of toestellen; de dekking van zijn kant komt uit CI (browsertests in Chromium, WebKit en Firefox, en de controle dat de eigen code niets gebruikt wat Safari 15 mist). Wat de vereniging vóór livegang doet:
 
-- Op een goedkope Android-telefoon, bij elke release. iOS 15 wordt niet met de hand getest: CI controleert dat de eigen code niets gebruikt wat Safari 15 mist, en de browsertests draaien in WebKit.
-- Vóór livegang een gebruikerstest met drie lopers, onder wie de minst ervaren, met drie opdrachten: meld je aan bij een ronde die een loopmaatje zoekt, meld je weer af, geef door dat je niets bijzonders zag.
+- Een gebruikerstest met drie van haar lopers, onder wie de minst ervaren, op hun eigen telefoon, met drie opdrachten: meld je aan bij een ronde die een loopmaatje zoekt, meld je weer af, geef door dat je niets bijzonders zag.
+- Wat niet werkt, meldt ze als issue, met toestel en browserversie.
 
 **WCAG 2.2 niveau AA.** Een vereniging is daar wettelijk niet altijd toe verplicht, maar lopers zijn vaak ouder of op straat met één hand bezig. De punten die in deze app het meest uitmaken:
 

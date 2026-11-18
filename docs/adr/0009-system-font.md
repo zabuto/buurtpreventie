@@ -45,10 +45,12 @@ turn it up.
 - **Room around text**: no fixed widths around text, buttons that grow in height, labels that may wrap to two lines.
   No text has to fit exactly on one line; where a design suggests it, such as the calendar blocks, the text stays
   short and may wrap.
-- **Checks** (phase 5 plan, decisions 29 and 30): the browser tests run in Chromium and WebKit at 320, 360 and 390 px,
-  fail on horizontal scrolling at 320 px and with text at 200 % (WCAG 1.4.4 and 1.4.10), and nothing may be cut off.
+- **Checks** (phase 5 plan, decisions 29 and 30): the browser tests run in Chromium, WebKit and Firefox at 320,
+  360 and 390 px, fail on horizontal scrolling at 320 px and with text at 200 % (WCAG 1.4.4 and 1.4.10), and nothing
+  may be cut off.
   The fonts in CI are not those of a phone: the default sans-serif on the Ubuntu runners is DejaVu Sans, wider than
   every system font above, which makes an overflow test there stricter than on a phone. CI therefore installs no
   fonts.
-- **Real devices** before an association switches: an Android phone with the text size at its maximum, preferably a
-  Samsung, and an iPhone with Safari text at 200 % (the aA menu). CI does not replace that check.
+- **Real devices**, checked by the association before it switches, not by the developer: an Android phone with the
+  text size at its maximum, preferably a Samsung, and an iPhone with Safari text at 200 % (the aA menu). CI does not
+  replace that check.

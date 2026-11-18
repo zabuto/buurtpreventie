@@ -157,7 +157,7 @@ README; `flow` is een overzicht, geen scherm.
    notitie op de pagina "Mobile" legt het uit. Een goedgekeurd scherm dat daarna verandert, gaat terug naar
    "· concept". De README in `docs/design/walker/mobile/` volgt de titel: "draft" of "approved <datum>".
 3. **Geen sessies met testlopers in deze fase** (besloten op 18 november 2026). De ontwikkelaar keurt de schermen
-   goed. De gebruikerstest met lopers vóór livegang (plan, Frontend) blijft staan.
+   goed. Testen met lopers en hun toestellen doet de vereniging vóór livegang (plan, Frontend).
 4. **Het systeemlettertype, op elk toestel** (besloten op 18 november 2026; vastgesteld 13; ADR 0009):
    `system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`, dus San Francisco op een iPhone, Roboto op Android en
    Segoe UI op Windows. Op iOS zet `font: -apple-system-body` op `<html>` de basismaat volgens de tekstgrootte
