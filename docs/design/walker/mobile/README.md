@@ -13,8 +13,8 @@ access to the canvas. Only a screen with status "approved" is built.
   the PNG ("Inloggen · goedgekeurd 18 nov@2x.png"), so every export is renamed to the Image column below.
 - **Format:** PNG, exported from the canvas at **2x**: a screen 390 px wide is 780 px in the image. A size taken from
   the image divided by two is the size in CSS pixels (a button 104 px high in the image is 52 px in the code).
-- **Font:** the system font ([ADR 0009](../../../adr/0009-system-font.md)). Screens are reviewed, approved and
-  exported on a Mac, so the images show San Francisco. On Android and Windows a line may break differently; sizes,
+- **Font:** Inter in the canvas and so in every image; the app uses the system font
+  ([ADR 0009](../../../adr/0009-system-font.md)). In the app a line may break differently, least on Apple devices; sizes,
   colours and order may not.
 - **Height:** the table gives each screen's height in CSS pixels; the image is twice as high. A scrolling screen is
   exported at its full height, so its image is taller than 1688 px.

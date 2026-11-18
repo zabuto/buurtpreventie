@@ -88,6 +88,7 @@ README; `flow` is een overzicht, geen scherm.
 
 13. **Lettertype Inter via Google Fonts** in elk scherm. De app gebruikt het systeemlettertype (plan, Frontend): een
     lettertype van Google stuurt het IP-adres van elke loper naar Google, en de CSP (`style-src 'self'`) blokkeert het.
+    In het canvas blijft Inter (beslissing 4).
 14. **De kalender is een week met drie dagdelen per dag**, ook op een telefoon; het plan noemde een lijst met alleen
     de dagen waarop iets gepland staat. Op 320 px is een dagdeel 65 px breed.
 15. **"Start, offline" toont open rondes met namen** ("Avond · Joost"); het plan bewaart offline alleen de eigen
@@ -163,10 +164,12 @@ README; `flow` is een overzicht, geen scherm.
    Segoe UI op Windows. Op iOS zet `font: -apple-system-body` op `<html>` de basismaat volgens de tekstgrootte
    die de loper instelde; de 18 px uit het ontwerp wordt een `rem`-waarde daarop, zodat alles meeschaalt. Geen download, geen verzoek naar Google, en het
    lettertype is gemaakt voor dat scherm. Inter zelf hosten viel af: tientallen KB per gewicht en een wisseling van
-   lettertype op een trage verbinding. Het canvas gebruikt dezelfde lettertypes als de app, zonder Google Fonts (prompt C).
-   Schermen worden op een Mac beoordeeld, goedgekeurd en geëxporteerd, dus de afbeeldingen in `docs/design/` zijn in
-   San Francisco, zoals op een iPhone. Op Android en Windows mag een regel anders afbreken; maten, kleuren en volgorde
-   niet.
+   lettertype op een trage verbinding.
+   Het canvas gebruikt Inter via Google Fonts, met dezelfde systeemlettertypes als terugval (prompt C): zo ziet een
+   scherm en zijn export er op elke computer hetzelfde uit, en Inter ligt dicht bij San Francisco. Google Fonts raakt
+   dan alleen wie aan het ontwerp werkt, nooit een loper. De afbeeldingen in `docs/design/` zijn dus in Inter. In de
+   app mag een regel anders afbreken, het minst op Apple-toestellen; maten, kleuren en volgorde niet. De browsertests
+   vergelijken daarom geen schermafbeeldingen met het ontwerp.
    Alleen het lettertype wisselen maakt een goedgekeurd scherm niet weer concept: het krijgt een nieuwe export met de
    datum in de titel ongewijzigd.
 5. **De kalender heeft een wissel Week en Lijst** (vastgesteld 14). Week: de week met dagdelen uit het ontwerp. Lijst:
@@ -478,8 +481,7 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code. Een sch
 - Jij geeft prompt E in de chat van het canvas: het scherm "In aanbouw" (beslissing 34).
 - Jij geeft prompt F in de chat van het canvas: geen vinkje "Ingelogd blijven" op een telefoon (fase 2, beslissing 9);
   `login` en `session-expired` gaan terug naar concept.
-- Jij geeft prompt C in de chat van het canvas: het systeemlettertype in elk scherm (beslissing 4), met nieuwe PNG's
-  van de goedgekeurde schermen.
+- Jij geeft prompt C in de chat van het canvas: Inter in elk scherm (beslissing 4), vóór de eerste export.
 - `docs/design/walker/mobile/README.md`: de afspraken (2x, een maat uit de afbeelding gedeeld door twee is de maat in
   CSS-pixels) en de lijst van schermen met per scherm de status en de hoogte in CSS-pixels.
 - Jij keurt de schermen goed (beslissing 3).
@@ -560,14 +562,14 @@ Kan de chat geen PNG maken, dan exporteer je via het menu van het canvas (Share,
 **Prompt C** (eenmalig):
 
 ```text
-Werk in dit canvas. Vervang in elk scherm het lettertype Inter door het systeemlettertype:
-1. Verwijder elke link naar Google Fonts (fonts.googleapis.com, fonts.gstatic.com), ook @import en preconnect.
-2. Zet overal waar Inter staat: font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+Werk in dit canvas. Zet in elk scherm het lettertype Inter, geladen via Google Fonts:
+1. Laad Inter via Google Fonts (fonts.googleapis.com, met preconnect naar fonts.gstatic.com), alleen in de gewichten
+   die de schermen gebruiken, met display=swap.
+2. Zet overal waar nu het systeemlettertype staat:
+   font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 3. Laat maten, gewichten, regelhoogte, kleuren, tekst en titels gelijk, ook "· concept" en "· goedgekeurd <datum>".
 4. Controleer op 320 en 390 px breed of tekst nergens over een rand loopt of afgekapt wordt, en noem de schermen waar
    een regel anders afbreekt dan eerst, zonder ze aan te passen.
-5. Exporteer elk scherm met "· goedgekeurd" in de titel opnieuw als PNG op 2x (780 px breed), over de volle hoogte
-   van het scherm, met de bestandsnaam van het scherm zonder .dc.html, en geef ze me om te downloaden.
 ```
 
 **Prompt D** (in Claude Code, na elke download uit prompt B of C; vul de titels, namen en de datum in). Jij zet de
