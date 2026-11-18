@@ -25,8 +25,10 @@ Buurtpreventie v4 wordt een Symfony 7.4 LTS-backend met een echte REST-API (`/ap
 | 2 | REST-API v1 met inloggen en API-tokens | klaar, in `develop` |
 | 3 | Branding en configuratie | klaar, in `develop` |
 | 4 | MCP-server | klaar, in `develop` |
-| 5 | Frontend (Lit, PWA, WCAG 2.2 AA) | open |
+| 5 | Frontend voor de loper, mobiel (Lit, PWA, WCAG 2.2 AA) | open |
 | 5b | Conversie v3 → v4 | open |
+| 5c | Frontend voor coördinator, analist en beheerder | open |
+| 5d | Frontend op tablet en desktop | open |
 | 6a | Installeren en releasen | open |
 | 6b | Bijwerken, onderhoud en overdracht; daarmee is de MVP klaar en begint de uitrol | open |
 
@@ -847,18 +849,20 @@ Fase 3, 4 en 5 hangen alleen van de API af; MCP (fase 4) gaat vóór de frontend
 
 **Klaar als:** de MCP Inspector alle tools ziet en Claude Code met een token `staffing_gaps` en `sign_up_for_round` kan gebruiken.
 
-### Fase 5 — Frontend
+### Fase 5 — Frontend voor de loper, mobiel
 
-**Eerst ontwerp.** Vóór de Lit-proef komen er schetsen op telefoonformaat van de vijf belangrijkste schermen: Zoekt een loopmaatje, ronde (aan- en afmelden), terugmelden, Mijn rondes en inloggen. Twee lopers, onder wie een minder ervaren loper, kijken ernaar; pas daarna wordt er gebouwd.
+**Eerst ontwerp.** De schermen voor de loper op telefoonformaat staan in een ontwerp-canvas; het taakplan
+(`docs/plans/phase-5.md`) houdt per scherm bij of het goedgekeurd is. Twee lopers, onder wie een minder ervaren loper,
+kijken ernaar; pas daarna wordt er gebouwd. Andere rollen en brede schermen volgen in fase 5c en 5d.
 
-- [ ] `frontend/`: buildless app (ES-modules, gevendorde Lit-bundel, geen importmap), die alleen `/api/v1` aanroept. Begin met een proef van één scherm (inloggen en "Zoekt een loopmaatje") om Lit te leren kennen, met de gebruikte patronen in docs/frontend.md.
-- [ ] Schermen: inloggen/wachtwoord, kalender, ronde (aan-/afmelden), gelopen rondes + terugmelding, account/toestemming/tokens, leden, analyse, beheer.
+- [ ] `frontend/`: buildless app (ES-modules, gevendorde Lit-bundel, geen importmap), die alleen `/api/v1` aanroept. Begin met een proef (inloggen en "Zoekt een loopmaatje") om Lit te leren kennen, met de gebruikte patronen in docs/frontend.md.
+- [ ] Schermen voor de loper op een telefoon: inloggen, code, uitnodiging, start, kalender (week met dagdelen), ronde (aan-/afmelden, plannen, wijzigen, opmerking, niet doorgegaan), terugmelden, mijn rondes, mijn gegevens, meldingen, koppelingen (tokens), activiteit, lopers, hulp en spoed.
 - [ ] Mobiel eerst en WCAG 2.2 AA (zie Frontend); PWA met manifest, service worker en offline lezen; axe-core in CI.
 - [ ] Beveiligingsheaders voor de statische frontend via `.htaccess`: CSP `default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'`, en `Permissions-Policy: camera=(), microphone=(), geolocation=()`. Geen inline scripts of stijlen, dus ook geen `'unsafe-inline'`.
 
-**Klaar als:** elk scherm van de oude app een tegenhanger heeft en een loper op een telefoon in drie tikken kan aanmelden, ook op een iPhone met iOS 15, en de minst ervaren testloper dat zonder hulp doet. De evaluatie van Lit staat in een ADR.
+**Klaar als:** elk scherm van de oude app dat een loper gebruikt een tegenhanger heeft, een loper op een telefoon in drie tikken kan aanmelden, ook op een iPhone met iOS 15, en de minst ervaren testloper dat zonder hulp doet. De evaluatie van Lit staat in een ADR.
 
-**Ter goedkeuring in het taakplan:** Renovate om de versies van gevendorde bibliotheken (Lit, later Leaflet) te volgen, met dezelfde cooldown; Dependabot ziet gevendorde bestanden niet. Alleen zelf gedraaid in GitHub Actions, nooit de gehoste app van Mend, omdat die schrijfrechten op de repo krijgt (ADR 0004).
+**Besloten in het taakplan:** geen Renovate. Een wekelijkse job opent een issue zodra er een nieuwe Lit-release buiten de cooldown is, en `tools/vendor-lit.php` haalt hem gecontroleerd binnen (ADR 0004: Renovate zou een token met schrijfrechten nodig hebben om CI op zijn pull requests te laten draaien).
 
 ### Fase 5b — Conversie v3 → v4
 
@@ -870,6 +874,23 @@ Na fase 2 tot en met 5 staat het model dat uitgebracht wordt; de conversie volgt
 - [ ] Integratietests op MariaDB 10.11 en MySQL 8.4; CI converteert de set `v3`; een korte pagina in `docs/admin-guide/`.
 
 **Klaar als:** `app:import-v3 --dry-run` en `app:import-v3` foutloos draaien op de verzonnen v3-set, de aantallen kloppen, voorbeeldlopers inloggen met hun v3-wachtwoord, en een tweede conversie naar een lege database hetzelfde oplevert.
+
+### Fase 5c — Frontend voor coördinator, analist en beheerder
+
+Op dezelfde basis als fase 5, eerst op een telefoon, met een eigen ontwerp- en goedkeuringsronde.
+
+- [ ] Coördinator: namens een loper aan- en afmelden, elke ronde wijzigen, annuleren en verwijderen, geschiedenis van een ronde, een nieuwe uitnodiging laten sturen.
+- [ ] Analist: terugmeldingen met filter en de samenvatting (het statistiekscherm volgt in U5).
+- [ ] Beheerder: instellingen met logo, icoon en kleuren (contrastmelding in gewone taal), de schakelaars voor API-tokens en MCP, leden met rollen, (de)activeren, wissen en uitnodigen, startpunten en uitkomsten met archiveren, het auditlog.
+
+**Klaar als:** elk overig scherm van de oude app een tegenhanger heeft en elke schrijfactie van deze rollen via de app kan.
+
+### Fase 5d — Frontend op tablet en desktop
+
+- [ ] Responsive vanaf de mobiele schermen: maandraster met dagdelen in de kalender, met pijltjestoetsen; lijsten en formulieren die de breedte benutten; de navigatie voor een breed scherm.
+- [ ] Browsertests op tablet- en desktopbreedte naast die van fase 5.
+
+**Klaar als:** elk scherm van fase 5 en 5c op 768 en 1280 px breed bruikbaar is, met axe-core schoon en alleen met het toetsenbord te bedienen.
 
 ### Fase 6a — Installeren en releasen
 
