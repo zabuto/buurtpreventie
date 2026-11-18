@@ -214,11 +214,13 @@ geen scherm.
    met wat er in het ontwerp veranderde. Pas daarna keur je de schermen goed.
 4. **Het systeemlettertype, op elk toestel** (besloten op 18 november 2026; vastgesteld 13; ADR 0009):
    `system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`, dus San Francisco op een iPhone, Roboto op Android en
-   Segoe UI op Windows. Op iOS zet `font: -apple-system-body` op `<html>` de basismaat volgens de tekstgrootte die de loper instelde; de 18 px uit het
-   ontwerp wordt een `rem`-waarde daarop, zodat alles meeschaalt. Geen download, geen verzoek naar Google, en het
+   Segoe UI op Windows. Op iOS zet `font: -apple-system-body` op `<html>` de basismaat volgens de tekstgrootte
+   die de loper instelde; de 18 px uit het ontwerp wordt een `rem`-waarde daarop, zodat alles meeschaalt. Geen download, geen verzoek naar Google, en het
    lettertype is gemaakt voor dat scherm. Inter zelf hosten viel af: tientallen KB per gewicht en een wisseling van
-   lettertype op een trage verbinding. Het canvas gebruikt hetzelfde systeemlettertype (prompt C), zodat regelafbreking
-   en breedtes in de afbeeldingen kloppen met de app; op een Mac toont de export San Francisco, zoals op een iPhone.
+   lettertype op een trage verbinding. Het canvas gebruikt dezelfde lettertypes als de app, zonder Google Fonts (prompt C).
+   Schermen worden op een Mac beoordeeld, goedgekeurd en geëxporteerd, dus de afbeeldingen in `docs/design/` zijn in
+   San Francisco, zoals op een iPhone. Op Android en Windows mag een regel anders afbreken; maten, kleuren en volgorde
+   niet.
    Alleen het lettertype wisselen maakt een goedgekeurd scherm niet weer concept: het krijgt een nieuwe export met de
    datum in de titel ongewijzigd.
 5. **De kalender heeft een wissel Week en Lijst** (vastgesteld 14). Week: de week met dagdelen uit het ontwerp. Lijst:

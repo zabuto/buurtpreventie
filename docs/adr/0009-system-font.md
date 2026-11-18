@@ -24,8 +24,9 @@ The frontend uses the font of the device, in every screen:
 font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 ```
 
-Sizes, weights, line heights and colours stay as designed. The canvas uses the same font stack, so an export shows
-the font of the computer it was made on.
+Sizes, weights, line heights and colours stay as designed. The canvas uses the same font stack, without Google
+Fonts. Screens are reviewed, approved and exported on a Mac, so every design image shows San Francisco, the font an
+iPhone shows.
 
 | Platform | Font | Difference from Inter |
 | --- | --- | --- |
@@ -39,8 +40,8 @@ turn it up.
 
 ## Consequences
 
-- **Design images** in `docs/design/` show the font of the machine that exported them; the README of each folder
-  names that system. Line breaks in the app may differ from the image; sizes, colours and order may not.
+- **Design images** in `docs/design/` are in San Francisco. On Android and Windows a line may break differently from
+  the image; sizes, colours and order may not.
 - **Room around text**: no fixed widths around text, buttons that grow in height, labels that may wrap to two lines.
   No text has to fit exactly on one line; where a design suggests it, such as the calendar blocks, the text stays
   short and may wrap.
