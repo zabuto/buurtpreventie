@@ -135,8 +135,8 @@ geen scherm.
     lettertype van Google stuurt het IP-adres van elke loper naar Google, en de CSP (`style-src 'self'`) blokkeert het.
 14. **De kalender is een week met drie dagdelen per dag**, ook op een telefoon; het plan noemde een lijst met alleen
     de dagen waarop iets gepland staat. Op 320 px is een dagdeel 65 px breed.
-15. **"Start, offline" toont open rondes met namen** ("Avond · Joost"); beslissing 32 bewaarde `/staffing-gaps` juist
-    niet, vanwege die namen. Zie beslissing 32.
+15. **"Start, offline" toont open rondes met namen** ("Avond · Joost"); het plan bewaart offline alleen de eigen
+    rondegegevens, nooit een ledenlijst. Zie beslissing 32.
 
 ### Lit 3.3.3
 
@@ -201,13 +201,12 @@ geen scherm.
    aan bij een ronde die een loopmaatje zoekt, meld je weer af, geef door dat je niets bijzonders zag) en denkt
    hardop. De bevindingen gaan zonder namen ("loper A, minst ervaren", "loper B") in `docs/design/walker/mobile/review.md`,
    met wat er in het ontwerp veranderde. Pas daarna keur je de schermen goed.
-4. **Het systeemlettertype, op elk toestel** (vastgesteld 13): `system-ui, -apple-system, "Segoe UI", Roboto,
+4. **Het systeemlettertype, op elk toestel** (besloten op 18 november 2026; vastgesteld 13): `system-ui, -apple-system, "Segoe UI", Roboto,
    sans-serif`, dus San Francisco op een iPhone, Roboto op Android en Segoe UI op Windows. Op iOS zet
    `font: -apple-system-body` op `<html>` de basismaat volgens de tekstgrootte die de loper instelde; de 18 px uit het
    ontwerp wordt een `rem`-waarde daarop, zodat alles meeschaalt. Geen download, geen verzoek naar Google, en het
-   lettertype is gemaakt voor dat scherm. Alternatief: Inter zelf hosten (`font-src 'self'` mag), voor dezelfde
-   look op elk toestel; dat kost een download van tientallen KB per gewicht en een wisseling van lettertype op een
-   trage verbinding. Het canvas mag Inter houden; de afbeeldingen in de repo tonen dan Inter, de app het
+   lettertype is gemaakt voor dat scherm. Inter zelf hosten viel af: tientallen KB per gewicht en een wisseling van
+   lettertype op een trage verbinding. Het canvas mag Inter houden; de afbeeldingen in de repo tonen dan Inter, de app het
    systeemlettertype.
 5. **De kalender heeft een wissel Week en Lijst** (vastgesteld 14). Week: de week met dagdelen uit het ontwerp. Lijst:
    per dag alleen de dagen met een ronde, elke ronde op een regel ("Avond 20:00 · Joost · Maatje nodig"), zoals het
@@ -409,12 +408,12 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
     - **Gegevens** (de API) altijd eerst van het netwerk; alleen zonder bereik uit de cache, met de melding uit het
       ontwerp en de tijd van de laatste keer ophalen. In de cache: `GET /me/rounds`, `GET /rounds` en
       `GET /staffing-gaps`.
-    - **Namen offline, ter beslissing**: `/rounds` en `/staffing-gaps` bevatten de weergavenamen van wie meeloopt
+    - **Namen offline, besloten op 18 november 2026: wel bewaren**: `/rounds` en `/staffing-gaps` bevatten de weergavenamen van wie meeloopt
       (beslissing 20), en "Start, offline" toont ze (vastgesteld 15). Het plan zegt "alleen de eigen rondegegevens;
-      nooit ledenlijsten". Voorstel: wel bewaren. Een naam als "Joost K." bij een ronde is geen ledenlijst en geen
+      nooit ledenlijsten". Een naam als "Joost K." bij een ronde is geen ledenlijst en geen
       contactgegeven, en de cache gaat weg bij uitloggen en bij elke 401. Wat er overblijft op een verloren telefoon
       die nog ingelogd is: voor een paar weken welke weergavenamen wanneer lopen; dat ziet de vinder ook in de app
-      zelf. Alternatief: offline zonder namen, en het ontwerp "Start, offline" laat ze weg.
+      zelf.
     - **Nooit in de cache**: `/rounds/{id}` (telefoon), `/members`, `/me`, `/config`, `/me/tokens`, `/admin/`,
       `/auth/`.
 
