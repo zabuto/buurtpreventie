@@ -100,6 +100,7 @@ Toestanden en foutschermen, in het canvas gezet met prompt A:
 | Fouten | Geen verbinding buiten Start (een actie mislukt omdat er geen bereik is) | `no-connection` |
 | Fouten | Formulier met een fout bij een veld (422), bijvoorbeeld Ronde plannen | `form-error` |
 | Fouten | Nieuwe versie beschikbaar, vernieuwen | `update-available` |
+| Meer | In aanbouw, voor Privacyverklaring en Handleiding voor lopers (beslissing 34; met prompt E) | `under-construction` |
 
 `KalenderDesktop` (pagina "Desktop", in het canvas "· later (fase 5c)") hoort bij fase 5c; `Flow` is een overzicht,
 geen scherm.
@@ -187,8 +188,8 @@ geen scherm.
     | Meldingen | `GET`/`PATCH /me` (`notifyOpenRounds`) | niets |
     | Lopers | `GET /members` | niets |
     | Hulp en spoed | `GET /config` (spoedtekst, contact, groep) | niets |
-    | Privacyverklaring | `GET /config` (`privacyUrl`) | **de tekst in de app**: de API geeft alleen een link naar buiten |
-    | Handleiding voor lopers | geen | **de tekst**: geen endpoint, en `docs/user-guide/` heeft alleen `mcp.md` |
+    | Privacyverklaring | geen in deze fase (beslissing 34); `GET /config` geeft alleen `privacyUrl`, een link naar buiten | de tekst in de app, later |
+    | Handleiding voor lopers | geen in deze fase (beslissing 34) | de tekst: geen endpoint, `docs/user-guide/` heeft alleen `mcp.md` |
 
 ## Voorgestelde beslissingen
 
@@ -442,6 +443,15 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
       methode;
     - `TranslationKeysTest` ook over `frontend/i18n/`.
 
+### Schermen in aanbouw
+
+34. **Privacyverklaring en Handleiding voor lopers zijn in deze fase een scherm "in aanbouw"** (besloten op 18 november
+    2026), want hun tekst heeft nog geen bron. Het ontwerp in het canvas (`privacy`, `handbook`) is de maat voor de
+    fase die de tekst levert. De routes `#/privacy` en `#/handbook` bestaan en tonen allebei het goedgekeurde scherm
+    `under-construction`: de titel van het scherm, een korte uitleg in B1 uit de vertalingen (nl en en) en een weg
+    terug, zodat elke link in de flow (Inloggen, Meer, Hulp) op een werkend scherm uitkomt. Geen kapotte link: de
+    browsertests volgen elke link naar `#/…` op elk scherm en falen op een route die de router niet kent.
+
 ## Nieuwe afhankelijkheden (goedgekeurd op 18 november 2026)
 
 Alleen voor tests in CI, in `tests/browser/package.json` met `package-lock.json`, geïnstalleerd met
@@ -473,6 +483,7 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code. Een sch
 
 - De status in de titels van het canvas (beslissing 2): gedaan op 18 november 2026, alle schermen "· concept".
 - Jij geeft prompt A in de chat van het canvas: Engelse bestandsnamen en de schermen uit "Nog niet in het canvas".
+- Jij geeft prompt E in de chat van het canvas: het scherm "In aanbouw" (beslissing 34).
 - Jij geeft prompt C in de chat van het canvas: het systeemlettertype in elk scherm (beslissing 4), met nieuwe PNG's
   van de goedgekeurde schermen.
 - `docs/design/walker/mobile/review.md` met de drie opdrachten en een lege tabel voor de bevindingen.
@@ -585,6 +596,19 @@ Werk op feature/phase-5.
 4. Commit: "Add the approved <bestand> and <bestand> screens".
 ```
 
+**Prompt E** (eenmalig):
+
+```text
+Werk in dit canvas, verander niets aan bestaande schermen behalve de links hieronder.
+1. Voeg op de pagina Mobile (390 × 844) het scherm under-construction.dc.html toe, titel "In aanbouw · concept", in
+   dezelfde stijl: de kop zoals bij de andere schermen onder Meer, met als titel de naam van het scherm waar de loper
+   heen wilde (toon het met "Privacyverklaring"), een korte uitleg in B1 ("Deze pagina komt binnenkort. Heb je een
+   vraag? Kijk bij Hulp en spoed.") met een link naar help.dc.html, en een knop "Terug".
+2. Laat elke link naar privacy.dc.html of handbook.dc.html (onder meer op login, more en help) naar
+   under-construction.dc.html gaan. De schermen privacy en handbook blijven staan als ontwerp voor later, met "· later" in de titel.
+3. Noem elke link in het canvas die naar een niet-bestaand scherm gaat.
+```
+
 ### T3. Lit vendoren (test eerst)
 
 - `VendoredLibraryTest`, dan `tools/vendor-lit.php` en `php tools/vendor-lit.php 3.3.3`.
@@ -638,16 +662,16 @@ Werk op feature/phase-5.
 - Welkom en Wachtwoord instellen via de uitnodigingslink.
 - Meer, Mijn gegevens, Bevestig dat jij het bent, Mijn activiteit, Koppelingen (het geheim één keer getoond),
   Meldingen, Lopers (telefoon alleen bij toestemming), Hulp en spoed, uitloggen.
+- Privacyverklaring en Handleiding voor lopers als scherm in aanbouw (beslissing 34).
 
 ### T12. PWA (test eerst)
 
 - Manifest-link, service worker en Start, offline (beslissing 32), met tests voor wat wel en niet in de cache komt en
   het wissen bij uitloggen; "Nieuwe versie beschikbaar".
 
-### T13. Handleiding
+### T13. Geen kapotte links
 
-- "Handleiding voor lopers" (link onder Meer): één A4 in `docs/user-guide/` met schermafbeeldingen uit de
-  browsertests, en dezelfde uitleg in de app.
+- De browsertest uit beslissing 34: elke link naar `#/…` op elk scherm komt uit op een route van de router.
 
 ### T14. Documentatie
 
@@ -695,6 +719,8 @@ Gemeld, niet in deze fase opgelost:
 - **Fase 5c** maakt de schermen responsive voor tablet en desktop, met het maandraster (`KalenderDesktop`).
 - **Opengrep scant geen JavaScript** (vastgesteld 12). Regels voor `frontend/` (bijvoorbeeld `innerHTML`,
   `unsafeHTML`, `eval`) kunnen erbij als de frontend groeit.
+- **Privacyverklaring en Handleiding voor lopers** (beslissing 34): de tekst en zijn bron, het A4 voor lopers in
+  `docs/user-guide/` met schermafbeeldingen uit de browsertests, en de schermen volgens het canvas.
 - **Het statistiekscherm** op `/stats` blijft U5; offline terugmelden U6; pushmeldingen U4.
 - **De release kopieert `frontend/` naar `public/app/`** en de installer controleert de headers op een echte host:
   fase 6b.

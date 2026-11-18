@@ -19,7 +19,7 @@ access to the canvas. Only a screen with status "approved" is built.
   to "· concept" in the canvas and to "draft" here until it is approved again, with a new export and a new date. A
   change of font alone keeps the status and date and only replaces the image.
 - **Status in the canvas title:** "· concept" (not approved, not built), "· goedgekeurd <date>" (built to this image),
-  "· later (fase …)" (belongs to a later phase). The Status column below mirrors it as "draft" or "approved <date>".
+  "· later (fase …)" (belongs to a later phase). The Status column below mirrors it as "draft", "approved <date>" or "later".
 
 ## Screens
 
@@ -84,8 +84,9 @@ Canvas titles are quoted from the canvas, without the status after the "·".
 | `notifications.png` | Meldingen | draft | 844 |
 | `walkers.png` | Lopers | draft | 844 |
 | `help.png` | Hulp en spoed | draft | 844 |
-| `privacy.png` | Privacyverklaring | draft | 1240 (scrolls) |
-| `handbook.png` | Handleiding voor lopers | draft | 844 |
+| `privacy.png` | Privacyverklaring | later | 1240 (scrolls) |
+| `handbook.png` | Handleiding voor lopers | later | 844 |
+| `under-construction.png` | In aanbouw | draft | 844 |
 
 ## Adding an approved screen
 
