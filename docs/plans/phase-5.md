@@ -188,7 +188,7 @@ geen scherm.
     | Meldingen | `GET`/`PATCH /me` (`notifyOpenRounds`) | niets |
     | Lopers | `GET /members` | niets |
     | Hulp en spoed | `GET /config` (spoedtekst, contact, groep) | niets |
-    | Privacyverklaring | geen in deze fase (beslissing 34); `GET /config` geeft alleen `privacyUrl`, een link naar buiten | de tekst in de app, later |
+    | Privacyverklaring | `GET /config` (`privacyUrl`, de link naar buiten; zonder dat het scherm in aanbouw, beslissing 34) | de tekst in de app, later |
     | Handleiding voor lopers | geen in deze fase (beslissing 34) | de tekst: geen endpoint, `docs/user-guide/` heeft alleen `mcp.md` |
 
 ## Voorgestelde beslissingen
@@ -452,6 +452,13 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
     terug, zodat elke link in de flow (Inloggen, Meer, Hulp) op een werkend scherm uitkomt. Geen kapotte link: de
     browsertests volgen elke link naar `#/…` op elk scherm en falen op een route die de router niet kent.
 
+    De link "Privacyverklaring" opent `privacyUrl` uit `/config` als de beheerder die instelde (alleen `https`, door
+    `ChangeSettings` gecontroleerd), in een nieuw tabblad met `rel="noopener"`, zodat de app open blijft; alleen
+    zonder `privacyUrl` gaat hij naar `#/privacy`. Wie bij inloggen of in Mijn gegevens persoonsgegevens invult, moet
+    de privacyverklaring kunnen lezen (AVG, artikel 13); een scherm in aanbouw volstaat daarvoor alleen zolang er geen
+    verklaring is ingesteld. De browsertests dekken beide gevallen: met `privacyUrl` wijst de link daarheen, zonder
+    naar `#/privacy`.
+
 ## Nieuwe afhankelijkheden (goedgekeurd op 18 november 2026)
 
 Alleen voor tests in CI, in `tests/browser/package.json` met `package-lock.json`, geïnstalleerd met
@@ -662,7 +669,7 @@ Werk in dit canvas, verander niets aan bestaande schermen behalve de links hiero
 - Welkom en Wachtwoord instellen via de uitnodigingslink.
 - Meer, Mijn gegevens, Bevestig dat jij het bent, Mijn activiteit, Koppelingen (het geheim één keer getoond),
   Meldingen, Lopers (telefoon alleen bij toestemming), Hulp en spoed, uitloggen.
-- Privacyverklaring en Handleiding voor lopers als scherm in aanbouw (beslissing 34).
+- Privacyverklaring (naar `privacyUrl`, anders in aanbouw) en Handleiding voor lopers (in aanbouw), beslissing 34.
 
 ### T12. PWA (test eerst)
 
@@ -671,7 +678,8 @@ Werk in dit canvas, verander niets aan bestaande schermen behalve de links hiero
 
 ### T13. Geen kapotte links
 
-- De browsertest uit beslissing 34: elke link naar `#/…` op elk scherm komt uit op een route van de router.
+- De browsertests uit beslissing 34: elke link naar `#/…` op elk scherm komt uit op een route van de router, en
+  "Privacyverklaring" gaat naar `privacyUrl` als die is ingesteld en anders naar `#/privacy`.
 
 ### T14. Documentatie
 
