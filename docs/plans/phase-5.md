@@ -2,7 +2,7 @@
 
 Status: goedgekeurd op 18 november 2026, met de wekelijkse controle (beslissing 12) in plaats van Renovate en de
 nieuwe afhankelijkheden uit de tabel. Op dezelfde dag ingeperkt tot de loper op een telefoon; andere rollen worden
-fase 5b, tablet en desktop fase 5c (`plan.md`). Geen scherm is nog goedgekeurd (Schermen).
+fase 5b, tablet en desktop fase 5c (`plan.md`). De status per scherm staat in `docs/design/walker/mobile/README.md`.
 
 Bron: `docs/plans/plan.md` (Architectuur, Frontend: PWA, responsive en toegankelijk, Branding en configuratie, Privacy
 en AVG, Domeinmodel en API-ontwerp, Fase 5, Risico's en review-focus), de Open punten van `docs/plans/phase-3.md` en
@@ -22,7 +22,6 @@ Klaar als:
 - elk scherm uit de tabel Schermen goedgekeurd is, als afbeelding in `docs/design/walker/mobile/` staat en gebouwd
   is, en elk scherm van de oude app dat een loper gebruikt een tegenhanger heeft;
 - een loper op een telefoon in drie tikken aanmeldt, ook op een iPhone met iOS 15 (met de hand, door de ontwikkelaar);
-- de minst ervaren testloper aanmelden en terugmelden zonder hulp doet, op de eigen telefoon met voorbeelddata;
 - axe-core op elk scherm en elke toestand in CI geen enkele overtreding vindt (WCAG 2.2 A en AA), in Chromium en
   WebKit, licht en donker, op 320, 360 en 390 px breed;
 - de hoofdtaken met alleen het toetsenbord lukken (test), en met de hand met VoiceOver en NVDA (checklist);
@@ -43,58 +42,64 @@ De schermen worden ontworpen in het canvas "Buurtpreventie v4 — schermen" (cla
 alleen zo'n scherm wordt gebouwd. Alle schermen van deze fase zijn voor de loper op een telefoon, dus
 `docs/design/walker/mobile/`. Bestandsnamen zijn Engels en gelijk in canvas en repo: `start` is `start.dc.html` in het
 canvas en `start.png` in de repo (het canvas krijgt die namen met de prompt onder T2). De titel in het canvas zegt de
-status: "· concept" of "· goedgekeurd <datum>" (beslissing 2). Endpoints en ontbrekende velden per scherm staan bij
-vastgesteld 19.
+status: "· concept" of "· goedgekeurd <datum>" (beslissing 2); `docs/design/walker/mobile/README.md` houdt die status
+en de hoogte per scherm bij, en is daarvoor de enige plek in de repo. Endpoints en ontbrekende velden per scherm
+staan bij vastgesteld 19.
 
-| Groep | Scherm (titel in het canvas) | Bestand | Goedgekeurd |
-| --- | --- | --- | --- |
-| Inloggen | Inloggen | `login` | nee |
-| Inloggen | Code invullen | `login-code` | nee |
-| Inloggen | Welkom, uitnodiging | `welcome` | nee |
-| Inloggen | Wachtwoord instellen | `set-password` | nee |
-| Inloggen | Browser te oud | `browser-unsupported` | nee |
-| Rondes | Start | `start` | nee |
-| Rondes | Start, offline | `start-offline` | nee |
-| Rondes | Kalender | `calendar` | nee |
-| Rondes | Ronde plannen | `plan-round` | nee |
-| Rondes | Ronde, loopmaatje nodig | `round-buddy-needed` | nee |
-| Rondes | Ronde, jij en andere lopers | `round-with-others` | nee |
-| Rondes | Ronde, alleen jij | `round-alone` | nee |
-| Rondes | Ronde wijzigen | `change-round` | nee |
-| Rondes | Ronde, vol | `round-full` | nee |
-| Rondes | Opmerking toevoegen | `add-comment` | nee |
-| Rondes | Afmelden bevestigen | `confirm-withdrawal` | nee |
-| Rondes | Resultaat melden | `report-result` | nee |
-| Rondes | Ronde ging niet door | `round-not-walked` | nee |
-| Rondes | Mijn rondes | `my-rounds` | nee |
-| Meer | Meer | `more` | nee |
-| Meer | Mijn gegevens | `my-details` | nee |
-| Meer | Bevestig dat jij het bent | `confirm-identity` | nee |
-| Meer | Mijn activiteit | `my-activity` | nee |
-| Meer | Koppelingen | `integrations` | nee |
-| Meer | Meldingen | `notifications` | nee |
-| Meer | Lopers | `walkers` | nee |
-| Meer | Hulp en spoed | `help` | nee |
+| Groep | Scherm (titel in het canvas) | Bestand |
+| --- | --- | --- |
+| Inloggen | Inloggen | `login` |
+| Inloggen | Code invullen | `login-code` |
+| Inloggen | Welkom, uitnodiging | `welcome` |
+| Inloggen | Wachtwoord instellen | `set-password` |
+| Inloggen | Browser te oud | `browser-unsupported` |
+| Rondes | Start | `start` |
+| Rondes | Start, offline | `start-offline` |
+| Rondes | Kalender | `calendar` |
+| Rondes | Ronde plannen | `plan-round` |
+| Rondes | Afgelopen ronde | `round-past` |
+| Rondes | Ronde, loopmaatje nodig | `round-buddy-needed` |
+| Rondes | Ronde, genoeg lopers, je kunt mee | `round-open-spots` |
+| Rondes | Ronde, jij en andere lopers | `round-with-others` |
+| Rondes | Ronde, alleen jij | `round-alone` |
+| Rondes | Ronde wijzigen | `change-round` |
+| Rondes | Ronde, vol | `round-full` |
+| Rondes | Opmerking toevoegen | `add-comment` |
+| Rondes | Afmelden bevestigen | `confirm-withdrawal` |
+| Rondes | Resultaat melden | `report-result` |
+| Rondes | Ronde ging niet door | `round-not-walked` |
+| Rondes | Mijn rondes | `my-rounds` |
+| Meer | Meer | `more` |
+| Meer | Mijn gegevens | `my-details` |
+| Meer | Mijn gegevens downloaden | `download-data` |
+| Meer | Bevestig dat jij het bent | `confirm-identity` |
+| Meer | Mijn activiteit | `my-activity` |
+| Meer | Koppelingen | `integrations` |
+| Meer | Meldingen | `notifications` |
+| Meer | Lopers | `walkers` |
+| Meer | Hulp en spoed | `help` |
+| Meer | Privacyverklaring | `privacy` |
+| Meer | Handleiding voor lopers | `handbook` |
 
-Nog niet in het canvas, nodig voor deze fase:
+Toestanden en foutschermen, in het canvas gezet met prompt A:
 
-| Groep | Scherm | Bestand | Goedgekeurd |
-| --- | --- | --- | --- |
-| Inloggen | Code fout: verkeerd, verlopen, te veel pogingen (`login_code_wrong`, `login_code_ended`, 429) | `login-code-error` | nee, nog te ontwerpen |
-| Inloggen | Sessie verlopen, terug naar inloggen met uitleg | `session-expired` | nee, nog te ontwerpen |
-| Rondes | Start, niets open (geen ronde die een loopmaatje zoekt) | `start-empty` | nee, nog te ontwerpen |
-| Rondes | Kalender als lijst, met de wissel Week en Lijst (beslissing 5) | `calendar-list` | nee, nog te ontwerpen |
-| Rondes | Kalender met twee rondes in één dagdeel en afgelopen dagen ("Gelopen, geen bijzonderheden", "Incident gemeld", "Nog geen terugmelding", "Niet gelopen") | `calendar-past` | nee, nog te ontwerpen |
-| Rondes | Ronde is vol: een ander meldde net eerder aan (review-focus 1) | `round-just-full` | nee, nog te ontwerpen |
-| Rondes | Afmelden als laatste loper: de ronde vervalt, zonder "ongedaan maken" | `confirm-withdrawal-last` | nee, nog te ontwerpen |
-| Rondes | Mijn rondes, leeg | `my-rounds-empty` | nee, nog te ontwerpen |
-| Meer | Nieuwe koppeling: het geheim, één keer getoond | `integration-created` | nee, nog te ontwerpen |
-| Fouten | Er ging iets mis (500 en elke onverwachte fout), met opnieuw proberen en de hulp | `error` | nee, nog te ontwerpen |
-| Fouten | Niet gevonden (404), bijvoorbeeld een verwijderde ronde uit een oude mail | `not-found` | nee, nog te ontwerpen |
-| Fouten | Geen toegang (403) | `no-access` | nee, nog te ontwerpen |
-| Fouten | Geen verbinding buiten Start (een actie mislukt omdat er geen bereik is) | `no-connection` | nee, nog te ontwerpen |
-| Fouten | Formulier met een fout bij een veld (422), bijvoorbeeld Ronde plannen | `form-error` | nee, nog te ontwerpen |
-| Fouten | Nieuwe versie beschikbaar, vernieuwen | `update-available` | nee, nog te ontwerpen |
+| Groep | Scherm | Bestand |
+| --- | --- | --- |
+| Inloggen | Code fout: verkeerd, verlopen, te veel pogingen (`login_code_wrong`, `login_code_ended`, 429) | `login-code-error` |
+| Inloggen | Sessie verlopen, terug naar inloggen met uitleg | `session-expired` |
+| Rondes | Start, niets open (geen ronde die een loopmaatje zoekt) | `start-empty` |
+| Rondes | Kalender als lijst, met de wissel Week en Lijst (beslissing 5) | `calendar-list` |
+| Rondes | Kalender met twee rondes in één dagdeel en afgelopen dagen ("Gelopen, geen bijzonderheden", "Incident gemeld", "Nog geen terugmelding", "Niet gelopen") | `calendar-past` |
+| Rondes | Ronde is vol: een ander meldde net eerder aan (review-focus 1) | `round-just-full` |
+| Rondes | Afmelden als laatste loper: de ronde vervalt, zonder "ongedaan maken" | `confirm-withdrawal-last` |
+| Rondes | Mijn rondes, leeg | `my-rounds-empty` |
+| Meer | Nieuwe koppeling: het geheim, één keer getoond | `integration-created` |
+| Fouten | Er ging iets mis (500 en elke onverwachte fout), met opnieuw proberen en de hulp | `error` |
+| Fouten | Niet gevonden (404), bijvoorbeeld een verwijderde ronde uit een oude mail | `not-found` |
+| Fouten | Geen toegang (403) | `no-access` |
+| Fouten | Geen verbinding buiten Start (een actie mislukt omdat er geen bereik is) | `no-connection` |
+| Fouten | Formulier met een fout bij een veld (422), bijvoorbeeld Ronde plannen | `form-error` |
+| Fouten | Nieuwe versie beschikbaar, vernieuwen | `update-available` |
 
 `KalenderDesktop` (pagina "Desktop", in het canvas "· later (fase 5c)") hoort bij fase 5c; `Flow` is een overzicht,
 geen scherm.
@@ -165,7 +170,8 @@ geen scherm.
     | Start, Start offline | `GET /me` (naam), `GET /me/rounds?view=upcoming&limit=1`, `GET /staffing-gaps?days=7`, `PUT` en `DELETE /rounds/{id}/walkers/me` | **wie al loopt** (beslissing 20) |
     | Kalender (Week en Lijst) | `GET /rounds?from=&to=` | **wie al loopt (Lijst) en de uitkomst van een afgelopen ronde** (beslissing 21) |
     | Ronde plannen | `POST /rounds`, `GET /meeting-points`, `GET /config` | niets |
-    | Ronde (open, met anderen, alleen, vol) | `GET /rounds/{id}`, `PUT`/`DELETE /rounds/{id}/walkers/me` | **wat het lid hier mag** (beslissing 22) |
+    | Afgelopen ronde | `GET /rounds/{id}` (`report.outcomeKind`, vastgesteld 7) | de uitkomst (beslissing 21) |
+    | Ronde (open, genoeg lopers, met anderen, alleen, vol) | `GET /rounds/{id}`, `PUT`/`DELETE /rounds/{id}/walkers/me` | **wat het lid hier mag** (beslissing 22) |
     | Ronde wijzigen | `PATCH`/`DELETE /rounds/{id}`, `GET /meeting-points` | idem |
     | Opmerking toevoegen | `POST /rounds/{id}/comments`, `DELETE /comments/{id}` | **de hint** (beslissing 23) |
     | Afmelden bevestigen | `DELETE /rounds/{id}/walkers/me` | niets |
@@ -174,12 +180,15 @@ geen scherm.
     | Mijn rondes | `GET /me/rounds?view=upcoming\|to_report\|all` | de uitkomst (beslissing 21) |
     | Meer | `GET /config` (privacy-URL), `POST /auth/logout` | niets |
     | Mijn gegevens | `GET`/`PATCH /me`, `GET /me/export` | niets |
+    | Mijn gegevens downloaden | `GET /me/export` | niets |
     | Bevestig dat jij het bent | `POST /auth/confirm`, of `POST /auth/login-code` en `/verify` | niets |
     | Mijn activiteit | `GET /me/activity` | niets |
     | Koppelingen | `GET`/`POST`/`DELETE /me/tokens` | niets |
     | Meldingen | `GET`/`PATCH /me` (`notifyOpenRounds`) | niets |
     | Lopers | `GET /members` | niets |
     | Hulp en spoed | `GET /config` (spoedtekst, contact, groep) | niets |
+    | Privacyverklaring | `GET /config` (`privacyUrl`) | **de tekst in de app**: de API geeft alleen een link naar buiten |
+    | Handleiding voor lopers | geen | **de tekst**: geen endpoint, en `docs/user-guide/` heeft alleen `mcp.md` |
 
 ## Voorgestelde beslissingen
 
@@ -188,14 +197,15 @@ geen scherm.
 1. **Het goedgekeurde ontwerp staat als afbeelding in de repo**, in `docs/design/<rol>/<apparaat>/<scherm>.png`:
    rol `walker`, `coordinator`, `analyst` of `admin`, apparaat `mobile`, `tablet` of `desktop`, zodat een map zegt
    voor wie en op welk toestel een scherm is. Deze fase vult alleen `docs/design/walker/mobile/`. De afbeelding is een
-   export uit het canvas op 390 px breed, in de toestand van de goedkeuring; een later gewijzigd scherm krijgt een
-   nieuwe export en een nieuwe datum. Het canvas blijft de werkplaats, de repo de vastgelegde versie, zodat de
+   PNG-export uit het canvas op 2x (een scherm van 390 px breed wordt 780 px), in de toestand van de goedkeuring:
+   scherp genoeg om randen en iconen te vergelijken, dus een maat uit de afbeelding gedeeld door twee is de maat in
+   CSS-pixels. Een later gewijzigd scherm krijgt een nieuwe export en een nieuwe datum. Het canvas blijft de werkplaats, de repo de vastgelegde versie, zodat de
    frontend ook te controleren is zonder toegang tot het canvas. De schetsen van het eerste plan (statische HTML in
    `docs/design/sketches/`) vervallen.
 2. **De status staat in de titel in het canvas**: "· concept" (nog niet goedgekeurd, wordt niet gebouwd),
    "· goedgekeurd 20 nov" (staat als afbeelding in de repo en wordt gebouwd) of "· later (fase 5c)". Een blauwe
    notitie op de pagina "Mobile" legt het uit. Een goedgekeurd scherm dat daarna verandert, gaat terug naar
-   "· concept". Sinds 18 november 2026 staan alle schermen op "· concept".
+   "· concept". De README in `docs/design/walker/mobile/` volgt de titel: "draft" of "approved <datum>".
 3. **Twee testlopers bekijken het canvas op hun eigen telefoon**, samen met de ontwikkelaar, elk apart, in de
    doorklikbare weergave (de schermen linken naar elkaar). Elke loper krijgt de drie opdrachten uit het plan (meld je
    aan bij een ronde die een loopmaatje zoekt, meld je weer af, geef door dat je niets bijzonders zag) en denkt
@@ -206,8 +216,10 @@ geen scherm.
    `font: -apple-system-body` op `<html>` de basismaat volgens de tekstgrootte die de loper instelde; de 18 px uit het
    ontwerp wordt een `rem`-waarde daarop, zodat alles meeschaalt. Geen download, geen verzoek naar Google, en het
    lettertype is gemaakt voor dat scherm. Inter zelf hosten viel af: tientallen KB per gewicht en een wisseling van
-   lettertype op een trage verbinding. Het canvas mag Inter houden; de afbeeldingen in de repo tonen dan Inter, de app het
-   systeemlettertype.
+   lettertype op een trage verbinding. Het canvas gebruikt hetzelfde systeemlettertype (prompt C), zodat regelafbreking
+   en breedtes in de afbeeldingen kloppen met de app; op een Mac toont de export San Francisco, zoals op een iPhone.
+   Alleen het lettertype wisselen maakt een goedgekeurd scherm niet weer concept: het krijgt een nieuwe export met de
+   datum in de titel ongewijzigd.
 5. **De kalender heeft een wissel Week en Lijst** (vastgesteld 14). Week: de week met dagdelen uit het ontwerp. Lijst:
    per dag alleen de dagen met een ronde, elke ronde op een regel ("Avond 20:00 · Joost · Maatje nodig"), zoals het
    plan een telefoonkalender beschreef. Beide uit `GET /rounds`; de keuze onthoudt de telefoon (`localStorage`, alleen
@@ -450,8 +462,8 @@ cooldown 7 dagen voor patch en minor.
 
 ## Taken
 
-Elke taak is één of enkele kleine commits; tests komen vóór de code. Een scherm wordt pas gebouwd als het in de tabel
-Schermen goedgekeurd is.
+Elke taak is één of enkele kleine commits; tests komen vóór de code. Een scherm wordt pas gebouwd als het in
+`docs/design/walker/mobile/README.md` goedgekeurd is.
 
 ### T1. Branch en taakplan
 
@@ -461,10 +473,14 @@ Schermen goedgekeurd is.
 
 - De status in de titels van het canvas (beslissing 2): gedaan op 18 november 2026, alle schermen "· concept".
 - Jij geeft prompt A in de chat van het canvas: Engelse bestandsnamen en de schermen uit "Nog niet in het canvas".
+- Jij geeft prompt C in de chat van het canvas: het systeemlettertype in elk scherm (beslissing 4), met nieuwe PNG's
+  van de goedgekeurde schermen.
 - `docs/design/walker/mobile/review.md` met de drie opdrachten en een lege tabel voor de bevindingen.
+- `docs/design/walker/mobile/README.md`: de afspraken (2x, een maat uit de afbeelding gedeeld door twee is de maat in
+  CSS-pixels) en per scherm de status en de hoogte in CSS-pixels.
 - Jij houdt de sessies met twee lopers (beslissing 3) en keurt de schermen goed.
-- Per goedgekeurd scherm: prompt B in de chat van het canvas, de PNG's van jou in `docs/design/walker/mobile/`, de
-  datum in de tabel Schermen (beslissingen 1 en 2).
+- Per goedgekeurd scherm: prompt B in de chat van het canvas, dan prompt D in Claude Code: de PNG's en de status in
+  `docs/design/walker/mobile/` (beslissingen 1 en 2).
 
 **Prompt A** (eenmalig):
 
@@ -531,11 +547,43 @@ Flow.dc.html → flow.dc.html
 ```text
 Deze schermen zijn goedgekeurd op <datum>: <bestand>, <bestand>, ...
 1. Zet in project/canvas.json de titel van elk van deze schermen van "· concept" op "· goedgekeurd <datum>".
-2. Exporteer elk van deze schermen als PNG, 390 px breed op 1x, met de bestandsnaam van het scherm zonder
-   .dc.html (bijvoorbeeld start.png), en geef ze me om te downloaden.
+2. Exporteer elk van deze schermen als PNG op 2x (780 px breed), over de volle hoogte van het scherm, met de
+   bestandsnaam van het scherm zonder .dc.html (bijvoorbeeld start.png), en geef ze me om te downloaden.
 ```
 
 Kan de chat geen PNG maken, dan exporteer je via het menu van het canvas (Share, Export) met dezelfde namen.
+
+**Prompt C** (eenmalig):
+
+```text
+Werk in dit canvas. Vervang in elk scherm het lettertype Inter door het systeemlettertype:
+1. Verwijder elke link naar Google Fonts (fonts.googleapis.com, fonts.gstatic.com), ook @import en preconnect.
+2. Zet overal waar Inter staat: font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+3. Laat maten, gewichten, regelhoogte, kleuren, tekst en titels gelijk, ook "· concept" en "· goedgekeurd <datum>".
+4. Controleer op 320 en 390 px breed of tekst nergens over een rand loopt of afgekapt wordt, en noem de schermen waar
+   een regel anders afbreekt dan eerst, zonder ze aan te passen.
+5. Exporteer elk scherm met "· goedgekeurd" in de titel opnieuw als PNG op 2x (780 px breed), over de volle hoogte
+   van het scherm, met de bestandsnaam van het scherm zonder .dc.html, en geef ze me om te downloaden.
+```
+
+**Prompt D** (in Claude Code, na elke download uit prompt B of C; vul de titels, namen en de datum in). Jij zet de
+PNG's eerst in `shared/` (genegeerd door git): `~/Downloads` is voor Claude Code niet leesbaar (macOS, Privacy en
+beveiliging).
+
+```text
+Ik heb goedgekeurde schermen uit het canvas geëxporteerd (PNG, 2x) en in shared/ gezet. De tabel in
+docs/design/walker/mobile/README.md geeft per scherm de bestandsnaam en de hoogte in CSS-pixels.
+Werk op feature/phase-5.
+
+1. Verplaats ze uit shared/ naar docs/design/walker/mobile/:
+   - "<titel> · goedgekeurd <datum>*.png" → <bestand>.png
+   - ...
+   Ontbreekt een bestand of zijn er meer kandidaten, stop en meld het.
+2. Controleer elke afbeelding: 780 px breed en precies 2 × de hoogte uit de README (844 wordt 1688).
+   Wijkt iets af: niet committen, melden.
+3. Zet in die README bij deze schermen de status van "draft" op "approved <JJJJ-MM-DD>".
+4. Commit: "Add the approved <bestand> and <bestand> screens".
+```
 
 ### T3. Lit vendoren (test eerst)
 
