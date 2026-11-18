@@ -27,7 +27,7 @@ Klaar als:
 - de eigen code niets gebruikt wat Safari 15.0 mist (beslissing 27, test);
 - axe-core op elk scherm en elke toestand in CI geen enkele overtreding vindt (WCAG 2.2 A en AA), in Chromium, WebKit
   en Firefox, licht en donker, op 320, 360 en 390 px breed;
-- de hoofdtaken met alleen het toetsenbord lukken (test), en met de hand met VoiceOver en NVDA (checklist);
+- de hoofdtaken met alleen het toetsenbord lukken (test);
 - geen enkel scherm een CSP-overtreding geeft (test), en `frontend/.htaccess` de headers van beslissing 31 zet;
 - zoekmachines de app niet crawlen of indexeren (beslissing 35, test);
 - de app-shell inclusief Lit onder 100 KB gecomprimeerd blijft (test);
@@ -345,8 +345,10 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
     - elke CSP-overtreding (`securitypolicyviolation`) en elke consolefout faalt de test;
     - `acorn` controleert elk JavaScript-bestand tegen ES2021, `unsupported.js` tegen ES5.
     Geen geheimen, draait op elke pull request. Lokaal optioneel (`npm ci` in `tests/browser`), niet op de server.
-30. **Met de hand, per release**: een checklist in `docs/testing.md` (alleen toetsenbord, VoiceOver op een iPhone,
-    NVDA op Windows, 400 % zoom). Geen iPhone met iOS 15 (beslissing 27).
+30. **Met de hand alleen als de ontwikkelaar dat wil** (besloten op 18 november 2026): een checklist in
+    `docs/testing.md` (alleen toetsenbord, VoiceOver op een iPhone, NVDA op Windows, 400 % zoom) als hulpmiddel, geen
+    voorwaarde voor een merge of release. Wat telt, zijn de standaarden en de tests in CI (plan, Werkwijze). Geen
+    iPhone met iOS 15 (beslissing 27).
 
 ### Beveiligingsheaders voor `frontend/`
 
@@ -669,7 +671,7 @@ Werk in dit canvas, verander niets aan bestaande schermen behalve de links hiero
 ### T14. Documentatie
 
 - `docs/adr/0010-lit-frontend.md` (de evaluatie), `docs/frontend.md`, `docs/architecture.md` (regel 6, de frontend,
-  `actions`), `docs/testing.md` (browsertests en de checklist met de hand), `docs/configuration.md`,
+  `actions`), `docs/testing.md` (browsertests en de optionele checklist met de hand), `docs/configuration.md`,
   `docs/glossary.md`, `docs/gotchas.md`; `CHANGELOG.md`; `AGENTS.md` (Commands: browsertests).
 
 ### T15. Plan bijwerken
@@ -681,7 +683,6 @@ Werk in dit canvas, verander niets aan bestaande schermen behalve de links hiero
 
 - `composer test` zonder database, `symfony composer check`, de browsertests; uitvoer in het verslag, met elke check die
   niet draaide.
-- Met de hand: alleen toetsenbord en 320 px op elk scherm.
 - Push, titel en beschrijving van de pull request; openen na jouw ja; CI volgen en squash-mergen zodra alles groen is.
 
 ## Afspraken

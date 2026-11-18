@@ -396,7 +396,7 @@ Eenvoud in gebruik:
 - **Hulp van de coördinator:** een nieuwe uitnodiging laten sturen, zonder de link zelf te zien, en een loper die het zelf niet lukt namens hem aan- of afmelden; dat staat als "namens" in het auditlog.
 - **Handleiding voor lopers:** één A4 met schermafbeeldingen in `docs/user-guide/`, en dezelfde uitleg in de app onder "Hoe werkt het?".
 
-Testen met echte lopers en toestellen doet de vereniging, en zij is verantwoordelijk voor de uitkomst. De ontwikkelaar zoekt geen lopers of toestellen; de dekking van zijn kant komt uit CI (browsertests in Chromium, WebKit en Firefox, en de controle dat de eigen code niets gebruikt wat Safari 15 mist). Wat de vereniging vóór livegang doet:
+Testen met echte lopers en toestellen doet de vereniging, en zij is verantwoordelijk voor de uitkomst. De ontwikkelaar zoekt geen lopers of toestellen; de dekking van zijn kant komt uit CI (browsertests in Chromium, WebKit en Firefox, en de controle dat de eigen code niets gebruikt wat Safari 15 mist). Dat is geen voorwaarde voor een release. Wat de vereniging vóór livegang doet:
 
 - Een gebruikerstest met drie van haar lopers, onder wie de minst ervaren, op hun eigen telefoon, met drie opdrachten: meld je aan bij een ronde die een loopmaatje zoekt, meld je weer af, geef door dat je niets bijzonders zag.
 - Wat niet werkt, meldt ze als issue, met toestel en browserversie.
@@ -419,7 +419,7 @@ Testen met echte lopers en toestellen doet de vereniging, en zij is verantwoorde
 **Testen.**
 
 - Automatisch: axe-core op elk scherm in CI (Playwright in Chromium, WebKit en Firefox, alleen in CI, niet nodig op de server), met de tags `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa` en `wcag22aa`. De contrastregel blijft aan, omdat beheerders de kleuren zelf instellen.
-- Handmatig per release: één ronde met alleen toetsenbord, met VoiceOver op een iPhone en met NVDA op Windows; checklist in `docs/testing.md`.
+- Handmatig, als de ontwikkelaar dat wil: één ronde met alleen toetsenbord, met VoiceOver op een iPhone en met NVDA op Windows; checklist in `docs/testing.md`. Geen voorwaarde voor een release.
 - Een korte toegankelijkheidsverklaring staat in de app (standaardtekst, aan te passen in de instellingen).
 
 ## Domeinmodel en API-ontwerp
@@ -1089,6 +1089,7 @@ v4 komt in een **nieuwe repo** `zabuto/buurtpreventie`, met vanaf de eerste comm
 - **`develop`:** hier gebeurt het werk, en tot `v4.0.0` is dit de standaardbranch op GitHub. Elke taak krijgt een eigen branch `feature/<korte-naam>`, een bugfix `bugfix/<korte-naam>`, en gaat via een pull request terug, altijd als squash merge: één commit per pull request.
 - **GitHub-issue:** de korte naam van de branch begint met het nummer van het issue (`bugfix/26-<korte-naam>`), en de beschrijving van de pull request bevat `Fixes #26`: de squash commit houdt alleen de titel, dus de beschrijving sluit het issue.
 - **`main`:** alleen uitgebrachte versies. Een release is een merge van `develop` naar `main` (een merge commit, geen squash, zodat `main` de commits van `develop` houdt) met een tag `vX.Y.Z`; die tag start de release-workflow. `v4.0.0` is de MVP; vanaf dan is `main` de standaardbranch.
+- **Wanneer een release:** zodra de standaarden gevolgd zijn en alle checks en tests in CI groen zijn, beslist de ontwikkelaar. Tests met de hand of door een vereniging zijn geen voorwaarde.
 - **Spoedfix:** `hotfix/<korte-naam>` vanaf `main`, terug naar `main` met een nieuwe patchtag, én naar `develop`.
 - **Dependabot:** gewone updates richten zich op `develop`; beveiligingsupdates gaan via de standaardbranch.
 
