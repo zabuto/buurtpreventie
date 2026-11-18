@@ -88,7 +88,7 @@ Every new key (database, mail, tick, release signing) gets a row here.
 `symfony console app:audit:verify` checks that no entry in the audit log was changed, removed or inserted
 ([ADR 0007](adr/0007-audit-hash-chain.md)). It reports the chain intact through an entry, or the first entry that does
 not hold with the reason, and exits with 1 then, so a cron job can mail a failure. On hosting without SSH, Maintenance
-(phase 6b) shows the same.
+(phase 6c) shows the same.
 
 - **Note the last position** the command prints, outside the server: someone who can change the database can remove
   the newest entries and set the head back, which the chain itself cannot show.

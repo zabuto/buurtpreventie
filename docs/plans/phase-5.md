@@ -2,7 +2,7 @@
 
 Status: goedgekeurd op 18 november 2026, met de wekelijkse controle (beslissing 12) in plaats van Renovate en de
 nieuwe afhankelijkheden uit de tabel. Op dezelfde dag ingeperkt tot de loper op een telefoon; andere rollen worden
-fase 5c, tablet en desktop fase 5d (`plan.md`). Geen scherm is nog goedgekeurd (Schermen).
+fase 5b, tablet en desktop fase 5c (`plan.md`). Geen scherm is nog goedgekeurd (Schermen).
 
 Bron: `docs/plans/plan.md` (Architectuur, Frontend: PWA, responsive en toegankelijk, Branding en configuratie, Privacy
 en AVG, Domeinmodel en API-ontwerp, Fase 5, Risico's en review-focus), de Open punten van `docs/plans/phase-3.md` en
@@ -32,8 +32,8 @@ Klaar als:
 - `symfony composer check` groen is, `composer test` zonder database ook, en de pull request naar `develop` groen en
   gemergd is.
 
-Niet in deze fase: schermen voor coördinator, analist en beheerder (fase 5c, met het beheerscherm voor de instellingen,
-de MCP-schakelaar en de contrastmelding uit de open punten van fase 3 en 4), en brede schermen (fase 5d, met het
+Niet in deze fase: schermen voor coördinator, analist en beheerder (fase 5b, met het beheerscherm voor de instellingen,
+de MCP-schakelaar en de contrastmelding uit de open punten van fase 3 en 4), en brede schermen (fase 5c, met het
 maandraster).
 
 ## Schermen
@@ -85,13 +85,13 @@ Nog niet in het canvas, nodig voor deze fase:
 - "Nieuwe versie beschikbaar, vernieuwen";
 - de sessie verlopen: terug naar inloggen met uitleg.
 
-`KalenderDesktop` (pagina "Desktop") hoort bij fase 5d; `Flow` is een overzicht, geen scherm.
+`KalenderDesktop` (pagina "Desktop") hoort bij fase 5c; `Flow` is een overzicht, geen scherm.
 
 ## Vastgesteld
 
 ### In de code
 
-1. **`frontend/` bestaat nog niet**; `public/` heeft alleen `index.php` en `bundles/`. De release-workflow van fase 6a
+1. **`frontend/` bestaat nog niet**; `public/` heeft alleen `index.php` en `bundles/`. De release-workflow van fase 6b
    kopieert `frontend/` naar `public/app/` (plan, Architectuur).
 2. **De e-mails linken al naar hash-routes**: `app/#/rounds/<id>`, `app/#/account` en `app/#/welcome/<geheim>`
    (`RoundFacts`, `BuddyNeededMail`, `WalkerWithdrawnMail`, `InvitationMail`). De router moet die drie dus kennen.
@@ -270,7 +270,7 @@ Nog niet in het canvas, nodig voor deze fase:
     Lit wordt relatief geïmporteerd (`../vendor/lit-core.min.js`), zonder import map.
 15. **Lokaal**: een symlink `public/app` naar `../frontend`, in de repo, zodat de Symfony-server de app op `/app/`
     serveert. Of de Symfony CLI `index.html` voor `/app/` geeft en `.htaccess` negeert, controleer ik in T5; zo niet,
-    dan draait lokaal dezelfde PHP-router als in CI (beslissing 29). De release (fase 6a) kopieert in plaats van te
+    dan draait lokaal dezelfde PHP-router als in CI (beslissing 29). De release (fase 6b) kopieert in plaats van te
     linken.
 16. **Hash-router** met de routes uit de mails (vastgesteld 2): `#/`, `#/login`, `#/welcome/<geheim>`,
     `#/rounds/<id>`, `#/rounds/new`, `#/my-rounds`, `#/report/<id>`, `#/calendar`, `#/more`, `#/account`, `#/help`,
@@ -320,7 +320,7 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
     | nieuw | Meldingen, Koppelingen, Mijn activiteit, Hulp en spoed, Ronde ging niet door |
 
     De rest (`round/list`, `round/change-form` voor elke ronde, `member/form`, `user/*`, `result/list`, `config/*`)
-    hoort bij fase 5c.
+    hoort bij fase 5b.
 
 ### Toegankelijkheid en oudere toestellen
 
@@ -374,7 +374,7 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
       met een ETag na; offline helpt de service worker).
     HSTS zet de API al voor de hele host (`HSTS_MAX_AGE`), dus niet nog eens hier. `FrontendHeadersTest` leest
     `.htaccess` en eist precies deze headers, zonder `'unsafe-inline'` of `'unsafe-eval'`; de browsertests draaien
-    achter dezelfde headers. Of Apache ze op een echte host zet, controleert de installer in fase 6a.
+    achter dezelfde headers. Of Apache ze op een echte host zet, controleert de installer in fase 6b.
 
 ### PWA (na de proef)
 
@@ -540,12 +540,12 @@ Schermen goedgekeurd is.
 
 Gemeld, niet in deze fase opgelost:
 
-- **Fase 5c** bouwt het beheerscherm voor de instellingen met de contrastmelding in gewone taal (open punt van fase 3)
+- **Fase 5b** bouwt het beheerscherm voor de instellingen met de contrastmelding in gewone taal (open punt van fase 3)
   en de schakelaars voor API-tokens en MCP (open punt van fase 4), en de schermen voor coördinator en analist.
-- **Fase 5d** maakt de schermen responsive voor tablet en desktop, met het maandraster (`KalenderDesktop`).
+- **Fase 5c** maakt de schermen responsive voor tablet en desktop, met het maandraster (`KalenderDesktop`).
 - **Opengrep scant geen JavaScript** (vastgesteld 12). Regels voor `frontend/` (bijvoorbeeld `innerHTML`,
   `unsafeHTML`, `eval`) kunnen erbij als de frontend groeit.
 - **Het statistiekscherm** op `/stats` blijft U5; offline terugmelden U6; pushmeldingen U4.
 - **De release kopieert `frontend/` naar `public/app/`** en de installer controleert de headers op een echte host:
-  fase 6a.
+  fase 6b.
 - **Leaflet** (U9) komt als tweede regel in `frontend/vendor/vendor.json`, met hetzelfde script.

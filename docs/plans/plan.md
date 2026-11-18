@@ -21,16 +21,19 @@ Buurtpreventie v4 wordt een Symfony 7.4 LTS-backend met een echte REST-API (`/ap
 | Fase | Inhoud | Stand |
 | --- | --- | --- |
 | 0 | Basis: skelet, CI, docs, codescan | klaar, in `develop` |
-| 1 | Domein, use cases, Voters, auditlog, database, voorbeelddata | klaar, in `develop`; T13 naar fase 5b |
+| 1 | Domein, use cases, Voters, auditlog, database, voorbeelddata | klaar, in `develop`; T13 naar fase 6a |
 | 2 | REST-API v1 met inloggen en API-tokens | klaar, in `develop` |
 | 3 | Branding en configuratie | klaar, in `develop` |
 | 4 | MCP-server | klaar, in `develop` |
 | 5 | Frontend voor de loper, mobiel (Lit, PWA, WCAG 2.2 AA) | open |
-| 5b | Conversie v3 → v4 | open |
-| 5c | Frontend voor coördinator, analist en beheerder | open |
-| 5d | Frontend op tablet en desktop | open |
-| 6a | Installeren en releasen | open |
-| 6b | Bijwerken, onderhoud en overdracht; daarmee is de MVP klaar en begint de uitrol | open |
+| 5b | Frontend voor coördinator, analist en beheerder | open |
+| 5c | Frontend op tablet en desktop | open |
+| 6a | Conversie v3 → v4 | open |
+| 6b | Installeren en releasen | open |
+| 6c | Bijwerken en onderhoud, en overdracht mogelijk maken; daarmee is de MVP klaar en begint de uitrol | open |
+
+Nummering sinds 18 november 2026: de taakplannen van fase 0 tot en met 4 noemen de conversie fase 5b, installeren en
+releasen fase 6a, en bijwerken en onderhoud fase 6b; dat zijn nu 6a, 6b en 6c.
 
 **Uitbreidingen na de MVP** (extra functies, elk los aan of uit; volgorde en afweging in Uitbreidingen na de MVP):
 
@@ -299,7 +302,7 @@ Welke codestructuur het ook wordt: het project moet over te dragen zijn aan een 
    Is de oorspronkelijke ontwikkelaar onbereikbaar, dan kan een beheerder in Onderhoud zelf een andere updatebron en sleutel instellen: alleen na opnieuw inloggen, met een duidelijke waarschuwing, en vastgelegd in het auditlog. `docs/operations.md` beschrijft beide routes.
 3. **Geheimen nooit in de repo;** wel een lijst welke geheimen er zijn en waar ze staan.
 
-**Toets:** vóór de overstap volgt iemand zonder voorkennis (een andere ontwikkelaar, of Claude Code in een lege map) `docs/getting-started.md` en voegt één kleine functie toe. Wat onduidelijk blijkt, wordt herschreven.
+**Toets (optioneel, zodra een overdracht aan de orde is):** iemand zonder voorkennis (een andere ontwikkelaar, of Claude Code in een lege map) volgt `docs/getting-started.md` en voegt één kleine functie toe. Wat onduidelijk blijkt, wordt herschreven.
 
 ## Voorbeelddata (fixtures)
 
@@ -643,7 +646,7 @@ De vereniging is verwerkingsverantwoordelijke: zij stelt de privacyverklaring, b
 **Beveiliging.**
 
 - Alleen HTTPS; de installer weigert zonder.
-- Beveiligingsheaders: de API stuurt een CSP die niets toestaat, `nosniff`, `Referrer-Policy: no-referrer` en `Cross-Origin-Opener-Policy: same-origin` (fase 1); de frontend krijgt een eigen CSP en `Permissions-Policy` (fase 5). HSTS staat in de API per installatie aan met `HSTS_MAX_AGE` (opt-in, sinds fase 2, zonder `includeSubDomains`); de installer van fase 6a kan het zetten na zijn HTTPS-controle.
+- Beveiligingsheaders: de API stuurt een CSP die niets toestaat, `nosniff`, `Referrer-Policy: no-referrer` en `Cross-Origin-Opener-Policy: same-origin` (fase 1); de frontend krijgt een eigen CSP en `Permissions-Policy` (fase 5). HSTS staat in de API per installatie aan met `HSTS_MAX_AGE` (opt-in, sinds fase 2, zonder `includeSubDomains`); de installer van fase 6b kan het zetten na zijn HTTPS-controle.
 - Wachtwoorden en tokens alleen gehasht opgeslagen.
 - Elk geheim maakt de app zelf, met `random_bytes` (een inlogcode met `random_int`), en niemand typt het in: API-tokens, uitnodigingen, inlogcodes en het id van hun aanvraag, het installer-token, `APP_SECRET` en de tick-sleutel. Zo kan er geen kort of zelfbedacht geheim in komen. De installer schrijft `APP_SECRET` en `TICK_SECRET` in `shared/.env.local`; Onderhoud vervangt de tick-sleutel met een knop, zonder invoerveld. Het domein weigert een geheim dat niet het gegenereerde formaat heeft.
 - Rechten via rollen en Voters, gecontroleerd met de matrixtest.
@@ -743,7 +746,7 @@ Alleen als CI rood blijft, moet de ontwikkelaar zelf iets doen; de beheerder mer
 - Hosts die PHP niet laten schrijven in de app-map: dan dezelfde stappen handmatig, via FTP volgens de handleiding.
 - Een lek zonder patch: de beheerder kan MCP en API-tokens met één schakelaar uitzetten tot de fix er is.
 
-**Handleiding voor de beheerder** in `docs/admin-guide/`, in gewone taal en met schermafbeeldingen: bijwerken, terugzetten, back-up terugzetten, PHP-versie wijzigen in gangbare hostingpanelen, en wat te doen bij een beveiligingsmelding. In fase 6b loopt een webbeheerder zonder dev-achtergrond hem zelf door; wat onduidelijk is, wordt herschreven.
+**Handleiding voor de beheerder** in `docs/admin-guide/`, in gewone taal en met schermafbeeldingen: bijwerken, terugzetten, back-up terugzetten, PHP-versie wijzigen in gangbare hostingpanelen, en wat te doen bij een beveiligingsmelding. In fase 6c loopt een webbeheerder zonder dev-achtergrond hem zelf door; wat onduidelijk is, wordt herschreven.
 
 ## Overstap naar Symfony 8.4 LTS
 
@@ -777,7 +780,7 @@ v4 start op 7.4 LTS en stapt in 2028 over naar 8.4 LTS (verwacht november 2027),
 
 ## Implementatieplan
 
-Fase 0 tot en met 6b vormen de MVP: na fase 2 is de API bruikbaar, na fase 6b is de MVP klaar en kan de uitrol beginnen. Daarna volgen de uitbreidingen U1 tot en met U11: extra functies, elk los aan of uit te zetten, in volgorde van aanpak (zie Uitbreidingen na de MVP). De overstap van bestaande installaties is een apart project. Elke fase levert iets testbaars op en krijgt bij de start een eigen gedetailleerd taakplan (test eerst, kleine commits).
+Fase 0 tot en met 6c vormen de MVP: na fase 2 is de API bruikbaar, na fase 6c is de MVP klaar en kan de uitrol beginnen. Daarna volgen de uitbreidingen U1 tot en met U11: extra functies, elk los aan of uit te zetten, in volgorde van aanpak (zie Uitbreidingen na de MVP). De overstap van bestaande installaties is een apart project. Elke fase levert iets testbaars op en krijgt bij de start een eigen gedetailleerd taakplan (test eerst, kleine commits).
 
 Fase 3, 4 en 5 hangen alleen van de API af; MCP (fase 4) gaat vóór de frontend (fase 5).
 
@@ -794,9 +797,9 @@ Fase 3, 4 en 5 hangen alleen van de API af; MCP (fase 4) gaat vóór de frontend
 
 ### Fase 1 — Domein en use cases
 
-- [x] Entiteiten in `src/*/Domain` met Doctrine-mapping volgens het verbeterde model; nieuw zijn ook `ApiToken`/`Setting`. De conversie uit v3 volgt in fase 5b.
+- [x] Entiteiten in `src/*/Domain` met Doctrine-mapping volgens het verbeterde model; nieuw zijn ook `ApiToken`/`Setting`. De conversie uit v3 volgt in fase 6a.
 - [x] Use cases in UseCase/ per module, elk met invoerklasse, handler en later de adapters (zie Codestructuur): `SignUpForRound`, `WithdrawFromRound`, `CreateRound`, `ChangeRound`, `ReportRoundResult`, `AddRoundComment`, `SendReminders`, `NotifyBuddyNeeded`, …
-- [x] Voters per onderwerp en de module Audit (elke schrijvende handler legt een auditregel vast, met test); regels uit de oude `WalkService` (minimum lopers, inactieve lopers uit toekomstige rondes, eigen melding verwijderen) als unit tests vastgelegd; fixture-sets demo, test en edge (zie Voorbeelddata); de set v3 volgt met de conversie in fase 5b.
+- [x] Voters per onderwerp en de module Audit (elke schrijvende handler legt een auditregel vast, met test); regels uit de oude `WalkService` (minimum lopers, inactieve lopers uit toekomstige rondes, eigen melding verwijderen) als unit tests vastgelegd; fixture-sets demo, test en edge (zie Voorbeelddata); de set v3 volgt met de conversie in fase 6a.
 - [x] Database: lokaal MariaDB 10.11 (`compose.yaml`), omdat shared hosting meestal MariaDB biedt. CI draait de migraties vanaf een lege database en de databasetests op MariaDB 10.11 én MySQL 8.4, omdat niet elke hoster MariaDB heeft en Doctrine niet alles gelijktrekt: gegenereerde migraties, collation en gelijktijdige schrijfacties kunnen per database verschillen. Standaard-tabelopties in `doctrine.yaml`: `utf8mb4` met `utf8mb4_unicode_ci`, dat op beide bestaat. Wat mensen intypen en waarop de app zoekt (e-mailadressen, namen) is hoofdletterongevoelig: `Anke@example.org` en `anke@example.org` zijn hetzelfde adres. Namen zijn ook accentongevoelig: zoeken op "Jose" vindt "José". De app maakt in PHP een zoeksleutel, vóór opslag en vóór het zoeken, zodat zoeken en unieke sleutels niet van de collation afhangen; de weergave blijft zoals getypt. Bij leden zijn e-mailadres en weergavenaam uniek: twee leden mogen dezelfde volledige naam hebben, maar in rondes en lijsten staan ze met een eigen weergavenaam ("Jan H." en "Jan B."). Geheimen (inlogcode, uitnodiging, API-token) zijn de uitzondering: die worden exact vergeleken, als hash. Geen eigen SQL, behalve in een repositorymethode met een integratietest op beide. Coördinaten zijn twee getallen in WGS84 (`DECIMAL(9,6)`), geen spatial types.
 
 **Klaar als:** alle domeinregels uit de oude app hebben een test, en de migraties en databasetests draaien op MariaDB 10.11 én MySQL 8.4.
@@ -827,13 +830,13 @@ Fase 3, 4 en 5 hangen alleen van de API af; MCP (fase 4) gaat vóór de frontend
 - [x] `Setting`-repository met standaardwaarden, `/admin/settings`, logo-upload, `GET /config`, `manifest.webmanifest`. De uitwerking staat in `docs/plans/phase-3.md`; de afwijkingen staan bij Branding en configuratie.
 - [x] E-mailtemplates (uitnodiging, inlogcode, herinnering, nieuwe ronde zoekt loopmaatje, loopmaatje afgemeld) met branding en `nl`/`en`; altijd met een tekstversie, geen informatie die alleen in een afbeelding staat, en zo min mogelijk persoonsgegevens in de mail zelf.
 - [x] Berichten gaan pas na de commit uit, niet binnen de transactie; een test bewijst dat een teruggedraaide wijziging niets verstuurt.
-- [x] Hashketen in het auditlog, vastgelegd in [ADR 0007](../adr/0007-audit-hash-chain.md) (beslissing 16 van fase 1, besloten op 16 november 2026), vóór de conversie van fase 5b, die de eerste echte regels schrijft. Hij maakt geknoei zichtbaar voor wie de database kan wijzigen maar niet bij de bestanden kan, zoals bij een SQL-injectie of een gelekte databaselogin; wie ook bij de bestanden kan, houdt hij niet tegen.
-  - **HMAC-SHA-256 met een eigen sleutel** `AUDIT_SECRET` in `shared/.env.local`, buiten de database en los van `APP_SECRET`, zodat het vervangen van `APP_SECRET` de keten niet breekt. Zonder sleutel is een geldige keten niet na te maken. De installer van fase 6a maakt de sleutel aan, zoals de andere geheimen.
+- [x] Hashketen in het auditlog, vastgelegd in [ADR 0007](../adr/0007-audit-hash-chain.md) (beslissing 16 van fase 1, besloten op 16 november 2026), vóór de conversie van fase 6a, die de eerste echte regels schrijft. Hij maakt geknoei zichtbaar voor wie de database kan wijzigen maar niet bij de bestanden kan, zoals bij een SQL-injectie of een gelekte databaselogin; wie ook bij de bestanden kan, houdt hij niet tegen.
+  - **HMAC-SHA-256 met een eigen sleutel** `AUDIT_SECRET` in `shared/.env.local`, buiten de database en los van `APP_SECRET`, zodat het vervangen van `APP_SECRET` de keten niet breekt. Zonder sleutel is een geldige keten niet na te maken. De installer van fase 6b maakt de sleutel aan, zoals de andere geheimen.
   - **De hash dekt alleen wat nooit verandert**: id, tijdstip, lid-id, actie, onderwerp en kanaal, plus de hash van de vorige regel. De naam van de uitvoerder valt erbuiten, zodat wissen hem kan vervangen door "verwijderd lid".
   - **De gewijzigde velden krijgen een eigen hash**, en de keten loopt over die hash. Wissen haalt de inhoud weg en laat de hash staan: van die regel is de inhoud dan niet meer te controleren, de keten wel.
   - **Een ankerrij** bewaart de hash van de laatst opgeruimde regel, zodat de keten na opruimen volgens de bewaartermijn vanaf daar te controleren blijft.
   - **Een slot op één rij met de laatste hash**, als laatste stap van de transactie, zodat twee gelijktijdige schrijfacties nooit aan dezelfde vorige regel koppelen. Het zet alle schrijfacties achter elkaar, wat bij tientallen gebruikers niets uitmaakt; omdat het altijd als laatste komt, kan het niet vastlopen op het slot van een ronde.
-  - `app:audit:verify` meldt "intact tot en met …" of de eerste regel die niet klopt; Onderhoud (fase 6b) toont hetzelfde.
+  - `app:audit:verify` meldt "intact tot en met …" of de eerste regel die niet klopt; Onderhoud (fase 6c) toont hetzelfde.
   - Tests: een gewijzigde, verwijderde of tussengevoegde regel valt op; wissen en opruimen breken de keten niet; twee gelijktijdige schrijfacties op MariaDB en MySQL geven een kloppende keten.
 - [x] Aanvulling: de controle van een draaiende app van buitenaf staat in platte tekst in `hurl/`, één `.hurl`-bestand per onderwerp dat zelf inlogt en op zichzelf draait; de Postman-collectie is weg. `OpenApiCoverageTest` houdt elk verzoek uit die bestanden tegen de OpenAPI-spec. Hurl draait buiten `composer check` en CI, omdat het een draaiende app met Mailpit nodig heeft; `docs/testing.md` beschrijft het commando. De uitwerking staat in `docs/plans/phase-3-hurl.md`.
 - [x] Aanvulling: elke PHPUnit-run krijgt een eigen testdatabase en gooit die aan het eind weg, zodat twee runs op één machine (twee terminals of twee agent-sessies) elkaars tabellen niet weghalen. In `AGENTS.md` staan de afspraken die erbij horen: tijdens het werk alleen de geraakte tests, de volledige `symfony composer check` één keer voordat een taak klaar is, en één sessie tegelijk op de ontwikkeldatabase. De metingen en de afweging staan in `docs/plans/phase-3-check-speed.md`.
@@ -853,7 +856,7 @@ Fase 3, 4 en 5 hangen alleen van de API af; MCP (fase 4) gaat vóór de frontend
 
 **Eerst ontwerp.** De schermen voor de loper op telefoonformaat staan in een ontwerp-canvas; het taakplan
 (`docs/plans/phase-5.md`) houdt per scherm bij of het goedgekeurd is. Twee lopers, onder wie een minder ervaren loper,
-kijken ernaar; pas daarna wordt er gebouwd. Andere rollen en brede schermen volgen in fase 5c en 5d.
+kijken ernaar; pas daarna wordt er gebouwd. Andere rollen en brede schermen volgen in fase 5b en 5c.
 
 - [ ] `frontend/`: buildless app (ES-modules, gevendorde Lit-bundel, geen importmap), die alleen `/api/v1` aanroept. Begin met een proef (inloggen en "Zoekt een loopmaatje") om Lit te leren kennen, met de gebruikte patronen in docs/frontend.md.
 - [ ] Schermen voor de loper op een telefoon: inloggen, code, uitnodiging, start, kalender (week met dagdelen), ronde (aan-/afmelden, plannen, wijzigen, opmerking, niet doorgegaan), terugmelden, mijn rondes, mijn gegevens, meldingen, koppelingen (tokens), activiteit, lopers, hulp en spoed.
@@ -864,18 +867,7 @@ kijken ernaar; pas daarna wordt er gebouwd. Andere rollen en brede schermen volg
 
 **Besloten in het taakplan:** geen Renovate. Een wekelijkse job opent een issue zodra er een nieuwe Lit-release buiten de cooldown is, en `tools/vendor-lit.php` haalt hem gecontroleerd binnen (ADR 0004: Renovate zou een token met schrijfrechten nodig hebben om CI op zijn pull requests te laten draaien).
 
-### Fase 5b — Conversie v3 → v4
-
-Na fase 2 tot en met 5 staat het model dat uitgebracht wordt; de conversie volgt dat model, en de web-installer van fase 6a moet haar kunnen starten.
-
-- [ ] `app:import-v3` met `--dry-run`, volgens Conversie v3 → v4 in Domeinmodel en API-ontwerp, met de beslissingen uit het taakplan van fase 1 (tweede verbinding `legacy`, alleen een lege v4-database, dry-run in een teruggerolde transactie, koppeltabel `legacy_id_map`).
-- [ ] Fixture-set `v3`: een verzonnen v3-database met soft-deleted rijen, een verwijderd lid in de historie, een tijd rond de wintertijdwissel, leden met telefoon én mobiel, en een ronde boven het maximum.
-- [ ] Review-focus 2 voor de conversie: een v3-tijd in het dubbele uur geeft een waarschuwing en een vaste keuze.
-- [ ] Integratietests op MariaDB 10.11 en MySQL 8.4; CI converteert de set `v3`; een korte pagina in `docs/admin-guide/`.
-
-**Klaar als:** `app:import-v3 --dry-run` en `app:import-v3` foutloos draaien op de verzonnen v3-set, de aantallen kloppen, voorbeeldlopers inloggen met hun v3-wachtwoord, en een tweede conversie naar een lege database hetzelfde oplevert.
-
-### Fase 5c — Frontend voor coördinator, analist en beheerder
+### Fase 5b — Frontend voor coördinator, analist en beheerder
 
 Op dezelfde basis als fase 5, eerst op een telefoon, met een eigen ontwerp- en goedkeuringsronde.
 
@@ -885,14 +877,25 @@ Op dezelfde basis als fase 5, eerst op een telefoon, met een eigen ontwerp- en g
 
 **Klaar als:** elk overig scherm van de oude app een tegenhanger heeft en elke schrijfactie van deze rollen via de app kan.
 
-### Fase 5d — Frontend op tablet en desktop
+### Fase 5c — Frontend op tablet en desktop
 
 - [ ] Responsive vanaf de mobiele schermen: maandraster met dagdelen in de kalender, met pijltjestoetsen; lijsten en formulieren die de breedte benutten; de navigatie voor een breed scherm.
 - [ ] Browsertests op tablet- en desktopbreedte naast die van fase 5.
 
-**Klaar als:** elk scherm van fase 5 en 5c op 768 en 1280 px breed bruikbaar is, met axe-core schoon en alleen met het toetsenbord te bedienen.
+**Klaar als:** elk scherm van fase 5 en 5b op 768 en 1280 px breed bruikbaar is, met axe-core schoon en alleen met het toetsenbord te bedienen.
 
-### Fase 6a — Installeren en releasen
+### Fase 6a — Conversie v3 → v4
+
+Na fase 2 tot en met 5c staat het model dat uitgebracht wordt; de conversie volgt dat model, en de web-installer van fase 6b moet haar kunnen starten.
+
+- [ ] `app:import-v3` met `--dry-run`, volgens Conversie v3 → v4 in Domeinmodel en API-ontwerp, met de beslissingen uit het taakplan van fase 1 (tweede verbinding `legacy`, alleen een lege v4-database, dry-run in een teruggerolde transactie, koppeltabel `legacy_id_map`).
+- [ ] Fixture-set `v3`: een verzonnen v3-database met soft-deleted rijen, een verwijderd lid in de historie, een tijd rond de wintertijdwissel, leden met telefoon én mobiel, en een ronde boven het maximum.
+- [ ] Review-focus 2 voor de conversie: een v3-tijd in het dubbele uur geeft een waarschuwing en een vaste keuze.
+- [ ] Integratietests op MariaDB 10.11 en MySQL 8.4; CI converteert de set `v3`; een korte pagina in `docs/admin-guide/`.
+
+**Klaar als:** `app:import-v3 --dry-run` en `app:import-v3` foutloos draaien op de verzonnen v3-set, de aantallen kloppen, voorbeeldlopers inloggen met hun v3-wachtwoord, en een tweede conversie naar een lege database hetzelfde oplevert.
+
+### Fase 6b — Installeren en releasen
 
 - [ ] Release-workflow: zip met `vendor/`, frontend en `.htaccess` (pad of subdomein, `Authorization`-header) bij elke GitHub Release, met SHA-256 en libsodium-handtekening; patchversies automatisch na een samengevoegde fix.
 - [ ] Web-installer (eenmalig token): controle op HTTPS, PHP-versie, schrijfrechten en een map binnen een andere applicatie; daarna migraties, eerste beheerder en optioneel voorbeelddata.
@@ -902,18 +905,18 @@ Op dezelfde basis als fase 5, eerst op een telefoon, met een eigen ontwerp- en g
 
 **Klaar als:** installatie volgens `docs/getting-started.md` lukt op shared hosting zonder SSH, op een subdomein en in een pad; herinneringen gaan via cron of tick; de testmail komt aan.
 
-### Fase 6b — Bijwerken, onderhoud en overdracht
+### Fase 6c — Bijwerken, onderhoud en overdracht mogelijk maken
 
 - [ ] Scherm Onderhoud: versie, PHP, certificaat, tijdtrigger en laatste mail; updatecheck en beveiligingsadviezen; knoppen Testmail sturen, Nu opruimen en Voorbeelddata wissen.
 - [ ] Updater: handtekening controleren, back-up, nieuwe release naast de oude, migraties, omzetten, gezondheidscheck, automatisch terugzetten bij een fout; knop Terugzetten.
-- [ ] Overdracht: updatebron en vertrouwde sleutels zijn te wijzigen via een ondertekende overdrachtsrelease, en met de hand in Onderhoud.
+- [ ] Overdracht mogelijk maken: updatebron en vertrouwde sleutels zijn te wijzigen via een ondertekende overdrachtsrelease, en met de hand in Onderhoud. Een echte overdracht is optioneel en nu niet aan de orde.
 - [ ] `docs/admin-guide/` in gewone taal: installeren, bijwerken, terugzetten, back-up terugzetten, PHP-versie, cron, testmail, datalek.
 
-**Klaar als:** een webbeheerder zonder dev-achtergrond met alleen `docs/admin-guide/` een update én een terugzetting uitvoert op de proefinstallatie, een overdrachtsrelease naar een proef-fork werkt, en de overdrachtstoets uit Overdraagbaarheid is gedaan. Daarmee is de MVP klaar.
+**Klaar als:** een webbeheerder zonder dev-achtergrond met alleen `docs/admin-guide/` een update én een terugzetting uitvoert op de proefinstallatie, en een test laat zien dat updatebron en sleutel via een overdrachtsrelease en via Onderhoud te wijzigen zijn. Een overdrachtsrelease naar een echte fork en de toets uit Overdraagbaarheid zijn optioneel. Daarmee is de MVP klaar.
 
 ### Uitbreidingen na de MVP (U1–U11)
 
-Extra functies, geen onderdeel van de MVP. Ze komen pas na de uitrol van fase 6b, elk met een eigen taakplan, en elke uitbreiding is per vereniging los aan of uit te zetten.
+Extra functies, geen onderdeel van de MVP. Ze komen pas na de uitrol van fase 6c, elk met een eigen taakplan, en elke uitbreiding is per vereniging los aan of uit te zetten.
 
 Geen enkele uitbreiding is nodig voor de beveiliging: de MVP is zonder ze compleet. Elke uitbreiding heeft een feature flag (fase 3) met een standaard: wat een nieuw risico voor beveiliging of privacy meebrengt, staat standaard uit en zet de beheerder per vereniging aan; de rest staat aan en kan uit. De volgorde:
 
@@ -1062,7 +1065,7 @@ Een opt-in-functie achter een feature flag: standaard uit, de beheerder zet hem 
 
 ## Overstap van bestaande v3-installaties
 
-Een vereniging die nu op v3 draait, blijft dat doen tot de MVP klaar is (fase 0 tot en met 3, 5, 5b en 6a/6b). De overstap is per vereniging een apart project, buiten deze repo; de ontwikkeling van v4 wacht er niet op. De stappen in het kort:
+Een vereniging die nu op v3 draait, blijft dat doen tot de MVP klaar is (fase 0 tot en met 6c). De overstap is per vereniging een apart project, buiten deze repo; de ontwikkeling van v4 wacht er niet op. De stappen in het kort:
 
 1. **Voorbereiden:** subdomein en certificaat, PHP 8.4, cron, een mailadres voor de app.
 2. **Installeren en oefenen:** web-installer, cronregel, testmail; een generale repetitie van de conversie op een kopie van de database, eerst met `--dry-run`, en de kopie daarna wissen; testen met de coördinator en een paar lopers.
@@ -1159,7 +1162,7 @@ Fase 1 uit docs/plans/plan.md. Taakplan eerst in docs/plans/phase-1.md, wacht op
 Lees ../buurtpreventie-legacy/src/Entity, src/Service/WalkService.php en migrations/.
 Leg elke domeinregel uit v3 eerst vast als test, bouw dan Patrol, Membership, Identity
 en Audit volgens Codestructuur. Verbeter het domeinmodel volgens het plan (v3 is geen keurslijf); de conversie
-uit v3 volgt in fase 5b.
+uit v3 volgt in fase 6a.
 Vergeet de review-focuspunten 1, 2 en 4 uit het plan niet.
 ```
 
@@ -1203,18 +1206,18 @@ Bouw frontend/ buildless met de gevendorde Lit-bundel (geen importmap), alleen t
 WCAG 2.2 AA, formulieren in light DOM, service worker op het basispad, axe-core in CI.
 ```
 
-Fase 5b — conversie v3 → v4:
+Fase 6a — conversie v3 → v4:
 
 ```text
-Fase 5b uit docs/plans/plan.md, met de conversiebeslissingen uit docs/plans/phase-1.md. Taakplan eerst.
+Fase 6a uit docs/plans/plan.md, met de conversiebeslissingen uit docs/plans/phase-1.md. Taakplan eerst.
 Lees ../buurtpreventie-legacy/src/Entity en migrations/. Bouw de fixture-set v3 en app:import-v3
 met --dry-run, test op MariaDB en MySQL; echte data hoort bij het overstapproject.
 ```
 
-Fase 6a en 6b — installeren, releasen en bijwerken:
+Fase 6b en 6c — installeren, releasen en bijwerken:
 
 ```text
-Fase 6a en daarna 6b uit docs/plans/plan.md, met Hosting en Beveiligingsupdates. De overstap van
+Fase 6b en daarna 6c uit docs/plans/plan.md, met Hosting en Beveiligingsupdates. De overstap van
 bestaande installaties hoort er niet bij; die is een apart project. Taakplan eerst.
 Release-workflow met ondertekende zip, web-installer, scherm Onderhoud met updater en
 terugzetten (releases/ + shared/), .htaccess voor submap en Authorization-header, tick.
