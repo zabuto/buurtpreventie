@@ -96,6 +96,19 @@ Klaar als:
 9. **Ingelogd blijven 90 dagen met Symfony's `remember_me`, op handtekening.** De handtekening dekt het lid-id en een
    nieuw veld `Account.credentialsChangedAt`, dat een nieuw wachtwoord zet: dan vervalt elk onthouden apparaat. Een gedeactiveerd lid valt via beslissing 5 af. Alternatief: tokens in de database (meer tabellen en
    opruimwerk) of geen "onthouden" (tegen het plan).
+
+   **In de frontend: standaard aan op een telefoon** (besloten op 18 november 2026):
+   - Op een smal scherm (smaller dan 768 px) is er geen vinkje: de frontend stuurt bij inloggen met wachtwoord, code
+     of uitnodiging altijd `"rememberMe": true` mee. Een telefoon is een persoonlijk apparaat, en elke 90 dagen
+     opnieuw inloggen is voor een minder ervaren loper een drempel; een vinkje dat hij niet begrijpt, laat hem
+     onnodig vaak inloggen.
+   - Op een breed scherm (vanaf 768 px, bijvoorbeeld een gedeelde computer) blijft het vinkje "Ingelogd blijven op
+     dit apparaat" zichtbaar en staat het standaard uit: wie een gedeelde computer gebruikt, kiest zelf.
+   - De backend verandert niet: `rememberMe` blijft een optioneel veld, standaard `false`, en een onthouden apparaat
+     blijft 90 dagen ingelogd.
+   - Uitloggen staat altijd onder Meer, zodat iemand op een gedeelde telefoon zelf kan uitloggen.
+   - Grens: de breedte zegt niet zeker of een apparaat persoonlijk is. Een telefoon die liggend 768 px of breder is,
+     toont het vinkje (standaard uit); een tablet ook.
 10. **Inloggen per mail met een cijfercode, niet met een link.** Een code van 6 cijfers die het lid overneemt in
     het scherm waar het hem aanvroeg. Dat is de extra controle: de code werkt alleen samen met de aanvraag uit die
     browser, dus een doorgestuurde mail, een vooraf geopende link van een virusscanner of iemand die alleen de mail
@@ -417,8 +430,9 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
     dat van `remember_me`, dat geen moment krijgt;
   - `TokenExecutionContext` geeft kanaal `web` zonder actor voor een HTTP-verzoek zonder token;
   - `remember_me`: 90 dagen, cookie `bp_remember` (`Secure`, `HttpOnly`, `Lax`), aan met `"rememberMe": true`,
-    ondertekend met `MemberUser::$credentialsVersion` (het moment van `credentialsChangedAt`). Het vinkje staat in de
-    frontend standaard uit: wie een gedeeld toestel gebruikt, kiest zelf (besloten op 16 november 2026);
+    ondertekend met `MemberUser::$credentialsVersion` (het moment van `credentialsChangedAt`). Wat de frontend
+    meestuurt, staat bij beslissing 9: op een telefoon altijd aan, op een breed scherm een vinkje dat standaard uit
+    staat;
   - een nieuw wachtwoord beëindigt ook elke lopende sessie (besloten op 16 november 2026): `MemberUser::isEqualTo()`
     vergelijkt ook de `credentialsVersion`. De sessie die het wachtwoord zette, blijft via `CurrentSession`
     (`TokenCurrentSession`), en een onthoud-cookie van dat verzoek wordt opnieuw ondertekend. De hele weg via

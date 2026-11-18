@@ -622,7 +622,8 @@ Werk in dit canvas, verander niets aan bestaande schermen behalve de links hiero
 
 ### T6. Lit-proef (test eerst)
 
-- Browsertests eerst: inloggen met wachtwoord, met een code, een verkeerde code, ingelogd blijven, uitloggen;
+- Browsertests eerst: inloggen met wachtwoord, met een code, een verkeerde code, uitloggen; ingelogd blijven (fase 2,
+  beslissing 9): onder 768 px geen vinkje en altijd `rememberMe: true`, vanaf 768 px het vinkje, standaard uit;
   aanmelden vanaf Start in één tik met ongedaan maken; de iOS-15-variant zonder `Origin`; axe en toetsenbord op elke
   toestand.
 - App-shell, router, API-client, vertalingen, Inloggen, Code invullen en Start (beslissing 10), alleen als die drie
