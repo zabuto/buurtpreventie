@@ -2,7 +2,8 @@
 
 Status: goedgekeurd op 18 november 2026, met de wekelijkse controle (beslissing 12) in plaats van Renovate en de
 nieuwe afhankelijkheden uit de tabel. Op dezelfde dag ingeperkt tot de loper op een telefoon; andere rollen worden
-fase 5b, tablet en desktop fase 5c (`plan.md`). De status per scherm staat in `docs/design/walker/mobile/README.md`.
+fase 5b, tablet en desktop fase 5c (`plan.md`). De lijst van schermen met hun status staat in
+`docs/design/walker/mobile/README.md`.
 
 Bron: `docs/plans/plan.md` (Architectuur, Frontend: PWA, responsive en toegankelijk, Branding en configuratie, Privacy
 en AVG, Domeinmodel en API-ontwerp, Fase 5, Risico's en review-focus), de Open punten van `docs/plans/phase-3.md` en
@@ -12,20 +13,23 @@ en AVG, Domeinmodel en API-ontwerp, Fase 5, Risico's en review-focus), de Open p
 
 ## Doel en klaar-criterium
 
-Een loper gebruikt de app op de eigen telefoon, ook een iPhone met iOS 15: inloggen, een ronde vinden die een
-loopmaatje zoekt, aan- en afmelden, een ronde plannen, terugmelden, en de eigen gegevens beheren. De frontend is een
+Een loper gebruikt de app op de eigen telefoon, ook een iPhone met iOS 15 (daar alleen online, beslissing 32):
+inloggen, een ronde vinden die een loopmaatje zoekt, aan- en afmelden, een ronde plannen, terugmelden, en de eigen
+gegevens beheren. De frontend is een
 losse, buildless map `frontend/` met een gevendorde Lit-bundel, die alleen `/api/v1` aanroept. Eerst worden de schermen
 goedgekeurd en volgt een proef met Lit; de overige schermen pas na akkoord op de evaluatie.
 
 Klaar als:
 
-- elk scherm uit de tabel Schermen goedgekeurd is, als afbeelding in `docs/design/walker/mobile/` staat en gebouwd
-  is, en elk scherm van de oude app dat een loper gebruikt een tegenhanger heeft;
-- een loper op een telefoon in drie tikken aanmeldt, ook op een iPhone met iOS 15 (met de hand, door de ontwikkelaar);
-- axe-core op elk scherm en elke toestand in CI geen enkele overtreding vindt (WCAG 2.2 A en AA), in Chromium en
-  WebKit, licht en donker, op 320, 360 en 390 px breed;
+- elk scherm uit `docs/design/walker/mobile/README.md` behalve die met status "later" goedgekeurd is, als afbeelding
+  in die map staat en gebouwd is, en elk scherm van de oude app dat een loper gebruikt een tegenhanger heeft;
+- een loper op een telefoon in drie tikken aanmeldt (browsertest);
+- de eigen code niets gebruikt wat Safari 15.0 mist (beslissing 27, test);
+- axe-core op elk scherm en elke toestand in CI geen enkele overtreding vindt (WCAG 2.2 A en AA), in Chromium, WebKit
+  en Firefox, licht en donker, op 320, 360 en 390 px breed;
 - de hoofdtaken met alleen het toetsenbord lukken (test), en met de hand met VoiceOver en NVDA (checklist);
 - geen enkel scherm een CSP-overtreding geeft (test), en `frontend/.htaccess` de headers van beslissing 31 zet;
+- zoekmachines de app niet crawlen of indexeren (beslissing 35, test);
 - de app-shell inclusief Lit onder 100 KB gecomprimeerd blijft (test);
 - de evaluatie van Lit in een ADR staat;
 - `symfony composer check` groen is, `composer test` zonder database ook, en de pull request naar `develop` groen en
@@ -40,70 +44,15 @@ maandraster).
 De schermen worden ontworpen in het canvas "Buurtpreventie v4 — schermen" (claude.ai, privé, pagina "Mobile",
 390 × 844). Een goedgekeurd scherm komt als afbeelding in de repo, onder `docs/design/<rol>/<apparaat>/` (beslissing 1);
 alleen zo'n scherm wordt gebouwd. Alle schermen van deze fase zijn voor de loper op een telefoon, dus
-`docs/design/walker/mobile/`. Bestandsnamen zijn Engels en gelijk in canvas en repo: `start` is `start.dc.html` in het
-canvas en `start.png` in de repo (het canvas krijgt die namen met de prompt onder T2). De titel in het canvas zegt de
-status: "· concept" of "· goedgekeurd <datum>" (beslissing 2); `docs/design/walker/mobile/README.md` houdt die status
-en de hoogte per scherm bij, en is daarvoor de enige plek in de repo. Endpoints en ontbrekende velden per scherm
-staan bij vastgesteld 19.
+`docs/design/walker/mobile/`.
 
-| Groep | Scherm (titel in het canvas) | Bestand |
-| --- | --- | --- |
-| Inloggen | Inloggen | `login` |
-| Inloggen | Code invullen | `login-code` |
-| Inloggen | Welkom, uitnodiging | `welcome` |
-| Inloggen | Wachtwoord instellen | `set-password` |
-| Inloggen | Browser te oud | `browser-unsupported` |
-| Rondes | Start | `start` |
-| Rondes | Start, offline | `start-offline` |
-| Rondes | Kalender | `calendar` |
-| Rondes | Ronde plannen | `plan-round` |
-| Rondes | Afgelopen ronde | `round-past` |
-| Rondes | Ronde, loopmaatje nodig | `round-buddy-needed` |
-| Rondes | Ronde, genoeg lopers, je kunt mee | `round-open-spots` |
-| Rondes | Ronde, jij en andere lopers | `round-with-others` |
-| Rondes | Ronde, alleen jij | `round-alone` |
-| Rondes | Ronde wijzigen | `change-round` |
-| Rondes | Ronde, vol | `round-full` |
-| Rondes | Opmerking toevoegen | `add-comment` |
-| Rondes | Afmelden bevestigen | `confirm-withdrawal` |
-| Rondes | Resultaat melden | `report-result` |
-| Rondes | Ronde ging niet door | `round-not-walked` |
-| Rondes | Mijn rondes | `my-rounds` |
-| Meer | Meer | `more` |
-| Meer | Mijn gegevens | `my-details` |
-| Meer | Mijn gegevens downloaden | `download-data` |
-| Meer | Bevestig dat jij het bent | `confirm-identity` |
-| Meer | Mijn activiteit | `my-activity` |
-| Meer | Koppelingen | `integrations` |
-| Meer | Meldingen | `notifications` |
-| Meer | Lopers | `walkers` |
-| Meer | Hulp en spoed | `help` |
-| Meer | Privacyverklaring | `privacy` |
-| Meer | Handleiding voor lopers | `handbook` |
+De lijst van schermen staat alleen in `docs/design/walker/mobile/README.md`: per scherm de bestandsnaam, de titel in
+het canvas, de status (beslissing 2) en de hoogte. Een nieuw scherm of een nieuwe toestand krijgt daar eerst een regel
+met status "draft", in hetzelfde werk dat het aan het canvas toevoegt. Dit plan noemt schermen bij hun bestandsnaam
+(`start`, `login-code-error`). Endpoints en ontbrekende velden per scherm staan bij vastgesteld 19.
 
-Toestanden en foutschermen, in het canvas gezet met prompt A:
-
-| Groep | Scherm | Bestand |
-| --- | --- | --- |
-| Inloggen | Code fout: verkeerd, verlopen, te veel pogingen (`login_code_wrong`, `login_code_ended`, 429) | `login-code-error` |
-| Inloggen | Sessie verlopen, terug naar inloggen met uitleg | `session-expired` |
-| Rondes | Start, niets open (geen ronde die een loopmaatje zoekt) | `start-empty` |
-| Rondes | Kalender als lijst, met de wissel Week en Lijst (beslissing 5) | `calendar-list` |
-| Rondes | Kalender met twee rondes in één dagdeel en afgelopen dagen ("Gelopen, geen bijzonderheden", "Incident gemeld", "Nog geen terugmelding", "Niet gelopen") | `calendar-past` |
-| Rondes | Ronde is vol: een ander meldde net eerder aan (review-focus 1) | `round-just-full` |
-| Rondes | Afmelden als laatste loper: de ronde vervalt, zonder "ongedaan maken" | `confirm-withdrawal-last` |
-| Rondes | Mijn rondes, leeg | `my-rounds-empty` |
-| Meer | Nieuwe koppeling: het geheim, één keer getoond | `integration-created` |
-| Fouten | Er ging iets mis (500 en elke onverwachte fout), met opnieuw proberen en de hulp | `error` |
-| Fouten | Niet gevonden (404), bijvoorbeeld een verwijderde ronde uit een oude mail | `not-found` |
-| Fouten | Geen toegang (403) | `no-access` |
-| Fouten | Geen verbinding buiten Start (een actie mislukt omdat er geen bereik is) | `no-connection` |
-| Fouten | Formulier met een fout bij een veld (422), bijvoorbeeld Ronde plannen | `form-error` |
-| Fouten | Nieuwe versie beschikbaar, vernieuwen | `update-available` |
-| Meer | In aanbouw, voor Privacyverklaring en Handleiding voor lopers (beslissing 34; met prompt E) | `under-construction` |
-
-`KalenderDesktop` (pagina "Desktop", in het canvas "· later (fase 5c)") hoort bij fase 5c; `Flow` is een overzicht,
-geen scherm.
+`calendar-desktop` (pagina "Desktop", in het canvas "· later (fase 5c)") hoort bij fase 5c en staat niet in die
+README; `flow` is een overzicht, geen scherm.
 
 ## Vastgesteld
 
@@ -207,11 +156,8 @@ geen scherm.
    "· goedgekeurd 20 nov" (staat als afbeelding in de repo en wordt gebouwd) of "· later (fase 5c)". Een blauwe
    notitie op de pagina "Mobile" legt het uit. Een goedgekeurd scherm dat daarna verandert, gaat terug naar
    "· concept". De README in `docs/design/walker/mobile/` volgt de titel: "draft" of "approved <datum>".
-3. **Twee testlopers bekijken het canvas op hun eigen telefoon**, samen met de ontwikkelaar, elk apart, in de
-   doorklikbare weergave (de schermen linken naar elkaar). Elke loper krijgt de drie opdrachten uit het plan (meld je
-   aan bij een ronde die een loopmaatje zoekt, meld je weer af, geef door dat je niets bijzonders zag) en denkt
-   hardop. De bevindingen gaan zonder namen ("loper A, minst ervaren", "loper B") in `docs/design/walker/mobile/review.md`,
-   met wat er in het ontwerp veranderde. Pas daarna keur je de schermen goed.
+3. **Geen sessies met testlopers in deze fase** (besloten op 18 november 2026). De ontwikkelaar keurt de schermen
+   goed. De gebruikerstest met lopers vóór livegang (plan, Frontend) blijft staan.
 4. **Het systeemlettertype, op elk toestel** (besloten op 18 november 2026; vastgesteld 13; ADR 0009):
    `system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`, dus San Francisco op een iPhone, Roboto op Android en
    Segoe UI op Windows. Op iOS zet `font: -apple-system-body` op `<html>` de basismaat volgens de tekstgrootte
@@ -260,8 +206,8 @@ geen scherm.
     goedgekeurd zijn. Niet in de proef: service worker en de andere schermen. De proef draait onder de CSP van
     beslissing 31 en met de browsertests van beslissing 29, zodat die niet achteraf knellen.
 11. **Evaluatie**, in dit plan onder T7, daarna wacht ik op je akkoord:
-    - werkt op een iPhone met iOS 15 (met de hand, door jou: aanmelden in drie tikken, inloggen met een code);
-    - axe-core, toetsenbordtest en CSP schoon in Chromium en WebKit;
+    - axe-core, toetsenbordtest en CSP schoon in Chromium, WebKit en Firefox;
+    - de controle op Safari 15.0 (beslissing 27) schoon, en wat die controle aan eigen code tegenhield;
     - grootte van de app-shell, en regels eigen code per scherm;
     - wat lastig was: toestand tussen schermen, formulieren, focus na een routewissel, meldingen voor schermlezers,
       foutafhandeling;
@@ -363,20 +309,33 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
     browsertests controleren beide.
 27. **Ondergrens Safari 15.0.** Safari 15.0 mist wat 15.4 en later brachten: `<dialog>`, `Array.prototype.at()`,
     `findLast()`, `structuredClone()`, `Object.hasOwn()`, `:has()`, `:focus-visible`, `dvh`/`svh`, `inert` (15.5),
-    container queries (16.0), import maps (16.4) en CSS nesting. Eigen code gebruikt dat niet: de onderbladen in het
-    ontwerp ("Afmelden bevestigen", "Ronde ging niet door") worden een eigen bevestigingsblok, geen `<dialog>`;
-    `:focus` in plaats van `:focus-visible`; `vh` met een terugval. `FrontendSourceTest` (PHPUnit) zoekt die namen in
-    `frontend/` en faalt erop; de syntax controleert `acorn` in CI tegen ES2021. Alternatief: ondergrens 15.4, met de
-    melding "Werk je iPhone bij"; elke iPhone met iOS 15 kan gratis naar 15.8, maar niet elke loper werkt bij.
+    container queries (16.0), import maps, `adoptedStyleSheets`, `ElementInternals` (`attachInternals()`, eigen
+    formuliervelden) en `static {}`-blokken in een klasse (alle vier 16.4), en CSS nesting. Eigen code gebruikt dat
+    niet: de onderbladen in het ontwerp ("Afmelden bevestigen", "Ronde ging niet door") worden een eigen
+    bevestigingsblok, geen `<dialog>`; `:focus` in plaats van `:focus-visible`; `vh` met een terugval; een
+    formuliercomponent rendert een gewoon `<input>` in de light DOM (beslissing 8) in plaats van zelf een veld te zijn.
+    Lit zelf vraagt alleen custom elements, shadow DOM en `<template>`, die Safari al sinds 10.1 kent, en valt zonder
+    `adoptedStyleSheets` terug op een `<style>`-element (vastgesteld 18).
+    Zo wordt iOS 15 bewaakt zonder toestel: `FrontendSourceTest` (PHPUnit) zoekt de namen hierboven in `frontend/` en
+    faalt erop, en `acorn` controleert de syntax in CI tegen ES2021 (dat vangt ook `static {}`, ES2022). Er is geen test
+    met de hand op een iPhone met iOS 15 (besloten op 18 november 2026): CI heeft geen Safari 15 (WebKit in Playwright
+    is de nieuwste), en een dienst als BrowserStack valt af (account, externe dienst). Wat dit niet vangt, is een fout
+    in Safari 15 zelf bij iets wat het wel kent; dat risico blijft, en het wordt klein gehouden door op iOS 15 geen
+    service worker te draaien (beslissing 32). Alternatief: ondergrens 15.4, met de melding "Werk je iPhone bij"; elke iPhone
+    met iOS 15 kan gratis naar 15.8, maar niet elke loper werkt bij.
 28. **Te oude browser**: `<script nomodule src="unsupported.js">` (ES5) zet de tekst van het scherm "Browser te oud" in
     de pagina. Ook een `<noscript>`-tekst.
 29. **Browsertests in CI**, een nieuwe job "Browser" naast Checks en Database:
     - MariaDB-container, migraties, `app:fixtures:load test`, en de PHP-server met een router
       (`tests/browser/server.php`) die `frontend/` op `/app/` serveert met de headers uit `frontend/.htaccess`, en
       `/api/` doorgeeft aan `public/index.php`;
-    - Playwright in Chromium en WebKit, op 320 × 568, 360 × 740 en 390 × 844, licht en donker. 320 is de breedte van
-      de iPhone SE (1e generatie, iOS 15) en wat WCAG voor reflow vraagt (1280 px op 400 % zoom); 360 is de gangbare
-      Android-breedte; 390 de breedte van het ontwerp. Tablet en desktop (768 en 1280) komen in fase 5c;
+    - Playwright in Chromium, WebKit en Firefox, op 320 × 568, 360 × 740 en 390 × 844, licht en donker. Dat zijn de
+      drie onafhankelijke browser-engines: Chromium (Chrome, Edge, Samsung Internet), WebKit (Safari en elke browser
+      op iOS) en Gecko (Firefox, ook op Android). Firefox kost geen nieuw pakket, alleen een browser meer in CI en
+      een langere job; zonder die browser vangt niets een fout die alleen in Gecko optreedt, terwijl het plan Firefox
+      op de computer belooft. 320 is de breedte van de iPhone SE (1e generatie, iOS 15) en wat WCAG voor reflow vraagt
+      (1280 px op 400 % zoom); 360 is de gangbare Android-breedte; 390 de breedte van het ontwerp. Tablet en desktop
+      (768 en 1280) komen in fase 5c;
     - `@axe-core/playwright` op elk scherm en elke toestand (fout in een veld, bevestiging open, melding na een
       actie), tags `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, `wcag22aa`, contrastregel aan; elke overtreding faalt;
     - wat axe niet ziet, als eigen test: de drie opdrachten uit het plan met alleen Tab, Enter en spatie; focus
@@ -387,8 +346,7 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
     - `acorn` controleert elk JavaScript-bestand tegen ES2021, `unsupported.js` tegen ES5.
     Geen geheimen, draait op elke pull request. Lokaal optioneel (`npm ci` in `tests/browser`), niet op de server.
 30. **Met de hand, per release**: een checklist in `docs/testing.md` (alleen toetsenbord, VoiceOver op een iPhone,
-    NVDA op Windows, 400 % zoom). Een echte iPhone met iOS 15 test jij bij de proef en vóór de merge; CI heeft geen
-    Safari 15 (WebKit in Playwright is de nieuwste), en een dienst als BrowserStack valt af (account, externe dienst).
+    NVDA op Windows, 400 % zoom). Geen iPhone met iOS 15 (beslissing 27).
 
 ### Beveiligingsheaders voor `frontend/`
 
@@ -406,7 +364,8 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
       een paar KB, en hij vraagt een buildstap of een tweede, gegenereerde kopie die kan afwijken. Lit komt al
       geminificeerd. `AppShellSizeTest` meet de grootte na gzip, dus een te zware shell valt op;
     - `Cache-Control: no-cache` op alles (zonder buildstap hebben bestanden geen hash in de naam, dus de browser vraagt
-      met een ETag na; offline helpt de service worker).
+      met een ETag na; offline helpt de service worker);
+    - `X-Robots-Tag: noindex, nofollow` (beslissing 35).
     HSTS zet de API al voor de hele host (`HSTS_MAX_AGE`), dus niet nog eens hier. `FrontendHeadersTest` leest
     `.htaccess` en eist precies deze headers, zonder `'unsafe-inline'` of `'unsafe-eval'`; de browsertests draaien
     achter dezelfde headers. Of Apache ze op een echte host zet, controleert de installer in fase 6b.
@@ -414,6 +373,14 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
 ### PWA (na de proef)
 
 32. **Service worker `sw.js` in `app/`**, scope `app/` (fase 3, beslissing 13).
+    - **Niet op iOS 15** (besloten op 18 november 2026): installeren en offline worden daar niet ondersteund. De app
+      registreert de service worker alleen als `HTMLScriptElement.supports?.('importmap')` waar is (Safari 16.4,
+      Chrome 89, Firefox 108); dat sluit precies Safari 15.x uit, zonder te kijken naar de user agent. Op iOS 15 werkt
+      de app dus als gewone website: zonder bereik toont hij `no-connection`, niet `start-offline`. Waarom: offline op
+      iOS 15 is niet te testen zonder toestel (beslissing 27), Safari wist de opslag van een website na 7 dagen zonder
+      gebruik (behalve van een app op het beginscherm), en een kapotte service worker op iOS 15 kan een oude versie van de app vasthouden. Een browsertest
+      haalt `HTMLScriptElement.supports` weg en controleert dat de app zonder service worker werkt en `no-connection`
+      toont. Wat iOS 15 wel heeft: alles online, en "Zet op beginscherm" opent de site zonder browserbalk.
     - **App-shell**: HTML, CSS, JavaScript, vertalingen en Lit staan in de cache, zodat de app direct opent, ook
       zonder bereik. Bij elke start vraagt de browser `sw.js` opnieuw op. `sw.js` draagt een versie: de SHA-256 over
       alle bestanden van de shell. Is iets veranderd, dan is `sw.js` anders, haalt de nieuwe service worker de
@@ -461,6 +428,20 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
     verklaring is ingesteld. De browsertests dekken beide gevallen: met `privacyUrl` wijst de link daarheen, zonder
     naar `#/privacy`.
 
+### Zoekmachines
+
+35. **Geen toegang voor zoekmachines** (besloten op 18 november 2026). De app is alleen voor leden: zonder inloggen is
+    er niets te vinden, en een vindbare inlogpagina laat alleen zien welke vereniging de app gebruikt.
+    - `public/robots.txt` met `User-agent: *` en `Disallow: /`, zodat een crawler niets opvraagt. Dat werkt alleen
+      als de app op de root van de host staat: in een submap leest een crawler `/robots.txt` van de host, en dat
+      bestand is van de hoster.
+    - Daarom ook `X-Robots-Tag: noindex, nofollow` op elk antwoord, ook in een submap: in `frontend/.htaccess`
+      (beslissing 31) en in `ApiSecurityHeaders` voor `/api/`.
+    - Grens: een crawler die `Disallow` volgt, ziet de header niet, en een adres waar ergens openbaar naar gelinkt
+      wordt, kan dan als kale link zonder inhoud in de zoekresultaten komen. Een link uit een mail is niet openbaar.
+      `robots.txt` is een verzoek, geen slot: de toegang zelf regelt het inloggen.
+    `FrontendHeadersTest` en `ApiSecurityHeadersTest` eisen de header; `RobotsTxtTest` eist `Disallow: /`.
+
 ## Nieuwe afhankelijkheden (goedgekeurd op 18 november 2026)
 
 Alleen voor tests in CI, in `tests/browser/package.json` met `package-lock.json`, geïnstalleerd met
@@ -469,12 +450,12 @@ cooldown 7 dagen voor patch en minor.
 
 | Pakket | Waarvoor | Licentie | Versie (datum, leeftijd) | Buiten de cooldown |
 | --- | --- | --- | --- | --- |
-| `@playwright/test` (met `playwright`, `playwright-core`) | Browsertests in Chromium en WebKit | Apache-2.0 | 1.65.0 (5 nov 2026, 13 dagen) | ja; 1.65.1 (13 nov, 5 dagen) nog niet |
+| `@playwright/test` (met `playwright`, `playwright-core`) | Browsertests in Chromium, WebKit en Firefox | Apache-2.0 | 1.65.0 (5 nov 2026, 13 dagen) | ja; 1.65.1 (13 nov, 5 dagen) nog niet |
 | `@axe-core/playwright` | axe-core in Playwright | MPL-2.0 | 4.14.0 (15 okt 2026, 34 dagen) | ja |
 | `axe-core` (indirect, `~4.14.0`) | De regels van axe | MPL-2.0 | 4.14.0 (5 okt 2026), vastgezet in de lockfile | ja; 4.14.1 (16 nov, 2 dagen) nog niet |
 | `acorn` | ES2021- en ES5-controle | MIT | 8.19.0 (5 okt 2026, 44 dagen) | ja |
 
-- De browsers haalt `npx playwright install --with-deps chromium webkit` in CI; niet lokaal nodig.
+- De browsers haalt `npx playwright install --with-deps chromium webkit firefox` in CI; niet lokaal nodig.
 - MPL-2.0 geldt per bestand en alleen bij verspreiden; axe-core draait in CI en wordt niet verspreid.
 - Lit 3.3.3 (BSD-3-Clause) is geen pakket maar een gevendord bestand (beslissingen 6 en 7); de licentie staat in de
   kop van het bestand en in `vendor.json`.
@@ -491,14 +472,13 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code. Een sch
 ### T2. Ontwerp goedkeuren
 
 - De status in de titels van het canvas (beslissing 2): gedaan op 18 november 2026, alle schermen "· concept".
-- Jij geeft prompt A in de chat van het canvas: Engelse bestandsnamen en de schermen uit "Nog niet in het canvas".
+- Jij geeft prompt A in de chat van het canvas: Engelse bestandsnamen en de toestanden en foutschermen.
 - Jij geeft prompt E in de chat van het canvas: het scherm "In aanbouw" (beslissing 34).
 - Jij geeft prompt C in de chat van het canvas: het systeemlettertype in elk scherm (beslissing 4), met nieuwe PNG's
   van de goedgekeurde schermen.
-- `docs/design/walker/mobile/review.md` met de drie opdrachten en een lege tabel voor de bevindingen.
 - `docs/design/walker/mobile/README.md`: de afspraken (2x, een maat uit de afbeelding gedeeld door twee is de maat in
-  CSS-pixels) en per scherm de status en de hoogte in CSS-pixels.
-- Jij houdt de sessies met twee lopers (beslissing 3) en keurt de schermen goed.
+  CSS-pixels) en de lijst van schermen met per scherm de status en de hoogte in CSS-pixels.
+- Jij keurt de schermen goed (beslissing 3).
 - Per goedgekeurd scherm: prompt B in de chat van het canvas, dan prompt D in Claude Code: de PNG's en de status in
   `docs/design/walker/mobile/` (beslissingen 1 en 2).
 
@@ -633,6 +613,8 @@ Werk in dit canvas, verander niets aan bestaande schermen behalve de links hiero
   `TranslationKeysTest`.
 - `frontend/` volgens beslissing 14, `.htaccess` (beslissing 31), `public/app` (beslissing 15), `unsupported.js`
   (beslissing 28).
+- `RobotsTxtTest` en de uitbreiding van `ApiSecurityHeadersTest`, dan `public/robots.txt` en `X-Robots-Tag` in
+  `ApiSecurityHeaders` (beslissing 35).
 - `tests/browser/` met de pakketten uit de tabel, de router, de job "Browser" in `ci.yml` en Dependabot voor npm
   (beslissing 13).
 
@@ -648,7 +630,7 @@ Werk in dit canvas, verander niets aan bestaande schermen behalve de links hiero
 
 ### T7. Evaluatie
 
-- De punten van beslissing 11, met jouw test op iOS 15, hier in het plan. Daarna stop ik tot je akkoord.
+- De punten van beslissing 11 hier in het plan. Daarna stop ik tot je akkoord.
 
 ### T8. Overige ontbrekende velden (test eerst)
 
@@ -663,7 +645,7 @@ Werk in dit canvas, verander niets aan bestaande schermen behalve de links hiero
 
 ### T10. Kalender en ronde plannen (test eerst)
 
-- De wissel Week en Lijst (beslissing 5), de week met dagdelen, de lijst per dag, vorige en volgende week, de toestanden uit "Nog niet in het canvas"; Ronde plannen vanuit de
+- De wissel Week en Lijst (beslissing 5), de week met dagdelen, de lijst per dag, vorige en volgende week, `calendar-list` en `calendar-past`; Ronde plannen vanuit de
   kalender en vanuit een leeg dagdeel; Ronde wijzigen en verwijderen.
 
 ### T11. Welkom en Meer (test eerst)
@@ -676,7 +658,8 @@ Werk in dit canvas, verander niets aan bestaande schermen behalve de links hiero
 ### T12. PWA (test eerst)
 
 - Manifest-link, service worker en Start, offline (beslissing 32), met tests voor wat wel en niet in de cache komt en
-  het wissen bij uitloggen; "Nieuwe versie beschikbaar".
+  het wissen bij uitloggen; "Nieuwe versie beschikbaar"; zonder `HTMLScriptElement.supports` (iOS 15) geen service
+  worker en `no-connection`.
 
 ### T13. Geen kapotte links
 
@@ -698,8 +681,7 @@ Werk in dit canvas, verander niets aan bestaande schermen behalve de links hiero
 
 - `composer test` zonder database, `symfony composer check`, de browsertests; uitvoer in het verslag, met elke check die
   niet draaide.
-- Met de hand: alleen toetsenbord en 320 px op elk scherm; jouw test op een iPhone met iOS 15; de test met twee lopers
-  op hun eigen telefoon met voorbeelddata (plan, Testen).
+- Met de hand: alleen toetsenbord en 320 px op elk scherm.
 - Push, titel en beschrijving van de pull request; openen na jouw ja; CI volgen en squash-mergen zodra alles groen is.
 
 ## Afspraken

@@ -26,7 +26,9 @@ access to the canvas. Only a screen with status "approved" is built.
 
 ## Screens
 
-Canvas titles are quoted from the canvas, without the status after the "·".
+This is the only list of walker screens on a phone; the phase plan points here. A screen or state added to the canvas
+gets a row here with status "draft" in the same change. Canvas titles are quoted from the canvas, without the status
+after the "·".
 
 ### Sign-in
 

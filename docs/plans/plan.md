@@ -352,6 +352,7 @@ De frontend ís de PWA: dezelfde app krijgt een manifest en een service worker, 
 - Cachet de app-shell en alleen de eigen rondegegevens; nooit ledenlijsten, contactgegevens, beheer of auth-verzoeken. Bij uitloggen wordt de cache gewist.
 - Staat op het basispad van de app (bv. `/buurtpreventie/sw.js`) zodat zijn scope de hele app dekt; `start_url` en `scope` in het manifest komen uit de configuratie. Zo werkt het ook in een submap.
 - Een nieuwe versie meldt zich met "Nieuwe versie beschikbaar, vernieuwen"; nooit stil halverwege een formulier.
+- Draait niet op iOS 15: offline is daar zonder toestel niet te testen, en een kapotte service worker kan een oude versie vasthouden. De app werkt daar als gewone website.
 
 **Responsive.**
 
@@ -373,7 +374,7 @@ De frontend ís de PWA: dezelfde app krijgt een manifest en een service worker, 
 
 | Toestel | Afspraak |
 | --- | --- |
-| iPhone / iPad | Safari op iOS/iPadOS 15 en nieuwer, dus ook iPhone 6s, 7 en SE (1e generatie), die niet verder komen dan iOS 15 |
+| iPhone / iPad | Safari op iOS/iPadOS 15 en nieuwer, dus ook iPhone 6s, 7 en SE (1e generatie), die niet verder komen dan iOS 15. Installeren en offline pas vanaf iOS 16.4; op iOS 15 werkt de app online |
 | Android | Chrome of Samsung Internet van de laatste twee jaar, ook op goedkope toestellen |
 | Computer | Actuele Chrome, Edge, Firefox en Safari |
 | Te oud | Een duidelijke melding in gewone taal met wat te doen en wie te bellen, geen leeg scherm |
@@ -397,7 +398,7 @@ Eenvoud in gebruik:
 
 Testen met echte lopers en toestellen:
 
-- Op een iPhone met iOS 15 (bv. iPhone 7) en een goedkope Android-telefoon, bij elke release.
+- Op een goedkope Android-telefoon, bij elke release. iOS 15 wordt niet met de hand getest: CI controleert dat de eigen code niets gebruikt wat Safari 15 mist, en de browsertests draaien in WebKit.
 - Vóór livegang een gebruikerstest met drie lopers, onder wie de minst ervaren, met drie opdrachten: meld je aan bij een ronde die een loopmaatje zoekt, meld je weer af, geef door dat je niets bijzonders zag.
 
 **WCAG 2.2 niveau AA.** Een vereniging is daar wettelijk niet altijd toe verplicht, maar lopers zijn vaak ouder of op straat met één hand bezig. De punten die in deze app het meest uitmaken:
@@ -417,9 +418,8 @@ Testen met echte lopers en toestellen:
 
 **Testen.**
 
-- Automatisch: axe-core op elk scherm in CI (Playwright, alleen in CI, niet nodig op de server), met de tags `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa` en `wcag22aa`. De contrastregel blijft aan, omdat beheerders de kleuren zelf instellen.
+- Automatisch: axe-core op elk scherm in CI (Playwright in Chromium, WebKit en Firefox, alleen in CI, niet nodig op de server), met de tags `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa` en `wcag22aa`. De contrastregel blijft aan, omdat beheerders de kleuren zelf instellen.
 - Handmatig per release: één ronde met alleen toetsenbord, met VoiceOver op een iPhone en met NVDA op Windows; checklist in `docs/testing.md`.
-- In fase 5: twee echte lopers doen aanmelden en terugmelden op hun eigen telefoon, met voorbeelddata.
 - Een korte toegankelijkheidsverklaring staat in de app (standaardtekst, aan te passen in de instellingen).
 
 ## Domeinmodel en API-ontwerp
@@ -855,15 +855,15 @@ Fase 3, 4 en 5 hangen alleen van de API af; MCP (fase 4) gaat vóór de frontend
 ### Fase 5 — Frontend voor de loper, mobiel
 
 **Eerst ontwerp.** De schermen voor de loper op telefoonformaat staan in een ontwerp-canvas; het taakplan
-(`docs/plans/phase-5.md`) houdt per scherm bij of het goedgekeurd is. Twee lopers, onder wie een minder ervaren loper,
-kijken ernaar; pas daarna wordt er gebouwd. Andere rollen en brede schermen volgen in fase 5b en 5c.
+(`docs/plans/phase-5.md`) beschrijft hoe een scherm goedgekeurd wordt; alleen een goedgekeurd scherm wordt gebouwd. Andere rollen en brede schermen volgen in fase 5b en 5c.
 
 - [ ] `frontend/`: buildless app (ES-modules, gevendorde Lit-bundel, geen importmap), die alleen `/api/v1` aanroept. Begin met een proef (inloggen en "Zoekt een loopmaatje") om Lit te leren kennen, met de gebruikte patronen in docs/frontend.md.
 - [ ] Schermen voor de loper op een telefoon: inloggen, code, uitnodiging, start, kalender (week met dagdelen), ronde (aan-/afmelden, plannen, wijzigen, opmerking, niet doorgegaan), terugmelden, mijn rondes, mijn gegevens, meldingen, koppelingen (tokens), activiteit, lopers, hulp en spoed.
 - [ ] Mobiel eerst en WCAG 2.2 AA (zie Frontend); PWA met manifest, service worker en offline lezen; axe-core in CI.
 - [ ] Beveiligingsheaders voor de statische frontend via `.htaccess`: CSP `default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'`, en `Permissions-Policy: camera=(), microphone=(), geolocation=()`. Geen inline scripts of stijlen, dus ook geen `'unsafe-inline'`.
+- [ ] Geen zoekmachines: `robots.txt` met `Disallow: /` en `X-Robots-Tag: noindex, nofollow` op frontend en API.
 
-**Klaar als:** elk scherm van de oude app dat een loper gebruikt een tegenhanger heeft, een loper op een telefoon in drie tikken kan aanmelden, ook op een iPhone met iOS 15, en de minst ervaren testloper dat zonder hulp doet. De evaluatie van Lit staat in een ADR.
+**Klaar als:** elk scherm van de oude app dat een loper gebruikt een tegenhanger heeft, een loper op een telefoon in drie tikken kan aanmelden en de eigen code niets gebruikt wat Safari 15 mist. De evaluatie van Lit staat in een ADR.
 
 **Besloten in het taakplan:** geen Renovate. Een wekelijkse job opent een issue zodra er een nieuwe Lit-release buiten de cooldown is, en `tools/vendor-lit.php` haalt hem gecontroleerd binnen (ADR 0004: Renovate zou een token met schrijfrechten nodig hebben om CI op zijn pull requests te laten draaien).
 
@@ -976,7 +976,7 @@ Een ronde heeft één terugmelding, van één loper of de coördinator. De ander
 ### Uitbreiding U4 — Pushmeldingen
 
 - [ ] Web Push via de service worker, alleen als het lid het aanzet, per soort: herinnering, nieuwe open ronde, uitnodiging van een loopmaatje.
-- [ ] Werkt op Android en desktop; op een iPhone pas vanaf iOS 16.4 en alleen als de app op het beginscherm staat. E-mail blijft daarom altijd het hoofdkanaal.
+- [ ] Werkt op Android en desktop; op een iPhone pas vanaf iOS 16.4 en alleen als de app op het beginscherm staat. E-mail blijft daarom altijd het hoofdkanaal. De knop om meldingen aan te zetten verschijnt alleen als `Notification` en `PushManager` bestaan.
 - [ ] Korte tekst zonder namen ("Je loopt morgen om 20:00"), geen meldingen 's nachts.
 - [ ] Herinneringen gaan via de tijdtrigger; meldingen bij een uitnodiging of open ronde gaan direct. Zonder cron dus alleen de directe meldingen.
 - [ ] Eén kleine Web Push-bibliotheek als afhankelijkheid, vastgelegd in een ADR.
@@ -1001,7 +1001,7 @@ Er komt een scherm Statistieken voor analist en coördinator, met exacte cijfers
 
 - [ ] Een terugmelding zonder bereik gaat in een wachtrij in de browser en wordt verstuurd zodra er weer verbinding is; de loper ziet "Wordt verstuurd zodra je weer bereik hebt".
 - [ ] Elke terugmelding heeft een eigen ID, zodat dubbel versturen nooit dubbele meldingen geeft.
-- [ ] Versturen gebeurt bij het volgende openen van de app, dus ook op iOS 15 zonder achtergrondsynchronisatie.
+- [ ] Versturen gebeurt bij het volgende openen van de app, zonder achtergrondsynchronisatie (die Safari niet kent). Op iOS 15 niet: daar draait geen service worker.
 
 **Klaar als:** een terugmelding die in vliegtuigmodus is gedaan, na het uitzetten daarvan precies één keer aankomt.
 
