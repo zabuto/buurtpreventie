@@ -34,8 +34,8 @@ after the "·".
 
 | Image | Canvas title | Status | Height (CSS px) |
 | --- | --- | --- | --- |
-| `login.png` | Inloggen | approved 2026-11-18 | 844 |
-| `session-expired.png` | Opnieuw inloggen | approved 2026-11-18 | 880 (scrolls) |
+| `login.png` | Inloggen | draft | 844 |
+| `session-expired.png` | Opnieuw inloggen | draft | 880 (scrolls) |
 | `login-code.png` | Code invullen | draft | 844 |
 | `login-code-error.png` | Code invullen — fout | draft | 844 |
 | `welcome.png` | Welkom (uitnodiging) | draft | 844 |

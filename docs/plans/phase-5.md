@@ -476,6 +476,8 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code. Een sch
 - De status in de titels van het canvas (beslissing 2): gedaan op 18 november 2026, alle schermen "· concept".
 - Jij geeft prompt A in de chat van het canvas: Engelse bestandsnamen en de toestanden en foutschermen.
 - Jij geeft prompt E in de chat van het canvas: het scherm "In aanbouw" (beslissing 34).
+- Jij geeft prompt F in de chat van het canvas: geen vinkje "Ingelogd blijven" op een telefoon (fase 2, beslissing 9);
+  `login` en `session-expired` gaan terug naar concept.
 - Jij geeft prompt C in de chat van het canvas: het systeemlettertype in elk scherm (beslissing 4), met nieuwe PNG's
   van de goedgekeurde schermen.
 - `docs/design/walker/mobile/README.md`: de afspraken (2x, een maat uit de afbeelding gedeeld door twee is de maat in
@@ -598,6 +600,18 @@ Werk in dit canvas, verander niets aan bestaande schermen behalve de links hiero
 2. Laat elke link naar privacy.dc.html of handbook.dc.html (onder meer op login, more en help) naar
    under-construction.dc.html gaan. De schermen privacy en handbook blijven staan als ontwerp voor later, met "· later" in de titel.
 3. Noem elke link in het canvas die naar een niet-bestaand scherm gaat.
+```
+
+**Prompt F** (eenmalig; ingelogd blijven, fase 2 beslissing 9):
+
+```text
+Werk in dit canvas, verander niets anders dan hieronder staat.
+1. Haal op de pagina Mobile het vinkje "Ingelogd blijven op dit apparaat" weg uit elk scherm waar het staat (onder
+   meer login, session-expired, login-code, welcome). Op een telefoon blijft de loper altijd ingelogd; er is geen
+   keuze. Laat de ruimte niet leeg: de knop eronder schuift op.
+2. Zet de titel van login en session-expired van "· goedgekeurd <datum>" terug naar "· concept".
+3. Controleer dat more een duidelijke knop "Uitloggen" heeft; noem het als die ontbreekt, zonder hem toe te voegen.
+4. Noem elk scherm dat je hebt aangepast.
 ```
 
 ### T3. Lit vendoren (test eerst)
