@@ -399,7 +399,7 @@ Eenvoud in gebruik:
 Testen met echte lopers en toestellen doet de vereniging, en zij is verantwoordelijk voor de uitkomst. De ontwikkelaar zoekt geen lopers of toestellen; de dekking van zijn kant komt uit CI (browsertests in Chromium, WebKit en Firefox, en de controle dat de eigen code niets gebruikt wat Safari 15 mist). Dat is geen voorwaarde voor een release. Wat de vereniging vóór livegang doet:
 
 - Een gebruikerstest met drie van haar lopers, onder wie de minst ervaren, op hun eigen telefoon, met drie opdrachten: meld je aan bij een ronde die een loopmaatje zoekt, meld je weer af, geef door dat je niets bijzonders zag.
-- Wat niet werkt, meldt ze als issue, met toestel en browserversie.
+- Wat niet werkt, meldt ze als GitHub-issue, met toestel en browserversie. Toegang tot GitHub regelt de vereniging zelf.
 
 **WCAG 2.2 niveau AA.** Een vereniging is daar wettelijk niet altijd toe verplicht, maar lopers zijn vaak ouder of op straat met één hand bezig. De punten die in deze app het meest uitmaken:
 
