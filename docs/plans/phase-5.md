@@ -212,9 +212,9 @@ geen scherm.
    aan bij een ronde die een loopmaatje zoekt, meld je weer af, geef door dat je niets bijzonders zag) en denkt
    hardop. De bevindingen gaan zonder namen ("loper A, minst ervaren", "loper B") in `docs/design/walker/mobile/review.md`,
    met wat er in het ontwerp veranderde. Pas daarna keur je de schermen goed.
-4. **Het systeemlettertype, op elk toestel** (besloten op 18 november 2026; vastgesteld 13): `system-ui, -apple-system, "Segoe UI", Roboto,
-   sans-serif`, dus San Francisco op een iPhone, Roboto op Android en Segoe UI op Windows. Op iOS zet
-   `font: -apple-system-body` op `<html>` de basismaat volgens de tekstgrootte die de loper instelde; de 18 px uit het
+4. **Het systeemlettertype, op elk toestel** (besloten op 18 november 2026; vastgesteld 13; ADR 0009):
+   `system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`, dus San Francisco op een iPhone, Roboto op Android en
+   Segoe UI op Windows. Op iOS zet `font: -apple-system-body` op `<html>` de basismaat volgens de tekstgrootte die de loper instelde; de 18 px uit het
    ontwerp wordt een `rem`-waarde daarop, zodat alles meeschaalt. Geen download, geen verzoek naar Google, en het
    lettertype is gemaakt voor dat scherm. Inter zelf hosten viel af: tientallen KB per gewicht en een wisseling van
    lettertype op een trage verbinding. Het canvas gebruikt hetzelfde systeemlettertype (prompt C), zodat regelafbreking
@@ -265,7 +265,7 @@ geen scherm.
       foutafhandeling;
     - hoe dicht het gebouwde scherm bij het goedgekeurde ontwerp ligt;
     - het oordeel: verder met Lit, of nu nog overstappen naar het alternatief uit het plan (Preact met htm).
-    Na fase 5 legt ADR 0009 het vast.
+    Na fase 5 legt ADR 0010 het vast.
 
 ### Gevendorde bibliotheken bijwerken
 
@@ -683,7 +683,7 @@ Werk in dit canvas, verander niets aan bestaande schermen behalve de links hiero
 
 ### T14. Documentatie
 
-- `docs/adr/0009-lit-frontend.md` (de evaluatie), `docs/frontend.md`, `docs/architecture.md` (regel 6, de frontend,
+- `docs/adr/0010-lit-frontend.md` (de evaluatie), `docs/frontend.md`, `docs/architecture.md` (regel 6, de frontend,
   `actions`), `docs/testing.md` (browsertests en de checklist met de hand), `docs/configuration.md`,
   `docs/glossary.md`, `docs/gotchas.md`; `CHANGELOG.md`; `AGENTS.md` (Commands: browsertests).
 
