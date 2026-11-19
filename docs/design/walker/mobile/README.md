@@ -34,13 +34,14 @@ after the "·".
 
 | Image | Canvas title | Status | Height (CSS px) |
 | --- | --- | --- | --- |
-| `login.png` | Inloggen | draft | 844 |
-| `session-expired.png` | Opnieuw inloggen | draft | 880 (scrolls) |
-| `login-code.png` | Code invullen | draft | 844 |
-| `login-code-error.png` | Code invullen — fout | draft | 844 |
-| `welcome.png` | Welkom (uitnodiging) | draft | 844 |
-| `set-password.png` | Wachtwoord instellen (mag) | draft | 844 |
-| `browser-unsupported.png` | Browser te oud | draft | 844 |
+| `login.png` | Inloggen | approved 2026-11-19 | 844 |
+| `login-error.png` | Inloggen — fout | approved 2026-11-19 | 844 |
+| `session-expired.png` | Opnieuw inloggen | approved 2026-11-19 | 844 |
+| `login-code.png` | Code invullen | approved 2026-11-19 | 844 |
+| `login-code-error.png` | Code invullen — fout | approved 2026-11-19 | 844 |
+| `welcome.png` | Welkom (uitnodiging) | approved 2026-11-19 | 844 |
+| `set-password.png` | Wachtwoord instellen (mag) | approved 2026-11-19 | 844 |
+| `browser-unsupported.png` | Browser te oud | approved 2026-11-19 | 844 |
 
 ### Rounds
 
