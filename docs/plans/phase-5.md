@@ -485,8 +485,9 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code. Een sch
 - `docs/design/walker/mobile/README.md`: de afspraken (2x, een maat uit de afbeelding gedeeld door twee is de maat in
   CSS-pixels) en de lijst van schermen met per scherm de status en de hoogte in CSS-pixels.
 - Jij keurt de schermen goed (beslissing 3).
-- Per goedgekeurd scherm: prompt B in de chat van het canvas, dan prompt D in Claude Code: de PNG's en de status in
-  `docs/design/walker/mobile/` (beslissingen 1 en 2).
+- Per goedgekeurd scherm: prompt B in de chat van het canvas (titels en een tabel), dan export via het menu van het
+  canvas, dan prompt D in Claude Code met die tabel: de PNG's en de status in `docs/design/walker/mobile/`
+  (beslissingen 1 en 2).
 
 **Prompt A** (eenmalig):
 
@@ -553,11 +554,18 @@ Flow.dc.html → flow.dc.html
 ```text
 Deze schermen zijn goedgekeurd op <datum>: <bestand>, <bestand>, ...
 1. Zet in project/canvas.json de titel van elk van deze schermen van "· concept" op "· goedgekeurd <datum>".
-2. Exporteer elk van deze schermen als PNG op 2x (780 px breed), over de volle hoogte van het scherm, met de
-   bestandsnaam van het scherm zonder .dc.html (bijvoorbeeld start.png), en geef ze me om te downloaden.
+2. Verander verder niets.
+3. Geef me een Markdown-tabel met één rij per scherm, in de volgorde van de pagina Mobile, precies zo:
+   | Bestand | Titel in het canvas | Hoogte (CSS px) |
+   | ------- | ------------------- | --------------- |
+   | login   | Inloggen            | 844             |
+   Bestand is de bestandsnaam zonder .dc.html, titel is de titel zonder de status na de "·", hoogte is de volle
+   hoogte van het scherm (844, of meer als het scrolt).
+4. Noem elk scherm uit de lijst dat je niet vindt, en elk ander scherm dat al "· goedgekeurd" heeft.
 ```
 
-Kan de chat geen PNG maken, dan exporteer je via het menu van het canvas (Share, Export) met dezelfde namen.
+De chat kan geen PNG maken. Jij exporteert de schermen daarna via het menu van het canvas (Share, Export) als PNG op
+2x, over de volle hoogte; de export krijgt de titel als naam ("Inloggen · goedgekeurd 19 nov@2x.png").
 
 **Prompt C** (eenmalig):
 
@@ -572,22 +580,24 @@ Werk in dit canvas. Zet in elk scherm het lettertype Inter, geladen via Google F
    een regel anders afbreekt dan eerst, zonder ze aan te passen.
 ```
 
-**Prompt D** (in Claude Code, na elke download uit prompt B of C; vul de titels, namen en de datum in). Jij zet de
-PNG's eerst in `shared/` (genegeerd door git): `~/Downloads` is voor Claude Code niet leesbaar (macOS, Privacy en
+**Prompt D** (in Claude Code, na elke export na prompt B of C; plak de tabel uit prompt B en vul de datum in). Jij zet
+de PNG's eerst in `shared/` (genegeerd door git): `~/Downloads` is voor Claude Code niet leesbaar (macOS, Privacy en
 beveiliging).
 
 ```text
-Ik heb goedgekeurde schermen uit het canvas geëxporteerd (PNG, 2x) en in shared/ gezet. De tabel in
-docs/design/walker/mobile/README.md geeft per scherm de bestandsnaam en de hoogte in CSS-pixels.
+Ik heb goedgekeurde schermen uit het canvas geëxporteerd (PNG, 2x) en in shared/ gezet. Ze zijn goedgekeurd op
+<JJJJ-MM-DD>. De tabel komt uit de chat van het canvas:
+
+<tabel uit prompt B>
+
 Werk op feature/phase-5.
 
-1. Verplaats ze uit shared/ naar docs/design/walker/mobile/:
-   - "<titel> · goedgekeurd <datum>*.png" → <bestand>.png
-   - ...
-   Ontbreekt een bestand of zijn er meer kandidaten, stop en meld het.
-2. Controleer elke afbeelding: 780 px breed en precies 2 × de hoogte uit de README (844 wordt 1688).
+1. Verplaats elk scherm uit shared/ naar docs/design/walker/mobile/: "<titel> · goedgekeurd <datum>*.png" wordt
+   <bestand>.png. Ontbreekt een bestand of zijn er meer kandidaten, stop en meld het.
+2. Controleer elke afbeelding: 780 px breed en precies 2 × de hoogte uit de tabel (844 wordt 1688).
    Wijkt iets af: niet committen, melden.
-3. Zet in die README bij deze schermen de status van "draft" op "approved <JJJJ-MM-DD>".
+3. Werk docs/design/walker/mobile/README.md bij: per scherm de status "approved <JJJJ-MM-DD>" en de hoogte uit de
+   tabel ("(scrolls)" erachter boven 844). Een scherm zonder rij krijgt er een in zijn groep; noem het.
 4. Commit: "Add the approved <bestand> and <bestand> screens".
 ```
 
