@@ -47,9 +47,10 @@ alleen zo'n scherm wordt gebouwd. Alle schermen van deze fase zijn voor de loper
 `docs/design/walker/mobile/`.
 
 De lijst van schermen staat alleen in `docs/design/walker/mobile/README.md`: per scherm de bestandsnaam, de titel in
-het canvas, de status (beslissing 2) en de hoogte. Een nieuw scherm of een nieuwe toestand krijgt daar eerst een regel
-met status "draft", in hetzelfde werk dat het aan het canvas toevoegt. Dit plan noemt schermen bij hun bestandsnaam
-(`start`, `login-code-error`). Endpoints en ontbrekende velden per scherm staan bij vastgesteld 19.
+het canvas, de status (beslissing 2) en, als het goedgekeurd is, de hoogte. Een nieuw scherm of een nieuwe toestand
+krijgt daar eerst een regel met status "draft" en zonder hoogte, in hetzelfde werk dat het aan het canvas toevoegt.
+Dit plan noemt schermen bij hun bestandsnaam (`start`, `login-code-error`). Endpoints en ontbrekende velden per scherm staan bij
+vastgesteld 19.
 
 `calendar-desktop` (pagina "Desktop", in het canvas "· later (fase 5c)") hoort bij fase 5c en staat niet in die
 README; `flow` is een overzicht, geen scherm.
@@ -483,7 +484,7 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code. Een sch
   `login` en `session-expired` gaan terug naar concept.
 - Jij geeft prompt C in de chat van het canvas: Inter in elk scherm (beslissing 4), vóór de eerste export.
 - `docs/design/walker/mobile/README.md`: de afspraken (2x, een maat uit de afbeelding gedeeld door twee is de maat in
-  CSS-pixels) en de lijst van schermen met per scherm de status en de hoogte in CSS-pixels.
+  CSS-pixels) en de lijst van schermen met per scherm de status en, na goedkeuring, de hoogte in CSS-pixels.
 - Jij keurt de schermen goed (beslissing 3).
 - Per goedgekeurd scherm: prompt B in de chat van het canvas (titels en een tabel), dan export via het menu van het
   canvas, dan prompt D in Claude Code met die tabel: de PNG's en de status in `docs/design/walker/mobile/`
