@@ -17,8 +17,8 @@ access to the canvas. Only a screen with status "approved" is built.
   ([ADR 0009](../../../adr/0009-system-font.md)). In the app a line may break differently, least on Apple devices; sizes,
   colours and order may not.
 - **Height:** the table gives the height in CSS pixels of an approved screen only; the image is twice as high. A
-  scrolling screen is exported at its full height, so its image is taller than 1688 px. A draft has no height: it can
-  change in the canvas until approval.
+  scrolling screen is exported at its full height, so its image is taller than 1688 px, and its height above 844
+  carries "(scrolls)" (`920 (scrolls)`). A draft has no height: it can change in the canvas until approval.
 - **Approved only:** a screen lands here after approval, in its approved state. A screen whose design changes goes back
   to "· concept" in the canvas and to "draft" here, without a height, until it is approved again, with a new export
   and a new date. A change of font alone keeps the status and date and only replaces the image.
@@ -100,6 +100,7 @@ without the status after the "·".
 1. Set the canvas title to "· goedgekeurd <date>".
 2. Export the screen from the canvas as PNG at 2x, at its full height.
 3. Put the image in this folder under the name from the table, check it is 780 px wide and twice the screen's full
-   height in the canvas, and set the status to "approved <date>" and the height in the table.
+   height in the canvas, and set the status to "approved <date>" and the height in the table, with "(scrolls)" after a
+   height above 844.
 
 The prompts for the canvas and for Claude Code are B and D in [the phase 5 plan](../../../plans/phase-5.md) (T2).

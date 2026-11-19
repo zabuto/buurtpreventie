@@ -598,7 +598,8 @@ Werk op feature/phase-5.
 2. Controleer elke afbeelding: 780 px breed en precies 2 × de hoogte uit de tabel hierboven, niet uit de README. Een
    scherm dat scrolt is hoger dan 844 (844 wordt 1688, 920 wordt 1840). Wijkt iets af: niet committen, melden.
 3. Werk docs/design/walker/mobile/README.md bij: per scherm de status "approved <JJJJ-MM-DD>" en de hoogte uit de
-   tabel ("(scrolls)" erachter boven 844). Een scherm zonder rij krijgt er een in zijn groep; noem het.
+   tabel; is die hoger dan 844, dan komt "(scrolls)" erachter (`920 (scrolls)`). Een
+   scherm zonder rij krijgt er een in zijn groep; noem het.
 4. Commit: "Add the approved <bestand> and <bestand> screens".
 ```
 
