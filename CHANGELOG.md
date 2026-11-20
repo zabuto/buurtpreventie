@@ -75,7 +75,7 @@ versions follow [Semantic Versioning](https://semver.org/).
   are not offered for a new choice.
 - Identity: accounts with a password that accepts the hashes of the legacy app, and API tokens stored as a hash with
   scopes, expiry and revocation; a token secret is always generated, and any other value is refused. Settings: the default minimum and maximum walkers of a new round.
-- Responses do not name the PHP version: the app and `public/.htaccess` set `X-Powered-By` to `PHP Symfony`.
+- Responses do not name PHP or its version: the app and `public/.htaccess` remove `X-Powered-By`.
 - API responses carry a Content-Security-Policy that allows nothing, `nosniff`, `Referrer-Policy: no-referrer`
   and `Cross-Origin-Opener-Policy: same-origin`, and over HTTPS `Strict-Transport-Security` once an installation
   opts in with `HSTS_MAX_AGE`.
