@@ -111,11 +111,15 @@ with `Normalizer` and lower-case with `mb_strtolower`, and an uploaded logo or i
 `fileinfo` and redrawn with `gd`. Shared hosting enables all four by default, but a hosting panel can
 switch them off; Composer's runtime check then refuses to start the app.
 
-With `expose_php` on, PHP names its exact version in an `X-Powered-By` header, which tells an
-attacker which known vulnerabilities to try. Set `expose_php = Off` in `php.ini` where the host
-allows it. The app replaces the header with `PHP Symfony`, without a version, on every response it
-handles (`HidePhpVersion`), and `public/.htaccess` does the same on Apache with `mod_headers`, also
-for a response that never reaches the app's response handling.
+With `expose_php` on, PHP names itself and its exact version in an `X-Powered-By` header, which
+tells an attacker which known vulnerabilities to try. Set `expose_php = Off` in `php.ini` where the
+host allows it. The app removes the header from every response it handles (`RemovePoweredByHeader`),
+and `public/.htaccess` does the same on Apache with `mod_headers`, also for a response that never
+reaches the app's response handling.
+
+Apache names itself, its version and its modules (`PHP/8.x` with `mod_php`) in the `Server` header
+and on its own error pages. `.htaccess` cannot change either: set `ServerTokens Prod` and
+`ServerSignature Off` in the server configuration where the host allows it, or ask the host to.
 
 ## Security headers
 

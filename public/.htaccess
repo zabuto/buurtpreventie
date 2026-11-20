@@ -1,7 +1,7 @@
-# PHP names its exact version in X-Powered-By when expose_php is on; the app replaces it as well, but this also covers
-# responses that never reach PHP's response handling, such as a fatal error. The unset clears PHP's value from the
-# success table, which "always set" does not touch, so the version never appears next to the fixed value.
+# PHP names itself and its exact version in X-Powered-By when expose_php is on; the app removes it as well, but this
+# also covers responses that never reach PHP's response handling, such as a fatal error. Apache keeps the header of a
+# success response and of an error response in separate tables, so each needs its own unset.
 <IfModule mod_headers.c>
     Header unset X-Powered-By
-    Header always set X-Powered-By "PHP Symfony"
+    Header always unset X-Powered-By
 </IfModule>
