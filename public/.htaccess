@@ -1,6 +1,7 @@
 # PHP names itself and its exact version in X-Powered-By when expose_php is on; the app removes it as well, but this
-# also covers responses that never reach PHP's response handling, such as a fatal error. Apache keeps the header of a
-# success response and of an error response in separate tables, so each needs its own unset.
+# also covers responses that never reach PHP's response handling, such as a fatal error. Apache keeps the header in
+# one of two tables depending on how PHP runs (mod_php: the default table; PHP-FPM through mod_proxy_fcgi: the "always"
+# table), and each unset only clears its own table.
 <IfModule mod_headers.c>
     Header unset X-Powered-By
     Header always unset X-Powered-By
