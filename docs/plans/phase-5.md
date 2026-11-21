@@ -410,7 +410,8 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
 33. PHPUnit, in `composer check`, zonder Node:
     - `VendoredLibraryTest` (beslissing 7);
     - `FrontendSourceTest`: geen `<script>` zonder `src`, geen `style=`-attribuut, geen `on…=`-attribuut in HTML,
-      geen namen uit beslissing 27;
+      geen namen uit beslissing 27, geen `console.` in `frontend/js/` (een vergeten `console.log` zet het id of de
+      gegevens van een lid in de console van elk toestel; de browsertests vangen alleen consolefouten);
     - `FrontendHeadersTest` (beslissing 31);
     - `AppShellSizeTest`: de shell (HTML, CSS, JS en Lit) samen onder 100 KB met gzip;
     - `ServiceWorkerVersionTest` (beslissing 32), vanaf T12;
@@ -447,6 +448,25 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
       wordt, kan dan als kale link zonder inhoud in de zoekresultaten komen. Een link uit een mail is niet openbaar.
       `robots.txt` is een verzoek, geen slot: de toegang zelf regelt het inloggen.
     `FrontendHeadersTest` en `ApiSecurityHeadersTest` eisen de header; `RobotsTxtTest` eist `Disallow: /`.
+
+### Actuele gegevens en beweging
+
+36. **Terug in de app haalt het scherm zijn gegevens opnieuw op** (besloten op 21 november 2026). Een app op het
+    beginscherm blijft uren in het geheugen staan; zonder nieuwe gegevens toont Start nog "Maatje nodig" bij een ronde
+    die al vol is. Bij `visibilitychange` naar zichtbaar en bij `pageshow` met `persisted` (terug uit de cache van de
+    browser, ook op iOS 15) vraagt het huidige scherm zijn gegevens opnieuw op als de laatste keer ophalen langer dan
+    een minuut geleden is. Nooit midden in een formulier: wat de loper invulde, blijft staan. Zonder bereik blijft het
+    scherm staan met de melding en de tijd van de laatste keer ophalen (beslissing 32). Een browsertest wijzigt een
+    ronde via de API, zet de klok een minuut vooruit, stuurt `visibilitychange` en eist het nieuwe scherm; een tweede
+    test eist dat een half ingevuld formulier blijft staan.
+37. **Een timer bepaalt nooit wat een scherm toont, en beweging volgt `prefers-reduced-motion`** (besloten op 21
+    november 2026). De toestand van een scherm volgt uit het antwoord van de API of uit een handeling van de loper,
+    nooit uit `setTimeout`: op een trage telefoon lopen een vaste wachttijd en de echte toestand uit elkaar. Een timer
+    mag alleen een melding laten verdwijnen. Overgangen en animaties staan in `app.css` binnen
+    `@media (prefers-reduced-motion: no-preference)`, zodat ze bij `reduce` niet bestaan. WCAG vraagt dit pas op
+    AAA (2.3.3), axe-core controleert het niet, en het kost één mediaquery. Een browsertest met
+    `emulateMedia({ reducedMotion: 'reduce' })` eist op elk scherm een `transition-duration` en
+    `animation-duration` van 0 op elk element.
 
 ## Nieuwe afhankelijkheden (goedgekeurd op 18 november 2026)
 
@@ -653,7 +673,8 @@ Werk in dit canvas, verander niets anders dan hieronder staat.
 - Browsertests eerst: inloggen met wachtwoord, met een code, een verkeerde code, uitloggen; ingelogd blijven (fase 2,
   beslissing 9): onder 768 px geen vinkje en altijd `rememberMe: true`, vanaf 768 px het vinkje, standaard uit;
   aanmelden vanaf Start in één tik met ongedaan maken; de iOS-15-variant zonder `Origin`; axe en toetsenbord op elke
-  toestand.
+  toestand; Start opnieuw ophalen na terugkomen (beslissing 36); geen beweging bij `prefers-reduced-motion: reduce`
+  (beslissing 37).
 - App-shell, router, API-client, vertalingen, Inloggen, Code invullen en Start (beslissing 10), alleen als die drie
   goedgekeurd zijn.
 - `docs/frontend.md`: de patronen uit de proef (light DOM, eigenschappen, gebeurtenissen, formulieren, focus en
