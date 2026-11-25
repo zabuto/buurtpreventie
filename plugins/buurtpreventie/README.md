@@ -24,8 +24,10 @@ it proposes before you say yes. What it reads goes to the company behind the AI 
 
 ## Privacy
 
-The plugin holds no data and sends nothing itself: Claude Code talks to the app of your association only. That
-association's privacy statement applies, and the
+The plugin holds no data, runs no code and sends nothing itself. Claude Code connects straight to the app of your
+association, with the address and token you give at install; both stay on your computer. The developers of this
+repository (`zabuto/buurtpreventie`) get nothing from your association: no rounds, names, reports or tokens. GitHub
+sees that someone downloads the plugin, and shows the developers only how many times, not by whom. Your association's privacy statement applies, and the
 [Privacy](https://github.com/zabuto/buurtpreventie/blob/main/docs/user-guide/mcp.md#privacy) part of the user guide lists
 what the AI client gets.
 
@@ -39,5 +41,6 @@ non-commercial use. The plugin and the app come as is, without warranty or suppo
 Met deze plugin plan je buurtpreventierondes vanuit Claude Code, via de MCP-server van de app van je eigen
 vereniging. Je hebt een API-token uit de app nodig, en de beheerder moet MCP aanzetten. Een AI-app kan fouten maken:
 wat hij voor je aanmeldt, afmeldt of terugmeldt, gebeurt op jouw naam. Lees dus eerst wat hij voorstelt en zeg dan
-pas ja. Wat de AI-app leest, gaat naar het bedrijf achter die app. De plugin is gratis voor niet-commercieel gebruik
+pas ja. Wat de AI-app leest, gaat naar het bedrijf achter die app. De makers van deze repository krijgen niets van je
+vereniging te zien: geen rondes, namen, terugmeldingen of tokens. De plugin is gratis voor niet-commercieel gebruik
 en wordt geleverd zoals hij is, zonder garantie.

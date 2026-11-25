@@ -11,6 +11,14 @@ What the AI client reads goes to the company behind it, under that company's ter
 walkers, the outcomes of reports and the counts. Your association decides whether this is allowed at all, and says so
 in its privacy statement.
 
+The plugin only delivers files from the repository `zabuto/buurtpreventie`: the skill and the connection settings.
+Claude Code connects straight to the app of your association, with the address and token you give at install, which
+stay on your computer. The developers of this repository get nothing from your association: no rounds, names,
+reports or tokens. The plugin holds no code that runs on your computer or reports anywhere. GitHub sees that someone
+downloads the plugin, as with any download, and shows the developers only how many times the repository was
+downloaded, not by whom. Your data stays with your association,
+whoever hosts its app, and the company behind your AI client.
+
 ## Before you start
 
 - **The association switches MCP on.** It is off on a new installation. An admin sets `mcpAccess` to `true` in the
