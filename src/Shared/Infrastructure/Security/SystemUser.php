@@ -32,7 +32,9 @@ final readonly class SystemUser implements UserInterface
         return 'system';
     }
 
-    #[Override]
+    /**
+     * No #[Override]: Symfony 8 drops this method from UserInterface, and the attribute would make that a fatal error.
+     */
     #[Deprecated]
     public function eraseCredentials(): void
     {

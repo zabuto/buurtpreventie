@@ -64,11 +64,13 @@ jobs:
           extensions: intl, mbstring, gd, fileinfo
           tools: composer:v2
 
-      # Only this job's checkout changes; the 7.4 constraints in the repository stay as they are.
+      # Only this job's checkout changes; the 7.4 constraints in the repository stay as they are. Bumping is off here:
+      # it would turn "8.*" into "^8.x.y", which SymfonyReleaseLineTest refuses as a constraint outside the release line.
       - name: Require the newest Symfony 8 and drop the PHP 8.4 platform pin
         run: |
           sed -i 's/"7\.4\.\*"/"8.*"/g' composer.json
           composer config --unset platform.php
+          composer config bump-after-update false
 
       - name: Update and run all checks
         id: checks
