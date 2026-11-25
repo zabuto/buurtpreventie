@@ -62,7 +62,10 @@ final readonly class DemoSet implements FixtureSet
         ['Yara Brouwer',   'Yara',    'yara.brouwer'],
     ];
 
-    /** Priya reads the rounds into a phone agenda and signs up from it, with the token the load shows. */
+    /**
+     * Priya reads the rounds into a phone agenda and signs up from it, with the token the load shows; the admin picked
+     * Priya for MCP with every role.
+     */
     private const string USES_THE_API = 'priya.sharma';
 
     /**
@@ -122,6 +125,7 @@ final readonly class DemoSet implements FixtureSet
             $this->members->erase($admin, $erased, $now->modify('-4 minutes'));
         }
 
+        $this->members->allowMcp($admin, $people['usesTheApi'], $start->modify('+1 day'));
         $secret = $this->members->giveApiAccess(
             $people['usesTheApi'],
             $start->modify('+1 day'),
