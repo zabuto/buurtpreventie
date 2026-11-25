@@ -5,6 +5,8 @@ the MCP server of the app. It acts as you, with your roles: it can do what you c
 It never gets phone numbers, addresses or e-mail addresses, also not of members who share theirs with you, and it
 never reads the notes and comments of a round: those can be about other people, so they stay in the app.
 
+## Privacy
+
 What the AI client reads goes to the company behind it, under that company's terms: rounds, the display names of the
 walkers, the outcomes of reports and the counts. Your association decides whether this is allowed at all, and says so
 in its privacy statement.
@@ -17,6 +19,9 @@ in its privacy statement.
   Give it the scope `read` to look only, and `write` too to sign up, plan rounds and report back. Copy the secret
   (`bpt_…`) at once: the app shows it only then. Keep it like a password; revoke it in the app when you no longer use
   it or think someone else has it.
+- **You check before you confirm.** An AI client can get things wrong. What it signs you up for, withdraws or reports
+  is done in your name, so read what it proposes before you say yes. The app and the plugin come as is, without
+  warranty (see `LICENSE`).
 
 To try it on the demo of a development machine, see
 [An AI client on the demo](../getting-started.md#an-ai-client-on-the-demo).

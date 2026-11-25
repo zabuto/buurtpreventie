@@ -227,7 +227,9 @@ versions follow [Semantic Versioning](https://semver.org/).
 - A Claude Code plugin in `plugins/buurtpreventie`, installed from `main` through a marketplace in this repository: it
   asks for the address of the app and an API token at install, keeps the token in the keychain of the system, and adds
   a skill on when and how to use the tools: one confirmation per write, text typed by members read as data, results
-  passed nowhere else unasked. The skill also works in Cursor and GitHub Copilot.
+  passed nowhere else unasked. The skill also works in Cursor and GitHub Copilot. Its README and the user guide say
+  what reaches the provider of an AI client, that a member checks before confirming, and that it comes without
+  warranty.
 - The instructions of the MCP server name every field with text typed by members and ask for a confirmation before
   every write.
 - The `edge` sample data hold a start note and a display name that try to instruct an AI client.
