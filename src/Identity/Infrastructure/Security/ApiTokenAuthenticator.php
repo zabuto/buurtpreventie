@@ -11,9 +11,13 @@ use App\Identity\Domain\TokenScope;
 use App\Identity\Infrastructure\Mcp\McpSwitch;
 use App\Settings\UseCase\GetApiTokenAccess\GetApiTokenAccess;
 use App\Settings\UseCase\GetApiTokenAccess\GetApiTokenAccessHandler;
+use App\Settings\UseCase\GetMcpAccess\GetMcpAccess;
+use App\Settings\UseCase\GetMcpAccess\GetMcpAccessHandler;
 use App\Shared\Domain\Channel;
 use App\Shared\Domain\MemberDirectory;
+use App\Shared\Domain\Role;
 use App\Shared\Domain\Transaction;
+use App\Shared\Infrastructure\Http\ProblemResponses;
 use App\Shared\Infrastructure\Security\MemberUser;
 use App\Shared\Infrastructure\Security\TokenExecutionContext;
 use Override;
@@ -33,7 +37,8 @@ use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPasspor
  * Authenticates every request on the token firewall by its `Authorization: Bearer` secret. It takes every request,
  * so a missing or broken token is refused and logged like a wrong one. The token is looked up by the hash of the
  * secret on every request, so a revocation, a deactivation or switching tokens off counts at once; the secret carries
- * no content of its own.
+ * no content of its own. On the MCP server the member keeps only the roles the association allows there, so the
+ * voters see no other; with none of them left, the request is refused before it counts toward the limits of the token.
  */
 final class ApiTokenAuthenticator extends AbstractAuthenticator
 {
@@ -49,6 +54,8 @@ final class ApiTokenAuthenticator extends AbstractAuthenticator
         private readonly ClockInterface $clock,
         private readonly LoggerInterface $logger,
         private readonly GetApiTokenAccessHandler $access,
+        private readonly GetMcpAccessHandler $mcpAccess,
+        private readonly ProblemResponses $problems,
     ) {
     }
 
@@ -76,15 +83,18 @@ final class ApiTokenAuthenticator extends AbstractAuthenticator
 
         \assert(null !== $identity, 'An unknown member is inactive, which refused the token above.');
 
+        $channel = McpSwitch::isMcp($request->getPathInfo()) ? Channel::Mcp : Channel::Api;
+        $roles = Channel::Mcp === $channel ? $this->rolesOnMcp($identity->roles) : $identity->roles;
+
         $this->transaction->run(static fn(): bool => $token->markUsed($now));
 
         $passport = new SelfValidatingPassport(new UserBadge(
             $identity->memberId->toRfc4122(),
-            static fn(): MemberUser => new MemberUser($identity->memberId, $identity->roles),
+            static fn(): MemberUser => new MemberUser($identity->memberId, $roles),
         ));
         $passport->setAttribute(self::SCOPES, $token->scopes());
         $passport->setAttribute(self::TOKEN_ID, $token->id()->toRfc4122());
-        $passport->setAttribute(TokenExecutionContext::CHANNEL, McpSwitch::isMcp($request->getPathInfo()) ? Channel::Mcp : Channel::Api);
+        $passport->setAttribute(TokenExecutionContext::CHANNEL, $channel);
 
         return $passport;
     }
@@ -109,10 +119,29 @@ final class ApiTokenAuthenticator extends AbstractAuthenticator
     #[Override]
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): Response
     {
+        if ($exception instanceof McpNotForRole) {
+            return $this->problems->create(Response::HTTP_FORBIDDEN, 'mcp_not_for_role');
+        }
+
         $reason = $exception instanceof ApiTokenRefused ? $exception->refusal->value : 'failed';
         $this->logger->notice('API token refused: {reason}', ['reason' => $reason, 'path' => $request->getPathInfo()]);
 
         return new Response('', Response::HTTP_UNAUTHORIZED, ['WWW-Authenticate' => 'Bearer']);
+    }
+
+    /**
+     * @param list<Role> $roles
+     *
+     * @return list<Role>
+     *
+     * @throws McpNotForRole when the association allows none of them on the MCP server
+     */
+    private function rolesOnMcp(array $roles): array
+    {
+        $allowed = ($this->mcpAccess)(new GetMcpAccess())->roles;
+        $kept = \array_values(\array_filter($roles, static fn(Role $role): bool => \in_array($role->value, $allowed, strict: true)));
+
+        return [] === $kept ? throw new McpNotForRole() : $kept;
     }
 
     /**

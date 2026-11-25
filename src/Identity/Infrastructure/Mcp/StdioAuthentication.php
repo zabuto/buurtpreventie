@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Identity\Infrastructure\Mcp;
 
 use App\Identity\Infrastructure\Security\ApiTokenAuthenticator;
+use App\Identity\Infrastructure\Security\McpNotForRole;
 use App\Settings\UseCase\GetMcpAccess\GetMcpAccess;
 use App\Settings\UseCase\GetMcpAccess\GetMcpAccessHandler;
 use RuntimeException;
@@ -19,7 +20,7 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
 /**
  * Lets mcp:server act as the member of the API token in MCP_TOKEN, checked by the authenticator of the HTTP server,
- * so STDIO knows no rule of its own: the same switches, expiry, revocation, scopes and mcp channel. The process checks
+ * so STDIO knows no rule of its own: the same switches, expiry, revocation, scopes, roles and mcp channel. The process checks
  * the token once, when it starts; it runs on the machine of whoever holds the token.
  */
 #[AsEventListener(event: ConsoleEvents::COMMAND)]
@@ -38,7 +39,8 @@ final readonly class StdioAuthentication
     }
 
     /**
-     * @throws RuntimeException when MCP is off or the token is missing or refused; the command does not start
+     * @throws RuntimeException when MCP is off, the token is missing or refused, or no role of its member may use MCP;
+     *                          the command does not start
      */
     public function __invoke(ConsoleCommandEvent $event): void
     {
@@ -57,6 +59,11 @@ final readonly class StdioAuthentication
         $request = Request::create(McpSwitch::PATH, 'POST', server: ['HTTP_AUTHORIZATION' => 'Bearer ' . $this->secret]);
         try {
             $passport = $this->authenticator->authenticate($request);
+        } catch (McpNotForRole $exception) {
+            throw new RuntimeException(
+                'MCP is closed to your role. Ask the admin.',
+                previous: $exception,
+            );
         } catch (AuthenticationException $exception) {
             $this->authenticator->onAuthenticationFailure($request, $exception);
 
