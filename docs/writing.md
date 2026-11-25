@@ -30,6 +30,10 @@ Which documents are Dutch and which English is listed in `AGENTS.md` (Language a
 - **Limits for code texts** (comments, docblocks, test names, assertion, log and exception messages):
   at most 4 sentences per text and 50 words per sentence. A lead-in with its list counts as one
   sentence; each item stays within 50 words.
+- **People without gender.** A text about a person, sample people included, uses no gendered pronoun:
+  in English "they" and "their" or the name or role, in Dutch "die", "de eigen" or the role ("de
+  loper", "het lid"), never "hij", "zij", "hem", "haar" or "zijn" for a person. A pronoun for a thing
+  follows grammar, such as "hij" for "de link".
 
 ## Comments and documentation
 

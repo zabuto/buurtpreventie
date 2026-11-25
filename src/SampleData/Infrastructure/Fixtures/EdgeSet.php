@@ -70,7 +70,7 @@ final readonly class EdgeSet implements FixtureSet
     }
 
     /**
-     * Two members share their full name; Karin keeps her contact details to herself; Işıl and Michał have letters the
+     * Two members share their full name; Karin keeps their contact details private; Işıl and Michał have letters the
      * lookup key keeps as they are.
      *
      * @return array{

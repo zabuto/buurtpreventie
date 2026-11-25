@@ -62,7 +62,7 @@ final readonly class DemoSet implements FixtureSet
         ['Yara Brouwer',   'Yara',    'yara.brouwer'],
     ];
 
-    /** Priya reads the rounds into the agenda on her phone and signs up from it, with the token the load shows. */
+    /** Priya reads the rounds into a phone agenda and signs up from it, with the token the load shows. */
     private const string USES_THE_API = 'priya.sharma';
 
     /**
@@ -73,10 +73,10 @@ final readonly class DemoSet implements FixtureSet
      */
     private const array WITH_PASSWORD = ['jan.bakker', self::USES_THE_API, self::STOPPED];
 
-    /** Willem stopped walking; deactivating him withdraws him from the rounds ahead. */
+    /** Willem stopped walking; deactivating Willem withdraws them from the rounds ahead. */
     private const string STOPPED = 'willem.dekker';
 
-    /** Yara moved away and asked to be erased; her rounds stay in the history under "erased member". */
+    /** Yara moved away and asked to be erased; their rounds stay in the history under "erased member". */
     private const string ERASED = 'yara.brouwer';
 
     public function __construct(
@@ -134,7 +134,7 @@ final readonly class DemoSet implements FixtureSet
     }
 
     /**
-     * The coordinator is the contact members reach, with the address and number she has as a member.
+     * The coordinator is the contact members reach, with the address and number they have as a member.
      */
     private function brand(SampleMember $admin, DateTimeImmutable $at): void
     {
