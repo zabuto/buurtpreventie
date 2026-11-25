@@ -155,6 +155,7 @@ final class AuthorizationMatrixTest extends TestCase
         yield 'api_token.revoke of a token of another member' => ['api_token.revoke', static fn(Uuid $actor): mixed => self::tokenOf(Uuid::v7()), []];
         yield 'api_token.revoke_all of oneself' => ['api_token.revoke_all', $self, self::MEMBERS];
         yield 'api_token.revoke_all of another member' => ['api_token.revoke_all', $stranger, ['admin']];
+        yield 'api_token.list_all' => ['api_token.list_all', static fn(Uuid $actor): null => null, ['admin']];
         yield 'account.set_password of oneself' => ['account.set_password', $self, self::MEMBERS];
         yield 'account.set_password of another member' => ['account.set_password', $stranger, []];
         yield 'account.issue_invitation' => ['account.issue_invitation', $stranger, ['coordinator', 'admin']];

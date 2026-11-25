@@ -391,6 +391,12 @@ address, contact details, roles and choices (`ListMembers`); `POST` (`AddMember`
 coordinator; the answer holds the secret only for an admin inviting a member who never logged in, and the frontend
 makes the link of it.
 
+`GET /admin/api-tokens` (`ListAllApiTokens`, voter attribute `api_token.list_all`, admin only) lists every token that
+is neither revoked nor expired, of every member, newest first: the member's id and display name, the name, scopes,
+creation, last use and expiry of the token, never its secret or hash. `POST /admin/members/{id}/api-tokens/revoke`
+(`RevokeMemberApiTokens`, `api_token.revoke_all`) revokes every token of that member at once, with an audit entry per
+token; deactivating and erasing a member run the same handler. Neither is an MCP tool: administration stays out of MCP.
+
 **Catalogues.** `GET /meeting-points` (`ListMeetingPoints`) and `GET /outcomes` (`ListOutcomes`) give every member the
 items to choose from, by name, without the archived ones (voter attribute `catalogue.list`); under
 `/admin/meeting-points` and `/admin/outcomes` the same use cases list the archived ones too, for the admin

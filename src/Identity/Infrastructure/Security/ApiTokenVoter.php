@@ -19,7 +19,7 @@ use Symfony\Component\Uid\Uuid;
  */
 final readonly class ApiTokenVoter implements CacheableVoterInterface
 {
-    private const array ATTRIBUTES = ['api_token.create', 'api_token.revoke', 'api_token.revoke_all'];
+    private const array ATTRIBUTES = ['api_token.create', 'api_token.revoke', 'api_token.revoke_all', 'api_token.list_all'];
 
     public function __construct(
         private CredentialPolicy $policy,
@@ -60,6 +60,7 @@ final readonly class ApiTokenVoter implements CacheableVoterInterface
         return match ($attribute) {
             'api_token.create' => $subject instanceof Uuid && $this->policy->mayCreateToken($actor, $subject),
             'api_token.revoke' => $subject instanceof ApiToken && $this->policy->mayRevokeToken($actor, $subject),
+            'api_token.list_all' => $this->policy->mayListAllTokens($actor),
             default => $subject instanceof Uuid && $this->policy->mayRevokeAllTokens($actor, $subject),
         };
     }
