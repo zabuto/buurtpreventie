@@ -136,4 +136,14 @@ final class ApiTokenAuthenticator extends AbstractAuthenticator
 
         return \is_array($scopes) ? \array_values(\array_filter($scopes, static fn(mixed $scope): bool => $scope instanceof TokenScope)) : [];
     }
+
+    /**
+     * The id of the API token behind this login, or null for a browser session.
+     */
+    public static function tokenIdOf(#[SensitiveParameter] ?TokenInterface $token): ?string
+    {
+        $tokenId = $token?->hasAttribute(self::TOKEN_ID) ? $token->getAttribute(self::TOKEN_ID) : null;
+
+        return \is_string($tokenId) ? $tokenId : null;
+    }
 }

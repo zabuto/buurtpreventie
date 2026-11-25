@@ -51,7 +51,7 @@ final readonly class ProblemReferenceHandler implements ReferenceHandlerInterfac
                 $this->logger->error('MCP tool {tool} failed', ['tool' => $reference->tool->name, 'exception' => $throwable]);
             }
 
-            $body = $this->problems->body($problem->status, $problem->code, $problem->violations, $problem->details);
+            $body = $this->problems->body($problem->status, $problem->code, $problem->violations, self::details($problem));
 
             return new CallToolResult(
                 [new TextContent(\json_encode($body, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE))],
@@ -59,5 +59,17 @@ final readonly class ProblemReferenceHandler implements ReferenceHandlerInterfac
                 structuredContent: $body,
             );
         }
+    }
+
+    /**
+     * A tool result has no headers, so the seconds of a Retry-After go into the details, where the model reads them.
+     *
+     * @return array<string, scalar>
+     */
+    private static function details(Problem $problem): array
+    {
+        $retryAfter = $problem->headers['Retry-After'] ?? null;
+
+        return null === $retryAfter ? $problem->details : [...$problem->details, 'retryAfter' => (int) $retryAfter];
     }
 }

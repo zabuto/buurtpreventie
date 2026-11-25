@@ -162,6 +162,8 @@ for the DNS rebinding protection and counts MCP requests in an `ArrayAdapter`, l
   e-mail address, and finds none of them (review focus 3).
 - `tests/Identity/Infrastructure/Mcp/` covers the switch, the token-only firewall, both eras, the rate limit, the
   host and origin checks, and STDIO.
+- `tests/Identity/Infrastructure/Security/TokenRateLimitTest.php` proves that reads and writes of one token count
+  toward the same limits over REST and MCP, and that a browser session does not count.
 
 ## Rights and write actions
 

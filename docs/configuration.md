@@ -133,7 +133,7 @@ The input of a use case refuses a longer value; the column holds at least as muc
 | Failed logins | 5 per address (or login challenge, or invitation) and IP address in 15 minutes, 30 per IP address in an hour, then 429; a successful login clears the first count | `config/packages/rate_limiter.yaml` |
 | Login code | Six digits, 60 minutes, once, at most 5 attempts; a new request ends the earlier ones | `LoginChallenge` |
 | Login code requests | 3 per address and 10 per IP address in an hour, then 429 | `config/packages/rate_limiter.yaml` |
-| MCP requests | 60 per API token in a minute, then 429 with `Retry-After`; counted in files | `config/packages/rate_limiter.yaml` (`mcp_per_token`) |
+| Requests with an API token | REST and MCP together, per token: 60 reads a minute, 2000 reads a day and 20 writes an hour, then 429 with `Retry-After` (via MCP a tool error with `retryAfter` for a write); counted in files | `config/packages/rate_limiter.yaml` (`token_reads_per_minute`, `token_reads_per_day`, `token_writes_per_hour`) |
 | MCP sessions | Only for a client of the handshake era: the negotiated revision, one hour, in `var/cache/<env>/mcp-sessions/` | `config/packages/mcp.yaml` |
 | Invitation | `bpi_` and 64 hexadecimal characters, stored as SHA-256; 48 hours, once; a new invitation ends the earlier ones | `Invitation` |
 | Stay logged in | Cookie `bp_remember` for 90 days: `Secure`, `HttpOnly`, `SameSite=Lax`; ends with a new password | `config/packages/security.yaml` |

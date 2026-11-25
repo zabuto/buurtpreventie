@@ -282,6 +282,15 @@ problem `insufficient_scope`. The voters then decide on the roles as for any req
 allow an action. `TokenManagementGuard` refuses every token request under `/api/v1/me/tokens` with the 403 problem
 `browser_only`, whatever its scopes: a leaked token can neither list, create nor revoke tokens.
 
+`TokenRateLimit` runs after `TokenScopeGuard` and holds every token request, on `/api/v1` and `/mcp` alike, to the
+limits of that token in `config/packages/rate_limiter.yaml`, keyed by the id of the token, never its secret, and
+counted in files in `cache.token_requests`: 60 reads a minute and 2000 a day (`token_reads_per_minute`,
+`token_reads_per_day`), 20 writes an hour (`token_writes_per_hour`). A `GET` or `HEAD` is a read, any other method a
+write, and every request to `/mcp` a read; a tool call that writes counts toward the write limit too, in
+`ScopedReferenceHandler`. Above a limit the 429 problem `too_many_requests` with `Retry-After`; a tool call above the
+write limit is a tool error with the same problem and the seconds in `retryAfter`. A browser session does not count,
+so a token stopped on one path cannot carry on along the other.
+
 **Own account.** Everything under `/api/v1/me` is about the member logged in, and the controllers there pass no member
 id, so one in the body counts for nothing. `GET /me` (`GetOwnProfile`) shows the whole profile. `PATCH /me`
 (`ChangeOwnContactDetails`) takes phone number, address, consent and notifications about open rounds; null removes a
@@ -511,11 +520,12 @@ fetches only what the member of the token may see.
 2. The `mcp` firewall: an API token only. Without one, or with a session cookie alone, an empty 401 with
    `WWW-Authenticate: Bearer`; a session would let another site act as the member.
 3. `TokenScopeGuard`: `read`.
-4. `McpRateLimit`: 60 requests a minute per token id (`mcp_per_token`, counted in files in `cache.mcp_requests`);
-   above it the 429 problem `too_many_requests` with `Retry-After`.
+4. `TokenRateLimit`: the request counts as a read toward the limits of the token, shared with REST; above one the
+   429 problem `too_many_requests` with `Retry-After`.
 5. The DNS rebinding protection of the bundle: the `Host` must be the host of `DEFAULT_URI`, and an `Origin`, when a
    client sends one, that same origin; in `dev` the MCP Inspector at `http://localhost:6274` too. Otherwise 403.
-6. Per tool call the scope, then the voter in the handler.
+6. Per tool call the scope and, for a tool that writes, the write limit of the token, then the voter in the
+   handler.
 
 `ProblemResponder` and `ApiSecurityHeaders` treat `/mcp` as part of the API.
 
