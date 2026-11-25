@@ -162,7 +162,7 @@ Het `@` in de gebruikersnaam wordt `%40`; bij poort 465 begint de regel met `smt
 | Packagist (beveiligingsadviezen) | IP-adres van de server en de lijst met geïnstalleerde pakketten | Verwaarloosbaar; geen gegevens van leden | Geen |
 | Pushdiensten van Apple, Google, Mozilla (uitbreiding U4) | Apparaatadres en tijdstip; de inhoud is versleuteld | De dienst ziet dát iemand een melding krijgt, en wanneer | Alleen als het lid het aanzet; korte tekst zonder namen ("Je loopt morgen om 20:00") |
 | Kaartondergrond PDOK of OpenStreetMap (uitbreiding U9) | IP-adres van de browser en welk kaartgebied wordt bekeken | Laat zien welk gebied iemand bekijkt | PDOK (Nederlandse overheid) als standaard; nooit lopergegevens in de kaartverzoeken |
-| AI-client via MCP | Wat de tools teruggeven: rondes, namen van lopers, notities | Gegevens bij de AI-aanbieder die het lid zelf kiest | MCP standaard uit, dataminimalisatie (zie MCP-server), token per lid in te trekken |
+| AI-client via MCP | Wat de tools teruggeven: rondes, weergavenamen van lopers, uitkomsten en aantallen; geen notities, opmerkingen of contactgegevens (besloten op 17 november 2026, fase 4) | Gegevens bij de AI-aanbieder die het lid zelf kiest | MCP standaard uit, dataminimalisatie (zie MCP-server), token per lid in te trekken |
 | Spraakherkenning in de browser (uitbreiding U7) | De gesproken tekst van de terugmelding | De browsermaker (bij Chrome Google, bij Safari Apple) verwerkt de spraak | Opt-in per vereniging en per lid, melding vooraf, geen opnames op de server; dicteren via het toetsenbord als alternatief |
 
 ## Licentie
