@@ -162,7 +162,7 @@ Het `@` in de gebruikersnaam wordt `%40`; bij poort 465 begint de regel met `smt
 | Packagist (beveiligingsadviezen) | IP-adres van de server en de lijst met geïnstalleerde pakketten | Verwaarloosbaar; geen gegevens van leden | Geen |
 | Pushdiensten van Apple, Google, Mozilla (uitbreiding U4) | Apparaatadres en tijdstip; de inhoud is versleuteld | De dienst ziet dát iemand een melding krijgt, en wanneer | Alleen als het lid het aanzet; korte tekst zonder namen ("Je loopt morgen om 20:00") |
 | Kaartondergrond PDOK of OpenStreetMap (uitbreiding U9) | IP-adres van de browser en welk kaartgebied wordt bekeken | Laat zien welk gebied iemand bekijkt | PDOK (Nederlandse overheid) als standaard; nooit lopergegevens in de kaartverzoeken |
-| AI-client via MCP | Wat de tools teruggeven: rondes, weergavenamen van lopers, uitkomsten en aantallen; geen notities, opmerkingen of contactgegevens (besloten op 17 november 2026, fase 4) | Gegevens bij de AI-aanbieder die het lid zelf kiest | MCP standaard uit, dataminimalisatie (zie MCP-server), token per lid in te trekken |
+| AI-client via MCP | Wat de tools teruggeven: rondes, weergavenamen van lopers, uitkomsten en aantallen; geen notities, opmerkingen of contactgegevens (besloten op 17 november 2026, fase 4) | Gegevens bij de AI-aanbieder die het lid zelf kiest | MCP standaard uit en per rol of per lid open te zetten, dataminimalisatie (zie MCP-server), token per lid in te trekken |
 | Spraakherkenning in de browser (uitbreiding U7) | De gesproken tekst van de terugmelding | De browsermaker (bij Chrome Google, bij Safari Apple) verwerkt de spraak | Opt-in per vereniging en per lid, melding vooraf, geen opnames op de server; dicteren via het toetsenbord als alternatief |
 
 ## Licentie
@@ -546,13 +546,13 @@ De MCP-server is een dunne laag op `/mcp` die dezelfde use cases en Voters aanro
 - Uitvoer bevat alleen wat nodig is: geen telefoonnummers of adressen, ook niet bij toestemming.
 - Notities en opmerkingen zijn door leden getypte tekst, vaak over een verdachte; MCP geeft ze niet (besloten op 17 november 2026, fase 4): `get_round` geeft de uitkomst van de terugmelding zonder notitie en geen opmerkingen. Startnotitie en reden van annulering staan in een eigen veld, zodat clients ze als data behandelen en niet als instructie.
 - Schrijftools krijgen MCP-annotaties (`readOnlyHint`, `destructiveHint: false`, `idempotentHint` bij aan-/afmelden).
-- Rate limit per token met `symfony/rate-limiter` op de bestandscache.
+- Grenzen per token met `symfony/rate-limiter` op de bestandscache, voor API en MCP samen: lezen per minuut en per dag, schrijven per uur. De eerste keer per dag dat een token de daggrens haalt, geeft een auditregel en een e-mail aan het lid; een nieuw token geeft ook een e-mail.
 - DNS-rebinding-bescherming van de bundle met de eigen hostnaam als enige toegestane host.
 - Elke schrijfactie via MCP komt in het auditlog met kanaal `mcp`.
 
 **Transport.** Streamable HTTP, JSON-antwoorden zonder SSE-stream, sessieloos; het `2026-07-28`-tijdperk wordt standaard bediend, het handshake-tijdperk met een sessie in bestanden. Daarnaast `symfony console mcp:server` over STDIO voor lokaal gebruik door de ontwikkelaar, met een API-token in `MCP_TOKEN`.
 
-**Aan en uit.** De instelling `mcpAccess` staat standaard uit; uit geeft `/mcp` op elk verzoek 404, nog vóór het token wordt opgezocht. Alleen API-tokens geven toegang, geen browsersessie.
+**Aan en uit.** De instelling `mcpAccess` staat standaard uit; uit geeft `/mcp` op elk verzoek 404, nog vóór het token wordt opgezocht. Alleen API-tokens geven toegang, geen browsersessie. De instelling `mcpRoles` bepaalt welke rollen een lid via MCP houdt (standaard alle vier); een lid dat de beheerder kiest (`mcpAllowed`), houdt alle eigen rollen. Een lid zonder toegestane rol krijgt 403 `mcp_not_for_role`. REST houdt alle rollen.
 
 Afwijkingen in fase 4 (`docs/plans/phase-4.md`, beslissingen 3, 12, 15 en 16, en T9): het handshake-tijdperk werkt in de SDK alleen met een sessiestore, dus het krijgt een sessie in bestanden die alleen het onderhandelde protocol bewaart; `report_summary` kreeg een eigen use case (`SummariseRoundReports`, ook op `GET /reports/summary`) en is, net als de lijst terugmeldingen, voor analist én coördinator; `staffing_gaps` kreeg `days`, ook op REST; `withdraw_from_round` heeft `destructiveHint: true`, omdat de laatste loper die zich afmeldt de ronde laat vervallen; `plan_week` vraagt alleen `list_rounds`, die de status al geeft.
 
@@ -568,7 +568,7 @@ Elke wijziging door een lid wordt vastgelegd als regel in een alleen-toevoegen-l
 | Aanmeldingen | loper aangemeld, afgemeld, door coördinator verwijderd, automatisch uitgeschreven (inactief lid) |
 | Na de ronde | terugmelding geplaatst of verwijderd, opmerking geplaatst of verwijderd |
 | Leden | toegevoegd, rol gewijzigd, (de)geactiveerd, hersteld, toestemming contactgegevens gewijzigd |
-| Account | ingelogd (met wachtwoord, code of uitnodiging), mislukte inlog, inlogcode aangevraagd, uitnodiging verstuurd, wachtwoord gewijzigd, API-token aangemaakt of ingetrokken |
+| Account | ingelogd (met wachtwoord, code of uitnodiging), mislukte inlog, inlogcode aangevraagd, uitnodiging verstuurd, wachtwoord gewijzigd, API-token aangemaakt of ingetrokken, daggrens van een token gehaald |
 | Beheer | instelling gewijzigd, startpunt of uitkomst gewijzigd, update uitgevoerd of teruggezet |
 
 **Per regel:** tijdstip (UTC, getoond in Europe/Amsterdam), wie (lid-id plus naam op dat moment, of "systeem"), actie (bv. `round.walker_removed`), onderwerp (type + id), kanaal, en de gewijzigde velden als oud → nieuw. Nooit wachtwoorden, tokens of volledige IP-adressen; bij mislukte inlogpogingen alleen een ingekort IP-adres.
@@ -846,6 +846,7 @@ Fase 3, 4 en 5 hangen alleen van de API af; MCP (fase 4) gaat vóór de frontend
 - [x] Use case `RoundStatistics` met de tool `round_statistics` (het scherm volgt in uitbreiding U5); token-scopes, rate limit, audit `via: mcp`, DNS-rebinding-instelling.
 - [x] Tests met de SDK-client in PHPUnit: elke tool, en elke tool geweigerd zonder juiste scope of rol.
 - [x] Aanvulling: `staffing_gaps` en `list_rounds` (en `GET /staffing-gaps` en `GET /rounds`) zeggen per ronde of de vrager er zelf op staat (`signedUp`). Bij de handmatige test zette Claude Code de eigen rondes van een loper anders tussen de rondes om bij aan te schuiven; het scherm van fase 5 heeft het veld ook nodig. Een open punt uit `docs/plans/phase-4.md`.
+- [x] Aanvulling: grenzen tegen misbruik van tokens. Grenzen per token voor API en MCP samen, een e-mail bij een nieuw token en bij de daggrens, een overzicht van alle tokens en intrekken per lid voor de beheerder, MCP per rol (`mcpRoles`) en per lid (`mcpAllowed`), en `monthly_report` als concept. De uitwerking staat in `docs/plans/phase-4-misuse-guards.md`.
 
 **Klaar als:** de MCP Inspector alle tools ziet en Claude Code met een token `staffing_gaps` en `sign_up_for_round` kan gebruiken.
 

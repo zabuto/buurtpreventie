@@ -223,7 +223,11 @@ token up by the SHA-256 hash of the secret on every request, so a revocation or 
 Before that it reads the setting `apiAccess` through `GetApiTokenAccess`, one query: switched off, it refuses every
 token (`tokens_disabled`), and `CreateApiToken` refuses a new one with the 409 problem `api_tokens_disabled`, while
 listing and revoking keep working, since revoking is a step after a leak. `ApiToken::refusalAt()` decides why a known token lets nobody in (revoked, expired, member inactive); the member
-comes from `MemberDirectory::identity()`, read afresh, so a changed role counts on the next request.
+comes from `MemberDirectory::identity()`, read afresh, so a changed role counts on the next request. On `/mcp` the
+authenticator narrows the roles: a member with `mcpAllowed` keeps every role, any other member keeps only the roles in
+the setting `mcpRoles` (`GetMcpAccess`), so the voters see no other. With no role left, `McpNotForRole` makes it the
+403 problem `mcp_not_for_role`, raised in the firewall and so before `TokenRateLimit` counts the request. REST keeps
+every role of the member.
 
 Under `/api/` a request needs a logged-in member, except `/api/v1/health`, `/api/v1/docs.json`, `/api/v1/config`,
 `/api/v1/manifest.webmanifest`, and everything under `/api/v1/auth/` and `/api/v1/media/brand/`. Without one, `SessionEntryPoint` answers with the 401 problem `unauthorized` and logs the path.
@@ -383,13 +387,16 @@ with `#[OA\Property]` on the output, because Nelmio does not read an array shape
 for the admin (voter attribute `member.view` and the other `member.*` attributes): `GET` lists every member that is
 not erased, deactivated ones included, and `GET /admin/members/{id}` (`GetMember`) shows one, both with e-mail
 address, contact details, roles and choices (`ListMembers`); `POST` (`AddMember`) adds a member, `PATCH
-/admin/members/{id}` (`ChangeMember`) changes name, display name, e-mail address, contact details and certificate,
+/admin/members/{id}` (`ChangeMember`) changes name, display name, e-mail address, contact details, certificate and
+`mcpAllowed` (MCP with every role of the member, whatever `mcpRoles` holds; erasing switches it off),
 `PUT /admin/members/{id}/roles` (`ChangeMemberRoles`) sets the roles, `POST` and `DELETE
 /admin/members/{id}/deactivation` (`DeactivateMember`, `ReactivateMember`) deactivate and reactivate, `DELETE
 /admin/members/{id}` (`EraseMember`) erases. Changing roles and erasing need a recent login, otherwise the 403 problem
 `reauthentication_required`. `POST /admin/members/{id}/invitation` (`InviteMember`) sends an invitation, also for a
 coordinator; the answer holds the secret only for an admin inviting a member who never logged in, and the frontend
-makes the link of it.
+makes the link of it. `POST /admin/members/mcp-allowed/reset` (`ResetMcpAllowed`, `member.reset_mcp_allowed`, admin
+only) switches `mcpAllowed` off for every member that has it, with a `member.changed` entry per member, and answers
+`membersReset`.
 
 `GET /admin/api-tokens` (`ListAllApiTokens`, voter attribute `api_token.list_all`, admin only) lists every token that
 is neither revoked nor expired, of every member, newest first: the member's id and display name, the name, scopes,
@@ -533,7 +540,8 @@ missing.
 1. `McpSwitch`, before the firewall: with `mcpAccess` off every request is the 404 problem `not_found`, and no token
    is looked up.
 2. The `mcp` firewall: an API token only. Without one, or with a session cookie alone, an empty 401 with
-   `WWW-Authenticate: Bearer`; a session would let another site act as the member.
+   `WWW-Authenticate: Bearer`; a session would let another site act as the member. A member without `mcpAllowed`
+   and without a role in `mcpRoles` gets the 403 problem `mcp_not_for_role` here.
 3. `TokenScopeGuard`: `read`.
 4. `TokenRateLimit`: the request counts as a read toward the limits of the token, shared with REST; above one the
    429 problem `too_many_requests` with `Retry-After`.
@@ -561,8 +569,9 @@ server drift apart, when `.mcp.json` takes the token from anywhere but the membe
 version is not semantic; members get a change only through a new version in `plugin.json`.
 
 **STDIO.** `StdioAuthentication` runs before `mcp:server` starts: with MCP on and the secret of an API token in
-`MCP_TOKEN`, `ApiTokenAuthenticator` checks it, and the command runs as that member on the channel `mcp`; otherwise it
-stops with exit code 1. The token is checked once, when the process starts.
+`MCP_TOKEN`, `ApiTokenAuthenticator` checks it, roles on MCP included, and the command runs as that member on the
+channel `mcp`; otherwise it stops with exit code 1, saying "MCP is off. Ask the admin." or "MCP is closed to your
+role. Ask the admin." when one of those is the reason. The token is checked once, when the process starts.
 
 ## Handler and domain
 

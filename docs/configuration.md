@@ -56,10 +56,23 @@ admin sets it, also when it equals the default, and null removes it again.
 | `language` | `nl` or `en` | `nl` |
 | `apiAccess` | `true` or `false`: whether API tokens give access. `false` refuses every token from its next request (an empty 401, logged as `tokens_disabled`) and a new token (409 `api_tokens_disabled`); members still list and revoke their tokens | `true` |
 | `mcpAccess` | `true` or `false`: whether the MCP server at `/mcp` answers. With `true`, what the tools give (rounds, display names of walkers, outcomes, counts) reaches the provider of the AI client each member picks; name that in the privacy statement of the association (`privacyUrl`) before switching it on. `false` answers every request there with 404 from its next request, and `mcp:server` does not start; API tokens keep working on REST. With `apiAccess` `false` the MCP server refuses every token (401) | `false` |
+| `mcpRoles` | A list of `walker`, `coordinator`, `analyst` and `admin`: the roles a member keeps on the MCP server, unless the admin picked that member (see below). A member keeps only the roles both hold, so with only `analyst` a walker who is also an analyst gets the statistics but cannot sign up there. A member with none of them gets the 403 problem `mcp_not_for_role` on every MCP request, which counts toward no limit. An empty list leaves MCP to the picked members alone. REST and the app keep every role. Stored sorted, each role once | all four |
 
 A colour is checked against the other colours and a minimum against the maximum as one set, so a refused value
 leaves every value of the patch unstored. The audit log names each setting that changed with its old and new value,
 except contact details, the group link and texts, which it names without a value.
+
+### MCP per member and API tokens
+
+Next to `mcpRoles`, the admin picks single members for MCP with `"mcpAllowed": true` on
+`PATCH /api/v1/admin/members/{id}`, such as a few walkers who use an AI client while the other walkers do not. A
+picked member keeps every role on the MCP server. `GET /api/v1/admin/members` and `/admin/members/{id}` show the field;
+erasing a member switches it off. `POST /api/v1/admin/members/mcp-allowed/reset` switches it off for every picked
+member at once and answers `{"membersReset": n}`, so only `mcpRoles` counts. Each change leaves a `member.changed`
+entry in the audit log, also through the reset. `mcpAccess` `false` closes MCP to everyone and keeps the picks.
+
+`GET /api/v1/admin/api-tokens` lists every active API token of every member, without its secret, and
+`POST /api/v1/admin/members/{id}/api-tokens/revoke` revokes every token of one member. Neither is an MCP tool.
 
 ### Logo and icon
 

@@ -1,9 +1,9 @@
 # Using the app from an AI client (MCP)
 
 An AI client such as Claude Code can read rounds, find rounds that need a buddy, sign you up and report back, through
-the MCP server of the app. It acts as you, with your roles: it can do what you can do in the app, and nothing more.
-It never gets phone numbers, addresses or e-mail addresses, also not of members who share theirs with you, and it
-never reads the notes and comments of a round: those can be about other people, so they stay in the app.
+the MCP server of the app. It acts as you, with your roles or fewer: it can do what you can do in the app, and nothing
+more. It never gets phone numbers, addresses or e-mail addresses, also not of members who share theirs with you, and
+it never reads the notes and comments of a round: those can be about other people, so they stay in the app.
 
 ## Privacy
 
@@ -21,12 +21,16 @@ whoever hosts its app, and the company behind your AI client.
 
 ## Before you start
 
-- **The association switches MCP on.** It is off on a new installation. An admin sets `mcpAccess` to `true` in the
-  settings (`PATCH /api/v1/admin/settings`); until then `/mcp` answers 404.
+- **The admin opens MCP for you.** It is off on a new installation. The admin switches it on, and chooses which
+  roles may use it. The admin can also open it for you alone. When the AI client says that MCP is off or closed to
+  your role, ask the admin.
 - **You make an API token** in the app, under your account, with a name such as "Claude Code" and an expiry date.
   Give it the scope `read` to look only, and `write` too to sign up, plan rounds and report back. Copy the secret
   (`bpt_…`) at once: the app shows it only then. Keep it like a password; revoke it in the app when you no longer use
   it or think someone else has it.
+- **You get a mail about your token.** The app mails you when a token is made in your name, and when a token was
+  used more often than one day allows. Neither mail has a link. Was it not you? Then open the app yourself, go to
+  Account and revoke the token, and tell the coordinator.
 - **You check before you confirm.** An AI client can get things wrong. What it signs you up for, withdraws or reports
   is done in your name, so read what it proposes before you say yes. The app and the plugin come as is, without
   warranty (see `LICENSE`).
@@ -146,7 +150,17 @@ choices. The prompt `monthly_report` asks for an overview of a month, from count
 names the period and the tools behind its numbers, and holds no number of the AI client's own. You answer for what you
 do with it, so check it before you use it. `plan_week` asks which rounds of a week still need walkers.
 
-Deleting, managing members and changing settings stay in the app. A token may make 60 requests a minute.
+Deleting, managing members and changing settings stay in the app.
+
+## Limits
+
+A token has limits, through the AI client and through scripts together:
+
+- 60 reads a minute and 2,000 a day;
+- 20 changes an hour, such as signing up or reporting back.
+
+A question to the AI client costs a few reads. Above a limit the app refuses the token for a while, and the AI client
+gets the number of seconds to wait. The first time a day that the token reaches its daily limit, you get a mail.
 
 ## On your own computer (STDIO)
 
