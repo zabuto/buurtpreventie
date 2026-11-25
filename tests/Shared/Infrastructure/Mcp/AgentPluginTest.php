@@ -70,6 +70,25 @@ final class AgentPluginTest extends TestCase
     }
 
     /**
+     * Claude Code reads the marketplace from the default branch, develop. Without the pin, a member would install a
+     * plugin that names tools before the release of the app that serves them.
+     */
+    #[Test]
+    public function it_installs_the_plugin_from_the_released_branch(): void
+    {
+        $marketplace = self::json(__DIR__ . '/../../../../.claude-plugin/marketplace.json');
+
+        $this->assertSame(
+            [[
+                'name' => 'buurtpreventie',
+                'source' => ['source' => 'git-subdir', 'url' => 'zabuto/buurtpreventie', 'path' => 'plugins/buurtpreventie', 'ref' => 'main'],
+                'description' => 'Plan neighbourhood watch rounds from an AI client through the MCP server of your own Buurtpreventie app',
+            ]],
+            $marketplace['plugins'] ?? null,
+        );
+    }
+
+    /**
      * Claude Code keeps a member on the installed copy until the version changes; a version it cannot compare leaves
      * them there for good.
      */

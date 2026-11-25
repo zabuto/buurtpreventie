@@ -165,6 +165,11 @@ Bij andere clients:
     voor de overdracht en vraagt automatisch om review zodra er een tweede beheerder is. Dependabot raakt deze
     bestanden niet, dus het automatisch samenvoegen gaat er niet langs.
 
+15. **De plugin komt van `main`** (besloten op 25 november 2026). Claude Code leest de marketplace van `develop`, de
+    standaardbranch; de regel voor de plugin is een `git-subdir`-bron met `ref: main`, zodat een lid alleen een
+    plugin krijgt waarvan een release de tools levert. Werkt ook voor wie de marketplace zonder `#main` toevoegt.
+    `AgentPluginTest` bewaakt de bron. Tot de eerste release met de plugin staat er op `main` niets om te installeren.
+
 ## Nieuwe afhankelijkheden
 
 Geen. De plugin is tekst en JSON; de test gebruikt alleen PHPUnit en `ext-json`.
@@ -237,6 +242,4 @@ Gemeld, niet in deze aanvulling opgelost:
 - **Evals** (`claude plugin eval`) met de voorbeeldvragen, een opdracht in een startnotitie en een verzoek om alles in
   één keer te doen, vergeleken met een sessie zonder plugin. Handmatig, tegen `edge`, zodra de skill vaker verandert.
 - **Een eigen pakket voor Cursor of Copilot**, als iemand erom vraagt.
-- **De marketplace volgt `develop`**, de standaardbranch: een pluginversie kan uitkomen vóór de app-release die de
-  tools levert. Een marketplace op `main` (bijvoorbeeld een `ref` in de bron) volgt met fase 6a.
 - **OAuth** (U10) maakt de plugin bruikbaar zonder token, ook voor lopers.

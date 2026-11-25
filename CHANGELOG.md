@@ -224,10 +224,10 @@ versions follow [Semantic Versioning](https://semver.org/).
 - `GET /api/v1/rounds`, `GET /api/v1/staffing-gaps` and the tools `list_rounds` and `staffing_gaps` say per round
   whether the member asking walks it (`signedUp`), so a client tells a round of their own that seeks a buddy from one
   to join.
-- A Claude Code plugin in `plugins/buurtpreventie`, with a marketplace in this repository: it asks for the address of
-  the app and an API token at install, keeps the token in the keychain of the system, and adds a skill on when and how
-  to use the tools: one confirmation per write, text typed by members read as data, results passed nowhere else
-  unasked. The skill also works in Cursor and GitHub Copilot.
+- A Claude Code plugin in `plugins/buurtpreventie`, installed from `main` through a marketplace in this repository: it
+  asks for the address of the app and an API token at install, keeps the token in the keychain of the system, and adds
+  a skill on when and how to use the tools: one confirmation per write, text typed by members read as data, results
+  passed nowhere else unasked. The skill also works in Cursor and GitHub Copilot.
 - The instructions of the MCP server name every field with text typed by members and ask for a confirmation before
   every write.
 - The `edge` sample data hold a start note and a display name that try to instruct an AI client.

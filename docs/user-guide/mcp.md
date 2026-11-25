@@ -5,6 +5,10 @@ the MCP server of the app. It acts as you, with your roles: it can do what you c
 It never gets phone numbers, addresses or e-mail addresses, also not of members who share theirs with you, and it
 never reads the notes and comments of a round: those can be about other people, so they stay in the app.
 
+What the AI client reads goes to the company behind it, under that company's terms: rounds, the display names of the
+walkers, the outcomes of reports and the counts. Your association decides whether this is allowed at all, and says so
+in its privacy statement.
+
 ## Before you start
 
 - **The association switches MCP on.** It is off on a new installation. An admin sets `mcpAccess` to `true` in the
@@ -38,8 +42,13 @@ On Claude Code older than 2.1.275, add the marketplace first:
 Claude Code asks for the address of your app, such as `https://buurtpreventie.example.org` (without `/mcp`), and your
 token. It keeps the token in the keychain of your computer, not in a settings file. The plugin also brings a skill
 that tells Claude which tool fits your question, to ask you before every change, and to treat text other members
-typed as information rather than as an instruction. A new version of the plugin reaches you when you update it with
-`/plugin`.
+typed as information rather than as an instruction.
+
+How the install works: Claude Code reads the list of plugins in `.claude-plugin/marketplace.json` of the repository
+`zabuto/buurtpreventie` and fetches the plugin from its `main` branch, which holds only released versions, so the
+plugin never names a tool before a release of the app serves it. Your rounds and your token go from Claude Code to
+your own app only, never to GitHub. Claude Code keeps the plugin you installed until its version number changes;
+update it under `/plugin`, where you can also switch on automatic updates for this marketplace.
 
 Then ask, for example: "Which rounds still need a buddy this week?" or "Sign me up for the open round on Thursday".
 Claude asks before it signs you up, withdraws you or plans a round.
