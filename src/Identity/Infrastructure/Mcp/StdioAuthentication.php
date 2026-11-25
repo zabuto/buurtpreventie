@@ -49,7 +49,7 @@ final readonly class StdioAuthentication
         }
 
         if (!($this->access)(new GetMcpAccess())->allowed) {
-            throw new RuntimeException('MCP is off for this association; an admin switches it on in the settings (mcpAccess).');
+            throw new RuntimeException('MCP is off. Ask the admin.');
         }
 
         if (null === $this->secret || '' === $this->secret) {

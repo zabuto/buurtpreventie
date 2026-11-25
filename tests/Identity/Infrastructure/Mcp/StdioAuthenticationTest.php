@@ -51,7 +51,7 @@ final class StdioAuthenticationTest extends McpTestCase
         self::token(self::member());
         self::service(InMemorySettingRepository::class)->add(Setting::of('integrations.mcp', '0'));
 
-        $this->expectExceptionObject(new RuntimeException('MCP is off for this association; an admin switches it on in the settings (mcpAccess).'));
+        $this->expectExceptionObject(new RuntimeException('MCP is off. Ask the admin.'));
 
         self::authentication(new TokenStorage(), self::SECRET)(self::start('mcp:server'));
     }
