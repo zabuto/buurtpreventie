@@ -15,7 +15,7 @@ valt op, en een beheerder ziet en trekt tokens in. Wat MCP geeft, blijft zonder 
 later komt. Het maandoverzicht is herkenbaar een concept.
 
 Rechten veranderen niet: Voters en scopes bepalen wat een token mag, deze aanvulling bepaalt hoe vaak. De enige
-inperking is per vereniging: welke rollen MCP gebruiken.
+inperking is wie MCP gebruikt: per vereniging welke rollen, en daarnaast losse leden.
 
 Klaar als:
 
@@ -25,6 +25,7 @@ Klaar als:
 - een lid een e-mail krijgt als er een token op de eigen naam wordt gemaakt;
 - een beheerder alle actieve tokens ziet en alle tokens van één lid intrekt, via de API, met Voter en matrixrij;
 - een beheerder kiest welke rollen MCP gebruiken, en een lid gebruikt via MCP alleen die rollen;
+- een beheerder zet MCP daarnaast aan voor losse leden, die via MCP al hun rollen houden;
 - de prompt `monthly_report` om een concept vraagt dat de lezer eerst controleert;
 - `McpContactDetailsTest` faalt op een sleutel met contactgegevens of notities in een antwoord, ook zonder waarde in
   de voorbeelddata;
@@ -114,12 +115,29 @@ Klaar als:
    - **Geen enkele toegestane rol:** 403 met `mcp_not_for_role` op elk MCP-verzoek, vóór de grenzen van beslissing 1,
      zodat het niet meetelt. Geen 404: MCP staat wel aan, en het lid moet weten waarom het niet werkt.
    - **Opslag:** de lijst als tekst met komma's in de bestaande tabel, gesorteerd en zonder dubbele waarden
-     (`SettingValue::tidy`); een lege lijst is niet toegestaan, daarvoor is `mcpAccess` uit. Geen migratie: een
-     nieuwe instelling is een nieuwe case (`SettingName`).
+     (`SettingValue::tidy`). Geen migratie: een nieuwe instelling is een nieuwe case (`SettingName`). Een lege lijst
+     betekent: geen rol, alleen de gekozen leden (beslissing 10).
    - **Audit en rechten:** wijzigen gaat via `PATCH /admin/settings` met de bestaande Voter en auditregel van
      instellingen, met oude en nieuwe waarde. Het scherm hoort bij fase 5b, bij de schakelaar voor MCP.
    - **Alternatief:** toegang als het lid minstens één toegestane rol heeft, met alle eigen rollen. Eenvoudiger, maar dan
      geeft "alleen analisten" een loper die ook analist is toch de schrijftools.
+
+10. **MCP per lid** (besloten op 25 november 2026): naast `mcpRoles` zet de beheerder MCP aan voor losse leden, zoals
+    een paar lopers die er handig mee zijn terwijl de andere lopers MCP niet gebruiken. Geen nieuwe rol: rollen geven
+    rechten via de Voters en tellen op, en een rol die alleen een kanaal opent, zou elke Voter en de rollenmatrix
+    moeten negeren.
+    - **Model:** een veld `mcpAllowed` op `Member` (standaard uit), in de API op `PATCH /admin/members/{id}` en in
+      `GET /admin/members` en `GET /admin/members/{id}`, zoals `certified`. Wissen zet het uit. Een kolom erbij met
+      standaard `0`: de migratie is terug te draaien.
+    - **Werking:** `MemberIdentity` krijgt `mcpAllowed`. Bij een verzoek op `/mcp` houdt een lid met `mcpAllowed` al de
+      eigen rollen; een lid zonder houdt de rollen uit `mcpRoles`, zoals in beslissing 9. Zonder `mcpAllowed` en zonder
+      toegestane rol: 403 `mcp_not_for_role`, zoals nu.
+    - **Audit en rechten:** de bestaande Voter `member.change`, auditregel `member.changed` met oude en nieuwe waarde en
+      matrixrij van `PATCH /admin/members/{id}`; geen nieuwe route.
+    - **Gevolg voor `mcpRoles`:** een lege lijst mag (besloten op 25 november 2026): geen rol, alleen de leden met
+      `mcpAllowed`. `mcpAccess` uit sluit MCP voor iedereen. Het scherm hoort bij fase 5b, bij de schakelaar voor MCP.
+    - **Alternatief:** een lid met `mcpAllowed` alleen de rollen uit `mcpRoles` plus `walker` geven. Ingewikkelder uit
+      te leggen, en een lid dat de beheerder zelf kiest, krijgt geen rechten die het lid buiten MCP niet ook al heeft.
 
 ## Nieuwe afhankelijkheden
 
@@ -171,9 +189,24 @@ toegestane rol krijgt 403 `mcp_not_for_role` en telt niet voor de grenzen; REST 
 Daarna `SettingName`, `SettingValue`, `ChangeSettings`, `GetSettings`, OpenAPI, Hurl, de rollen in
 `ApiTokenAuthenticator` en `StdioAuthentication`, en de voorbeelddata waar instellingen staan.
 
+### T8b. MCP per lid (test eerst)
+
+Domeintest voor `Member` (aan, uit, wissen zet het uit) en voor een lege `mcpRoles`, handlertest voor `ChangeMember`
+(auditregel met oude en nieuwe waarde), functionele tests: met een lege `mcpRoles` komt alleen een lid met `mcpAllowed`
+binnen; met alleen `analyst` toegestaan houdt een loper met `mcpAllowed` via MCP
+`sign_up_for_round`, en een loper zonder krijgt 403 `mcp_not_for_role`; `GET /admin/members/{id}` toont het veld.
+Daarna het veld en de migratie, `ChangeMember`, `GetMember`, `ListMembers`, `MemberIdentity` en de rollen in
+`ApiTokenAuthenticator`, OpenAPI, Hurl, de voorbeelddata (het lid met een API-token in `demo` krijgt `mcpAllowed`) en
+de woordenlijst als er een Nederlandse term bij komt.
+
 ### T9. Documentatie
 
-`docs/user-guide/mcp.md` (de drie grenzen, de e-mails, MCP per rol), `docs/configuration.md` (`mcpRoles`), de
+Teksten voor leden noemen geen instelling, endpoint of andere details waar de lezer geen toegang toe heeft: "Vraag het
+de beheerder." is genoeg. Die regel komt in `docs/writing.md`. `docs/user-guide/mcp.md` en
+`plugins/buurtpreventie/README.md` noemen `mcpAccess` en het endpoint van de instellingen; die horen in
+`docs/configuration.md`.
+
+`docs/user-guide/mcp.md` (de drie grenzen, de e-mails, MCP per rol en per lid), `docs/configuration.md` (`mcpRoles`), de
 handleiding voor beheerders waar tokens staan, ADR 0008
 (grenzen gelden voor elk token, niet alleen MCP), `docs/plans/plan.md` (MCP-server, Beveiliging: rate limit per
 token op API en MCP), `CHANGELOG.md`.
@@ -197,4 +230,4 @@ via MCP, daarna REST met hetzelfde token (ook 429). Pull request naar `develop` 
 
 - **Grenzen per vereniging instelbaar**, als een vereniging met veel analisten tegen de daggrens loopt.
 - **Een melding aan de beheerder** bij een token dat vaak de daggrens haalt; tot dan staat het in het auditlog.
-- **Het beheerscherm voor `mcpRoles`** bouwt fase 5b, bij de schakelaar voor MCP.
+- **Het beheerscherm voor `mcpRoles` en `mcpAllowed`** bouwt fase 5b, bij de schakelaar voor MCP.
