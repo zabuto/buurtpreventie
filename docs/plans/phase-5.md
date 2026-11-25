@@ -480,6 +480,15 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
     de stijl van de bestaande labels. Alternatief: het kanaal per regel uit het auditlog opzoeken; dan leest Patrol
     uit Audit voor elke ronde, en bestaande lijsten worden een extra zoekvraag per terugmelding.
 
+### Koppelingen
+
+39. **Een nieuwe koppeling verloopt standaard na 90 dagen** (besloten op 25 november 2026). Het veld voor de
+    vervaldatum staat bij openen op vandaag plus 90 dagen; de loper kan een andere datum kiezen tot het maximum van
+    365 dagen dat de API afdwingt (`ApiToken::MAXIMUM_LIFETIME_IN_DAYS`). Een token dat een AI-client of script
+    bewaart, is na een kwartaal vanzelf onbruikbaar als het lid het vergeet in te trekken. De API verandert niet:
+    `expiresAt` blijft verplicht. Alternatief: het maximum als standaard; dan blijft een vergeten token een jaar
+    geldig. Achtergrond: `docs/plans/phase-4-misuse-guards.md` (beslissing 6).
+
 ## Nieuwe afhankelijkheden (goedgekeurd op 18 november 2026)
 
 Alleen voor tests in CI, in `tests/browser/package.json` met `package-lock.json`, geïnstalleerd met
@@ -722,6 +731,8 @@ Werk in dit canvas, verander niets anders dan hieronder staat.
 - Welkom en Wachtwoord instellen via de uitnodigingslink.
 - Meer, Mijn gegevens, Bevestig dat jij het bent, Mijn activiteit, Koppelingen (het geheim één keer getoond),
   Meldingen, Lopers (telefoon alleen bij toestemming), Hulp en spoed, uitloggen.
+- Koppelingen met een vervaldatum die standaard 90 dagen vooruit staat (beslissing 39), met een browsertest op de
+  standaard bij een vaste klok en op een 422 bij een datum na 365 dagen.
 - Privacyverklaring (naar `privacyUrl`, anders in aanbouw) en Handleiding voor lopers (in aanbouw), beslissing 34.
 
 ### T12. PWA (test eerst)
