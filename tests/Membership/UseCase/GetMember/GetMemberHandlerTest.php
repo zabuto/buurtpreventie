@@ -31,12 +31,13 @@ final class GetMemberHandlerTest extends TestCase
     {
         $jan = MemberFixture::stored($this->members, 'jan@example.org', 'Jan Bakker', 'Jan B.');
         $jan->deactivate();
+        $jan->allowMcp(true);
 
         $output = $this->handler()(new GetMember($jan->id()->toRfc4122()));
 
         $this->assertSame(
-            [$jan->id()->toRfc4122(), 'jan@example.org', 'Jan Bakker', '06 1234 5678', ['walker'], false],
-            [$output->id, $output->email, $output->name, $output->phone, $output->roles, $output->active],
+            [$jan->id()->toRfc4122(), 'jan@example.org', 'Jan Bakker', '06 1234 5678', ['walker'], false, true],
+            [$output->id, $output->email, $output->name, $output->phone, $output->roles, $output->active, $output->mcpAllowed],
         );
     }
 

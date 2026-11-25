@@ -68,6 +68,12 @@ final class Member
     #[ORM\Column]
     private bool $notifyOpenRounds = false;
 
+    /**
+     * The admin lets this member use the MCP server with every role, whichever roles the association allows there.
+     */
+    #[ORM\Column]
+    private bool $mcpAllowed = false;
+
     #[ORM\Column(type: 'utc_datetime_immutable', nullable: true)]
     private ?DateTimeImmutable $erasedAt = null;
 
@@ -157,6 +163,11 @@ final class Member
         return $this->notifyOpenRounds;
     }
 
+    public function isMcpAllowed(): bool
+    {
+        return $this->mcpAllowed;
+    }
+
     public function isErased(): bool
     {
         return null !== $this->erasedAt;
@@ -239,6 +250,16 @@ final class Member
         $this->notifyOpenRounds = $notify;
     }
 
+    /**
+     * @throws MemberErased
+     */
+    public function allowMcp(bool $allowed): void
+    {
+        $this->refuseWhenErased();
+
+        $this->mcpAllowed = $allowed;
+    }
+
     public function deactivate(): void
     {
         $this->active = false;
@@ -271,6 +292,7 @@ final class Member
         $this->consentContactShare = false;
         $this->certified = false;
         $this->notifyOpenRounds = false;
+        $this->mcpAllowed = false;
         $this->active = false;
         $this->erasedAt ??= $now;
     }

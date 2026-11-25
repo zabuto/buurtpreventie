@@ -22,6 +22,7 @@ final readonly class GetMemberOutput
         public bool $certified,
         public bool $consentContactShare,
         public bool $notifyOpenRounds,
+        public bool $mcpAllowed,
     ) {
     }
 }

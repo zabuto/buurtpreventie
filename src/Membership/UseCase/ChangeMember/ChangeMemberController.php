@@ -37,6 +37,7 @@ final readonly class ChangeMemberController
             $input->phone,
             $input->address,
             $input->certified,
+            $input->mcpAllowed,
         ));
 
         return new Response(status: Response::HTTP_NO_CONTENT);
