@@ -1,6 +1,6 @@
 # Fase 4, aanvulling: plugin met skill voor AI-clients
 
-Status: voorstel, wacht op akkoord.
+Status: goedgekeurd op 25 november 2026.
 
 Bron: `docs/plans/plan.md` (MCP-server, Uitbreiding U10, Versies), `docs/plans/phase-4.md` (beslissingen en Open
 punten), `config/packages/mcp.yaml`, de `…Tool`-klassen in `src/Patrol/UseCase/`, de invoerklassen van leden,
@@ -170,7 +170,7 @@ Geen. De plugin is tekst en JSON; de test gebruikt alleen PHPUnit en `ext-json`.
 
 ### T1. Branch en taakplan
 
-Branch `feature/agent-plugin` vanaf `develop`; dit plan. Wacht op akkoord.
+Het plan kwam met een eigen pull request in `develop`; de uitvoering staat op `feature/claude-plugin` vanaf `develop`.
 
 ### T2. Server-instructies (test eerst)
 
@@ -218,7 +218,7 @@ alle nieuwe tekst, en `symfony composer check`. Pull request naar `develop` na a
 
 ## Afspraken
 
-1. Claude commit op `feature/agent-plugin` in kleine commits en pusht de branch. De pull request gaat pas open na
+1. Claude commit op `feature/claude-plugin` in kleine commits en pusht de branch. De pull request gaat pas open na
    akkoord; de merge volgt als squash zodra CI op de laatste commit groen is.
 2. `.env.local`, `.env.*.local` en `shared/.env.local` nooit lezen of committen. Het token voor T6 maakt de
    ontwikkelaar en vult het zelf in bij de installatie.
