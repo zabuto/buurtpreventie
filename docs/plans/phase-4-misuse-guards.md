@@ -14,7 +14,8 @@ Een lid met een geldig token kan niet ongemerkt veel gegevens ophalen of in een 
 valt op, en een beheerder ziet en trekt tokens in. Wat MCP geeft, blijft zonder contactgegevens, ook bij een tool die
 later komt. Het maandoverzicht voor politie en gemeente is herkenbaar een concept.
 
-Rechten veranderen niet: Voters en scopes bepalen wat een token mag, deze aanvulling bepaalt hoe vaak.
+Rechten veranderen niet: Voters en scopes bepalen wat een token mag, deze aanvulling bepaalt hoe vaak. De enige
+inperking is per vereniging: welke rollen MCP gebruiken.
 
 Klaar als:
 
@@ -23,6 +24,7 @@ Klaar als:
 - de eerste keer per dag dat een token de daggrens haalt, een auditregel geeft en het lid een e-mail krijgt;
 - een lid een e-mail krijgt als er een token op zijn naam wordt gemaakt;
 - een beheerder alle actieve tokens ziet en alle tokens van één lid intrekt, via de API, met Voter en matrixrij;
+- een beheerder kiest welke rollen MCP gebruiken, en een lid gebruikt via MCP alleen die rollen;
 - de prompt `monthly_report` om een concept vraagt dat de lezer eerst controleert;
 - `McpContactDetailsTest` faalt op een sleutel met contactgegevens of notities in een antwoord, ook zonder waarde in
   de voorbeelddata;
@@ -50,6 +52,12 @@ Klaar als:
    nieuw veld met een contactgegeven dat de voorbeelddata van de test niet vullen, valt er niet in op.
    `McpMatrixTest::it_serves_exactly_the_tools_of_the_plan` houdt de lijsten van tools compleet, dus een nieuwe tool
    komt wel in de test.
+10. **MCP staat per vereniging aan of uit** (`integrations.mcp`, API `mcpAccess`, standaard uit); `McpSwitch` geeft
+    404 als het uit staat. Instellingen zijn tekst per naam (`SettingName`, `SettingValue::tidy`); een lijst als
+    waarde bestaat nog niet.
+11. **De rollen van een tokenverzoek komen uit `ApiTokenAuthenticator`**: die bouwt `MemberUser` met de rollen van het
+    lid en zet op dezelfde plek het kanaal (`mcp` of `api`). Voters lezen de rollen van die gebruiker. Een beheerder
+    krijgt via MCP alleen de tools voor elk lid (`McpMatrixTest`).
 
 ## Voorgestelde beslissingen
 
@@ -96,6 +104,23 @@ Klaar als:
    niet leeg is. De controle op waarden blijft. Geen Opengrep-regel: een `…Output` mag `phone` of `note` wel hebben
    voor REST (vastgesteld in fase 4), dus alleen het antwoord van de tool zegt iets.
 
+9. **MCP per rol** (besloten op 25 november 2026): een nieuwe instelling `integrations.mcp_roles`, in de API
+   `mcpRoles`, een lijst met `walker`, `coordinator`, `analyst` en `admin`. Standaard alle vier, zodat aanzetten werkt
+   zoals nu. Een vereniging kan zo bijvoorbeeld alleen coördinatoren en analisten toelaten zolang lopers nog geen
+   OAuth hebben (U10), of de beheerder uitsluiten.
+   - **Werking:** bij een verzoek op `/mcp` houdt `ApiTokenAuthenticator` alleen de rollen van het lid over die in de
+     lijst staan; de Voters zien via MCP dus alleen die rollen. Een loper die ook analist is, krijgt bij alleen
+     `analyst` de statistieken maar kan zich via MCP niet aanmelden. REST en de app houden alle rollen.
+   - **Geen enkele toegestane rol:** 403 met `mcp_not_for_role` op elk MCP-verzoek, vóór de grenzen van beslissing 1,
+     zodat het niet meetelt. Geen 404: MCP staat wel aan, en het lid moet weten waarom het niet werkt.
+   - **Opslag:** de lijst als tekst met komma's in de bestaande tabel, gesorteerd en zonder dubbele waarden
+     (`SettingValue::tidy`); een lege lijst is niet toegestaan, daarvoor is `mcpAccess` uit. Geen migratie: een
+     nieuwe instelling is een nieuwe case (`SettingName`).
+   - **Audit en rechten:** wijzigen gaat via `PATCH /admin/settings` met de bestaande Voter en auditregel van
+     instellingen, met oude en nieuwe waarde. Het scherm hoort bij fase 5b, bij de schakelaar voor MCP.
+   - **Alternatief:** toegang als het lid minstens één toegestane rol heeft, met al zijn rollen. Eenvoudiger, maar dan
+     geeft "alleen analisten" een loper die ook analist is toch de schrijftools.
+
 ## Nieuwe afhankelijkheden
 
 Geen. `symfony/rate-limiter` en de mailer zijn er al.
@@ -138,13 +163,22 @@ en de controller bij `RevokeMemberApiTokens`.
 Eerst met de hand nagaan dat de test faalt als `get_round` `phone` teruggeeft; daarna de sleutelcontrole zoals in
 beslissing 8.
 
-### T8. Documentatie
+### T8. MCP per rol (test eerst)
 
-`docs/user-guide/mcp.md` (de drie grenzen, de e-mails), de handleiding voor beheerders waar tokens staan, ADR 0008
+Domeintest voor `SettingValue::tidy` (sorteren, dubbele waarden, onbekende rol, lege lijst), functionele tests: alleen
+`analyst` toegestaan geeft een loper-analist `round_statistics` maar 403 op `sign_up_for_round`; een lid zonder
+toegestane rol krijgt 403 `mcp_not_for_role` en telt niet voor de grenzen; REST met hetzelfde token houdt alle rollen.
+Daarna `SettingName`, `SettingValue`, `ChangeSettings`, `GetSettings`, OpenAPI, Hurl, de rollen in
+`ApiTokenAuthenticator` en `StdioAuthentication`, en de voorbeelddata waar instellingen staan.
+
+### T9. Documentatie
+
+`docs/user-guide/mcp.md` (de drie grenzen, de e-mails, MCP per rol), `docs/configuration.md` (`mcpRoles`), de
+handleiding voor beheerders waar tokens staan, ADR 0008
 (grenzen gelden voor elk token, niet alleen MCP), `docs/plans/plan.md` (MCP-server, Beveiliging: rate limit per
 token op API en MCP), `CHANGELOG.md`.
 
-### T9. Verifiëren en opleveren
+### T10. Verifiëren en opleveren
 
 `symfony composer check`, de taalcontrole op nieuwe teksten, en met de hand tegen de demo: één token tot de minuutgrens
 via MCP, daarna REST met hetzelfde token (ook 429). Pull request naar `develop` na akkoord, squash merge.
@@ -163,5 +197,4 @@ via MCP, daarna REST met hetzelfde token (ook 429). Pull request naar `develop` 
 
 - **Grenzen per vereniging instelbaar**, als een vereniging met veel analisten tegen de daggrens loopt.
 - **Een melding aan de beheerder** bij een token dat vaak de daggrens haalt; tot dan staat het in het auditlog.
-- **MCP per rol aan of uit** is bewust niet gekozen: rechten blijven gelijk aan de app, en de dataminimalisatie van
-  fase 4 bepaalt wat een AI-aanbieder te zien krijgt.
+- **Het beheerscherm voor `mcpRoles`** bouwt fase 5b, bij de schakelaar voor MCP.
