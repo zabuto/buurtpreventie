@@ -87,7 +87,7 @@ Klaar als:
      Voter `api_token.revoke_all` en auditregel.
    - Niet via MCP: beheer blijft buiten MCP (plan, MCP-server). Het scherm hoort bij fase 5b.
 6. **Standaard 90 dagen in het scherm Koppelingen**, met 365 als maximum zoals nu. Dat is een keuze van de frontend
-   (vastgesteld 5) en komt als regel in `docs/plans/phase-5.md` (T11); de API verandert niet.
+   (vastgesteld 5) en staat in `docs/plans/phase-5.md` (beslissing 39, T11); de API verandert niet.
 7. **`monthly_report` vraagt om een concept:** bovenaan een regel dat het een concept is dat de lezer controleert
    voordat het verstuurd wordt, de periode en de tools waar de getallen uit komen, en geen getal dat geen tool gaf. Het
    model rekent niet zelf bij; ontbreekt iets, dan zegt het dat.
@@ -142,7 +142,7 @@ beslissing 8.
 
 `docs/user-guide/mcp.md` (de drie grenzen, de e-mails), de handleiding voor beheerders waar tokens staan, ADR 0008
 (grenzen gelden voor elk token, niet alleen MCP), `docs/plans/plan.md` (MCP-server, Beveiliging: rate limit per
-token op API en MCP), `docs/plans/phase-5.md` (beslissing 6), `CHANGELOG.md`.
+token op API en MCP), `CHANGELOG.md`.
 
 ### T9. Verifiëren en opleveren
 
