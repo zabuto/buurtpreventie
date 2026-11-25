@@ -22,7 +22,7 @@ Klaar als:
 - elk verzoek met een token, op `/api/v1` en `/mcp`, telt mee voor de grenzen per token: lezen per minuut en per
   dag, schrijven per uur; een verzoek boven een grens geeft 429 met `Retry-After`, ook via MCP;
 - de eerste keer per dag dat een token de daggrens haalt, een auditregel geeft en het lid een e-mail krijgt;
-- een lid een e-mail krijgt als er een token op zijn naam wordt gemaakt;
+- een lid een e-mail krijgt als er een token op de eigen naam wordt gemaakt;
 - een beheerder alle actieve tokens ziet en alle tokens van één lid intrekt, via de API, met Voter en matrixrij;
 - een beheerder kiest welke rollen MCP gebruiken, en een lid gebruikt via MCP alleen die rollen;
 - de prompt `monthly_report` om een concept vraagt dat de lezer eerst controleert;
@@ -118,7 +118,7 @@ Klaar als:
      nieuwe instelling is een nieuwe case (`SettingName`).
    - **Audit en rechten:** wijzigen gaat via `PATCH /admin/settings` met de bestaande Voter en auditregel van
      instellingen, met oude en nieuwe waarde. Het scherm hoort bij fase 5b, bij de schakelaar voor MCP.
-   - **Alternatief:** toegang als het lid minstens één toegestane rol heeft, met al zijn rollen. Eenvoudiger, maar dan
+   - **Alternatief:** toegang als het lid minstens één toegestane rol heeft, met alle eigen rollen. Eenvoudiger, maar dan
      geeft "alleen analisten" een loper die ook analist is toch de schrijftools.
 
 ## Nieuwe afhankelijkheden

@@ -129,7 +129,7 @@ Klaar als:
    | `round_statistics` | **nieuw:** `RoundStatistics` (beslissing 14) | `from`, `to`, `groupBy` (`month`, `weekday`, `daypart`) | `read` | analist, coördinator (nieuw: `round.statistics`) |
 
    Namens een ander lid (`memberId`, `firstWalkerId`) zit in geen enkele tool: dat doet de coördinator in de app,
-   waar hij ziet voor wie (plan, Bewust niet in v1).
+   waar die ziet voor wie (plan, Bewust niet in v1).
 10. **Validatie met dezelfde `Assert`-regels als REST** (vastgesteld 2). Een kleine klasse
     `Shared\Infrastructure\Mcp\ToolInput` valideert de invoer met de Validator en gooit bij een fout een
     `InvalidToolInput` met de veldfouten. Regel 3 krijgt die ene klasse erbij als toegestane afhankelijkheid van een
@@ -172,7 +172,7 @@ Klaar als:
     | `report_round_result` | `false` | `false` |
     | `add_round_comment` | `false` | `false` |
 
-    Afwijking van het plan voor `withdraw_from_round` (vastgesteld 9): als laatste loper laat hij de ronde vervallen,
+    Afwijking van het plan voor `withdraw_from_round` (vastgesteld 9): wie zich als laatste loper afmeldt, laat de ronde vervallen,
     en een client vraagt bij `destructiveHint: true` om bevestiging. De beschrijving van de tool zegt het, en ook dat
     een ronde die daardoor een loopmaatje zoekt, de overgebleven loper een mail geeft.
 17. **Door leden getypte tekst blijft een eigen veld** (`note`, `text`, `startNote`, `cancelReason`), zoals de

@@ -121,7 +121,7 @@ Klaar als:
       een veldfout. `/config` geeft de link met `service` (`whatsapp` of `signal`, afgeleid uit de host), zodat de
       frontend het juiste woord en icoon toont;
     - **alleen voor ingelogde leden in `/config`**, zoals het contact (beslissing 4; besloten op 16 november 2026,
-      na T9): wie de link heeft, kan de groep in, en dan zien alle leden van de groep zijn telefoonnummer. Een
+      na T9): wie de link heeft, kan de groep in, en dan zien alle leden van de groep dat telefoonnummer. Een
       bezoeker krijgt `group` met vaste sleutels en `null`. Verbergen alleen in de frontend beschermt niets, want
       `/config` is publiek op te halen. Niet in een mail;
     - de auditregel noemt de wijziging als `null → null`, zodat de link niet in het log staat;

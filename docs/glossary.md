@@ -29,7 +29,7 @@ dezelfde naam.
 | Startpunt | `MeetingPoint` | Optionele plek om te verzamelen |
 | Startnotitie | `startNote` | Vrije tekst bij de start van een ronde, zoals waar je precies verzamelt |
 | Coördinaten | `Coordinates` | Breedte- en lengtegraad van een startpunt in WGS84, op zes decimalen |
-| Herinnering | `Reminder` | Eén bericht per loper per dag, over al zijn rondes van die dag |
+| Herinnering | `Reminder` | Eén bericht per loper per dag, over alle eigen rondes van die dag |
 | Opmerking | `RoundComment` | Opmerking bij een ronde, met auteur |
 | Lid | `Member` | Profiel: naam, contactgegevens, rollen |
 | Eerste beheerder | `AddFirstAdmin` | Het systeem voegt de eerste beheerder toe, alleen zolang er geen actieve beheerder is |

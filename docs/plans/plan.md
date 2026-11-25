@@ -273,7 +273,7 @@ Een PHPat-regel bewaakt dit: elke map direct onder `src/` behalve `Shared` is ee
 
 ## Overdraagbaarheid
 
-Welke codestructuur het ook wordt: het project moet over te dragen zijn aan een andere ontwikkelaar. Doel: een PHP/Symfony-ontwikkelaar vindt binnen een uur zijn weg, en levert binnen een dag een eerste wijziging op.
+Welke codestructuur het ook wordt: het project moet over te dragen zijn aan een andere ontwikkelaar. Doel: een PHP/Symfony-ontwikkelaar vindt binnen een uur de weg, en levert binnen een dag een eerste wijziging op.
 
 **Code en kennis.**
 
@@ -387,7 +387,7 @@ Eenvoud in gebruik:
 - **Grote basistekst (18 px)** die meeschaalt met de lettergrootte van de telefoon.
 - **Bevestiging in woorden na elke actie**, met ongedaan maken waar het kan ("Afgemeld. Ongedaan maken").
 - **Inloggen zonder gedoe:** "ingelogd blijven" voor 90 dagen en inloggen met een code van zes cijfers per mail; "wachtwoord vergeten" is inloggen met een code. Een wachtwoord kan, maar is nooit verplicht. Een nieuw lid krijgt een uitnodiging: een link die één keer werkt. E-mails hebben een directe knop naar de ronde.
-- **Hulp van de coördinator:** een nieuwe uitnodiging laten sturen, zonder de link zelf te zien, en een loper die het zelf niet lukt namens hem aan- of afmelden; dat staat als "namens" in het auditlog.
+- **Hulp van de coördinator:** een nieuwe uitnodiging laten sturen, zonder de link zelf te zien, en een loper die het zelf niet lukt namens die loper aan- of afmelden; dat staat als "namens" in het auditlog.
 - **Handleiding voor lopers:** één A4 met schermafbeeldingen in `docs/user-guide/`, en dezelfde uitleg in de app onder "Hoe werkt het?".
 
 Testen met echte lopers en toestellen:
@@ -481,7 +481,7 @@ Regels die daaruit volgen:
 | Media | `GET /media/brand/{bestand}` | iedereen |
 | Privacy | `GET /me/export`, `DELETE /admin/members/{id}` (wissen) | lid (eigen gegevens), beheerder (wissen) |
 
-**Rechten.** Eén Voter per onderwerp (`RoundVoter`, `ReportVoter`, `MemberVoter`, …) met de rollen walker, coordinator, analyst en admin. Rollen tellen op, en elke rol geeft alleen zijn eigen rechten. De beheerder (`admin`) beheert leden, catalogi, instellingen en onderhoud, en heeft geen rechten op de inhoud van rondes; wie dat nodig heeft, krijgt ook de rol coördinator. De analist leest alleen; loopt hij ook, dan krijgt hij de rol loper erbij. Controllers en MCP-tools roepen dezelfde Voters aan; een test controleert de volledige matrix rol × actie.
+**Rechten.** Eén Voter per onderwerp (`RoundVoter`, `ReportVoter`, `MemberVoter`, …) met de rollen walker, coordinator, analyst en admin. Rollen tellen op, en elke rol geeft alleen zijn eigen rechten. De beheerder (`admin`) beheert leden, catalogi, instellingen en onderhoud, en heeft geen rechten op de inhoud van rondes; wie dat nodig heeft, krijgt ook de rol coördinator. De analist leest alleen; loopt de analist ook, dan komt de rol loper erbij. Controllers en MCP-tools roepen dezelfde Voters aan; een test controleert de volledige matrix rol × actie.
 
 **Authenticatie.** Uitgewerkt en vastgelegd in fase 2 ([ADR 0006](../adr/0006-authentication.md)).
 
@@ -811,7 +811,7 @@ Fase 3, 4 en 5 hangen alleen van de API af; MCP (fase 4) gaat vóór de frontend
   - hij zoekt het token op de SHA-256-hash; het token zelf staat nergens, en draagt geen inhoud en geen controlegetal;
   - één `match` met elke reden om te weigeren: onbekend, ingetrokken, verlopen, lid gedeactiveerd of gewist (review-focus 4: het token werkt meteen niet meer);
   - een weigering is een 401 zonder body, met `WWW-Authenticate: Bearer`; de reden gaat alleen naar ons log, in woorden die het datamodel niet prijsgeven, en de exceptie draagt een algemene melding;
-  - bij succes: `markUsed()` op het token en `ExecutionContext` gevuld met het lid, zijn rollen en kanaal `api` (of `mcp` in fase 4), zodat er één bron is voor wie de actie uitvoert;
+  - bij succes: `markUsed()` op het token en `ExecutionContext` gevuld met het lid, de rollen van het lid en kanaal `api` (of `mcp` in fase 4), zodat er één bron is voor wie de actie uitvoert;
   - geen JWT: dat is niet meteen in te trekken zonder toch bij elk verzoek op te zoeken, de inhoud is leesbaar, en één gelekte sleutel ondertekent elk token.
   Het werd een eigen authenticator, geen `access_token` met handler: die slaat een verzoek zonder header over.
 - [x] **Afwijking: scopes per verzoek, niet in de Voters** (beslissing 17 van `phase-2.md`). Een listener op de tokenfirewall eist `read` voor `GET` en `HEAD`, `write` voor de andere methodes en `admin` voor `/api/v1/admin/`; de Voters gaan alleen over rollen. Rol én scope moeten kloppen, en één test dekt elke scope.
@@ -920,9 +920,9 @@ Binnen elke groep gaat waarde vóór moeite.
 
 ### Uitbreiding U1 — Vast loopmaatje uitnodigen
 
-Een loper kan iemand met wie hij vaak loopt vragen of die weer meeloopt, maar alleen als die ander dat uitdrukkelijk heeft toegestaan. Standaard kan niemand een ander uitnodigen; de vereniging kan de functie in de instellingen uitzetten.
+Een loper kan iemand met wie die vaak loopt vragen of die weer meeloopt, maar alleen als die ander dat uitdrukkelijk heeft toegestaan. Standaard kan niemand een ander uitnodigen; de vereniging kan de functie in de instellingen uitzetten.
 
-- [ ] **Toestemming per persoon (opt-in):** lid B zet in zijn account "A mag mij uitnodigen" aan. Dat kan op eigen initiatief, of na een verzoek van A ("A wil je kunnen uitnodigen voor rondes. Toestaan?"). Een verzoek dat B laat liggen, vervalt na 30 dagen; A ziet nooit of B weigerde, alleen of het is toegestaan.
+- [ ] **Toestemming per persoon (opt-in):** lid B zet in het eigen account "A mag mij uitnodigen" aan. Dat kan op eigen initiatief, of na een verzoek van A ("A wil je kunnen uitnodigen voor rondes. Toestaan?"). Een verzoek dat B laat liggen, vervalt na 30 dagen; A ziet nooit of B weigerde, alleen of het is toegestaan.
 - [ ] **Altijd terug te draaien:** B kan toestemming per persoon intrekken of alle uitnodigingen pauzeren ("even niet"). A krijgt daar geen bericht over.
 - [ ] **Suggesties voor A:** "Vaak met je gelopen" op basis van gezamenlijke rondes in het afgelopen halfjaar. Dat zijn gegevens die A in de rondes al kon zien.
 - [ ] **Uitnodigen:** bij een eigen ronde die een loopmaatje zoekt, tikt A op "Vraag B mee". B krijgt een mail (en later pushmelding) met de knoppen "Ik loop mee" en "Kan deze keer niet". "Ik loop mee" meldt B direct aan.
@@ -940,7 +940,7 @@ Een loper kan iemand met wie hij vaak loopt vragen of die weer meeloopt, maar al
 - [ ] Geen contactgegevens in de feed, alleen namen van loopmaatjes.
 - [ ] Uitleg in `docs/user-guide/` voor de agenda op iPhone, Android en in Outlook.
 
-**Klaar als:** een loper zijn rondes in de agenda van zijn telefoon ziet, en wijzigingen doorkomen bij de volgende verversing van die agenda (dat bepaalt de agenda-app zelf).
+**Klaar als:** een loper de eigen rondes in de agenda van de eigen telefoon ziet, en wijzigingen doorkomen bij de volgende verversing van die agenda (dat bepaalt de agenda-app zelf).
 
 ### Uitbreiding U3 — Reageren op de terugmelding
 
@@ -949,7 +949,7 @@ Een ronde heeft één terugmelding, van één loper of de coördinator. De ander
 - [ ] Per loper van de ronde één reactie (eens of oneens) op de terugmelding, te wijzigen of in te trekken; in het auditlog.
 - [ ] Coördinator en analist zien de reacties bij de ronde; een terugmelding met een "oneens" valt op in het overzicht.
 
-**Klaar als:** een loper die meeliep met één tik laat zien of hij het met de terugmelding eens is.
+**Klaar als:** een loper die meeliep met één tik laat zien of die het met de terugmelding eens is.
 
 ### Uitbreiding U4 — Pushmeldingen
 
@@ -959,7 +959,7 @@ Een ronde heeft één terugmelding, van één loper of de coördinator. De ander
 - [ ] Herinneringen gaan via de tijdtrigger; meldingen bij een uitnodiging of open ronde gaan direct. Zonder cron dus alleen de directe meldingen.
 - [ ] Eén kleine Web Push-bibliotheek als afhankelijkheid, vastgelegd in een ADR.
 
-**Klaar als:** een loper met meldingen aan een uitnodiging en een herinnering op zijn telefoon krijgt, en een lid zonder toestemming niets.
+**Klaar als:** een loper met meldingen aan een uitnodiging en een herinnering op de eigen telefoon krijgt, en een lid zonder toestemming niets.
 
 ### Uitbreiding U5 — Statistieken voor analist
 
@@ -969,7 +969,7 @@ Er komt een scherm Statistieken voor analist en coördinator, met exacte cijfers
 - [ ] **Filters:** periode, dagdeel en startpunt, en vergelijken met de vorige periode.
 - [ ] **API en MCP:** `GET /api/v1/stats/rounds?from=&to=&groupBy=month|weekday|daypart` en `GET /api/v1/stats/outcomes`, gebouwd op de use case `RoundStatistics` uit fase 4, die ook de MCP-tool `round_statistics` voedt.
 - [ ] **Getekend als eigen SVG-componenten in Lit**, zonder grafiekbibliotheek. Elke grafiek heeft een titel die de conclusie zegt, een tabelweergave voor schermlezers, en kleur is nooit de enige drager (WCAG).
-- [ ] **Privacy:** alleen totalen, geen ranglijsten of cijfers per loper. Een loper ziet alleen zijn eigen aantallen onder Mijn rondes.
+- [ ] **Privacy:** alleen totalen, geen ranglijsten of cijfers per loper. Een loper ziet alleen de eigen aantallen onder Mijn rondes.
 - [ ] **Export:** de getoonde cijfers als CSV; een vaste rapportage voor politie en gemeente volgt eventueel in uitbreiding U8.
 - [ ] **Snel op shared hosting:** tellingen als SQL-aggregaties, een dag gecachet in de bestandscache.
 
@@ -1007,7 +1007,7 @@ De bouwstenen zijn er dan al: de use case `RoundStatistics` (fase 4), het statis
 
 ### Uitbreiding U9 — Route en incidentkaart
 
-Een opt-in-functie achter een feature flag, die pas start als fase 0 t/m 6 draaien: standaard uit, de beheerder zet hem per vereniging aan in de instellingen, en daarna kiest elke loper zelf of hij meedoet.
+Een opt-in-functie achter een feature flag, die pas start als fase 0 t/m 6 draaien: standaard uit, de beheerder zet hem per vereniging aan in de instellingen, en daarna kiest elke loper zelf of die meedoet.
 
 - [ ] **Toestemming per loper:** apart vinkje "mijn route mag worden vastgelegd", standaard uit en altijd in te trekken. Pas na toestemming verschijnt de knop "Route opnemen".
 - [ ] **Locatie in `Permissions-Policy`:** `geolocation=(self)` alleen als de uitbreiding aan staat; uit fase 5 staat locatie uit.
@@ -1035,11 +1035,11 @@ Een opt-in-functie achter een feature flag: standaard uit, de beheerder zet hem 
 
 - [ ] **Markeren bij annuleren:** wie een begonnen ronde annuleert (`CancelRound`, een loper van die ronde of de coördinator), vinkt aan welke lopers niet kwamen. De coördinator kan dat achteraf aanpassen.
 - [ ] **Model:** `noShowAt` op de aanmelding (`Participation`) van die loper in die ronde; geen eigen tabel. Elke markering en elke verwijdering laat een auditregel achter.
-- [ ] **Zichtbaar voor de coördinator:** het aantal no-shows per lid over een periode, bij het lid in het ledenoverzicht, zodat hij iemand kan aanspreken. Geen ranglijst; niet zichtbaar voor andere lopers of de analist, en via MCP alleen voor de coördinator.
+- [ ] **Zichtbaar voor de coördinator:** het aantal no-shows per lid over een periode, bij het lid in het ledenoverzicht, zodat de coördinator iemand kan aanspreken. Geen ranglijst; niet zichtbaar voor andere lopers of de analist, en via MCP alleen voor de coördinator.
 - [ ] **Zichtbaar voor het lid zelf:** de eigen no-shows bij "Mijn activiteit", met de mogelijkheid bezwaar te maken bij de coördinator.
 - [ ] **Privacy (AVG):** een oordeel over hoe betrouwbaar iemand is, is gevoelige persoonsinformatie. Vaste bewaartermijn (standaard 12 maanden, instelbaar), daarna verwijdert de scheduler de markering; vermelding in de privacyverklaring van de vereniging; inzage en correctie voor het lid; uitzetten verwijdert alle markeringen.
 
-**Klaar als:** een no-show bij het annuleren vastligt, de coördinator het aantal per lid ziet, het lid zijn eigen no-shows ziet, en markeringen na de bewaartermijn weg zijn.
+**Klaar als:** een no-show bij het annuleren vastligt, de coördinator het aantal per lid ziet, het lid de eigen no-shows ziet, en markeringen na de bewaartermijn weg zijn.
 
 ## Overstap van bestaande v3-installaties
 
