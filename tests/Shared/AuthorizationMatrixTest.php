@@ -126,7 +126,15 @@ final class AuthorizationMatrixTest extends TestCase
     {
         $nobody = static fn(Uuid $actor): null => null;
 
-        foreach (['member.add', 'member.change', 'member.change_roles', 'member.deactivate', 'member.reactivate', 'member.erase'] as $attribute) {
+        foreach ([
+            'member.add',
+            'member.change',
+            'member.change_roles',
+            'member.deactivate',
+            'member.reactivate',
+            'member.erase',
+            'member.reset_mcp_allowed',
+        ] as $attribute) {
             yield $attribute => [$attribute, $nobody, ['admin']];
         }
         yield 'member.invite' => ['member.invite', $nobody, ['coordinator', 'admin']];
