@@ -15,7 +15,8 @@ use Mcp\Exception\PromptGetException;
 /**
  * Asks the client for a monthly overview for the police and the municipality. The prompt holds no data: the client
  * fetches the counts with the tools, as the member who owns the token, so the prompt never shows more than they may
- * see.
+ * see. The overview is a draft that names its period and sources and holds no number of the model's own, as it
+ * reaches the police and the municipality as fact once the reader sends it.
  */
 #[McpPrompt(
     name: 'monthly_report',
@@ -59,6 +60,13 @@ final readonly class MonthlyReportPrompt
                 ),
                 \sprintf('First call report_summary and round_statistics (groupBy: month) with from %s and to %s.', $from, $to),
                 'Give the rounds planned and walked, the rounds not walked for want of a buddy, the reports per outcome and the incidents, and how the month compares with the month before.',
+                'Start with one line saying that this is a draft, which the reader checks before sending it to the police or the municipality.',
+                \sprintf(
+                    'Name the period, %s to %s, and the tools the counts come from.',
+                    $start->format('j'),
+                    $start->modify('last day of this month')->format('j F Y'),
+                ),
+                'Give only numbers a tool returned; do not calculate any yourself. When a count is missing, say so instead of guessing it.',
                 'Use counts only. Leave out names, display names, notes, comments and any other text members typed.',
                 \sprintf('Write in %s.', LanguageName::of($config->language)),
             ]),

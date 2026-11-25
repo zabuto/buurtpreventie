@@ -65,6 +65,27 @@ final class ResourceAndPromptsTest extends McpTestCase
         self::assertStringContainsString('Write in Dutch.', $text);
     }
 
+    /**
+     * The overview goes to the police and the municipality, so a number the model made up or worked out itself would
+     * reach them as a fact; the reader checks it first, against the period and the tools it names.
+     */
+    #[Test]
+    public function it_asks_for_a_draft_that_names_its_period_and_sources_and_invents_no_number(): void
+    {
+        $browser = self::mcpBrowser();
+        self::token(self::member());
+
+        $text = self::prompt(self::connect($browser), 'monthly_report', ['month' => '2026-10']);
+
+        self::assertStringContainsString(
+            'Start with one line saying that this is a draft, which the reader checks before sending it to the police or the municipality.',
+            $text,
+        );
+        self::assertStringContainsString('Name the period, 1 to 31 October 2026, and the tools the counts come from.', $text);
+        self::assertStringContainsString('Give only numbers a tool returned; do not calculate any yourself.', $text);
+        self::assertStringContainsString('When a count is missing, say so instead of guessing it.', $text);
+    }
+
     #[Test]
     public function it_refuses_a_month_in_another_format(): void
     {

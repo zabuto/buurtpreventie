@@ -524,7 +524,9 @@ lookup of tools private, so `McpElements` gives the SDK the tools, prompts and r
 language of the association, the minimum and maximum walkers of a new round, and the meeting points and outcomes,
 never the contact. The prompts `monthly_report(month)` and `plan_week(weekStart?)` hold no data: they name the tools
 to call and the period in local time, and ask for an answer in the language of the association, so the client
-fetches only what the member of the token may see.
+fetches only what the member of the token may see. `monthly_report` asks for a draft that says so in its first line,
+names its period and the tools its counts come from, holds no number a tool did not return, and says when a count is
+missing.
 
 **A request to `/mcp`** passes, in this order:
 
