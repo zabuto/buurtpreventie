@@ -1,5 +1,5 @@
-# The settings of the association: reading, an empty change, and the refusals of a weak colour, an empty list of roles
-# for MCP and a file that is no image. Nothing here changes a setting.
+# The settings of the association: reading, an empty change, and the refusals of a weak colour, a role that does not
+# exist for MCP and a file that is no image. Nothing here changes a setting.
 
 POST {{baseUrl}}/api/v1/auth/login
 {
@@ -45,11 +45,11 @@ jsonpath "$.required" == 4.5
 
 PATCH {{baseUrl}}/api/v1/admin/settings
 {
-  "mcpRoles": []
+  "mcpRoles": ["member"]
 }
 HTTP 422
 [Asserts]
-jsonpath "$.violations[0].field" == "mcpRoles"
+jsonpath "$.violations[0].field" == "mcpRoles[0]"
 
 PUT {{baseUrl}}/api/v1/admin/settings/images/logo
 Content-Type: image/png

@@ -50,4 +50,15 @@ final class GetMcpAccessHandlerTest extends TestCase
 
         $this->assertSame(['analyst', 'coordinator'], $output->roles);
     }
+
+    #[Test]
+    public function it_allows_no_role_on_mcp_when_the_admin_picks_members_only(): void
+    {
+        $settings = new InMemorySettingRepository();
+        $settings->add(Setting::of('integrations.mcp_roles', ''));
+
+        $output = new GetMcpAccessHandler($settings)(new GetMcpAccess());
+
+        $this->assertSame([], $output->roles);
+    }
 }

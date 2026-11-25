@@ -59,6 +59,23 @@ final class ChangeSettingsEndpointTest extends ApiTestCase
     }
 
     /**
+     * No role at all leaves MCP to the members the admin picks one by one.
+     */
+    #[Test]
+    public function it_takes_an_empty_list_of_roles_for_mcp(): void
+    {
+        $client = self::createClient();
+        $client->disableReboot();
+        self::actingAs($client, Role::Admin);
+
+        $client->jsonRequest('PATCH', '/api/v1/admin/settings', ['mcpRoles' => []]);
+        self::assertResponseStatusCodeSame(204);
+        $client->jsonRequest('GET', '/api/v1/admin/settings');
+
+        self::assertSame([], self::json($client)['mcpRoles'] ?? null);
+    }
+
+    /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
     public static function malformed(): iterable
@@ -71,7 +88,6 @@ final class ChangeSettingsEndpointTest extends ApiTestCase
         yield 'reminder too far ahead' => [['reminderDaysAhead' => 8], 'reminderDaysAhead'];
         yield 'language without texts' => [['language' => 'de'], 'language'];
         yield 'text for a switch' => [['apiAccess' => 'off'], 'apiAccess'];
-        yield 'no role for MCP' => [['mcpRoles' => []], 'mcpRoles'];
         yield 'role for MCP that does not exist' => [['mcpRoles' => ['walker', 'member']], 'mcpRoles[1]'];
         yield 'text for the roles for MCP' => [['mcpRoles' => 'walker'], 'mcpRoles'];
     }

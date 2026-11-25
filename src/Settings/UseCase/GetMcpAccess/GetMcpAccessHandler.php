@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Settings\UseCase\GetMcpAccess;
 
+use App\Settings\Domain\RoleList;
 use App\Settings\Domain\SettingName;
 use App\Settings\Domain\SettingRepository;
 use App\Settings\Domain\Settings;
@@ -27,7 +28,7 @@ final readonly class GetMcpAccessHandler
 
         return new GetMcpAccessOutput(
             '1' === $settings->value(SettingName::McpAccess),
-            \explode(',', (string) $settings->value(SettingName::McpRoles)),
+            RoleList::of((string) $settings->value(SettingName::McpRoles)),
         );
     }
 }

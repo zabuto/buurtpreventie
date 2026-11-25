@@ -95,12 +95,12 @@ final readonly class ChangeSettings implements GroupSequenceProviderInterface
         /** Off answers every request to /mcp with 404; API tokens keep working on REST. */
         public bool|Unchanged|null $mcpAccess = Unchanged::Field,
         /**
-         * The roles a member keeps on /mcp; REST and the app keep every role. A member with none of them gets 403.
+         * The roles a member keeps on /mcp; REST and the app keep every role. Empty: only the members the admin picks
+         * (mcpAllowed) use MCP.
          *
          * @var list<string>|Unchanged|null
          */
         #[OA\Property(items: new OA\Items(type: 'string', enum: ['admin', 'analyst', 'coordinator', 'walker']))]
-        #[Assert\Count(min: 1, groups: ['mcpRoles'])]
         #[Assert\All([new Assert\Choice(callback: [Role::class, 'values'])], groups: ['mcpRoles'])]
         public array|Unchanged|null $mcpRoles = Unchanged::Field,
     ) {

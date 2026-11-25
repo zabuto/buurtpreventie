@@ -12,15 +12,23 @@ use App\Shared\Domain\Role;
 final readonly class RoleList
 {
     /**
-     * No role at all is refused: a setting that would shut every role out has a switch of its own, such as mcpAccess.
+     * @return list<string> the roles of a stored list, none for empty text
+     */
+    public static function of(string $stored): array
+    {
+        return '' === $stored ? [] : \explode(',', $stored);
+    }
+
+    /**
+     * An empty list stores as empty text.
      *
      * @param string|int|bool|list<string> $roles
      *
-     * @throws InvalidSetting for a value that is no list, an empty list or a role that does not exist
+     * @throws InvalidSetting for a value that is no list or a role that does not exist
      */
     public static function tidy(SettingName $name, string|int|bool|array $roles): string
     {
-        if (!\is_array($roles) || [] === $roles || [] !== \array_diff($roles, Role::values())) {
+        if (!\is_array($roles) || [] !== \array_diff($roles, Role::values())) {
             throw new InvalidSetting($name->value, \sprintf('%s lists one or more of %s.', $name->value, \implode(', ', Role::values())));
         }
 

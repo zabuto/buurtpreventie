@@ -82,6 +82,17 @@ final class GetSettingsHandlerTest extends TestCase
     }
 
     #[Test]
+    public function it_gives_an_empty_list_when_no_role_may_use_mcp(): void
+    {
+        $settings = new InMemorySettingRepository();
+        $settings->add(Setting::of('integrations.mcp_roles', ''));
+
+        $output = new GetSettingsHandler($settings, new FixedStandardTexts(), FakeAuthorization::granting())(new GetSettings());
+
+        $this->assertSame([], $output->mcpRoles);
+    }
+
+    #[Test]
     public function it_shows_nothing_when_access_is_denied(): void
     {
         $authorization = FakeAuthorization::refusing();

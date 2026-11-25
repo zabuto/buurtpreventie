@@ -84,6 +84,7 @@ final class SettingsTest extends TestCase
         yield 'MCP switched on' => [SettingName::McpAccess, true, '1'];
         yield 'roles for MCP in order, each once' => [SettingName::McpRoles, ['walker', 'analyst', 'walker'], 'analyst,walker'];
         yield 'one role for MCP' => [SettingName::McpRoles, ['coordinator'], 'coordinator'];
+        yield 'no role for MCP, only the members the admin picks' => [SettingName::McpRoles, [], ''];
         yield 'language' => [SettingName::Language, 'en', 'en'];
         yield 'version of an uploaded logo' => [SettingName::Logo, '3f2a9c1d0b8e7f65', '3f2a9c1d0b8e7f65'];
     }
@@ -124,7 +125,6 @@ final class SettingsTest extends TestCase
         yield 'switch for a text' => [SettingName::ContactName, true, InvalidSetting::class];
         yield 'minimum above the maximum' => [SettingName::MinimumWalkers, 8, InvalidStaffingDefaults::class];
         yield 'role for MCP that does not exist' => [SettingName::McpRoles, ['walker', 'member'], InvalidSetting::class];
-        yield 'no role for MCP' => [SettingName::McpRoles, [], InvalidSetting::class];
         yield 'text for the roles for MCP' => [SettingName::McpRoles, 'walker', InvalidSetting::class];
         yield 'list for a text' => [SettingName::ContactName, ['Piet'], InvalidSetting::class];
         yield 'list for a switch' => [SettingName::McpAccess, ['walker'], InvalidSetting::class];
