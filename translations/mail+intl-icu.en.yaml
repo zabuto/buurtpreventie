@@ -14,6 +14,12 @@ account.invitation.intro: You are invited to the app of {name}. Open the link to
 account.invitation.button: Log in
 account.invitation.valid: The link works for {hours} hours, and once. Does it no longer work? Then ask for a login code on the login screen with this e-mail address.
 
+account.token_limit_reached.subject: Your token {name} was used more often than allowed
+account.token_limit_reached.intro: On {date} at {time}, your token {name} had been used more often than one day allows. So the app refuses that token for a while.
+
+account.token.not_you: Was this not you? Then revoke the token and tell the coordinator.
+account.token.button: Go to your account
+
 round.line: '{date} at {time}, {daypart, select, morning {morning round} afternoon {afternoon round} other {evening round}}.'
 round.line_with_meeting_point: '{date} at {time}, {daypart, select, morning {morning round} afternoon {afternoon round} other {evening round}}, starting at {meetingPoint}.'
 round.others: '{others, plural, =0 {You walk alone so far.} one {1 other walks with you.} other {# others walk with you.}}'

@@ -103,6 +103,37 @@ final class MailNotifierTest extends ApiTestCase
     }
 
     /**
+     * The member reads which token, when on the local clock, and what to do when it was not them, in both bodies.
+     */
+    #[Test]
+    public function it_mails_which_token_reached_the_daily_limit_and_when_with_what_to_do_about_it(): void
+    {
+        self::bootKernel();
+
+        self::service(MailNotifier::class)->send(new Notification(self::member()->id(), 'account.token_limit_reached', [
+            'tokenName' => 'Claude Code',
+            'reachedAt' => '2026-11-16T22:30:00+00:00',
+        ]));
+
+        $mail = self::sentMail();
+        $intro = 'Op maandag 16 november om 23:30 was je token Claude Code vaker gebruikt dan op één dag mag.';
+        $notYou = 'Was jij dit niet? Trek het token dan in en meld het aan de coördinator.';
+        $link = 'https://example.org/buurtpreventie/app/#/account';
+        self::assertSame(
+            ['Je token Claude Code is vaker gebruikt dan mag', true, true, true, true, true, true],
+            [
+                $mail->getSubject(),
+                \str_contains((string) $mail->getTextBody(), $intro),
+                \str_contains((string) $mail->getTextBody(), $notYou),
+                \str_contains((string) $mail->getTextBody(), $link),
+                \str_contains((string) $mail->getHtmlBody(), $intro),
+                \str_contains((string) $mail->getHtmlBody(), $notYou),
+                \str_contains((string) $mail->getHtmlBody(), 'href="' . $link . '"'),
+            ],
+        );
+    }
+
+    /**
      * The address is the one the mail server may send from, or SPF and DKIM fail; the association names the sender.
      */
     #[Test]

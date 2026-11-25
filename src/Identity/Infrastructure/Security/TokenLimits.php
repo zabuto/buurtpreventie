@@ -22,6 +22,7 @@ final readonly class TokenLimits
         private RateLimiterFactoryInterface $readsPerDay,
         #[Target('token_writes_per_hour')]
         private RateLimiterFactoryInterface $writesPerHour,
+        private TokenLimitTrace $trace,
     ) {
     }
 
@@ -31,7 +32,13 @@ final readonly class TokenLimits
     public function read(string $tokenId): void
     {
         self::deny($this->readsPerMinute->create($tokenId)->consume());
-        self::deny($this->readsPerDay->create($tokenId)->consume());
+
+        $daily = $this->readsPerDay->create($tokenId)->consume();
+        if (!$daily->isAccepted()) {
+            $this->trace->dailyLimitReached($tokenId);
+        }
+
+        self::deny($daily);
     }
 
     /**
