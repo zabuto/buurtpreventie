@@ -1,6 +1,6 @@
 # Fase 4, aanvulling: grenzen tegen misbruik van tokens en AI-clients
 
-Status: voorstel, wacht op akkoord.
+Status: goedgekeurd op 25 november 2026.
 
 Bron: `docs/plans/plan.md` (MCP-server, Inloggen en rechten, Privacy en AVG), `docs/plans/phase-4.md`,
 `config/packages/rate_limiter.yaml`, `src/Identity/Infrastructure/Mcp/McpRateLimit.php`,
@@ -129,7 +129,7 @@ Geen. `symfony/rate-limiter` en de mailer zijn er al.
 
 ### T1. Branch en taakplan
 
-Branch `feature/ai-misuse-guards` vanaf `develop`; dit plan. Wacht op akkoord.
+Branch `feature/misuse-guards` vanaf `develop`; dit plan. Wacht op akkoord.
 
 ### T2. Grenzen per token (test eerst)
 
@@ -185,7 +185,7 @@ via MCP, daarna REST met hetzelfde token (ook 429). Pull request naar `develop` 
 
 ## Afspraken
 
-1. Claude commit op `feature/ai-misuse-guards` in kleine commits en pusht de branch. De pull request gaat pas open na
+1. Claude commit op `feature/misuse-guards` in kleine commits en pusht de branch. De pull request gaat pas open na
    akkoord; de merge volgt als squash zodra CI op de laatste commit groen is.
 2. `.env.local`, `.env.*.local` en `shared/.env.local` nooit lezen of committen.
 3. PHPUnit, `symfony console`, Mago, Rector, PHPStan, Composer, `git push` en `gh` draaien buiten de sandbox; logs in
