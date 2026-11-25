@@ -468,6 +468,18 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
     `emulateMedia({ reducedMotion: 'reduce' })` eist op elk scherm een `transition-duration` en
     `animation-duration` van 0 op elk element.
 
+### Gemaakt via een AI-app
+
+38. **Een terugmelding of opmerking die via MCP is gemaakt, toont "via een AI-app"** (besloten op 25 november 2026).
+    Het kanaal staat nu alleen in het auditlog; wie in Ronde een terugmelding leest, ziet niet dat een AI-app de
+    tekst schreef, ook al bevestigde de loper hem. Dat telt als een terugmelding vreemd klinkt. `RoundReport` en
+    `RoundComment` krijgen een eigen veld `channel` (de `Channel` uit `ExecutionContext`, gevuld door de handler),
+    met een migratie die een kolom toevoegt; bestaande regels krijgen `null` en tonen geen label. `GET /rounds/{id}`
+    geeft `channel` bij de terugmelding en bij elke opmerking, ook voor `web` en `api`; de frontend toont alleen bij
+    `mcp` een label, met de tekst uit de vertalingen ("via een AI-app", "via an AI app"), naast auteur en tijd, in
+    de stijl van de bestaande labels. Alternatief: het kanaal per regel uit het auditlog opzoeken; dan leest Patrol
+    uit Audit voor elke ronde, en bestaande lijsten worden een extra zoekvraag per terugmelding.
+
 ## Nieuwe afhankelijkheden (goedgekeurd op 18 november 2026)
 
 Alleen voor tests in CI, in `tests/browser/package.json` met `package-lock.json`, geïnstalleerd met
@@ -688,11 +700,16 @@ Werk in dit canvas, verander niets anders dan hieronder staat.
 
 - `walkers` en `outcomeKind` in `/rounds` (beslissing 21), `outcomeKind` in `/me/rounds`, en `actions` (beslissing
   22), met OpenAPI, Hurl, pariteit en de matrixtests waar de Voters meedoen.
+- `channel` op terugmelding en opmerking (beslissing 38): domeintest dat de handler het kanaal uit `ExecutionContext`
+  opslaat, migratie op MariaDB 10.11 en MySQL 8.4, OpenAPI en Hurl voor `GET /rounds/{id}`, en de voorbeelddata
+  `demo` met één terugmelding via `mcp`. `get_round` via MCP geeft het veld ook, zoals elk veld van de handler.
 
 ### T9. Ronde, afmelden, opmerking en terugmelden (test eerst)
 
 - De vier toestanden van Ronde, Afmelden bevestigen (met de waarschuwing als de ronde daardoor een loopmaatje zoekt,
   en zonder ongedaan maken als de laatste loper zich afmeldt), Opmerking toevoegen met de hint (beslissing 23).
+- Het label "via een AI-app" bij terugmelding en opmerking in Ronde (beslissing 38), met een browsertest op de
+  terugmelding via `mcp` uit `demo`, en het label in het ontwerp-canvas bij het scherm Ronde.
 - Resultaat melden met ongedaan maken, Ronde ging niet door, Mijn rondes.
 
 ### T10. Kalender en ronde plannen (test eerst)
