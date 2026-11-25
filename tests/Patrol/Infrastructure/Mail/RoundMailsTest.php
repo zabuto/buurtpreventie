@@ -18,6 +18,7 @@ use App\Tests\Patrol\Fake\InMemoryMeetingPointRepository;
 use App\Tests\Patrol\Fake\InMemoryRoundRepository;
 use App\Tests\Settings\Fake\InMemorySettingRepository;
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\MailHtml;
 use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -130,6 +131,18 @@ final class RoundMailsTest extends ApiTestCase
             static fn(string $personal): bool => \str_contains($content, $personal),
         );
         self::assertSame([], \array_values($found));
+    }
+
+    #[Test]
+    #[DataProvider('types')]
+    public function it_styles_the_mail_only_with_css_that_mail_programs_keep(string $type): void
+    {
+        self::bootKernel();
+        [$anna, , $round] = self::world();
+
+        self::service(MailNotifier::class)->send(self::notification($type, $anna, $round));
+
+        MailHtml::assertOnlyRobustCss((string) self::sentMail()->getHtmlBody());
     }
 
     #[Test]

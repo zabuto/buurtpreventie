@@ -1,7 +1,9 @@
 {% extends 'mail/layout.html.twig' %}
+{% import 'mail/_blocks.html.twig' as mail %}
 
 {% block content %}
-<p style="margin:0;">{{ 'round.buddy_needed.intro'|trans({}, 'mail', locale) }}</p>
+{{ mail.paragraph('round.buddy_needed.intro'|trans({}, 'mail', locale)) }}
 {{ include('mail/round/_round.html.twig', {round: round, count: 'walkers'}) }}
-<p style="margin:0;">{{ 'round.buddy_needed.why'|trans({}, 'mail', locale) }} <a href="{{ accountLink }}" class="bp-brand" style="color:{{ brand.color }};">{{ 'round.buddy_needed.account'|trans({}, 'mail', locale) }}</a></p>
+{% set why %}{{ 'round.buddy_needed.why'|trans({}, 'mail', locale) }} <a href="{{ accountLink }}" class="bp-brand" style="color:{{ brand.color }};">{{ 'round.buddy_needed.account'|trans({}, 'mail', locale) }}</a>{% endset %}
+{{ mail.paragraph(why) }}
 {% endblock %}

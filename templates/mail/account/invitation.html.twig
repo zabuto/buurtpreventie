@@ -1,7 +1,8 @@
 {% extends 'mail/layout.html.twig' %}
+{% import 'mail/_blocks.html.twig' as mail %}
 
 {% block content %}
-<p style="margin:0;">{{ 'account.invitation.intro'|trans({name: brand.name}, 'mail', locale) }}</p>
-{{ include('mail/_button.html.twig', {href: link, label: 'account.invitation.button'|trans({}, 'mail', locale)}) }}
-<p style="margin:0;">{{ 'account.invitation.valid'|trans({hours: hours}, 'mail', locale) }}</p>
+{{ mail.paragraph('account.invitation.intro'|trans({name: brand.name}, 'mail', locale)) }}
+{{ mail.button(link, 'account.invitation.button'|trans({}, 'mail', locale), brand) }}
+{{ mail.paragraph('account.invitation.valid'|trans({hours: hours}, 'mail', locale)) }}
 {% endblock %}
