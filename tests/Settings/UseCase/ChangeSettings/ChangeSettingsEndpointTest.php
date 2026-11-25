@@ -33,6 +33,7 @@ final class ChangeSettingsEndpointTest extends ApiTestCase
             'reminderDaysAhead' => 2,
             'apiAccess' => false,
             'mcpAccess' => true,
+            'mcpRoles' => ['walker', 'analyst', 'walker'],
         ]);
         self::assertResponseStatusCodeSame(204);
         $client->jsonRequest('GET', '/api/v1/admin/settings');
@@ -41,7 +42,7 @@ final class ChangeSettingsEndpointTest extends ApiTestCase
         /** @var array<string, mixed> $settings */
         $settings = self::json($client);
         self::assertSame(
-            ['Buurtpreventie Oost', '#0b4f6c', null, 2, false, true, 'Buurtpreventie'],
+            ['Buurtpreventie Oost', '#0b4f6c', null, 2, false, true, ['analyst', 'walker'], 'Buurtpreventie'],
             [
                 $settings['associationName'],
                 $settings['primaryColor'],
@@ -49,6 +50,7 @@ final class ChangeSettingsEndpointTest extends ApiTestCase
                 $settings['reminderDaysAhead'],
                 $settings['apiAccess'],
                 $settings['mcpAccess'],
+                $settings['mcpRoles'],
                 $settings['associationShortName'],
             ],
         );
@@ -69,6 +71,9 @@ final class ChangeSettingsEndpointTest extends ApiTestCase
         yield 'reminder too far ahead' => [['reminderDaysAhead' => 8], 'reminderDaysAhead'];
         yield 'language without texts' => [['language' => 'de'], 'language'];
         yield 'text for a switch' => [['apiAccess' => 'off'], 'apiAccess'];
+        yield 'no role for MCP' => [['mcpRoles' => []], 'mcpRoles'];
+        yield 'role for MCP that does not exist' => [['mcpRoles' => ['walker', 'member']], 'mcpRoles[1]'];
+        yield 'text for the roles for MCP' => [['mcpRoles' => 'walker'], 'mcpRoles'];
     }
 
     /**

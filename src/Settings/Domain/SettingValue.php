@@ -11,7 +11,7 @@ use App\Shared\Domain\PhoneNumber;
 
 /**
  * Turns a value for one setting into the one form it is stored in, or refuses it. A setting is stored as text, so a
- * number becomes its digits and a switch `1` or `0`.
+ * number becomes its digits, a switch `1` or `0`, and a list its values in order, each once, joined by commas.
  */
 final readonly class SettingValue
 {
@@ -24,13 +24,16 @@ final readonly class SettingValue
      * @throws InvalidEmailAddress
      * @throws InvalidPhoneNumber
      * @throws InvalidGroupLink
+     *
+     * @param string|int|bool|list<string> $value
      */
-    public static function tidy(SettingName $name, string|int|bool $value): string
+    public static function tidy(SettingName $name, string|int|bool|array $value): string
     {
         return match ($name) {
             SettingName::MinimumWalkers, SettingName::MaximumWalkers => (string) self::number($name, $value),
             SettingName::ReminderDaysAhead => self::daysAhead($value),
             SettingName::ApiAccess, SettingName::McpAccess => self::toggle($name, $value),
+            SettingName::McpRoles => RoleList::tidy($name, $value),
             default => self::text($name, \is_string($value) ? $value : throw self::wrongType($name)),
         };
     }
@@ -92,17 +95,21 @@ final readonly class SettingValue
     }
 
     /**
+     * @param string|int|bool|list<string> $value
+     *
      * @throws InvalidSetting
      */
-    private static function number(SettingName $name, string|int|bool $value): int
+    private static function number(SettingName $name, string|int|bool|array $value): int
     {
         return \is_int($value) ? $value : throw self::wrongType($name);
     }
 
     /**
+     * @param string|int|bool|list<string> $value
+     *
      * @throws InvalidSetting
      */
-    private static function daysAhead(string|int|bool $value): string
+    private static function daysAhead(string|int|bool|array $value): string
     {
         $days = self::number(SettingName::ReminderDaysAhead, $value);
         if ($days < 1 || $days > self::MOST_DAYS_AHEAD) {
@@ -113,9 +120,11 @@ final readonly class SettingValue
     }
 
     /**
+     * @param string|int|bool|list<string> $value
+     *
      * @throws InvalidSetting
      */
-    private static function toggle(SettingName $name, string|int|bool $value): string
+    private static function toggle(SettingName $name, string|int|bool|array $value): string
     {
         if (!\is_bool($value)) {
             throw self::wrongType($name);

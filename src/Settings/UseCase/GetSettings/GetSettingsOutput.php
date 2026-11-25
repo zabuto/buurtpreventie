@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Settings\UseCase\GetSettings;
 
+use OpenApi\Attributes as OA;
+
 /**
  * Every setting by its API name, with the value that counts: the stored one or the default. Null where the
  * association has filled in nothing and nothing stands in; a text without a value of its own shows the standard
@@ -12,6 +14,7 @@ namespace App\Settings\UseCase\GetSettings;
 final readonly class GetSettingsOutput
 {
     /**
+     * @param list<string> $mcpRoles the roles a member keeps on the MCP server, in alphabetical order
      * @param list<string> $defaults the names of the settings that hold their default, without the uploaded images
      */
     public function __construct(
@@ -38,6 +41,8 @@ final readonly class GetSettingsOutput
         public string $language,
         public bool $apiAccess,
         public bool $mcpAccess,
+        #[OA\Property(items: new OA\Items(type: 'string', enum: ['admin', 'analyst', 'coordinator', 'walker']))]
+        public array $mcpRoles,
         public array $defaults,
     ) {
     }

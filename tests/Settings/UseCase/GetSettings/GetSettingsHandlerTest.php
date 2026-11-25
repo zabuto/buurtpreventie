@@ -54,6 +54,7 @@ final class GetSettingsHandlerTest extends TestCase
                 language: 'nl',
                 apiAccess: false,
                 mcpAccess: false,
+                mcpRoles: ['admin', 'analyst', 'coordinator', 'walker'],
                 defaults: [
                     'associationShortName',
                     'primaryColor',
@@ -73,6 +74,7 @@ final class GetSettingsHandlerTest extends TestCase
                     'maximumWalkers',
                     'language',
                     'mcpAccess',
+                    'mcpRoles',
                 ],
             ),
             $output,

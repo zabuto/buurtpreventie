@@ -31,4 +31,23 @@ final class GetMcpAccessHandlerTest extends TestCase
 
         $this->assertTrue($output->allowed);
     }
+
+    #[Test]
+    public function it_allows_every_role_on_mcp_by_default(): void
+    {
+        $output = new GetMcpAccessHandler(new InMemorySettingRepository())(new GetMcpAccess());
+
+        $this->assertSame(['admin', 'analyst', 'coordinator', 'walker'], $output->roles);
+    }
+
+    #[Test]
+    public function it_allows_only_the_roles_the_admin_chose_on_mcp(): void
+    {
+        $settings = new InMemorySettingRepository();
+        $settings->add(Setting::of('integrations.mcp_roles', 'analyst,coordinator'));
+
+        $output = new GetMcpAccessHandler($settings)(new GetMcpAccess());
+
+        $this->assertSame(['analyst', 'coordinator'], $output->roles);
+    }
 }

@@ -10,8 +10,8 @@ use App\Settings\Domain\Settings;
 use App\Shared\Domain\ReadAction;
 
 /**
- * Whether the association opens its MCP server. Read on every request to it, before anyone is authenticated, so it
- * asks no voter. For other modules only; no entry point.
+ * Whether the association opens its MCP server, and to which roles. Read on every request to it, before anyone is
+ * authenticated, so it asks no voter. For other modules only; no entry point.
  */
 #[ReadAction]
 final readonly class GetMcpAccessHandler
@@ -23,6 +23,11 @@ final readonly class GetMcpAccessHandler
 
     public function __invoke(GetMcpAccess $input): GetMcpAccessOutput
     {
-        return new GetMcpAccessOutput('1' === Settings::of($this->settings->all())->value(SettingName::McpAccess));
+        $settings = Settings::of($this->settings->all());
+
+        return new GetMcpAccessOutput(
+            '1' === $settings->value(SettingName::McpAccess),
+            \explode(',', (string) $settings->value(SettingName::McpRoles)),
+        );
     }
 }

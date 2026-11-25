@@ -1,5 +1,5 @@
-# The settings of the association: reading, an empty change, and the refusals of a weak colour and a file that is no
-# image. Nothing here changes a setting.
+# The settings of the association: reading, an empty change, and the refusals of a weak colour, an empty list of roles
+# for MCP and a file that is no image. Nothing here changes a setting.
 
 POST {{baseUrl}}/api/v1/auth/login
 {
@@ -23,6 +23,7 @@ jsonpath "$.associationName" exists
 jsonpath "$.primaryColor" exists
 jsonpath "$.minimumWalkers" exists
 jsonpath "$.apiAccess" exists
+jsonpath "$.mcpRoles" isCollection
 jsonpath "$.defaults" exists
 jsonpath "$.welcomeTextNl" isString
 jsonpath "$.welcomeTextNl" not isEmpty
@@ -41,6 +42,14 @@ jsonpath "$.type" == "urn:buurtpreventie:problem:insufficient_contrast"
 jsonpath "$.setting" == "brand.primary"
 jsonpath "$.ratio" == 4.47
 jsonpath "$.required" == 4.5
+
+PATCH {{baseUrl}}/api/v1/admin/settings
+{
+  "mcpRoles": []
+}
+HTTP 422
+[Asserts]
+jsonpath "$.violations[0].field" == "mcpRoles"
 
 PUT {{baseUrl}}/api/v1/admin/settings/images/logo
 Content-Type: image/png
