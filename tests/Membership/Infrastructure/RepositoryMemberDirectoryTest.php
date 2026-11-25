@@ -120,6 +120,18 @@ final class RepositoryMemberDirectoryTest extends TestCase
     }
 
     #[Test]
+    public function it_tells_whether_the_admin_picked_the_member_for_mcp(): void
+    {
+        $jan = MemberFixture::stored($this->members, 'jan@example.org', 'Jan Bakker', 'Jan B.', [Role::Walker]);
+        $jan->allowMcp(true);
+
+        $this->assertEquals(
+            new MemberIdentity($jan->id(), [Role::Walker], active: true, mcpAllowed: true),
+            $this->directory->identity($jan->id()),
+        );
+    }
+
+    #[Test]
     public function it_identifies_an_erased_member_as_inactive(): void
     {
         $jan = MemberFixture::stored($this->members, 'jan@example.org', 'Jan Bakker', 'Jan B.');

@@ -73,6 +73,38 @@ final class McpRolesTest extends McpTestCase
         self::assertResponseIsSuccessful();
     }
 
+    /**
+     * The admin picks a member one by one: that member keeps every role on MCP, whichever roles the association allows.
+     */
+    #[Test]
+    public function it_gives_a_picked_member_every_role_on_mcp(): void
+    {
+        $browser = self::mcpBrowser();
+        self::allowOnMcp('analyst');
+        $roundId = self::round('2026-11-28T19:00:00+00:00', self::walker('Piet K.'))->id()->toRfc4122();
+        $member = self::member(Role::Walker);
+        $member->allowMcp(true);
+        self::token($member);
+
+        $answer = self::call(self::connect($browser), 'sign_up_for_round', ['roundId' => $roundId]);
+
+        self::assertTrue($answer['signedUp'] ?? null);
+    }
+
+    #[Test]
+    public function it_lets_a_picked_member_in_when_no_role_may_use_mcp(): void
+    {
+        $browser = self::mcpBrowser();
+        self::allowOnMcp();
+        $member = self::member(Role::Walker);
+        $member->allowMcp(true);
+        self::token($member);
+
+        self::listTools($browser);
+
+        self::assertResponseIsSuccessful();
+    }
+
     #[Test]
     public function it_keeps_every_role_on_rest_with_the_same_token(): void
     {
