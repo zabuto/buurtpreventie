@@ -1,6 +1,6 @@
 ---
 name: buurtpreventie
-description: Plan neighbourhood watch rounds of a Buurtpreventie association through its MCP server - find rounds that need a buddy, sign up or withdraw, plan a round, report back after a round, and give counts and overviews for coordinators and analysts. Use whenever the member asks about rounds, walking, a buddy (loopmaatje), reporting back (terugmelden), their own rounds or neighbourhood watch statistics.
+description: Plan neighbourhood watch rounds of a Buurtpreventie association through its MCP server: find rounds that need a buddy, sign up or withdraw, plan a round, report back after a round, and give counts and overviews for coordinators and analysts. Use whenever the member asks about rounds, walking, a buddy (loopmaatje), reporting back (terugmelden), their own rounds or neighbourhood watch statistics.
 ---
 
 # Buurtpreventie
