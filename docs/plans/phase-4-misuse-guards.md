@@ -136,6 +136,11 @@ Klaar als:
       matrixrij van `PATCH /admin/members/{id}`; geen nieuwe route.
     - **Gevolg voor `mcpRoles`:** een lege lijst mag (besloten op 25 november 2026): geen rol, alleen de leden met
       `mcpAllowed`. `mcpAccess` uit sluit MCP voor iedereen. Het scherm hoort bij fase 5b, bij de schakelaar voor MCP.
+    - **Terug naar toegang per rol** (besloten op 25 november 2026): `POST /api/v1/admin/members/mcp-allowed/reset`
+      zet `mcpAllowed` in één keer uit bij elk lid dat het aan had; daarna geldt alleen `mcpRoles`. Use case
+      `ResetMcpAllowed` in Membership, Voter `member.reset_mcp_allowed` (beheerder), per lid een auditregel
+      `member.changed` met oude en nieuwe waarde, zodat het lid het bij de eigen activiteit ziet, en een matrixrij. Het
+      antwoord geeft het aantal leden. `mcpAccess` uit blijft de noodknop: die laat de keuzes staan.
     - **Alternatief:** een lid met `mcpAllowed` alleen de rollen uit `mcpRoles` plus `walker` geven. Ingewikkelder uit
       te leggen, en een lid dat de beheerder zelf kiest, krijgt geen rechten die het lid buiten MCP niet ook al heeft.
 
@@ -198,6 +203,12 @@ binnen; met alleen `analyst` toegestaan houdt een loper met `mcpAllowed` via MCP
 Daarna het veld en de migratie, `ChangeMember`, `GetMember`, `ListMembers`, `MemberIdentity` en de rollen in
 `ApiTokenAuthenticator`, OpenAPI, Hurl, de voorbeelddata (het lid met een API-token in `demo` krijgt `mcpAllowed`) en
 de woordenlijst als er een Nederlandse term bij komt.
+
+### T8c. Terug naar toegang per rol (test eerst)
+
+Handlertest: alleen leden met `mcpAllowed` veranderen, elk met een auditregel, en het aantal klopt; zonder gekozen leden
+geen auditregel. Rij in `HttpMatrixTest`, OpenAPI. Daarna de use case
+(`symfony console app:make:use-case Membership ResetMcpAllowed`), de Voter en de controller.
 
 ### T9. Documentatie
 
