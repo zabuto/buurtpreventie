@@ -523,7 +523,10 @@ fetches only what the member of the token may see.
 and older) gets a session that keeps only the negotiated revision, in files under `var/cache/<env>/mcp-sessions/`;
 who acts comes from the token on every request, never from the session.
 
-**Plugin.** `plugins/buurtpreventie` is a Claude Code plugin, listed by the marketplace in `.claude-plugin/`. Its
+**Plugin.** `plugins/buurtpreventie` is a Claude Code plugin, listed by the marketplace in `.claude-plugin/`. The
+marketplace is read from `develop`, the default branch, but its entry fetches the plugin from `main` (a `git-subdir`
+source with `ref: main`), so a member only gets a plugin whose tools a release serves; `AgentPluginTest` keeps that
+pin. Its
 `.mcp.json` points at `${user_config.server_url}/mcp` with the token from `userConfig`, which Claude Code asks at
 install and keeps in the keychain of the system. Its skill (`skills/buurtpreventie/SKILL.md`, Agent Skills format)
 says which tool fits which question and what only the model can guard: one confirmation per write, typed text read as

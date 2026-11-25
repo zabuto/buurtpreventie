@@ -70,6 +70,43 @@ final class AgentPluginTest extends TestCase
     }
 
     /**
+     * Claude Code reads the marketplace from the default branch, develop. Without the pin, a member would install a
+     * plugin that names tools before the release of the app that serves them.
+     */
+    #[Test]
+    public function it_installs_the_plugin_from_the_released_branch(): void
+    {
+        $marketplace = self::json(__DIR__ . '/../../../../.claude-plugin/marketplace.json');
+
+        $this->assertSame(
+            [[
+                'name' => 'buurtpreventie',
+                'source' => ['source' => 'git-subdir', 'url' => 'zabuto/buurtpreventie', 'path' => 'plugins/buurtpreventie', 'ref' => 'main'],
+                'description' => 'Plan neighbourhood watch rounds from an AI client through the MCP server of your own Buurtpreventie app',
+            ]],
+            $marketplace['plugins'] ?? null,
+        );
+    }
+
+    /**
+     * The guide promises that the plugin runs no code on the member's computer: a hook, script, agent or second server
+     * would break that promise without any other test noticing.
+     */
+    #[Test]
+    public function it_ships_only_configuration_a_skill_and_a_readme(): void
+    {
+        $files = [];
+        $root = (string) \realpath(self::PLUGIN);
+        /** @var SplFileInfo $file */
+        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, RecursiveDirectoryIterator::SKIP_DOTS)) as $file) {
+            $files[] = \substr($file->getPathname(), \strlen($root) + 1);
+        }
+        \sort($files);
+
+        $this->assertSame(['.claude-plugin/plugin.json', '.mcp.json', 'README.md', 'skills/buurtpreventie/SKILL.md'], $files);
+    }
+
+    /**
      * Claude Code keeps a member on the installed copy until the version changes; a version it cannot compare leaves
      * them there for good.
      */

@@ -7,7 +7,12 @@
     "plugins": [
         {
             "name": "buurtpreventie",
-            "source": "./plugins/buurtpreventie",
+            "source": {
+                "source": "git-subdir",
+                "url": "zabuto/buurtpreventie",
+                "path": "plugins/buurtpreventie",
+                "ref": "main"
+            },
             "description": "Plan neighbourhood watch rounds from an AI client through the MCP server of your own Buurtpreventie app"
         }
     ]

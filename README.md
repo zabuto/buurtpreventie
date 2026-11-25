@@ -17,6 +17,9 @@ Members connect an AI client through the MCP server of their own app, see
 /plugin install buurtpreventie --marketplace zabuto/buurtpreventie
 ```
 
+The plugin connects Claude Code straight to the app of the association; the developers of this repository get no
+data from it.
+
 ## Licence
 
 Licence: PolyForm Noncommercial 1.0.0, see `LICENSE`.
