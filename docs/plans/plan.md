@@ -520,6 +520,8 @@ De MCP-server is een dunne laag op `/mcp` die dezelfde use cases en Voters aanro
 
 **Resources:** `buurtpreventie://config` (naam, minimum- en maximumaantal lopers, startpunten, uitkomsten). **Prompts:** `monthly_report` (maandoverzicht voor politie/gemeente uit `report_summary`) en `plan_week` (open plekken komende week).
 
+**Plugin.** Een Claude Code-plugin in `plugins/buurtpreventie`, met een marketplace in deze repo, koppelt de server met adres en token uit de installatie en voegt een skill toe over welke tool bij welke vraag hoort en wat alleen het model kan bewaken. De skill is gebruiksgemak, geen beveiliging; uitwerking in `docs/plans/phase-4-agent-plugin.md`.
+
 **Voorbeeldvragen.** De tools leveren exacte aantallen uit de database; de AI-client maakt er een samenvatting van, zoals de analyse van de loopschema's in dit plan.
 
 | Rol | Vraag | Tools |

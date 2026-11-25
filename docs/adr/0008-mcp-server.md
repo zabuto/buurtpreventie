@@ -48,6 +48,9 @@ hold anything, including text that reads as an instruction to the model.
 
 - An association decides itself whether its members' rounds reach an AI client; a fresh installation sends nothing
   anywhere.
+- The Claude Code plugin with its skill guides a model; it protects nothing. A rule that has to hold belongs in the
+  server, in a voter, a scope, the output of a handler or a limit, never in the skill alone, since a client may ignore
+  the skill or run without it.
 - A client of either era works, Claude Code and the MCP Inspector included; the handshake era writes small session
   files that an update may clear, after which the client starts over.
 - A member can only do over MCP what the app already lets that member do, with the same audit trail on the channel

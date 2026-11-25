@@ -10,6 +10,13 @@ are in `docs/plans/` (Dutch).
 See [docs/getting-started.md](docs/getting-started.md). Report a vulnerability privately, see
 [SECURITY.md](SECURITY.md).
 
+Members connect an AI client through the MCP server of their own app, see
+[docs/user-guide/mcp.md](docs/user-guide/mcp.md). In Claude Code:
+
+```text
+/plugin install buurtpreventie --marketplace zabuto/buurtpreventie
+```
+
 ## Licence
 
 Licence: PolyForm Noncommercial 1.0.0, see `LICENSE`.
@@ -25,7 +32,8 @@ Buurtpreventie is voor buurtpreventieteams die samen door de wijk lopen: lopers 
 een loopmaatje en melden na afloop terug. De ontwikkeling gebeurt op de branch `develop`; `main` bevat
 alleen uitgebrachte versies die klaar zijn voor gebruik, elk met een tag `vX.Y.Z`. De plannen staan in
 `docs/plans/`. De overige documentatie in `docs/` is in het Engels; begin bij
-[docs/getting-started.md](docs/getting-started.md). Een kwetsbaarheid meld je privé, zie
+[docs/getting-started.md](docs/getting-started.md). Een AI-app koppel je via de MCP-server van je eigen app, zie
+[docs/user-guide/mcp.md](docs/user-guide/mcp.md). Een kwetsbaarheid meld je privé, zie
 [SECURITY.md](SECURITY.md).
 
 Vrij te gebruiken voor niet-commerciële doelen onder PolyForm Noncommercial 1.0.0, bedoeld voor

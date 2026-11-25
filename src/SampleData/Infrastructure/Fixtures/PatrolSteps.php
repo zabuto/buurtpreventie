@@ -97,6 +97,18 @@ final readonly class PatrolSteps
         return $this->as($creator, $at, fn(): CreateRoundOutput => ($this->createRound)($input))->id;
     }
 
+    public function createRoundWithStartNote(
+        SampleMember $creator,
+        DateTimeImmutable $at,
+        DateTimeImmutable $startsAt,
+        ?string $meetingPointId,
+        string $startNote,
+    ): string {
+        $input = new CreateRound(startsAt: $startsAt->format(\DATE_ATOM), meetingPointId: $meetingPointId, startNote: $startNote);
+
+        return $this->as($creator, $at, fn(): CreateRoundOutput => ($this->createRound)($input))->id;
+    }
+
     public function signUp(SampleMember $walker, DateTimeImmutable $at, string $roundId): void
     {
         $this->as($walker, $at, fn() => ($this->signUpForRound)(new SignUpForRound($roundId)));

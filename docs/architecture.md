@@ -27,6 +27,8 @@ src/
                       the MCP plumbing, the generator
   Kernel.php
 tests/                the same folders as src/, plus Architecture/, Database/, Dependencies/ and Tools/
+plugins/buurtpreventie/  the Claude Code plugin: MCP configuration and skill, see MCP server
+.claude-plugin/       the marketplace that lists the plugin
 ```
 
 | Module | Covers |
@@ -482,8 +484,11 @@ A tool acts only for the member of the token: none takes a member id, so acting 
 app. `get_round` gives each walker its id and display name only, never the full name or phone number, whatever the
 consent. It gives the outcome of the report with the note `null` and no comments: members type those freely, often
 about a suspect, and over MCP that text would leave the association for the provider of the AI client; they are read
-in the app. `startNote` and `cancelReason` stay, short practical text a client needs to plan, in their own field;
-the instructions of the server call such text data, not instructions. `withdraw_from_round` carries `destructiveHint: true`, because the
+in the app. `startNote` and `cancelReason` stay, short practical text a client needs to plan, in their own field.
+The instructions of the server (`config/packages/mcp.yaml`) name every field with text typed by members (display
+names, names of meeting points and outcomes, `startNote`, `cancelReason`) as data, not instructions, and ask for a
+confirmation of the member before every write; `McpInstructionsTest` holds them to that, because they reach every
+client, also one without the plugin. `withdraw_from_round` carries `destructiveHint: true`, because the
 last walker who withdraws makes the round lapse.
 
 **Scope and failures.** `McpServerFactory` builds the server of the bundle with a reference handler of this app around
@@ -517,6 +522,15 @@ fetches only what the member of the token may see.
 **Protocol eras.** A client of revision `2026-07-28` needs no session. A client of the handshake era (`2025-11-25`
 and older) gets a session that keeps only the negotiated revision, in files under `var/cache/<env>/mcp-sessions/`;
 who acts comes from the token on every request, never from the session.
+
+**Plugin.** `plugins/buurtpreventie` is a Claude Code plugin, listed by the marketplace in `.claude-plugin/`. Its
+`.mcp.json` points at `${user_config.server_url}/mcp` with the token from `userConfig`, which Claude Code asks at
+install and keeps in the keychain of the system. Its skill (`skills/buurtpreventie/SKILL.md`, Agent Skills format)
+says which tool fits which question and what only the model can guard: one confirmation per write, typed text read as
+data, results passed nowhere else unasked. The skill is guidance, not protection: every rule that has to hold stays in
+the server, and a client without the skill can do no more. `AgentPluginTest` fails when the skill and the tools of the
+server drift apart, when `.mcp.json` takes the token from anywhere but the member's configuration, and when the
+version is not semantic; members get a change only through a new version in `plugin.json`.
 
 **STDIO.** `StdioAuthentication` runs before `mcp:server` starts: with MCP on and the secret of an API token in
 `MCP_TOKEN`, `ApiTokenAuthenticator` checks it, and the command runs as that member on the channel `mcp`; otherwise it
@@ -611,7 +625,7 @@ secret of that token, which the app keeps only as a hash, for the curl scenario 
 | --- | --- |
 | `demo` | The association "Buurtpreventie Voorbeeldwijk" with colours of its own, a logo and icon that `SampleBrand` draws with GD, and the coordinator as contact, all through `ChangeSettings` and `ChangeBrandImage`; twenty members with every role, rounds from three months back to six weeks ahead, mostly in the evening, more than a quarter without a buddy, a few full ones, reports with now and then an incident, a deactivated member and an erased member in the history |
 | `test` | An admin, a meeting point and the standard outcomes; each test builds the rest |
-| `edge` | One of each hard case: rounds around the last clock change, a last walker who withdraws, an erased member in the history, a member without consent, rounds just under the minimum, at the maximum and with one spot left, two members who share their full name, and an association name of exactly 100 characters, the limit, with the short name `BP` |
+| `edge` | One of each hard case: rounds around the last clock change, a last walker who withdraws, an erased member in the history, a member without consent, rounds just under the minimum, at the maximum and with one spot left, two members who share their full name, an association name of exactly 100 characters, the limit, with the short name `BP`, and a start note and a display name that try to instruct an AI client |
 
 A fixed seed gives the same people and pattern on every load; only the dates follow today. Names are
 made up and international, with letters the lookup key keeps (`ı`, `ł`); a display name is the first

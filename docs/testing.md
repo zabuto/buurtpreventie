@@ -104,7 +104,8 @@ database tests with `symfony php vendor/bin/phpunit --group database`.
   `AuditChainMigrationTest` migrates back to the version before the chain, stores entries as they were, migrates up
   and checks their positions, head and anchor; it commits, so it leaves the schema at the latest version itself.
 - **The sample data.** `LoadFixturesCommandTest` loads every set and checks what it holds: the same
-  people and pattern on any day, the limits of the `demo` set, every hard case in `edge`.
+  people and pattern on any day, the limits of the `demo` set, every hard case in `edge`, among them the start note
+  and display name that try to instruct an AI client, for trying the plugin by hand.
   `LoadedSettingsAndChainTest` checks the branding of `demo`, the names of `edge` and an intact audit chain after
   every set.
 
