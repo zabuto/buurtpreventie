@@ -59,10 +59,11 @@ follows what a text does, not where it sits.
   error and validation messages): at most 20 words and one point per sentence, common words, active
   voice, and the imperative for an action ("Meld je aan", "Stuur de terugmelding"). No technical words
   such as "sessie". "Token" is the exception, in texts about connecting an AI app through MCP: the
-  member makes one in the app and pastes it into the AI app, which calls it that too. Buttons say what
-  they do: "Ik loop mee", "Ik kan toch niet". Write out an abbreviation at its first use on a screen
-  or in a message ("Algemene verordening gegevensbescherming (AVG)"). The domain terms from the
-  glossary stay as they are.
+  member makes one in the app and pastes it into the AI app, which calls it that too, and a plain word
+  such as "koppeling" would read as the connection itself. Buttons say what they do: "Ik loop mee",
+  "Ik kan toch niet". Write out an abbreviation at its first use on a screen or in a message
+  ("Algemene verordening gegevensbescherming (AVG)"). The domain terms from the glossary stay as they
+  are.
 - **Mails never look like phishing.** A mail that warns, such as about a new token or a reached limit,
   holds no link or button: it says where to go in the app ("Open zelf de app en ga naar Account"). A
   warning with a link is what a phishing mail looks like, and members learn from ours that a real one
