@@ -34,6 +34,8 @@ use Symfony\Component\Mime\Part\DataPart;
 #[Group('functional')]
 final class MailNotifierTest extends ApiTestCase
 {
+    private const string NOT_YOU = 'Was jij dit niet? Open dan zelf de app, ga naar Account en trek het token in. Meld het ook aan de coördinator.';
+
     // @mago-expect lint:no-literal-password - a made-up secret the link must carry
     private const string SECRET = 'bpi_0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
@@ -115,22 +117,10 @@ final class MailNotifierTest extends ApiTestCase
             'reachedAt' => '2026-11-16T22:30:00+00:00',
         ]));
 
-        $mail = self::sentMail();
-        $intro = 'Op maandag 16 november om 23:30 was je token Claude Code vaker gebruikt dan op één dag mag.';
-        $notYou = 'Was jij dit niet? Trek het token dan in en meld het aan de coördinator.';
-        $link = 'https://example.org/buurtpreventie/app/#/account';
-        self::assertSame(
-            ['Je token Claude Code is vaker gebruikt dan mag', true, true, true, true, true, true],
-            [
-                $mail->getSubject(),
-                \str_contains((string) $mail->getTextBody(), $intro),
-                \str_contains((string) $mail->getTextBody(), $notYou),
-                \str_contains((string) $mail->getTextBody(), $link),
-                \str_contains((string) $mail->getHtmlBody(), $intro),
-                \str_contains((string) $mail->getHtmlBody(), $notYou),
-                \str_contains((string) $mail->getHtmlBody(), 'href="' . $link . '"'),
-            ],
-        );
+        self::assertBothBodiesHold(self::sentMail(), [
+            'Op maandag 16 november om 23:30 was je token Claude Code vaker gebruikt dan op één dag mag.',
+            self::NOT_YOU,
+        ]);
     }
 
     /**
@@ -148,17 +138,43 @@ final class MailNotifierTest extends ApiTestCase
         ]));
 
         $mail = self::sentMail();
-        $lines = [
+        self::assertSame('Er is een nieuw token gemaakt op jouw naam', $mail->getSubject());
+        self::assertBothBodiesHold($mail, [
             'Er is een nieuw token gemaakt op jouw naam: Claude Code.',
             'Dit token mag lezen, wijzigen en beheren.',
             'Het werkt tot zondag 14 februari 2027.',
-            'Was jij dit niet? Trek het token dan in en meld het aan de coördinator.',
-        ];
-        self::assertSame('Er is een nieuw token gemaakt op jouw naam', $mail->getSubject());
-        foreach ($lines as $line) {
-            self::assertStringContainsString($line, (string) $mail->getTextBody(), 'text: ' . $line);
-            self::assertStringContainsString($line, (string) $mail->getHtmlBody(), 'html: ' . $line);
-        }
+            self::NOT_YOU,
+        ]);
+    }
+
+    /**
+     * A security warning with a link is what a phishing mail looks like; one without teaches members that a real
+     * warning never asks them to click, so they open the app themselves.
+     *
+     * @return iterable<string, array{string, array<string, string>}>
+     */
+    public static function tokenMails(): iterable
+    {
+        yield 'a new token' => ['account.token_created', ['tokenName' => 'Script', 'scopes' => 'read', 'expiresAt' => '2027-02-13T12:00:00+00:00']];
+        yield 'the daily limit' => ['account.token_limit_reached', ['tokenName' => 'Script', 'reachedAt' => '2026-11-16T22:30:00+00:00']];
+    }
+
+    /**
+     * @param array<string, string> $parameters
+     */
+    #[Test]
+    #[DataProvider('tokenMails')]
+    public function it_sends_a_token_warning_without_a_link(string $type, array $parameters): void
+    {
+        self::bootKernel();
+
+        self::service(MailNotifier::class)->send(new Notification(self::member()->id(), $type, $parameters));
+
+        $mail = self::sentMail();
+        self::assertSame(
+            [false, false],
+            [\str_contains((string) $mail->getTextBody(), '://'), \str_contains((string) $mail->getHtmlBody(), '<a ')],
+        );
     }
 
     #[Test]
@@ -323,6 +339,17 @@ final class MailNotifierTest extends ApiTestCase
         $sent = \array_values(\array_unique($sent));
         \sort($sent);
         self::assertSame($sent, self::service(MailComposers::class)->types());
+    }
+
+    /**
+     * @param list<string> $lines
+     */
+    private static function assertBothBodiesHold(Email $mail, array $lines): void
+    {
+        foreach ($lines as $line) {
+            self::assertStringContainsString($line, (string) $mail->getTextBody(), 'text: ' . $line);
+            self::assertStringContainsString($line, (string) $mail->getHtmlBody(), 'html: ' . $line);
+        }
     }
 
     private static function member(): Member

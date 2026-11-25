@@ -4,5 +4,4 @@
 <p style="margin:0 0 8px 0;">{{ 'account.token_created.intro'|trans({name: tokenName}, 'mail', locale) }}</p>
 <p style="margin:0 0 16px 0;">{{ 'account.token_created.scopes'|trans({scopes: scopes}, 'mail', locale) }} {{ 'account.token_created.expires'|trans({date: expiresOn}, 'mail', locale) }}</p>
 <p style="margin:0;">{{ 'account.token.not_you'|trans({}, 'mail', locale) }}</p>
-{{ include('mail/_button.html.twig', {href: accountLink, label: 'account.token.button'|trans({}, 'mail', locale)}) }}
 {% endblock %}

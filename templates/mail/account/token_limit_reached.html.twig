@@ -3,5 +3,4 @@
 {% block content %}
 <p style="margin:0 0 16px 0;">{{ 'account.token_limit_reached.intro'|trans({name: tokenName, date: date, time: time}, 'mail', locale) }}</p>
 <p style="margin:0;">{{ 'account.token.not_you'|trans({}, 'mail', locale) }}</p>
-{{ include('mail/_button.html.twig', {href: accountLink, label: 'account.token.button'|trans({}, 'mail', locale)}) }}
 {% endblock %}

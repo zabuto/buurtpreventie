@@ -292,7 +292,8 @@ write limit is a tool error with the same problem and the seconds in `retryAfter
 so a token stopped on one path cannot carry on along the other. The first time on a local day that a token reaches
 its daily limit, `TokenLimitTrace` records `api_token.limit_reached` with the name of the token and the channel of the
 request, and mails the member (`account.token_limit_reached`) which token and when, and to revoke it and tell the
-coordinator when it was not them. Later refusals that day leave no trace. Reading itself stays out of the audit log,
+coordinator when it was not them. Like the mail about a new token, it holds no link: a security warning with one is
+what a phishing mail looks like, so the member opens the app themselves. Later refusals that day leave no trace. Reading itself stays out of the audit log,
 which would otherwise hold a reading history of every member.
 
 **Own account.** Everything under `/api/v1/me` is about the member logged in, and the controllers there pass no member

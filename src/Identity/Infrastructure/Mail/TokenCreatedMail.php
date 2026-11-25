@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Identity\Infrastructure\Mail;
 
-use App\Shared\Domain\AppUrl;
 use App\Shared\Domain\Branding;
 use App\Shared\Domain\Notification;
 use App\Shared\Infrastructure\Mail\ComposedMail;
@@ -17,14 +16,13 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Name, rights and expiry of a new token on the member's name, never its secret, so a token they did not make stands
- * out, with a link to the account where they revoke it.
+ * out. No link, for the reason in TokenLimitReachedMail.
  */
 final readonly class TokenCreatedMail implements MailComposer
 {
     public function __construct(
         private MailRenderer $renderer,
         private TranslatorInterface $translator,
-        private AppUrl $appUrl,
     ) {
     }
 
@@ -48,7 +46,6 @@ final readonly class TokenCreatedMail implements MailComposer
                 'tokenName' => (string) ($notification->parameters['tokenName'] ?? ''),
                 'scopes' => $this->scopes((string) ($notification->parameters['scopes'] ?? ''), $locale),
                 'expiresOn' => LocalDateText::dateWithYear($expiresAt, $locale),
-                'accountLink' => $this->appUrl->to('app/#/account'),
             ],
         );
     }
