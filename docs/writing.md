@@ -58,9 +58,16 @@ follows what a text does, not where it sits.
 - **Explanations at B1** (help texts, instructions, labels, option and status names, notifications,
   error and validation messages): at most 20 words and one point per sentence, common words, active
   voice, and the imperative for an action ("Meld je aan", "Stuur de terugmelding"). No technical words
-  such as "token" or "sessie". Buttons say what they do: "Ik loop mee", "Ik kan toch niet". Write out
-  an abbreviation at its first use on a screen or in a message ("Algemene verordening
-  gegevensbescherming (AVG)"). The domain terms from the glossary stay as they are.
+  such as "sessie". "Token" is the exception, in texts about connecting an AI app through MCP: the
+  member makes one in the app and pastes it into the AI app, which calls it that too. Buttons say what
+  they do: "Ik loop mee", "Ik kan toch niet". Write out an abbreviation at its first use on a screen
+  or in a message ("Algemene verordening gegevensbescherming (AVG)"). The domain terms from the
+  glossary stay as they are.
+- **Mails never look like phishing.** A mail that warns, such as about a new token or a reached limit,
+  holds no link or button: it says where to go in the app ("Open zelf de app en ga naar Account"). A
+  warning with a link is what a phishing mail looks like, and members learn from ours that a real one
+  never asks them to click. No mail asks for a password, login code or token. Other links go only to
+  the address of the app, with a link text that says where it leads.
 - **Rule texts unambiguous, at B2** (privacy statement, retention periods, who may see what, consent):
   "and" and "or" are explicit ("als aan alle voorwaarden is voldaan", "een van deze situaties"), every
   party is named, and a long condition becomes a lead-in with a list. B1 limits do not apply here:
