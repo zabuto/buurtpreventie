@@ -17,6 +17,15 @@ account.invitation.valid: De link werkt {hours} uur en één keer. Werkt hij nie
 account.token_limit_reached.subject: Je token {name} is vaker gebruikt dan mag
 account.token_limit_reached.intro: Op {date} om {time} was je token {name} vaker gebruikt dan op één dag mag. De app weigert dat token daarom een tijdje.
 
+account.token_created.subject: Er is een nieuw token gemaakt op jouw naam
+account.token_created.intro: 'Er is een nieuw token gemaakt op jouw naam: {name}.'
+account.token_created.scopes: Dit token mag {scopes}.
+account.token_created.expires: Het werkt tot {date}.
+account.token.scope.read: lezen
+account.token.scope.write: wijzigen
+account.token.scope.admin: beheren
+account.token.and: en
+
 account.token.not_you: Was jij dit niet? Trek het token dan in en meld het aan de coördinator.
 account.token.button: Naar je account
 

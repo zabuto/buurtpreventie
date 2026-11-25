@@ -23,6 +23,14 @@ final readonly class LocalDateText
     }
 
     /**
+     * @return string such as "zaterdag 13 februari 2027", for a moment that may lie in another year
+     */
+    public static function dateWithYear(DateTimeImmutable $moment, string $locale): string
+    {
+        return self::format($moment, $locale, 'EEEE d MMMM y');
+    }
+
+    /**
      * @return string such as "22:00"
      */
     public static function time(DateTimeImmutable $moment, string $locale): string

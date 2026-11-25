@@ -14,6 +14,7 @@ use App\Settings\UseCase\GetApiTokenAccess\GetApiTokenAccessHandler;
 use App\Shared\Domain\AccessDenied;
 use App\Shared\Domain\Actor;
 use App\Shared\Domain\AuditedAction;
+use App\Shared\Domain\Notification;
 use App\Shared\Domain\ReauthenticationRequired;
 use App\Tests\Identity\Fake\FixedSecretGenerator;
 use App\Tests\Identity\Fake\InMemoryApiTokenRepository;
@@ -23,6 +24,7 @@ use App\Tests\Shared\Fake\FixedExecutionContext;
 use App\Tests\Shared\Fake\FixedRecentAuthentication;
 use App\Tests\Shared\Fake\ImmediateTransaction;
 use App\Tests\Shared\Fake\RecordingAuditTrail;
+use App\Tests\Shared\Fake\RecordingNotifier;
 use DateTimeImmutable;
 use Override;
 use PHPUnit\Framework\Attributes\Test;
@@ -37,6 +39,7 @@ final class CreateApiTokenHandlerTest extends TestCase
 
     private InMemoryApiTokenRepository $tokens;
     private RecordingAuditTrail $auditTrail;
+    private RecordingNotifier $notifier;
     private InMemorySettingRepository $settings;
     private Uuid $memberId;
 
@@ -45,6 +48,7 @@ final class CreateApiTokenHandlerTest extends TestCase
     {
         $this->tokens = new InMemoryApiTokenRepository();
         $this->auditTrail = new RecordingAuditTrail();
+        $this->notifier = new RecordingNotifier();
         $this->settings = new InMemorySettingRepository();
         $this->memberId = Uuid::v7();
     }
@@ -86,6 +90,25 @@ final class CreateApiTokenHandlerTest extends TestCase
         );
     }
 
+    /**
+     * A token made by someone else on the member's name, or with a stolen session, then reaches the member's own
+     * mailbox. The secret stays out: a mail is no safe place for it.
+     */
+    #[Test]
+    public function it_tells_the_member_about_the_new_token_without_its_secret(): void
+    {
+        $this->handler()(new CreateApiToken('Script', ['read', 'write'], self::IN_90_DAYS));
+
+        $this->assertEquals(
+            [new Notification($this->memberId, 'account.token_created', [
+                'tokenName' => 'Script',
+                'scopes' => 'read,write',
+                'expiresAt' => self::IN_90_DAYS,
+            ])],
+            $this->notifier->sent,
+        );
+    }
+
     #[Test]
     public function it_creates_nothing_when_access_is_denied(): void
     {
@@ -100,7 +123,7 @@ final class CreateApiTokenHandlerTest extends TestCase
 
         $this->assertInstanceOf(AccessDenied::class, $refusal);
         $this->assertEquals([['api_token.create', $this->memberId]], $authorization->asked);
-        $this->assertSame([[], []], [$this->tokens->ofMember($this->memberId), $this->auditTrail->recorded]);
+        $this->assertSame([[], [], []], [$this->tokens->ofMember($this->memberId), $this->auditTrail->recorded, $this->notifier->sent]);
     }
 
     /**
@@ -165,6 +188,7 @@ final class CreateApiTokenHandlerTest extends TestCase
             new FixedExecutionContext($withActor ? new Actor($this->memberId, []) : null),
             new FixedRecentAuthentication($recent),
             $this->auditTrail,
+            $this->notifier,
             new ImmediateTransaction(),
             new MockClock(self::NOW),
             new GetApiTokenAccessHandler($this->settings),

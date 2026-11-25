@@ -303,7 +303,9 @@ phone number or address, empty text is refused. Consent and notifications go thr
 e-mail address stay with the admin, so a hijacked session cannot move the address a login code goes to.
 `PUT /me/password` (`SetPassword`) and `POST /me/tokens` (`CreateApiToken`) need a recent login, otherwise the 403
 problem `reauthentication_required`; a login with a code counts, which is how a member replaces a forgotten password.
-A new token expires within 365 days and its secret is only in the answer to `POST`; `GET /me/tokens`
+A new token expires within 365 days and its secret is only in the answer to `POST`. The member gets a mail
+(`account.token_created`) with its name, scopes and expiry, never the secret, so a token they did not make stands out.
+`GET /me/tokens`
 (`ListApiTokens`) lists the tokens not revoked, and `DELETE /me/tokens/{id}` (`RevokeApiToken`) revokes one.
 `GET /me/activity` (`ListOwnActivity`) gives the member's own audit entries, 50 a page; of an entry about another
 member, such as a role an admin gave, it keeps the action but not who it was about or what changed.

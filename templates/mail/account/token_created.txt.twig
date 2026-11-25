@@ -1,0 +1,11 @@
+{% extends 'mail/layout.txt.twig' %}
+
+{% block content -%}
+{{ 'account.token_created.intro'|trans({name: tokenName}, 'mail', locale) }}
+
+{{ 'account.token_created.scopes'|trans({scopes: scopes}, 'mail', locale) }} {{ 'account.token_created.expires'|trans({date: expiresOn}, 'mail', locale) }}
+
+{{ 'account.token.not_you'|trans({}, 'mail', locale) }}
+
+{{ 'account.token.button'|trans({}, 'mail', locale) }}: {{ accountLink }}
+{%- endblock %}

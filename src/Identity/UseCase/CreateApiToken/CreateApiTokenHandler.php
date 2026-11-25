@@ -18,6 +18,8 @@ use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\AuditTrail;
 use App\Shared\Domain\Authorization;
 use App\Shared\Domain\ExecutionContext;
+use App\Shared\Domain\Notification;
+use App\Shared\Domain\Notifier;
 use App\Shared\Domain\ReauthenticationRequired;
 use App\Shared\Domain\RecentAuthentication;
 use App\Shared\Domain\Transaction;
@@ -28,7 +30,8 @@ use Symfony\Component\Uid\Uuid;
 
 /**
  * Creates a personal API token. It takes a recent login, which an API token never is, so a leaked token or a session
- * that only stayed logged in cannot mint a token that outlives it.
+ * that only stayed logged in cannot mint a token that outlives it. The member gets a mail about every new token on
+ * their name, without its secret, so one they did not make stands out.
  */
 #[WriteAction(authorization: 'api_token.create', audit: 'api_token.created')]
 final readonly class CreateApiTokenHandler
@@ -40,6 +43,7 @@ final readonly class CreateApiTokenHandler
         private ExecutionContext $executionContext,
         private RecentAuthentication $recentAuthentication,
         private AuditTrail $auditTrail,
+        private Notifier $notifier,
         private Transaction $transaction,
         private ClockInterface $clock,
         private GetApiTokenAccessHandler $access,
@@ -80,12 +84,18 @@ final readonly class CreateApiTokenHandler
             $this->clock->now(),
         );
 
-        $this->transaction->run(function () use ($token, $input): void {
+        $scopes = \implode(',', \array_map(static fn(TokenScope $scope): string => $scope->value, $token->scopes()));
+        $this->transaction->run(function () use ($token, $input, $scopes): void {
             $this->tokens->add($token);
             $this->auditTrail->record(new AuditedAction('api_token.created', 'api_token', $token->id(), [
                 'name' => ['old' => null, 'new' => $token->name()],
-                'scopes' => ['old' => null, 'new' => \implode(',', \array_map(static fn(TokenScope $scope): string => $scope->value, $token->scopes()))],
+                'scopes' => ['old' => null, 'new' => $scopes],
                 'expiresAt' => ['old' => null, 'new' => $input->expiresAt],
+            ]));
+            $this->notifier->send(new Notification($token->memberId(), 'account.token_created', [
+                'tokenName' => $token->name(),
+                'scopes' => $scopes,
+                'expiresAt' => $input->expiresAt,
             ]));
         });
 

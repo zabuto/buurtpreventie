@@ -134,6 +134,49 @@ final class MailNotifierTest extends ApiTestCase
     }
 
     /**
+     * The expiry can be up to a year ahead, so it carries the year.
+     */
+    #[Test]
+    public function it_mails_the_name_rights_and_expiry_of_a_new_token_with_what_to_do_about_it(): void
+    {
+        self::bootKernel();
+
+        self::service(MailNotifier::class)->send(new Notification(self::member()->id(), 'account.token_created', [
+            'tokenName' => 'Claude Code',
+            'scopes' => 'read,write,admin',
+            'expiresAt' => '2027-02-13T23:30:00+00:00',
+        ]));
+
+        $mail = self::sentMail();
+        $lines = [
+            'Er is een nieuw token gemaakt op jouw naam: Claude Code.',
+            'Dit token mag lezen, wijzigen en beheren.',
+            'Het werkt tot zondag 14 februari 2027.',
+            'Was jij dit niet? Trek het token dan in en meld het aan de coördinator.',
+        ];
+        self::assertSame('Er is een nieuw token gemaakt op jouw naam', $mail->getSubject());
+        foreach ($lines as $line) {
+            self::assertStringContainsString($line, (string) $mail->getTextBody(), 'text: ' . $line);
+            self::assertStringContainsString($line, (string) $mail->getHtmlBody(), 'html: ' . $line);
+        }
+    }
+
+    #[Test]
+    public function it_names_a_single_right_of_a_new_token_without_a_list(): void
+    {
+        self::bootKernel();
+        self::setting('app.language', 'en');
+
+        self::service(MailNotifier::class)->send(new Notification(self::member()->id(), 'account.token_created', [
+            'tokenName' => 'Script',
+            'scopes' => 'read',
+            'expiresAt' => '2027-02-13T12:00:00+00:00',
+        ]));
+
+        self::assertStringContainsString('This token can read.', (string) self::sentMail()->getTextBody());
+    }
+
+    /**
      * The address is the one the mail server may send from, or SPF and DKIM fail; the association names the sender.
      */
     #[Test]
