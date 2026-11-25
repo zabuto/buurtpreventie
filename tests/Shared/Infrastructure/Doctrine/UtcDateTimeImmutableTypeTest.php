@@ -8,7 +8,7 @@ use App\Shared\Infrastructure\Doctrine\UtcDateTimeImmutableType;
 use DateTime;
 use DateTimeImmutable;
 use DateTimeZone;
-use Doctrine\DBAL\Platforms\MariaDB1010Platform;
+use Doctrine\DBAL\Platforms\MariaDBPlatform;
 use Doctrine\DBAL\Types\Exception\InvalidFormat;
 use Doctrine\DBAL\Types\Exception\InvalidType;
 use Doctrine\DBAL\Types\Type;
@@ -42,7 +42,7 @@ final class UtcDateTimeImmutableTypeTest extends TestCase
     {
         $summerEvening = new DateTimeImmutable('2026-07-01 22:00:00', new DateTimeZone('Europe/Amsterdam'));
 
-        $stored = $this->type()->convertToDatabaseValue($summerEvening, new MariaDB1010Platform());
+        $stored = $this->type()->convertToDatabaseValue($summerEvening, new MariaDBPlatform());
 
         $this->assertSame('2026-07-01 20:00:00', $stored);
     }
@@ -50,7 +50,7 @@ final class UtcDateTimeImmutableTypeTest extends TestCase
     #[Test]
     public function it_reads_a_stored_value_as_utc_whatever_the_time_zone_of_php(): void
     {
-        $read = $this->type()->convertToPHPValue('2026-07-01 20:00:00', new MariaDB1010Platform());
+        $read = $this->type()->convertToPHPValue('2026-07-01 20:00:00', new MariaDBPlatform());
 
         $this->assertInstanceOf(DateTimeImmutable::class, $read);
         $this->assertSame('2026-07-01T20:00:00.000000+00:00', $read->format('Y-m-d\TH:i:s.uP'));
@@ -61,7 +61,7 @@ final class UtcDateTimeImmutableTypeTest extends TestCase
     public function it_passes_null_through_both_ways(): void
     {
         $type = $this->type();
-        $platform = new MariaDB1010Platform();
+        $platform = new MariaDBPlatform();
 
         $this->assertNull($type->convertToDatabaseValue(null, $platform));
         $this->assertNull($type->convertToPHPValue(null, $platform));
@@ -72,7 +72,7 @@ final class UtcDateTimeImmutableTypeTest extends TestCase
     {
         $this->expectException(InvalidType::class);
 
-        $this->type()->convertToDatabaseValue(new DateTime('2026-07-01 22:00:00'), new MariaDB1010Platform());
+        $this->type()->convertToDatabaseValue(new DateTime('2026-07-01 22:00:00'), new MariaDBPlatform());
     }
 
     #[Test]
@@ -80,7 +80,7 @@ final class UtcDateTimeImmutableTypeTest extends TestCase
     {
         $this->expectException(InvalidFormat::class);
 
-        $this->type()->convertToPHPValue('1 July 2026 20:00', new MariaDB1010Platform());
+        $this->type()->convertToPHPValue('1 July 2026 20:00', new MariaDBPlatform());
     }
 
     /**
