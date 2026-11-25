@@ -16,8 +16,10 @@ use App\Tests\Settings\Fake\InMemoryBrandImages;
 use App\Tests\Settings\Fake\InMemorySettingRepository;
 use App\Tests\Settings\Fake\TestImages;
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\MailHtml;
 use App\Tests\Support\RecordingLogger;
 use LogicException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\Mime\Address;
@@ -48,6 +50,30 @@ final class MailNotifierTest extends ApiTestCase
             \str_contains((string) $mail->getTextBody(), '482 913'),
             \str_contains((string) $mail->getHtmlBody(), '482 913'),
         ]);
+    }
+
+    /**
+     * @return iterable<string, array{string, array<string, string|int>}>
+     */
+    public static function accountMails(): iterable
+    {
+        yield 'login code' => ['account.login_code', ['code' => '482 913', 'minutes' => 60]];
+        yield 'invitation' => ['account.invitation', ['secret' => self::SECRET, 'hours' => 48]];
+    }
+
+    /**
+     * @param array<string, string|int> $parameters
+     */
+    #[Test]
+    #[DataProvider('accountMails')]
+    public function it_styles_the_mail_only_with_css_that_mail_programs_keep(string $type, array $parameters): void
+    {
+        self::bootKernel();
+        self::setting('brand.logo', self::service(InMemoryBrandImages::class)->store(BrandImageKind::Logo, TestImages::png(600, 200)));
+
+        self::service(MailNotifier::class)->send(new Notification(self::member()->id(), $type, $parameters));
+
+        MailHtml::assertOnlyRobustCss((string) self::sentMail()->getHtmlBody());
     }
 
     #[Test]
@@ -170,7 +196,7 @@ final class MailNotifierTest extends ApiTestCase
             [true, true, true],
             [
                 \str_contains($html, '@media (prefers-color-scheme: dark)'),
-                \str_contains($html, 'background:#121212 !important'),
+                \str_contains($html, 'background-color:#121212 !important'),
                 \str_contains($html, 'color:#9ad3a5 !important'),
             ],
         );

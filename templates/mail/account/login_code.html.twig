@@ -1,8 +1,10 @@
 {% extends 'mail/layout.html.twig' %}
+{% import 'mail/_blocks.html.twig' as mail %}
 
 {% block content %}
-<p style="margin:0 0 8px 0;">{{ 'account.login_code.intro'|trans({}, 'mail', locale) }}</p>
-<p style="margin:0 0 16px 0;font-size:32px;font-weight:bold;letter-spacing:4px;">{{ code }}</p>
-<p style="margin:0 0 16px 0;">{{ 'account.login_code.use'|trans({minutes: minutes}, 'mail', locale) }}</p>
-<p style="margin:0;">{{ 'account.login_code.ignore'|trans({}, 'mail', locale) }}</p>
+{{ mail.paragraph('account.login_code.intro'|trans({}, 'mail', locale), 8) }}
+{% set code_text %}<strong>{{ code }}</strong>{% endset %}
+{{ mail.paragraph(code_text, 16, 32) }}
+{{ mail.paragraph('account.login_code.use'|trans({minutes: minutes}, 'mail', locale)) }}
+{{ mail.paragraph('account.login_code.ignore'|trans({}, 'mail', locale)) }}
 {% endblock %}

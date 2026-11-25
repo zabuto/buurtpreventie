@@ -1,0 +1,24 @@
+{# Every block of a mail is a table row with padding below it, never an element with a margin: several mail programs
+   drop or change margins, while padding on a cell holds everywhere. Each cell carries its own font, as Outlook does
+   not pass it on into a nested table. #}
+{% macro paragraph(text, space = 16, size = 16) %}
+<tr>
+<td class="bp-text" style="padding:0 0 {{ space }}px 0;font-family:Arial,Helvetica,sans-serif;font-size:{{ size }}px;line-height:1.5;color:#1f2937;">{{ text }}</td>
+</tr>
+{% endmacro %}
+
+{# The padding sits on the coloured cell, not the link: a link styled as a block renders small or bare in several
+   mail programs, a coloured cell everywhere. #}
+{% macro button(href, label, brand) %}
+<tr>
+<td style="padding:0 0 16px 0;">
+<table role="presentation" cellpadding="0" cellspacing="0">
+<tr>
+<td bgcolor="{{ brand.color }}" style="padding:12px 20px;background-color:{{ brand.color }};font-family:Arial,Helvetica,sans-serif;font-size:16px;">
+<a href="{{ href }}" style="color:#ffffff;"><strong>{{ label }}</strong></a>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+{% endmacro %}
