@@ -61,6 +61,8 @@ final class MailNotifierTest extends ApiTestCase
     {
         yield 'login code' => ['account.login_code', ['code' => '482 913', 'minutes' => 60]];
         yield 'invitation' => ['account.invitation', ['secret' => self::SECRET, 'hours' => 48]];
+        yield 'new token' => ['account.token_created', ['tokenName' => 'Script', 'scopes' => 'read', 'expiresAt' => '2027-02-13T12:00:00+00:00']];
+        yield 'daily limit' => ['account.token_limit_reached', ['tokenName' => 'Script', 'reachedAt' => '2026-11-16T22:30:00+00:00']];
     }
 
     /**
