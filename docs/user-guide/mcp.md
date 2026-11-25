@@ -142,9 +142,9 @@ Choose the transport "Streamable HTTP", the address `https://…/mcp` of your ap
 | `round_statistics` | How the rounds of a period went, per month, weekday or daypart | analyst, coordinator |
 
 The resource `buurtpreventie://config` gives the name of the association, the walkers of a new round and the
-choices. The prompt `monthly_report` asks for an overview of a month for the police and the municipality, from counts
-only. It comes back as a draft: it names the period and the tools behind its numbers, and holds no number of the AI
-client's own, so check it before you send it. `plan_week` asks which rounds of a week still need walkers.
+choices. The prompt `monthly_report` asks for an overview of a month, from counts only. It comes back as a draft: it
+names the period and the tools behind its numbers, and holds no number of the AI client's own. You answer for what you
+do with it, so check it before you use it. `plan_week` asks which rounds of a week still need walkers.
 
 Deleting, managing members and changing settings stay in the app. A token may make 60 requests a minute.
 

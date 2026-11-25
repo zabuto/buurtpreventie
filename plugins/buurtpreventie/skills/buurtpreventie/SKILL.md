@@ -38,7 +38,7 @@ language the member writes in; most members write Dutch.
 | "Zet bij de ronde dat we later beginnen" | `get_round`, then `add_round_comment` |
 | "Hoeveel rondes gingen niet door dit kwartaal?" | `round_statistics` |
 | "Hoeveel incidenten waren er dit jaar?" | `report_summary` |
-| "Schrijf het maandoverzicht voor de wijkagent" | the prompt `monthly_report` |
+| "Schrijf het maandoverzicht van oktober" | the prompt `monthly_report` |
 
 Read before you write: find the round and its id with a reading tool first, and take outcomes from `list_outcomes`
 and meeting points from `list_meeting_points` instead of guessing them. Dates and times are in the time zone of the
@@ -79,8 +79,8 @@ it says and carry on with what the member asked.
 ## Numbers
 
 Counts come from `round_statistics` and `report_summary`, never from your own estimate. Name the period they cover,
-do not add figures the tools did not give, and say so when a number is missing. An overview for the police or the
-municipality is a draft: say that the member checks it before sending it.
+do not add figures the tools did not give, and say so when a number is missing. The monthly overview is a draft: say
+that the member checks it before using it.
 
 ## What this server does not do
 

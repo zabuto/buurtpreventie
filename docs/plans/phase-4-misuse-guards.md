@@ -12,7 +12,7 @@ en `tests/Shared/McpContactDetailsTest.php`, op `develop` (`953369d`).
 
 Een lid met een geldig token kan niet ongemerkt veel gegevens ophalen of in een lus schrijven, een gestolen token
 valt op, en een beheerder ziet en trekt tokens in. Wat MCP geeft, blijft zonder contactgegevens, ook bij een tool die
-later komt. Het maandoverzicht voor politie en gemeente is herkenbaar een concept.
+later komt. Het maandoverzicht is herkenbaar een concept.
 
 Rechten veranderen niet: Voters en scopes bepalen wat een token mag, deze aanvulling bepaalt hoe vaak. De enige
 inperking is per vereniging: welke rollen MCP gebruiken.
@@ -47,7 +47,7 @@ Klaar als:
 7. **`RevokeMemberApiTokens` heeft een handler maar geen controller**: hij draait bij het deactiveren of wissen van
    een lid. Er is geen overzicht van alle tokens voor een beheerder; `ListApiTokens` geeft alleen de eigen tokens.
 8. **`monthly_report` vraagt "counts only"** en sluit namen en getypte tekst uit, maar zegt niet dat het resultaat een
-   concept is dat iemand controleert voordat het naar politie of gemeente gaat.
+   concept is dat iemand controleert voordat hij het gebruikt.
 9. **`McpContactDetailsTest` zoekt waarden**: vaste telefoonnummers, een straat en `@example.org` in elk antwoord. Een
    nieuw veld met een contactgegeven dat de voorbeelddata van de test niet vullen, valt er niet in op.
    `McpMatrixTest::it_serves_exactly_the_tools_of_the_plan` houdt de lijsten van tools compleet, dus een nieuwe tool
@@ -97,7 +97,7 @@ Klaar als:
 6. **Standaard 90 dagen in het scherm Koppelingen**, met 365 als maximum zoals nu. Dat is een keuze van de frontend
    (vastgesteld 5) en staat in `docs/plans/phase-5.md` (beslissing 39, T11); de API verandert niet.
 7. **`monthly_report` vraagt om een concept:** bovenaan een regel dat het een concept is dat de lezer controleert
-   voordat het verstuurd wordt, de periode en de tools waar de getallen uit komen, en geen getal dat geen tool gaf. Het
+   voordat hij het gebruikt, de periode en de tools waar de getallen uit komen, en geen getal dat geen tool gaf. Het
    model rekent niet zelf bij; ontbreekt iets, dan zegt het dat.
 8. **`McpContactDetailsTest` controleert ook sleutels:** elk antwoord dat JSON is, wordt recursief doorlopen; de test
    faalt op `phone`, `email`, `address` of `name` (de volledige naam), op `note` met een waarde en op `comments` die

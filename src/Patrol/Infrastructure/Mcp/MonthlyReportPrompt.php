@@ -13,15 +13,15 @@ use Mcp\Capability\Attribute\McpPrompt;
 use Mcp\Exception\PromptGetException;
 
 /**
- * Asks the client for a monthly overview for the police and the municipality. The prompt holds no data: the client
+ * Asks the client for a monthly overview. The prompt holds no data: the client
  * fetches the counts with the tools, as the member who owns the token, so the prompt never shows more than they may
- * see. The overview is a draft that names its period and sources and holds no number of the model's own, as it
- * reaches the police and the municipality as fact once the reader sends it.
+ * see. It names no one the overview is for: where it goes is up to whoever runs the prompt, who answers for it. So
+ * the overview is a draft that names its period and sources and holds no number of the model's own.
  */
 #[McpPrompt(
     name: 'monthly_report',
     title: 'Monthly overview',
-    description: 'A short overview of one month of rounds and reports, for the community police officer and the municipality, from counts only.',
+    description: 'A short overview of one month of rounds and reports, from counts only.',
 )]
 final readonly class MonthlyReportPrompt
 {
@@ -54,13 +54,13 @@ final readonly class MonthlyReportPrompt
             'role' => 'user',
             'content' => \implode("\n\n", [
                 \sprintf(
-                    'Write a short overview of the neighbourhood watch of %s for %s, for the community police officer and the municipality.',
+                    'Write a short monthly overview of the neighbourhood watch of %s for %s.',
                     $config->associationName,
                     $start->format('F Y'),
                 ),
                 \sprintf('First call report_summary and round_statistics (groupBy: month) with from %s and to %s.', $from, $to),
                 'Give the rounds planned and walked, the rounds not walked for want of a buddy, the reports per outcome and the incidents, and how the month compares with the month before.',
-                'Start with one line saying that this is a draft, which the reader checks before sending it to the police or the municipality.',
+                'Start with one line saying that this is a draft, which the reader checks before using it.',
                 \sprintf(
                     'Name the period, %s to %s, and the tools the counts come from.',
                     $start->format('j'),

@@ -18,7 +18,7 @@ use DateTimeImmutable;
 
 /**
  * Counts the reports of the rounds in a period per outcome, and the incidents per local month, for an overview such
- * as one for the police. Counts only: no note and no author, so the summary names nobody.
+ * as the monthly overview. Counts only: no note and no author, so the summary names nobody.
  */
 #[ReadAction]
 final readonly class SummariseRoundReportsHandler

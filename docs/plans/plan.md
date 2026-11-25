@@ -518,7 +518,7 @@ De MCP-server is een dunne laag op `/mcp` die dezelfde use cases en Voters aanro
 | `list_meeting_points`, `list_outcomes` | Keuzelijsten | `read` | lid |
 | `round_statistics` | Aantallen gepland, gelopen, niet gelopen (geen loopmaatje) en incidenten, per maand, weekdag of dagdeel, met percentages en vergelijking met de vorige periode | `read` | analist, coördinator |
 
-**Resources:** `buurtpreventie://config` (naam, minimum- en maximumaantal lopers, startpunten, uitkomsten). **Prompts:** `monthly_report` (maandoverzicht voor politie/gemeente uit `report_summary`) en `plan_week` (open plekken komende week).
+**Resources:** `buurtpreventie://config` (naam, minimum- en maximumaantal lopers, startpunten, uitkomsten). **Prompts:** `monthly_report` (maandoverzicht uit `report_summary`) en `plan_week` (open plekken komende week).
 
 **Plugin.** Een Claude Code-plugin in `plugins/buurtpreventie`, met een marketplace in deze repo, koppelt de server met adres en token uit de installatie en voegt een skill toe over welke tool bij welke vraag hoort en wat alleen het model kan bewaken. De skill is gebruiksgemak, geen beveiliging; uitwerking in `docs/plans/phase-4-agent-plugin.md`.
 
@@ -530,7 +530,7 @@ De MCP-server is een dunne laag op `/mcp` die dezelfde use cases en Voters aanro
 | Analist | "Op welke weekdagen en dagdelen ontbreekt het vaakst een loopmaatje?" | `round_statistics` |
 | Analist | "Vergelijk oktober met september" | `round_statistics` |
 | Analist | "Hoeveel incidenten waren er dit jaar, en in welke maanden?" | `report_summary` |
-| Analist | "Schrijf het maandoverzicht voor de wijkagent" | prompt `monthly_report` |
+| Analist | "Schrijf het maandoverzicht van oktober" | prompt `monthly_report` |
 | Coördinator | "Welke rondes zoeken deze week nog een loopmaatje?" | `staffing_gaps` |
 | Coördinator | "Op welke avonden volgende week staat niets gepland?" | prompt `plan_week` |
 | Loper | "Wanneer loop ik de komende weken, en heb ik nog terugmeldingen open?" | `my_rounds` |

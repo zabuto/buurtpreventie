@@ -66,8 +66,8 @@ final class ResourceAndPromptsTest extends McpTestCase
     }
 
     /**
-     * The overview goes to the police and the municipality, so a number the model made up or worked out itself would
-     * reach them as a fact; the reader checks it first, against the period and the tools it names.
+     * Whoever runs the prompt answers for the overview, so a number the model made up or worked out itself would pass
+     * on as a fact; the reader checks it first, against the period and the tools it names.
      */
     #[Test]
     public function it_asks_for_a_draft_that_names_its_period_and_sources_and_invents_no_number(): void
@@ -78,7 +78,7 @@ final class ResourceAndPromptsTest extends McpTestCase
         $text = self::prompt(self::connect($browser), 'monthly_report', ['month' => '2026-10']);
 
         self::assertStringContainsString(
-            'Start with one line saying that this is a draft, which the reader checks before sending it to the police or the municipality.',
+            'Start with one line saying that this is a draft, which the reader checks before using it.',
             $text,
         );
         self::assertStringContainsString('Name the period, 1 to 31 October 2026, and the tools the counts come from.', $text);
