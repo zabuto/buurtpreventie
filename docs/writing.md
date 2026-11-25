@@ -68,6 +68,10 @@ follows what a text does, not where it sits.
   "Ik kan toch niet". Write out an abbreviation at its first use on a screen or in a message
   ("Algemene verordening gegevensbescherming (AVG)"). The domain terms from the glossary stay as they
   are.
+- **Need to know.** A text an end user reads (screen, mail, error message, `docs/user-guide/`, the plugin
+  README) names no setting, endpoint, status code or other detail the reader has no access to: "Vraag het de
+  beheerder." or "Ask the admin." is enough. The admin finds the detail in `docs/configuration.md`. A detail the
+  reader needs to act, such as the address of the app in an AI client, stays.
 - **Mails never look like phishing.** A mail that warns, such as about a new token or a reached limit,
   holds no link or button: it says where to go in the app ("Open zelf de app en ga naar Account"). A
   warning with a link is what a phishing mail looks like, and members learn from ours that a real one
