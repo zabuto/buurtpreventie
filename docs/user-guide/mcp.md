@@ -21,9 +21,8 @@ whoever hosts its app, and the company behind your AI client.
 
 ## Before you start
 
-- **The admin opens MCP for you.** It is off on a new installation. The admin switches it on, and chooses which
-  roles may use it. The admin can also open it for you alone. When the AI client says that MCP is off or not open to
-  you, ask the admin.
+- **The admin opens MCP for you.** It is off on a new installation. The admin switches it on, and decides who may use
+  it. When the AI client says that MCP is off or not open to you, ask the admin.
 - **You make an API token** in the app, under your account, with a name such as "Claude Code" and an expiry date.
   Give it the scope `read` to look only, and `write` too to sign up, plan rounds and report back. Copy the secret
   (`bpt_…`) at once: the app shows it only then. Keep it like a password; revoke it in the app when you no longer use
