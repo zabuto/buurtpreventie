@@ -157,3 +157,15 @@ an issue and `composer update` prints a warning. To move to it:
 1. Read its release notes for changes in rule syntax and results.
 2. On a branch, change `tools/opengrep-major` and let the security scan run.
 3. Fix rules or findings, and merge through a pull request.
+
+## Common passwords
+
+`src/Identity/Infrastructure/Password/common-passwords.txt` is built, never edited: the Dutch passwords of
+`tools/common-passwords-nl.txt`, then `10k-most-common.txt` of SecLists at the commit the file names.
+`php tools/common-passwords.php` rebuilds it from that commit, after a change to the Dutch passwords;
+`php tools/common-passwords.php <commit>` moves it to another SecLists commit. Either way the change is a diff to
+review in a pull request. `CommittedListTest` fails when a Dutch password is missing from the built file.
+
+SecLists rarely changes this list, and at 15 characters it holds one password long enough to matter, so a move to a
+newer commit needs no schedule. The Dutch passwords do the work; add a phrase members are likely to pick, never one
+from a leaked list, which holds names of real people.
