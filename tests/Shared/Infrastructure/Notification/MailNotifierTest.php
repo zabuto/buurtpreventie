@@ -140,9 +140,9 @@ final class MailNotifierTest extends ApiTestCase
         ]));
 
         $mail = self::sentMail();
-        self::assertSame('Er is een nieuw token gemaakt op jouw naam', $mail->getSubject());
+        self::assertSame('Nieuw token op jouw naam', $mail->getSubject());
         self::assertBothBodiesHold($mail, [
-            'Er is een nieuw token gemaakt op jouw naam: Claude Code.',
+            'Er staat een nieuw token op jouw naam: Claude Code.',
             'Dit token mag lezen, wijzigen en beheren.',
             'Het werkt tot zondag 14 februari 2027.',
             self::NOT_YOU,

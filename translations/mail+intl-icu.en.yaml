@@ -17,8 +17,8 @@ account.invitation.valid: The link works for {hours} hours, and once. Does it no
 account.token_limit_reached.subject: Your token {name} was used more often than allowed
 account.token_limit_reached.intro: On {date} at {time}, your token {name} had been used more often than one day allows. So the app refuses that token for a while.
 
-account.token_created.subject: A new token was made in your name
-account.token_created.intro: 'A new token was made in your name: {name}.'
+account.token_created.subject: New token in your name
+account.token_created.intro: 'There is a new token in your name: {name}.'
 account.token_created.scopes: This token can {scopes}.
 account.token_created.expires: It works until {date}.
 account.token.scope.read: read
