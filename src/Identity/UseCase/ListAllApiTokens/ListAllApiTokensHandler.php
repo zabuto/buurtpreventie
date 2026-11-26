@@ -17,8 +17,8 @@ use Psr\Clock\ClockInterface;
 use SensitiveParameter;
 
 /**
- * Lists every token that still lets someone in, of every member, newest first, so an admin spots one that does not
- * belong and revokes the tokens of its member.
+ * Lists every usable token of every member, newest first, so an admin spots one that does not belong and revokes the
+ * tokens of its member.
  */
 #[ReadAction]
 final readonly class ListAllApiTokensHandler

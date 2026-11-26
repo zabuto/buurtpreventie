@@ -85,7 +85,7 @@ final class DoctrineApiTokenRepositoryTest extends KernelTestCase
      * the clock of the server may give it, while the database holds UTC.
      */
     #[Test]
-    public function it_finds_the_tokens_of_every_member_that_still_let_someone_in(): void
+    public function it_finds_the_usable_tokens_of_every_member(): void
     {
         $now = new DateTimeImmutable('2026-11-16T11:00:00+01:00');
         $active = $this->token(Uuid::v7());

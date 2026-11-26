@@ -92,7 +92,7 @@ final class StdioAuthenticationTest extends McpTestCase
         self::service(InMemorySettingRepository::class)->add(Setting::of('integrations.mcp_roles', 'analyst'));
 
         $this->expectExceptionObject(
-            new RuntimeException('MCP is closed to your role. Ask the admin.'),
+            new RuntimeException('MCP is closed to your roles. Ask the admin.'),
         );
 
         self::authentication(new TokenStorage(), self::SECRET)(self::start('mcp:server'));

@@ -72,10 +72,10 @@ follows what a text does, not where it sits.
   README) names no setting, endpoint, status code or other detail the reader has no access to: "Vraag het de
   beheerder." or "Ask the admin." is enough. The admin finds the detail in `docs/configuration.md`. A detail the
   reader needs to act, such as the address of the app in an AI client, stays.
-- **Mails never look like phishing.** A mail that warns, such as about a new token or a reached limit,
-  holds no link or button: it says where to go in the app ("Open zelf de app en ga naar Account"). A
-  warning with a link is what a phishing mail looks like, and members learn from ours that a real one
-  never asks them to click. No mail asks for a password, login code or token. Other links go only to
+- **Mails never look like phishing.** A mail that warns, such as about a new token or a reached limit, holds
+  no link or button: it says where to go in the app ("Open dan zelf de app. Trek het token in onder
+  Account."). A warning with a link is what a phishing mail looks like, and members learn from ours that a
+  real one never asks them to click. No mail asks for a password, login code or token. Other links go only to
   the address of the app, with a link text that says where it leads.
 - **Rule texts unambiguous, at B2** (privacy statement, retention periods, who may see what, consent):
   "and" and "or" are explicit ("als aan alle voorwaarden is voldaan", "een van deze situaties"), every

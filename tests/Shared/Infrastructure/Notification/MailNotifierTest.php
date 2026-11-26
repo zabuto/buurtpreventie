@@ -34,7 +34,7 @@ use Symfony\Component\Mime\Part\DataPart;
 #[Group('functional')]
 final class MailNotifierTest extends ApiTestCase
 {
-    private const string NOT_YOU = 'Was jij dit niet? Open dan zelf de app, ga naar Account en trek het token in. Meld het ook aan de coördinator.';
+    private const string NOT_YOU = 'Was jij dit niet? Open dan zelf de app. Trek het token in onder Account. Meld het ook aan de coördinator.';
 
     // @mago-expect lint:no-literal-password - a made-up secret the link must carry
     private const string SECRET = 'bpi_0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';

@@ -23,14 +23,14 @@ whoever hosts its app, and the company behind your AI client.
 
 - **The admin opens MCP for you.** It is off on a new installation. The admin switches it on, and chooses which
   roles may use it. The admin can also open it for you alone. When the AI client says that MCP is off or closed to
-  your role, ask the admin.
+  your roles, ask the admin.
 - **You make an API token** in the app, under your account, with a name such as "Claude Code" and an expiry date.
   Give it the scope `read` to look only, and `write` too to sign up, plan rounds and report back. Copy the secret
   (`bpt_…`) at once: the app shows it only then. Keep it like a password; revoke it in the app when you no longer use
   it or think someone else has it.
 - **You get a mail about your token.** The app mails you when a token is made in your name, and when a token was
-  used more often than one day allows. Neither mail has a link. Was it not you? Then open the app yourself, go to
-  Account and revoke the token, and tell the coordinator.
+  used more often than one day allows. Neither mail has a link. Was it not you? Then open the app yourself, revoke
+  the token under Account, and tell the coordinator.
 - **You check before you confirm.** An AI client can get things wrong. What it signs you up for, withdraws or reports
   is done in your name, so read what it proposes before you say yes. The app and the plugin come as is, without
   warranty (see `LICENSE`).

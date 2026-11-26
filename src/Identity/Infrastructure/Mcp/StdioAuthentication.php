@@ -61,7 +61,7 @@ final readonly class StdioAuthentication
             $passport = $this->authenticator->authenticate($request);
         } catch (McpNotForRole $exception) {
             throw new RuntimeException(
-                'MCP is closed to your role. Ask the admin.',
+                'MCP is closed to your roles. Ask the admin.',
                 previous: $exception,
             );
         } catch (AuthenticationException $exception) {

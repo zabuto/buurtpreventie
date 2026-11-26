@@ -22,7 +22,7 @@ use Symfony\Component\Clock\MockClock;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * The admin sees every token that still lets someone in, to spot one that does not belong, never its secret or hash.
+ * The admin sees every usable token, to spot one that does not belong, never its secret or hash.
  */
 final class ListAllApiTokensHandlerTest extends TestCase
 {
