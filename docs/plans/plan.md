@@ -677,6 +677,7 @@ De repo bevat geen enkele verwijzing naar een specifieke vereniging: technische 
 | Kleuren (primair en accent, voor licht en donker) | `Setting` → CSS custom properties | contrast gecontroleerd bij opslaan, tegen wit en `#121212` |
 | Afzendernaam van de e-mail | `Setting`; het afzenderadres blijft `MAILER_FROM` | de naam van de vereniging |
 | Contact coördinator (naam, e-mail, telefoon) en de groepslink (WhatsApp of Signal) | `Setting`, alleen voor ingelogde leden in `/config` | leeg |
+| Link naar BuitenBeter voor meldingen over de openbare ruimte, aan of uit (besloten op 26 november 2026) | `Setting`, alleen voor ingelogde leden in `/config` | uit |
 | Teksten: welkom, "wat te doen bij spoed" | `Setting` (platte tekst, per taal) | neutrale standaardtekst in `nl` en `en` |
 | Privacyverklaring en toegankelijkheidsverklaring | `Setting` (URL naar een pagina van de vereniging) | leeg |
 | Minimum- en maximumaantal lopers, herinnering N dagen vooraf | `Setting` | 2, 7 en 1 |
@@ -687,6 +688,9 @@ Afwijkingen in fase 3 (`docs/plans/phase-3.md`, beslissingen 2, 3, 5, 6, 8 en 17
 (elke regel over dagdelen en kalenderdagen rekent in `Europe/Amsterdam`); teksten zijn platte tekst, geen Markdown;
 privacy- en toegankelijkheidsverklaring zijn een URL; vertalingen overschrijven per vereniging valt af; twee uploads
 (logo en icoon) in plaats van drie; het afzenderadres is geen instelling, alleen de afzendernaam.
+
+BuitenBeter is alleen een link: de app stuurt zelf niets naar BuitenBeter, en de link draagt geen gegevens (geen plek,
+ronde of tekst). Daarom staat BuitenBeter niet in de tabel "Privacy per externe dienst".
 
 Hoe het doorwerkt:
 
