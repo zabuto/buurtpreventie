@@ -900,7 +900,7 @@ Na fase 2 tot en met 5c staat het model dat uitgebracht wordt; de conversie volg
 
 ### Fase 6b — Installeren en releasen
 
-- [ ] Release-workflow: zip met `vendor/`, frontend en `.htaccess` (pad of subdomein, `Authorization`-header) bij elke GitHub Release, met SHA-256 en libsodium-handtekening; patchversies automatisch na een samengevoegde fix.
+- [ ] Release-workflow: zip met `vendor/`, frontend en `.htaccess` (pad of subdomein, `Authorization`-header) bij elke GitHub Release, met SHA-256 en libsodium-handtekening; patchversies automatisch na een samengevoegde fix. Vóór het zippen schrijft `tools/write-version.php` de versie uit de tag in `VERSION` (`docs/plans/phase-5.md`, beslissing 42).
 - [ ] Web-installer (eenmalig token): controle op HTTPS, PHP-versie, schrijfrechten en een map binnen een andere applicatie; daarna migraties, eerste beheerder en optioneel voorbeelddata.
 - [ ] Mapindeling `releases/` + `shared/`; `bin/scheduler.php` voor cron en `POST /api/v1/system/tick`, voor herinneringen, mails over open rondes en opruimen volgens bewaartermijnen.
 - [ ] HSTS (`Strict-Transport-Security: max-age=31536000`) zodra de installer HTTPS heeft gecontroleerd, zonder `includeSubDomains`: de app staat vaak op een subdomein van een domein met andere sites, die anders ook HTTPS moeten hebben.

@@ -504,7 +504,7 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
 41. **Meer heet Account, en `#/account` opent het** (besloten op 26 november 2026). Het laatste tabblad van de navigatie
     onderaan heet Account ("Account"), met het icoon van een persoon, en het scherm heet "Mijn account": een lijst met
     Mijn gegevens, Meldingen, Koppelingen, Mijn activiteit, Lopers, Hulp en spoed, Privacyverklaring en Uitloggen, met
-    onderaan de versie van de app. De onderdelen staan onder `#/account/…`: `#/account/details`,
+    onderaan de versie van de app (beslissing 42). De onderdelen staan onder `#/account/…`: `#/account/details`,
     `#/account/notifications`, `#/account/integrations`, `#/account/activity`. Zo opent de link `app/#/account` in een
     mail die al verstuurd is het scherm dat de mail noemt, zonder doorverwijzing. De mails wijzen het pad zoals het lid
     het ziet: de mail over een ronde die een loopmaatje zoekt (`BuddyNeededMail`) zegt "Zet het dan uit bij Account →
@@ -515,6 +515,19 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
     Alternatief: een bel voor Meldingen rechtsboven. Een bel leest als een inbox met ongelezen berichten, met een
     teller; Meldingen is een schakelaar voor mails, en de app heeft geen berichten om te lezen tot pushmeldingen (U4).
     Rechtsboven past beter bij Hulp en spoed, dat op elk scherm op dezelfde plek staat (WCAG 3.2.6).
+42. **De versie onderaan Mijn account komt uit de git-tag** (besloten op 26 november 2026). Een getagde commit op
+    `main` heet naar zijn tag (`v4.0.0`); elke andere build naar de nieuwste releasetag met de korte hash van de
+    commit als build-metadata (`v4.0.0+74466b0`), en vóór de eerste tag `v0.0.0+<hash>`. De nieuwste tag in de hele
+    repo (`git tag --list 'v*' --sort=-v:refname`), niet de dichtstbijzijnde: een releasetag staat op de merge commit
+    in `main`, die niet terugkomt in `develop`, dus `git describe` zou op `develop` een oude tag noemen.
+    - **Bij het bouwen, nooit tijdens het draaien**: shared hosting heeft geen `.git` en geen `exec`. Het script
+      `tools/write-version.php` (zonder afhankelijkheden) schrijft de versie in `VERSION` in de root, dat git
+      negeert. De release-workflow van fase 6b draait het vóór het zippen; lokaal draait het als Composer-hook op
+      `post-autoload-dump`, dus daar kan de versie een paar commits achterlopen tot de volgende `composer install`.
+    - **`AppVersion`** leest `VERSION`; zonder bestand is de versie `unknown`, nooit een fout.
+    - **Alleen voor een ingelogd lid**: `GET /config` geeft `version` in het deel dat alleen een ingelogd lid krijgt,
+      naast `contact` en `group`. Een openbaar versienummer zegt een aanvaller precies welke bekende kwetsbaarheid
+      een installatie die nog niet bijwerkte heeft.
 
 ## Nieuwe afhankelijkheden (goedgekeurd op 18 november 2026)
 
@@ -766,6 +779,9 @@ Werk in dit canvas, verander niets anders dan hieronder staat.
   en elk onderdeel een scherm openen. Test eerst: `BuddyNeededMail` zegt "bij Account → Meldingen" en linkt naar
   `app/#/account/notifications`, de tokenmails zeggen "bij Account → Koppelingen", in `nl` en `en`;
   `WalkerWithdrawnMail` zonder `accountLink`.
+- De versie onderaan Mijn account (beslissing 42): `tools/write-version.php` met een test op de drie vormen (tag,
+  tag met hash, geen tag), de Composer-hook, `VERSION` in `.gitignore`, `AppVersion` en `version` in `GET /config`
+  alleen voor een ingelogd lid, met OpenAPI, Hurl en een test dat een anoniem verzoek het veld niet krijgt.
 - Privacyverklaring (naar `privacyUrl`, anders in aanbouw) en Handleiding voor lopers (in aanbouw), beslissing 34.
 
 ### T12. PWA (test eerst)
