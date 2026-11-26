@@ -209,7 +209,8 @@ versions follow [Semantic Versioning](https://semver.org/).
 - MCP server at `/mcp` (Streamable HTTP, both protocol eras) and `symfony console mcp:server` (STDIO, with an API
   token in `MCP_TOKEN`), through `symfony/mcp-bundle` and `mcp/sdk`, both pinned to their minor. Off until an admin
   sets `mcpAccess`; off, `/mcp` answers 404 to every request. Only API tokens give access, on the channel `mcp` in the
-  audit log; the server answers only for the host of `DEFAULT_URI`.
+  audit log; the server answers only for the host of `DEFAULT_URI`. A percent-encoded path such as `/%6Dcp` counts as
+  `/mcp`, since the firewall and the router decode it.
 - Thirteen tools, each the `…Tool` adapter of a use case with a parity test against REST: `list_rounds`, `get_round`,
   `my_rounds`, `staffing_gaps`, `list_meeting_points`, `list_outcomes`, `sign_up_for_round`, `withdraw_from_round`,
   `create_round`, `report_round_result`, `add_round_comment`, `report_summary` and `round_statistics`. A tool that

@@ -56,6 +56,22 @@ final class McpRolesTest extends McpTestCase
     }
 
     /**
+     * The firewall and the router decode the path; an encoded `/mcp` must not reach the server with every role.
+     */
+    #[Test]
+    public function it_refuses_a_member_without_an_allowed_role_on_a_percent_encoded_path_too(): void
+    {
+        $browser = self::mcpBrowser();
+        self::allowOnMcp('analyst');
+        self::token(self::member(Role::Walker));
+
+        self::listTools($browser, '/%6Dcp');
+
+        self::assertResponseStatusCodeSame(403);
+        self::assertSame('urn:buurtpreventie:problem:mcp_not_for_role', self::json($browser)['type']);
+    }
+
+    /**
      * The refusal comes before the limits, so a client that keeps trying does not use up the token on REST.
      */
     #[Test]
@@ -123,11 +139,11 @@ final class McpRolesTest extends McpTestCase
         self::service(InMemorySettingRepository::class)->add(Setting::of('integrations.mcp_roles', \implode(',', $roles)));
     }
 
-    private static function listTools(KernelBrowser $browser): void
+    private static function listTools(KernelBrowser $browser, string $path = self::ENDPOINT): void
     {
         $browser->request(
             'POST',
-            self::ENDPOINT,
+            $path,
             server: [
                 'HTTP_AUTHORIZATION' => 'Bearer ' . self::SECRET,
                 'CONTENT_TYPE' => 'application/json',
