@@ -90,7 +90,7 @@ body not contains "{{apiToken}}"
 GET {{baseUrl}}/api/v1/admin/api-tokens
 HTTP 200
 [Asserts]
-jsonpath "$.tokens[?@.id == '{{tokenId}}'].memberId" includes "{{memberId}}"
+jsonpath "$.tokens[?@.id == '{{tokenId}}'].memberId" == "{{memberId}}"
 body not contains "{{apiToken}}"
 
 GET {{baseUrl}}/api/v1/me
