@@ -17,6 +17,8 @@ versions follow [Semantic Versioning](https://semver.org/).
 - GitHub Actions for CI, a weekly audit and a weekly look-ahead on Symfony 8 and PHP 8.5;
   Dependabot with automatic merging of patch and minor updates once CI is green (minor updates of
   packages below 1.0 excepted). Dependabot skips major Symfony updates, so the app stays on 7.4 LTS.
+- A pull request title is a Conventional Commit (`type(scope): summary`), checked by `pull-request-title.yml`,
+  because the squash merge makes it the commit message; Dependabot titles start with `chore(deps)`.
 - Development database: MariaDB 10.11 in `compose.yaml` on a free port, handed to the app by the
   Symfony CLI.
 - Test suite in unit, integration and functional groups; `composer test:unit` runs the unit tests.
