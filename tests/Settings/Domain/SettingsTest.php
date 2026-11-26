@@ -60,13 +60,14 @@ final class SettingsTest extends TestCase
                 'app.language' => 'nl',
                 'integrations.api_access' => '1',
                 'integrations.mcp' => '0',
+                'integrations.mcp_roles' => 'admin,analyst,coordinator,walker',
             ],
             $values,
         );
     }
 
     /**
-     * @return iterable<string, array{SettingName, string|int|bool, string}>
+     * @return iterable<string, array{SettingName, string|int|bool|list<string>, string}>
      */
     public static function tidied(): iterable
     {
@@ -81,13 +82,19 @@ final class SettingsTest extends TestCase
         yield 'switch off' => [SettingName::ApiAccess, false, '0'];
         yield 'switch on' => [SettingName::ApiAccess, true, '1'];
         yield 'MCP switched on' => [SettingName::McpAccess, true, '1'];
+        yield 'roles for MCP in order, each once' => [SettingName::McpRoles, ['walker', 'analyst', 'walker'], 'analyst,walker'];
+        yield 'one role for MCP' => [SettingName::McpRoles, ['coordinator'], 'coordinator'];
+        yield 'no role for MCP, only the members the admin picks' => [SettingName::McpRoles, [], ''];
         yield 'language' => [SettingName::Language, 'en', 'en'];
         yield 'version of an uploaded logo' => [SettingName::Logo, '3f2a9c1d0b8e7f65', '3f2a9c1d0b8e7f65'];
     }
 
+    /**
+     * @param string|int|bool|list<string> $value
+     */
     #[Test]
     #[DataProvider('tidied')]
-    public function it_stores_a_changed_value_in_one_form(SettingName $name, string|int|bool $value, string $stored): void
+    public function it_stores_a_changed_value_in_one_form(SettingName $name, string|int|bool|array $value, string $stored): void
     {
         $settings = Settings::fromStored([])->with([$name->value => $value]);
 
@@ -95,7 +102,7 @@ final class SettingsTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{SettingName, string|int|bool, class-string<\Throwable>}>
+     * @return iterable<string, array{SettingName, string|int|bool|list<string>, class-string<\Throwable>}>
      */
     public static function refused(): iterable
     {
@@ -117,14 +124,19 @@ final class SettingsTest extends TestCase
         yield 'text for a number' => [SettingName::MinimumWalkers, 'two', InvalidSetting::class];
         yield 'switch for a text' => [SettingName::ContactName, true, InvalidSetting::class];
         yield 'minimum above the maximum' => [SettingName::MinimumWalkers, 8, InvalidStaffingDefaults::class];
+        yield 'role for MCP that does not exist' => [SettingName::McpRoles, ['walker', 'member'], InvalidSetting::class];
+        yield 'text for the roles for MCP' => [SettingName::McpRoles, 'walker', InvalidSetting::class];
+        yield 'list for a text' => [SettingName::ContactName, ['Piet'], InvalidSetting::class];
+        yield 'list for a switch' => [SettingName::McpAccess, ['walker'], InvalidSetting::class];
     }
 
     /**
+     * @param string|int|bool|list<string> $value
      * @param class-string<\Throwable> $refusal
      */
     #[Test]
     #[DataProvider('refused')]
-    public function it_refuses_a_value_that_breaks_the_rule_of_its_setting(SettingName $name, string|int|bool $value, string $refusal): void
+    public function it_refuses_a_value_that_breaks_the_rule_of_its_setting(SettingName $name, string|int|bool|array $value, string $refusal): void
     {
         $this->expectException($refusal);
 

@@ -118,7 +118,9 @@ versions follow [Semantic Versioning](https://semver.org/).
 - Every message is a mail in HTML and text, in Dutch or English as the association sets it, with its name, colour
   and logo: login code, invitation, reminder, a round that seeks a buddy, a walker who withdrew and a cancelled
   round. A mail names no member, phone number, address or note; replies go to the contact address of the
-  association. In dark mode a mail turns dark, with the dark primary colour of the association.
+  association. In dark mode a mail turns dark, with the dark primary colour of the association. Mails use only CSS
+  that mail programs keep, spacing as padding on table cells and no rounded corners, so they look alike in Outlook,
+  webmail and mail apps.
 - The reminder goes out as many days ahead as the setting `reminderDaysAhead` says, counted on the local clock.
 - With the setting `apiAccess` off, every API token is refused from its next request and no new token can be made
   (409 `api_tokens_disabled`); members still list and revoke their tokens.
@@ -207,14 +209,16 @@ versions follow [Semantic Versioning](https://semver.org/).
 - MCP server at `/mcp` (Streamable HTTP, both protocol eras) and `symfony console mcp:server` (STDIO, with an API
   token in `MCP_TOKEN`), through `symfony/mcp-bundle` and `mcp/sdk`, both pinned to their minor. Off until an admin
   sets `mcpAccess`; off, `/mcp` answers 404 to every request. Only API tokens give access, on the channel `mcp` in the
-  audit log; a token may make 60 requests a minute, and the server answers only for the host of `DEFAULT_URI`.
+  audit log; the server answers only for the host of `DEFAULT_URI`. A percent-encoded path such as `/%6Dcp` counts as
+  `/mcp`, since the firewall and the router decode it.
 - Thirteen tools, each the `…Tool` adapter of a use case with a parity test against REST: `list_rounds`, `get_round`,
   `my_rounds`, `staffing_gaps`, `list_meeting_points`, `list_outcomes`, `sign_up_for_round`, `withdraw_from_round`,
   `create_round`, `report_round_result`, `add_round_comment`, `report_summary` and `round_statistics`. A tool that
   only reads needs the scope `read`, any other `write`; a failed call is a tool result with the problem REST would
   answer. No tool, resource or prompt gives a phone number, address or e-mail address, nor the note of a report or
   a comment.
-- The resource `buurtpreventie://config` and the prompts `monthly_report` and `plan_week`.
+- The resource `buurtpreventie://config` and the prompts `monthly_report` and `plan_week`. `monthly_report` asks for a
+  draft that says so, names its period and the tools behind its counts, and holds no number a tool did not return.
 - `GET /api/v1/stats?from=&to=&groupBy=` (`RoundStatistics`): how the rounds of a period of at most a year went per
   month, weekday or daypart, next to the period before, for analysts and coordinators.
 - `GET /api/v1/reports/summary?from=&to=` (`SummariseRoundReports`): the reports of a period counted per outcome, and
@@ -224,3 +228,30 @@ versions follow [Semantic Versioning](https://semver.org/).
 - `GET /api/v1/rounds`, `GET /api/v1/staffing-gaps` and the tools `list_rounds` and `staffing_gaps` say per round
   whether the member asking walks it (`signedUp`), so a client tells a round of their own that seeks a buddy from one
   to join.
+- A Claude Code plugin in `plugins/buurtpreventie`, installed from `main` through a marketplace in this repository: it
+  asks for the address of the app and an API token at install, keeps the token in the keychain of the system, and adds
+  a skill on when and how to use the tools: one confirmation per write, text typed by members read as data, results
+  passed nowhere else unasked. The skill also works in Cursor and GitHub Copilot. Its README and the user guide say
+  what reaches the provider of an AI client, that a member checks before confirming, and that it comes without
+  warranty.
+- The instructions of the MCP server name every field with text typed by members and ask for a confirmation before
+  every write.
+- The `edge` sample data hold a start note and a display name that try to instruct an AI client.
+- Limits per API token on REST and MCP together: 60 reads a minute, 2000 reads a day and 20 writes an hour, then 429
+  with `Retry-After`; over MCP a write above the limit is a tool error with status 429 and `retryAfter`. A browser
+  session does not count.
+- The first daily limit a token reaches on a day leaves the audit entry `api_token.limit_reached` and a mail to its
+  member; a new token mails its member too. Neither mail holds a link, and `docs/writing.md` says why.
+- `GET /api/v1/admin/api-tokens` lists every active token of every member for the admin, without secret or hash;
+  `POST /api/v1/admin/members/{id}/api-tokens/revoke` revokes every token of one member.
+- The setting `mcpRoles` lists the roles a member keeps on the MCP server, all four by default; an empty list leaves
+  MCP to picked members. A member with no role left gets 403 `mcp_not_for_role` on every MCP request, which counts
+  toward no limit, and `mcp:server` says why it does not start. REST keeps every role.
+- `mcpAllowed` on a member (`PATCH /api/v1/admin/members/{id}`, shown in the member list and detail of the admin) opens
+  MCP with every role of that member; erasing switches it off. `POST /api/v1/admin/members/mcp-allowed/reset`
+  switches it off for every member at once, with an audit entry per member. In the `demo` set the walker with an API
+  token is picked.
+- `McpContactDetailsTest` also fails on a field for a phone number, e-mail address, address or full name in an MCP
+  answer, empty or not, and on a note or comment with text.
+- `docs/writing.md`: texts for end users name no setting or endpoint the reader cannot reach, mails never look like
+  phishing, and people are written about without gender.

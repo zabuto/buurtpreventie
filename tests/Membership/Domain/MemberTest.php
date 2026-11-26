@@ -40,6 +40,12 @@ final class MemberTest extends TestCase
     }
 
     #[Test]
+    public function it_starts_unpicked_for_mcp(): void
+    {
+        $this->assertFalse($this->member()->isMcpAllowed());
+    }
+
+    #[Test]
     public function it_keeps_each_role_once(): void
     {
         $member = $this->member();
@@ -65,11 +71,12 @@ final class MemberTest extends TestCase
         $member = $this->member();
         $member->changeRoles([Role::Walker]);
         $member->changeContactConsent(true);
+        $member->allowMcp(true);
 
         $member->erase(new DateTimeImmutable(self::NOW));
 
         $this->assertSame(
-            [null, null, null, null, null, null, null, [], false, false, false],
+            [null, null, null, null, null, null, null, [], false, false, false, false],
             [
                 $member->email(),
                 $member->name(),
@@ -81,6 +88,7 @@ final class MemberTest extends TestCase
                 $member->roles(),
                 $member->consentsToContactShare(),
                 $member->wantsOpenRoundNotifications(),
+                $member->isMcpAllowed(),
                 $member->isActive(),
             ],
         );
@@ -121,6 +129,17 @@ final class MemberTest extends TestCase
         $this->expectException(MemberErased::class);
 
         $member->changeOpenRoundNotifications(true);
+    }
+
+    #[Test]
+    public function it_refuses_to_allow_mcp_once_erased(): void
+    {
+        $member = $this->member();
+        $member->erase(new DateTimeImmutable(self::NOW));
+
+        $this->expectException(MemberErased::class);
+
+        $member->allowMcp(true);
     }
 
     #[Test]

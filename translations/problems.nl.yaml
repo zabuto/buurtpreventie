@@ -42,6 +42,7 @@ invitation_ended: Deze uitnodiging werkt niet meer. Vraag een inlogcode aan, of 
 csrf_check_failed: De app kon niet controleren of dit verzoek van deze site komt. Laad de pagina opnieuw en probeer het nog eens.
 unauthorized: Je bent niet ingelogd.
 insufficient_scope: Je token mag dit niet. Maak een token met de juiste rechten.
+mcp_not_for_role: Je mag de koppeling met AI-apps (MCP) niet gebruiken. Vraag het de beheerder.
 browser_only: 'Je tokens beheer je in de app, niet met een token.'
 access_denied: Dit mag je niet doen.
 reauthentication_required: 'Laat zien dat jij het bent: vul je wachtwoord in, of log opnieuw in met een code.'

@@ -1,0 +1,26 @@
+{
+    "name": "buurtpreventie",
+    "version": "1.0.0",
+    "description": "Plan neighbourhood watch rounds, find a walking buddy and report back, through the MCP server of your own Buurtpreventie app",
+    "author": {
+        "name": "zabuto"
+    },
+    "repository": "https://github.com/zabuto/buurtpreventie",
+    "license": "PolyForm-Noncommercial-1.0.0",
+    "keywords": ["neighbourhood-watch", "mcp"],
+    "userConfig": {
+        "server_url": {
+            "type": "string",
+            "title": "App address",
+            "description": "The address of your Buurtpreventie app, such as https://buurtpreventie.example.org, without /mcp",
+            "required": true
+        },
+        "token": {
+            "type": "string",
+            "title": "API token",
+            "description": "An API token you made in the app (bpt_…), with the scope read, and write to sign up or report back",
+            "required": true,
+            "sensitive": true
+        }
+    }
+}

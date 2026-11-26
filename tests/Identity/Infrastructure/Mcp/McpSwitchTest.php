@@ -60,6 +60,19 @@ final class McpSwitchTest extends ApiTestCase
         self::assertResponseStatusCodeSame(404);
     }
 
+    /**
+     * The firewall and the router decode the path, so an encoded `/mcp` reaches the MCP server and has to be closed too.
+     */
+    #[Test]
+    public function it_answers_404_on_a_percent_encoded_path_to_mcp_while_mcp_is_off(): void
+    {
+        $client = self::createClient();
+
+        $client->request('POST', '/%6Dcp', server: ['HTTP_HOST' => 'example.org']);
+
+        self::assertResponseStatusCodeSame(404);
+    }
+
     #[Test]
     public function it_lets_requests_to_mcp_through_once_mcp_is_on(): void
     {

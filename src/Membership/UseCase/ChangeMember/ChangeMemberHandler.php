@@ -52,6 +52,10 @@ final readonly class ChangeMemberHandler
             if (!$input->certified instanceof Unchanged) {
                 $member->certify($input->certified);
             }
+
+            if (!$input->mcpAllowed instanceof Unchanged) {
+                $member->allowMcp($input->mcpAllowed);
+            }
             $this->members->update($member);
 
             $changes = self::changes($before, self::snapshot($member));
@@ -105,6 +109,7 @@ final readonly class ChangeMemberHandler
             'phone' => $member->phone()?->value,
             'address' => $member->address(),
             'certified' => $member->isCertified(),
+            'mcpAllowed' => $member->isMcpAllowed(),
         ];
     }
 

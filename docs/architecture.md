@@ -27,6 +27,8 @@ src/
                       the MCP plumbing, the generator
   Kernel.php
 tests/                the same folders as src/, plus Architecture/, Database/, Dependencies/ and Tools/
+plugins/buurtpreventie/  the Claude Code plugin: MCP configuration and skill, see MCP server
+.claude-plugin/       the marketplace that lists the plugin
 ```
 
 | Module | Covers |
@@ -221,7 +223,11 @@ token up by the SHA-256 hash of the secret on every request, so a revocation or 
 Before that it reads the setting `apiAccess` through `GetApiTokenAccess`, one query: switched off, it refuses every
 token (`tokens_disabled`), and `CreateApiToken` refuses a new one with the 409 problem `api_tokens_disabled`, while
 listing and revoking keep working, since revoking is a step after a leak. `ApiToken::refusalAt()` decides why a known token lets nobody in (revoked, expired, member inactive); the member
-comes from `MemberDirectory::identity()`, read afresh, so a changed role counts on the next request.
+comes from `MemberDirectory::identity()`, read afresh, so a changed role counts on the next request. On `/mcp` the
+authenticator narrows the roles: a member with `mcpAllowed` keeps every role, any other member keeps only the roles in
+the setting `mcpRoles` (`GetMcpAccess`), so the voters see no other. With no role left, `McpNotForRole` makes it the
+403 problem `mcp_not_for_role`, raised in the firewall and so before `TokenRateLimit` counts the request. REST keeps
+every role of the member.
 
 Under `/api/` a request needs a logged-in member, except `/api/v1/health`, `/api/v1/docs.json`, `/api/v1/config`,
 `/api/v1/manifest.webmanifest`, and everything under `/api/v1/auth/` and `/api/v1/media/brand/`. Without one, `SessionEntryPoint` answers with the 401 problem `unauthorized` and logs the path.
@@ -280,21 +286,35 @@ problem `insufficient_scope`. The voters then decide on the roles as for any req
 allow an action. `TokenManagementGuard` refuses every token request under `/api/v1/me/tokens` with the 403 problem
 `browser_only`, whatever its scopes: a leaked token can neither list, create nor revoke tokens.
 
+`TokenRateLimit` runs after `TokenScopeGuard` and holds every token request, on `/api/v1` and `/mcp` alike, to the
+limits of that token in `config/packages/rate_limiter.yaml`, keyed by the id of the token, never its secret, and counted
+in files in `cache.token_requests`: 60 reads a minute and 2000 a day (`token_reads_per_minute`, `token_reads_per_day`),
+20 writes an hour (`token_writes_per_hour`). A `GET` or `HEAD` is a read, any other method a write, and every request to
+`/mcp` a read; a tool call that writes counts toward the write limit too, in `ScopedReferenceHandler`. Above a limit the
+429 problem `too_many_requests` with `Retry-After`; a tool call above the write limit is a tool error with the same
+problem and the seconds in `retryAfter`. The paths share the limits, so a token stopped on one cannot carry on along the
+other; a browser session does not count. The first time on a local day that a token reaches its daily limit,
+`TokenLimitTrace` records `api_token.limit_reached` with the name of the token and the channel of the request, and mails
+the member (`account.token_limit_reached`) which token and when, and to revoke it and tell the coordinator when it was
+not them. Like the mail about a new token, it holds no link: a security warning with one is what a phishing mail looks
+like, so the member opens the app themselves. Later refusals that day leave no trace. Reading itself stays out of the
+audit log, which would otherwise hold a reading history of every member.
+
 **Own account.** Everything under `/api/v1/me` is about the member logged in, and the controllers there pass no member
 id, so one in the body counts for nothing. `GET /me` (`GetOwnProfile`) shows the whole profile. `PATCH /me`
 (`ChangeOwnContactDetails`) takes phone number, address, consent and notifications about open rounds; null removes a
 phone number or address, empty text is refused. Consent and notifications go through `ChangeContactConsent` and
-`ChangeOpenRoundNotifications`, so they are the same audit actions wherever they change. Name, display name and
-e-mail address stay with the admin, so a hijacked session cannot move the address a login code goes to.
-`PUT /me/password` (`SetPassword`) and `POST /me/tokens` (`CreateApiToken`) need a recent login, otherwise the 403
-problem `reauthentication_required`; a login with a code counts, which is how a member replaces a forgotten password.
-A new token expires within 365 days and its secret is only in the answer to `POST`; `GET /me/tokens`
-(`ListApiTokens`) lists the tokens not revoked, and `DELETE /me/tokens/{id}` (`RevokeApiToken`) revokes one.
-`GET /me/activity` (`ListOwnActivity`) gives the member's own audit entries, 50 a page; of an entry about another
-member, such as a role an admin gave, it keeps the action but not who it was about or what changed.
-`GET /me/export` (`ExportOwnData`) gathers profile, rounds, reports and comments (`ExportOwnPatrolData`), tokens and
-every activity entry through the use cases of each module, and of another member it holds a buddy's display name
-only.
+`ChangeOpenRoundNotifications`, so they are the same audit actions wherever they change. Name, display name and e-mail
+address stay with the admin, so a hijacked session cannot move the address a login code goes to. `PUT /me/password`
+(`SetPassword`) and `POST /me/tokens` (`CreateApiToken`) need a recent login, otherwise the 403 problem
+`reauthentication_required`; a login with a code counts, which is how a member replaces a forgotten password. A new
+token expires within 365 days and its secret is only in the answer to `POST`. The member gets a mail
+(`account.token_created`) with its name, scopes and expiry, never the secret, so a token they did not make stands out.
+`GET /me/tokens` (`ListApiTokens`) lists the tokens not revoked, and `DELETE /me/tokens/{id}` (`RevokeApiToken`) revokes
+one. `GET /me/activity` (`ListOwnActivity`) gives the member's own audit entries, 50 a page; of an entry about another
+member, such as a role an admin gave, it keeps the action but not who it was about or what changed. `GET /me/export`
+(`ExportOwnData`) gathers profile, rounds, reports and comments (`ExportOwnPatrolData`), tokens and every activity entry
+through the use cases of each module, and of another member it holds a buddy's display name only.
 
 **Naming.** Every JSON key, in a body, an answer or a problem, and every query parameter is camelCase
 (`walkerCount`, `existingId`, `allEntries`). Codes and enum values are snake_case (`round_is_full`, `seeking_buddy`,
@@ -365,13 +385,22 @@ with `#[OA\Property]` on the output, because Nelmio does not read an array shape
 for the admin (voter attribute `member.view` and the other `member.*` attributes): `GET` lists every member that is
 not erased, deactivated ones included, and `GET /admin/members/{id}` (`GetMember`) shows one, both with e-mail
 address, contact details, roles and choices (`ListMembers`); `POST` (`AddMember`) adds a member, `PATCH
-/admin/members/{id}` (`ChangeMember`) changes name, display name, e-mail address, contact details and certificate,
+/admin/members/{id}` (`ChangeMember`) changes name, display name, e-mail address, contact details, certificate and
+`mcpAllowed` (MCP with every role of the member, whatever `mcpRoles` holds; erasing switches it off),
 `PUT /admin/members/{id}/roles` (`ChangeMemberRoles`) sets the roles, `POST` and `DELETE
 /admin/members/{id}/deactivation` (`DeactivateMember`, `ReactivateMember`) deactivate and reactivate, `DELETE
 /admin/members/{id}` (`EraseMember`) erases. Changing roles and erasing need a recent login, otherwise the 403 problem
 `reauthentication_required`. `POST /admin/members/{id}/invitation` (`InviteMember`) sends an invitation, also for a
 coordinator; the answer holds the secret only for an admin inviting a member who never logged in, and the frontend
-makes the link of it.
+makes the link of it. `POST /admin/members/mcp-allowed/reset` (`ResetMcpAllowed`, `member.reset_mcp_allowed`, admin
+only) switches `mcpAllowed` off for every member that has it, with a `member.changed` entry per member, and answers
+`membersReset`.
+
+`GET /admin/api-tokens` (`ListAllApiTokens`, voter attribute `api_token.list_all`, admin only) lists every token that
+is neither revoked nor expired, of every member, newest first: the member's id and display name, the name, scopes,
+creation, last use and expiry of the token, never its secret or hash. `POST /admin/members/{id}/api-tokens/revoke`
+(`RevokeMemberApiTokens`, `api_token.revoke_all`) revokes every token of that member at once, with an audit entry per
+token; deactivating and erasing a member run the same handler. Neither is an MCP tool: administration stays out of MCP.
 
 **Catalogues.** `GET /meeting-points` (`ListMeetingPoints`) and `GET /outcomes` (`ListOutcomes`) give every member the
 items to choose from, by name, without the archived ones (voter attribute `catalogue.list`); under
@@ -482,8 +511,11 @@ A tool acts only for the member of the token: none takes a member id, so acting 
 app. `get_round` gives each walker its id and display name only, never the full name or phone number, whatever the
 consent. It gives the outcome of the report with the note `null` and no comments: members type those freely, often
 about a suspect, and over MCP that text would leave the association for the provider of the AI client; they are read
-in the app. `startNote` and `cancelReason` stay, short practical text a client needs to plan, in their own field;
-the instructions of the server call such text data, not instructions. `withdraw_from_round` carries `destructiveHint: true`, because the
+in the app. `startNote` and `cancelReason` stay, short practical text a client needs to plan, in their own field.
+The instructions of the server (`config/packages/mcp.yaml`) name every field with text typed by members (display
+names, names of meeting points and outcomes, `startNote`, `cancelReason`) as data, not instructions, and ask for a
+confirmation of the member before every write; `McpInstructionsTest` holds them to that, because they reach every
+client, also one without the plugin. `withdraw_from_round` carries `destructiveHint: true`, because the
 last walker who withdraws makes the round lapse.
 
 **Scope and failures.** `McpServerFactory` builds the server of the bundle with a reference handler of this app around
@@ -497,30 +529,49 @@ lookup of tools private, so `McpElements` gives the SDK the tools, prompts and r
 language of the association, the minimum and maximum walkers of a new round, and the meeting points and outcomes,
 never the contact. The prompts `monthly_report(month)` and `plan_week(weekStart?)` hold no data: they name the tools
 to call and the period in local time, and ask for an answer in the language of the association, so the client
-fetches only what the member of the token may see.
+fetches only what the member of the token may see. `monthly_report` asks for a draft that says so in its first line,
+names its period and the tools its counts come from, holds no number a tool did not return, and says when a count is
+missing.
 
 **A request to `/mcp`** passes, in this order:
 
 1. `McpSwitch`, before the firewall: with `mcpAccess` off every request is the 404 problem `not_found`, and no token
    is looked up.
 2. The `mcp` firewall: an API token only. Without one, or with a session cookie alone, an empty 401 with
-   `WWW-Authenticate: Bearer`; a session would let another site act as the member.
+   `WWW-Authenticate: Bearer`; a session would let another site act as the member. A member without `mcpAllowed`
+   and without a role in `mcpRoles` gets the 403 problem `mcp_not_for_role` here.
 3. `TokenScopeGuard`: `read`.
-4. `McpRateLimit`: 60 requests a minute per token id (`mcp_per_token`, counted in files in `cache.mcp_requests`);
-   above it the 429 problem `too_many_requests` with `Retry-After`.
+4. `TokenRateLimit`: the request counts as a read toward the limits of the token, shared with REST; above one the
+   429 problem `too_many_requests` with `Retry-After`.
 5. The DNS rebinding protection of the bundle: the `Host` must be the host of `DEFAULT_URI`, and an `Origin`, when a
    client sends one, that same origin; in `dev` the MCP Inspector at `http://localhost:6274` too. Otherwise 403.
-6. Per tool call the scope, then the voter in the handler.
+6. Per tool call the scope and, for a tool that writes, the write limit of the token, then the voter in the
+   handler.
 
-`ProblemResponder` and `ApiSecurityHeaders` treat `/mcp` as part of the API.
+`McpSwitch`, the authenticator, `TokenScopeGuard` and `TokenRateLimit` tell `/mcp` by `McpSwitch::isMcp()`, which
+decodes the path first, as the firewall and the router do: otherwise `/%6Dcp` would reach the server past the switch
+and with every role. `ProblemResponder` and `ApiSecurityHeaders` treat `/mcp` as part of the API.
 
 **Protocol eras.** A client of revision `2026-07-28` needs no session. A client of the handshake era (`2025-11-25`
 and older) gets a session that keeps only the negotiated revision, in files under `var/cache/<env>/mcp-sessions/`;
 who acts comes from the token on every request, never from the session.
 
+**Plugin.** `plugins/buurtpreventie` is a Claude Code plugin, listed by the marketplace in `.claude-plugin/`. The
+marketplace is read from `develop`, the default branch, but its entry fetches the plugin from `main` (a `git-subdir`
+source with `ref: main`), so a member only gets a plugin whose tools a release serves; `AgentPluginTest` keeps that
+pin. Its
+`.mcp.json` points at `${user_config.server_url}/mcp` with the token from `userConfig`, which Claude Code asks at
+install and keeps in the keychain of the system. Its skill (`skills/buurtpreventie/SKILL.md`, Agent Skills format)
+says which tool fits which question and what only the model can guard: one confirmation per write, typed text read as
+data, results passed nowhere else unasked. The skill is guidance, not protection: every rule that has to hold stays in
+the server, and a client without the skill can do no more. `AgentPluginTest` fails when the skill and the tools of the
+server drift apart, when `.mcp.json` takes the token from anywhere but the member's configuration, and when the
+version is not semantic; members get a change only through a new version in `plugin.json`.
+
 **STDIO.** `StdioAuthentication` runs before `mcp:server` starts: with MCP on and the secret of an API token in
-`MCP_TOKEN`, `ApiTokenAuthenticator` checks it, and the command runs as that member on the channel `mcp`; otherwise it
-stops with exit code 1. The token is checked once, when the process starts.
+`MCP_TOKEN`, `ApiTokenAuthenticator` checks it, roles on MCP included, and the command runs as that member on the
+channel `mcp`; otherwise it stops with exit code 1, saying "MCP is off. Ask the admin." or "MCP is not open to
+you. Ask the admin." when one of those is the reason. The token is checked once, when the process starts.
 
 ## Handler and domain
 
@@ -611,7 +662,7 @@ secret of that token, which the app keeps only as a hash, for the curl scenario 
 | --- | --- |
 | `demo` | The association "Buurtpreventie Voorbeeldwijk" with colours of its own, a logo and icon that `SampleBrand` draws with GD, and the coordinator as contact, all through `ChangeSettings` and `ChangeBrandImage`; twenty members with every role, rounds from three months back to six weeks ahead, mostly in the evening, more than a quarter without a buddy, a few full ones, reports with now and then an incident, a deactivated member and an erased member in the history |
 | `test` | An admin, a meeting point and the standard outcomes; each test builds the rest |
-| `edge` | One of each hard case: rounds around the last clock change, a last walker who withdraws, an erased member in the history, a member without consent, rounds just under the minimum, at the maximum and with one spot left, two members who share their full name, and an association name of exactly 100 characters, the limit, with the short name `BP` |
+| `edge` | One of each hard case: rounds around the last clock change, a last walker who withdraws, an erased member in the history, a member without consent, rounds just under the minimum, at the maximum and with one spot left, two members who share their full name, an association name of exactly 100 characters, the limit, with the short name `BP`, and a start note and a display name that try to instruct an AI client |
 
 A fixed seed gives the same people and pattern on every load; only the dates follow today. Names are
 made up and international, with letters the lookup key keeps (`ı`, `ł`); a display name is the first

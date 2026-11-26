@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 use Rector\Config\RectorConfig;
+use Rector\DeadCode\Rector\ClassMethod\RemoveEmptyClassMethodRector;
 use Rector\DeadCode\Rector\ClassMethod\RemoveUnusedPublicMethodParameterRector;
+use Rector\Symfony\Symfony80\Rector\Class_\RemoveEraseCredentialsRector;
 use Rector\TypeDeclaration\Rector\ClassMethod\NarrowObjectReturnTypeRector;
 
 return RectorConfig::configure()
@@ -33,6 +35,10 @@ return RectorConfig::configure()
             __DIR__.'/tests/Shared/Infrastructure/Doctrine/UtcDateTimeImmutableTypeTest.php',
             __DIR__.'/src/*/Domain/*',
         ],
+        // Symfony 7.4 still declares eraseCredentials() in UserInterface, so the empty method stays until the app runs
+        // on Symfony 8 only. @upgrade-8.4 Drop these two skips and let the rules remove the methods.
+        RemoveEraseCredentialsRector::class => [__DIR__.'/src/Shared/Infrastructure/Security'],
+        RemoveEmptyClassMethodRector::class => [__DIR__.'/src/Shared/Infrastructure/Security'],
     ])
     ->withPhpSets(php84: true)
     ->withComposerBased(symfony: true, phpunit: true)

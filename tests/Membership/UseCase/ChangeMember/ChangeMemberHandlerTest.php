@@ -141,6 +141,21 @@ final class ChangeMemberHandlerTest extends TestCase
         );
     }
 
+    /**
+     * The admin picks a member who may use MCP with every role, whichever roles the association allows there.
+     */
+    #[Test]
+    public function it_lets_the_member_use_mcp_and_records_the_old_and_new_value(): void
+    {
+        $this->handler()(new ChangeMember(memberId: $this->jan->id()->toRfc4122(), mcpAllowed: true));
+
+        $this->assertTrue($this->jan->isMcpAllowed());
+        $this->assertEquals(
+            [new AuditedAction('member.changed', 'member', $this->jan->id(), ['mcpAllowed' => ['old' => false, 'new' => true]])],
+            $this->auditTrail->recorded,
+        );
+    }
+
     #[Test]
     public function it_records_nothing_when_nothing_changed(): void
     {

@@ -49,6 +49,7 @@ final readonly class ListMembersHandler
      *     certified: bool,
      *     consentContactShare: bool,
      *     notifyOpenRounds: bool,
+     *     mcpAllowed: bool,
      * }
      */
     private static function record(Member $member): array
@@ -65,6 +66,7 @@ final readonly class ListMembersHandler
             'certified' => $member->isCertified(),
             'consentContactShare' => $member->consentsToContactShare(),
             'notifyOpenRounds' => $member->wantsOpenRoundNotifications(),
+            'mcpAllowed' => $member->isMcpAllowed(),
         ];
     }
 }

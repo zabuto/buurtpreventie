@@ -63,12 +63,12 @@ final class ChangeMemberEndpointTest extends ApiTestCase
         self::actingAs($client, Role::Admin);
         $piet = self::piet();
 
-        $client->jsonRequest('PATCH', self::path($piet), ['email' => null, 'certified' => null]);
+        $client->jsonRequest('PATCH', self::path($piet), ['email' => null, 'certified' => null, 'mcpAllowed' => null]);
 
         self::assertResponseStatusCodeSame(422);
         /** @var array{violations: list<array{field: string}>} $problem */
         $problem = self::json($client);
-        self::assertEqualsCanonicalizing(['email', 'certified'], \array_column($problem['violations'], 'field'));
+        self::assertEqualsCanonicalizing(['email', 'certified', 'mcpAllowed'], \array_column($problem['violations'], 'field'));
     }
 
     #[Test]
@@ -78,14 +78,15 @@ final class ChangeMemberEndpointTest extends ApiTestCase
         self::actingAs($client, Role::Admin);
         $piet = self::piet();
 
-        $client->jsonRequest('PATCH', self::path($piet), ['displayName' => 'Piet dV.', 'certified' => true]);
+        $client->jsonRequest('PATCH', self::path($piet), ['displayName' => 'Piet dV.', 'certified' => true, 'mcpAllowed' => true]);
 
         self::assertResponseStatusCodeSame(204);
-        self::assertSame(['Piet de Vries', 'Piet dV.', '06 1234 5678', true], [
+        self::assertSame(['Piet de Vries', 'Piet dV.', '06 1234 5678', true, true], [
             $piet->name(),
             $piet->displayName(),
             $piet->phone()?->value,
             $piet->isCertified(),
+            $piet->isMcpAllowed(),
         ]);
     }
 

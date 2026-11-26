@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Settings\UseCase\GetSettings;
 
+use App\Settings\Domain\RoleList;
 use App\Settings\Domain\SettingName;
 use App\Settings\Domain\SettingRepository;
 use App\Settings\Domain\Settings;
@@ -61,6 +62,7 @@ final readonly class GetSettingsHandler
             language: (string) $value(SettingName::Language),
             apiAccess: '1' === $value(SettingName::ApiAccess),
             mcpAccess: '1' === $value(SettingName::McpAccess),
+            mcpRoles: RoleList::of((string) $value(SettingName::McpRoles)),
             defaults: self::defaults($settings),
         );
     }

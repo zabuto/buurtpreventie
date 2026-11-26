@@ -1,9 +1,10 @@
 {% extends 'mail/layout.html.twig' %}
+{% import 'mail/_blocks.html.twig' as mail %}
 
 {% block content %}
-<p style="margin:0;">{{ 'round.reminder.intro'|trans({rounds: rounds|length}, 'mail', locale) }}</p>
+{{ mail.paragraph('round.reminder.intro'|trans({rounds: rounds|length}, 'mail', locale)) }}
 {% for round in rounds %}
 {{ include('mail/round/_round.html.twig', {round: round, count: 'others'}) }}
 {% endfor %}
-<p style="margin:0;">{{ 'round.reminder.withdraw'|trans({}, 'mail', locale) }}</p>
+{{ mail.paragraph('round.reminder.withdraw'|trans({}, 'mail', locale)) }}
 {% endblock %}

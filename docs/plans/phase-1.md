@@ -361,7 +361,7 @@ Eerst de tests, in memory, met een vaste klok. Per v3-regel:
 | Herinnering één keer per lid per dag, alleen actieve lopers | blijft | `it_reminds_each_active_walker_once` |
 | `setActive(false)` wist wachtwoord en token | verbeterd: account uit, tokens ingetrokken, wachtwoord blijft voor heractiveren | `it_revokes_every_token_on_deactivation` (Membership/Identity) |
 | `erasePersonalInformation` | blijft, plus naam "verwijderd lid" in historie en auditlog | `it_erases_contact_details_and_the_name` |
-| Ronde wijzigen of verwijderen: coördinator of maker | verbeterd: coördinator, of de eigenaar zolang hij de enige loper is | `it_lets_the_owner_change_a_round_until_a_buddy_joins` |
+| Ronde wijzigen of verwijderen: coördinator of maker | verbeterd: coördinator, of de eigenaar zolang die de enige loper is | `it_lets_the_owner_change_a_round_until_a_buddy_joins` |
 | Aanmelden: elke ingelogde gebruiker | verbeterd: rol `walker` | in de matrixtest |
 
 Nieuwe regels, die v3 niet had (beslissing 2):
@@ -467,7 +467,7 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
   | --- | --- |
   | Ronde aanmaken | loper; coördinator namens een actief lid |
   | Begonnen ronde annuleren | loper van die ronde, coördinator |
-  | Ronde wijzigen of verwijderen | coördinator; eigenaar zolang hij de enige loper is |
+  | Ronde wijzigen of verwijderen | coördinator; eigenaar zolang die de enige loper is |
   | Zelf aan- of afmelden | loper |
   | Namens aan- of afmelden, loper verwijderen | coördinator |
   | Terugmelden (één per ronde) | loper van die ronde, coördinator |
@@ -501,12 +501,12 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
     annuleert. Een begonnen ronde verwijderen kan niet (besloten op 15 november 2026);
   - de eigenaar wordt afgeleid, niet opgeslagen: de loper die zich het eerst aanmeldde en nog in de ronde zit.
     Meldt die zich af, dan is de volgende de eigenaar. Beslissing 7 wordt daarmee: de coördinator altijd, de
-    eigenaar zolang hij de enige loper is. `Round.createdBy` en de kolom `created_by` vervallen; wie de ronde
+    eigenaar zolang die de enige loper is. `Round.createdBy` en de kolom `created_by` vervallen; wie de ronde
     aanmaakte, staat in het auditlog: `round.created` met de uitvoerder (ook een coördinator) en in de gewijzigde
     velden de eerste loper. Bij aanmaken namens bewaart de aanmelding van de eerste loper ook `onBehalfOf`;
   - `GetRound` toont het telefoonnummer van een loper met toestemming alleen aan de andere lopers van die ronde en
     aan de coördinator;
-  - de laatste beheerder kan zijn rol niet kwijtraken en niet gedeactiveerd of gewist worden; `ChangeMemberRoles`,
+  - de laatste beheerder kan de rol beheerder niet kwijtraken en niet gedeactiveerd of gewist worden; `ChangeMemberRoles`,
     `DeactivateMember` en `EraseMember` weigeren dat met een eigen fout;
   - `NotifyBuddyNeeded` stuurt één bericht per ronde, aan actieve lopers met `notifyOpenRounds` die er nog niet in
     zitten, en alleen als de ronde dan nog een loopmaatje zoekt. Niet bij het aanmaken: lopers krijgen eerst de tijd
@@ -516,8 +516,8 @@ Daarna `Round`, `Participation`, `RoundReport`, `Outcome`, `MeetingPoint`, `Roun
     geplande meldingen; de melding "meteen" verstuurt `CreateRound` zelf, zodat die ook zonder cron aankomt. De ronde
     onthoudt dat de melding verstuurd is, dus een loopmaatje dat zich aan- en weer afmeldt, geeft geen tweede;
   - de analist schrijft niets; wat elk lid mag (eigen toestemming, eigen tokens) en wat een loper van de ronde mag,
-    geldt voor hem als voor ieder ander. Loopt een analist ook, dan krijgt hij de rol loper erbij: rollen tellen op,
-    en elke rol geeft alleen zijn eigen rechten.
+    geldt voor de analist als voor ieder ander. Loopt een analist ook, dan komt de rol loper erbij: rollen tellen
+    op, en elke rol geeft alleen zijn eigen rechten.
 - Wie de actie uitvoert (besloten op 15 november 2026):
   - één bron: de token-opslag van Symfony. `ExecutionContext` leest het token; `SymfonyAuthorization` leest via de
     `AuthorizationChecker` hetzelfde token, dus handler en Voters zien altijd dezelfde uitvoerder;

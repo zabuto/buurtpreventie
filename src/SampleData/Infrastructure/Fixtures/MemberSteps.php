@@ -17,6 +17,8 @@ use App\Membership\UseCase\AddMember\AddMemberHandler;
 use App\Membership\UseCase\AddMember\AddMemberOutput;
 use App\Membership\UseCase\ChangeContactConsent\ChangeContactConsent;
 use App\Membership\UseCase\ChangeContactConsent\ChangeContactConsentHandler;
+use App\Membership\UseCase\ChangeMember\ChangeMember;
+use App\Membership\UseCase\ChangeMember\ChangeMemberHandler;
 use App\Membership\UseCase\ChangeOpenRoundNotifications\ChangeOpenRoundNotifications;
 use App\Membership\UseCase\ChangeOpenRoundNotifications\ChangeOpenRoundNotificationsHandler;
 use App\Membership\UseCase\DeactivateMember\DeactivateMember;
@@ -45,6 +47,7 @@ final readonly class MemberSteps
         private AddFirstAdminHandler $addFirstAdmin,
         private AddMemberHandler $addMember,
         private ChangeContactConsentHandler $changeContactConsent,
+        private ChangeMemberHandler $changeMember,
         private ChangeOpenRoundNotificationsHandler $changeOpenRoundNotifications,
         private DeactivateMemberHandler $deactivateMember,
         private EraseMemberHandler $eraseMember,
@@ -88,6 +91,11 @@ final readonly class MemberSteps
     public function notifyAboutOpenRounds(SampleMember $member, DateTimeImmutable $at): void
     {
         $this->as($member, $at, fn() => ($this->changeOpenRoundNotifications)(new ChangeOpenRoundNotifications($member->id, notify: true)));
+    }
+
+    public function allowMcp(SampleMember $admin, SampleMember $member, DateTimeImmutable $at): void
+    {
+        $this->as($admin, $at, fn() => ($this->changeMember)(new ChangeMember($member->id, mcpAllowed: true)));
     }
 
     public function deactivate(SampleMember $admin, SampleMember $member, DateTimeImmutable $at): void

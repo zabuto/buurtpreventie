@@ -104,7 +104,8 @@ database tests with `symfony php vendor/bin/phpunit --group database`.
   `AuditChainMigrationTest` migrates back to the version before the chain, stores entries as they were, migrates up
   and checks their positions, head and anchor; it commits, so it leaves the schema at the latest version itself.
 - **The sample data.** `LoadFixturesCommandTest` loads every set and checks what it holds: the same
-  people and pattern on any day, the limits of the `demo` set, every hard case in `edge`.
+  people and pattern on any day, the limits of the `demo` set, every hard case in `edge`, among them the start note
+  and display name that try to instruct an AI client, for trying the plugin by hand.
   `LoadedSettingsAndChainTest` checks the branding of `demo`, the names of `edge` and an intact audit chain after
   every set.
 
@@ -146,7 +147,7 @@ the array shapes in the outputs.
 `KernelHttpClient` is a PSR-18 client that hands each request to the in-memory kernel, so switch, firewall, scope,
 rate limit and voters run for real. It switches MCP on, gives the member of the test a token, and connects in
 revision `2026-07-28` or, when a test asks, an older one with the handshake. The kernel takes `example.org` as its host
-for the DNS rebinding protection and counts MCP requests in an `ArrayAdapter`, like login attempts.
+for the DNS rebinding protection and counts the requests of a token in an `ArrayAdapter`, like login attempts.
 
 - Every tool has a test next to its handler test with a parity check: the same question over REST with the same
   token gives the same answer (`get_round` without full name and phone of the walkers, the note of the report and the comments), and a write tool gives the
@@ -158,9 +159,13 @@ for the DNS rebinding protection and counts MCP requests in an `ArrayAdapter`, l
   reaches only the tools for every member.
 - `tests/Shared/McpContactDetailsTest.php` calls every tool, the resource and both prompts as a member who sees the
   most, with walkers who consented to sharing contact details and a note and comment that hold a phone number and an
-  e-mail address, and finds none of them (review focus 3).
-- `tests/Identity/Infrastructure/Mcp/` covers the switch, the token-only firewall, both eras, the rate limit, the
-  host and origin checks, and STDIO.
+  e-mail address, and finds none of them (review focus 3). It also fails on a field for a phone number, e-mail
+  address, address or full name in any answer, empty or not, and on a note or comment with text, so a tool added
+  later cannot slip one in that the sample data leave empty.
+- `tests/Identity/Infrastructure/Mcp/` covers the switch, the token-only firewall, both eras, the rate limit, the roles
+  on MCP per role and per picked member, a percent-encoded path to `/mcp`, the host and origin checks, and STDIO.
+- `tests/Identity/Infrastructure/Security/TokenRateLimitTest.php` proves that reads and writes of one token count
+  toward the same limits over REST and MCP, and that a browser session does not count.
 
 ## Rights and write actions
 

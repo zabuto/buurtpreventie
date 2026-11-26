@@ -44,6 +44,7 @@ final readonly class GetMemberHandler
             certified: $member->isCertified(),
             consentContactShare: $member->consentsToContactShare(),
             notifyOpenRounds: $member->wantsOpenRoundNotifications(),
+            mcpAllowed: $member->isMcpAllowed(),
         );
     }
 }

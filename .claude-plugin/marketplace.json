@@ -1,0 +1,19 @@
+{
+    "name": "buurtpreventie",
+    "description": "The Claude Code plugin of Buurtpreventie, an app that plans neighbourhood watch rounds",
+    "owner": {
+        "name": "zabuto"
+    },
+    "plugins": [
+        {
+            "name": "buurtpreventie",
+            "source": {
+                "source": "git-subdir",
+                "url": "zabuto/buurtpreventie",
+                "path": "plugins/buurtpreventie",
+                "ref": "main"
+            },
+            "description": "Plan neighbourhood watch rounds from an AI client through the MCP server of your own Buurtpreventie app"
+        }
+    ]
+}

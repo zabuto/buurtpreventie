@@ -19,6 +19,6 @@ framework:
             # Login attempts per address and IP address; files, so the count holds across PHP processes.
             cache.login_attempts:
                 adapter: cache.app
-            # Requests to the MCP server per token; files, for the same reason.
-            cache.mcp_requests:
+            # Requests per API token on REST and MCP; files, for the same reason.
+            cache.token_requests:
                 adapter: cache.app

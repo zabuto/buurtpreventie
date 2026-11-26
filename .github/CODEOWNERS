@@ -1,0 +1,4 @@
+# What every installed AI client reads: a change here changes how each of them acts on behalf of a member.
+/plugins/ @zabuto
+/.claude-plugin/ @zabuto
+/config/packages/mcp.yaml @zabuto

@@ -6,10 +6,10 @@ namespace App\Tests\Shared\Infrastructure\Doctrine;
 
 use App\Tests\Database\TestDatabase;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Types\Type;
 use Override;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
+use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 /**
@@ -32,7 +32,7 @@ final class UuidColumnTest extends KernelTestCase
         // @phpstan-ignore method.alreadyNarrowedType (PHPStan reads the type from the container, Mago does not)
         $this->assertInstanceOf(Connection::class, $connection);
 
-        $declaration = Type::getType('uuid')->getSQLDeclaration([], $connection->getDatabasePlatform());
+        $declaration = new UuidType()->getSQLDeclaration([], $connection->getDatabasePlatform());
 
         $this->assertSame('BINARY(16)', $declaration);
     }

@@ -35,6 +35,8 @@ final readonly class ChangeMember implements GroupSequenceProviderInterface
         #[Assert\Length(max: 255, groups: ['address'])]
         public string|Unchanged|null $address = Unchanged::Field,
         public bool|Unchanged $certified = Unchanged::Field,
+        /** On: the member uses MCP with every role, whichever roles the association allows there. */
+        public bool|Unchanged $mcpAllowed = Unchanged::Field,
     ) {
     }
 

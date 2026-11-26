@@ -71,16 +71,16 @@ Fill the development database with a made-up association, its members, rounds an
 symfony console app:fixtures:load demo
 ```
 
-The command empties the database first and asks before it does; `--no-interaction` skips the
-question. Besides `demo` there are `test` (the least an installation needs) and `edge` (the hard
-cases); see [Sample data](architecture.md#sample-data). Every date follows today, so the calendar is
-never empty. The command exists only in `dev` and `test`. The first admin of every set, `beheer@example.org`, logs in
-with the made-up password `voorbeeld-wachtwoord-buurt`, which the command shows. In `demo` so do the analyst
-(`thomas.visser@example.org`), the coordinator (`fatima.elamrani@example.org`) and three walkers: `jan.bakker`, who
-shares his first name, `priya.sharma`, who uses the API, and `willem.dekker`, who stopped and is refused. Any other
-member logs in with a code by mail. In `demo`, `priya.sharma` also has an API token that reads and writes for 90
-days; the command shows its secret once, after loading. Loading empties the audit log too, so its chain starts afresh
-and `symfony console app:audit:verify` reports it intact.
+The command empties the database first and asks before it does; `--no-interaction` skips the question. Besides `demo`
+there are `test` (the least an installation needs) and `edge` (the hard cases); see [Sample
+data](architecture.md#sample-data). Every date follows today, so the calendar is never empty. The command exists only in
+`dev` and `test`. The first admin of every set, `beheer@example.org`, logs in with the made-up password
+`voorbeeld-wachtwoord-buurt`, which the command shows. In `demo` so do the analyst (`thomas.visser@example.org`), the
+coordinator (`fatima.elamrani@example.org`) and three walkers: `jan.bakker`, who shares a first name with another
+member, `priya.sharma`, who uses the API, and `willem.dekker`, who stopped and is refused. Any other member logs in with
+a code by mail. In `demo`, `priya.sharma` also has an API token that reads and writes for 90 days; the command shows its
+secret once, after loading. Loading empties the audit log too, so its chain starts afresh and
+`symfony console app:audit:verify` reports it intact.
 
 ### Sign up with curl
 
@@ -95,14 +95,14 @@ curl -sS -H "Authorization: Bearer $TOKEN" \
   "https://buurtpreventie.wip/api/v1/rounds?from=$(date -u +%F)T00:00:00Z&to=$(date -u -v+7d +%F)T00:00:00Z"
 ```
 
-Take the `id` of a round with open spots and sign up; the answer is `204`, also when she was signed up already:
+Take the `id` of a round with open spots and sign up; the answer is `204`, also when Priya was signed up already:
 
 ```bash
 curl -sS -o /dev/null -w '%{http_code}\n' -X PUT -H "Authorization: Bearer $TOKEN" \
   "https://buurtpreventie.wip/api/v1/rounds/<id>/walkers/me"
 ```
 
-`DELETE` on the same address withdraws her. A token that may only read gets `403` with `insufficient_scope`; a
+`DELETE` on the same address withdraws Priya. A token that may only read gets `403` with `insufficient_scope`; a
 token that is revoked or expired gets `401`. curl reaches the local domain only through the local proxy:
 `export HTTPS_PROXY="$(symfony proxy:url)"` first. Without the local domain, use the address the Symfony CLI prints,
 and `-k` when curl refuses its certificate.

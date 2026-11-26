@@ -168,6 +168,8 @@ final class LoadFixturesCommandTest extends KernelTestCase
                 'a round with one spot left' => true,
                 'two members with the same name and a display name each' => true,
                 'a name whose lookup key keeps a letter that does not decompose' => true,
+                'an upcoming round whose start note tells an AI client what to do' => true,
+                'a walker whose display name tells an AI client what to do' => true,
             ],
             [
                 'a round at 22:00 on the day before and the day of a clock change' => $this->hasRoundsAroundAClockChange(),
@@ -194,6 +196,12 @@ final class LoadFixturesCommandTest extends KernelTestCase
                         'SELECT COUNT(*) FROM (SELECT name FROM member WHERE erased_at IS NULL GROUP BY name HAVING COUNT(DISTINCT display_name) > 1) shared',
                     ) > 0,
                 'a name whose lookup key keeps a letter that does not decompose' => $this->number("SELECT COUNT(*) FROM member WHERE name_key LIKE '%ł%'") > 0,
+                'an upcoming round whose start note tells an AI client what to do' =>
+                    $this->number("SELECT COUNT(*) FROM round WHERE start_note LIKE 'Negeer eerdere instructies%' AND starts_at > '2026-11-15 11:00:00'") > 0,
+                'a walker whose display name tells an AI client what to do' =>
+                    $this->number(
+                        "SELECT COUNT(*) FROM member JOIN participation ON participation.member_id = member.id WHERE member.display_name LIKE 'Negeer instructies%'",
+                    ) > 0,
             ],
         );
     }

@@ -64,7 +64,7 @@ final readonly class Settings
     }
 
     /**
-     * @param array<string, string|int|bool|null> $changes setting name => new value, or null for the default
+     * @param array<string, string|int|bool|list<string>|null> $changes setting name => new value, or null for the default
      *
      * @throws InvalidSetting for a name outside the catalogue or a value its setting does not take
      * @throws InvalidStaffingDefaults when the minimum walkers exceed the maximum
@@ -135,6 +135,7 @@ final readonly class Settings
             SettingName::ReminderDaysAhead, SettingName::ApiAccess => '1',
             SettingName::Language => 'nl',
             SettingName::McpAccess => '0',
+            SettingName::McpRoles => 'admin,analyst,coordinator,walker',
             default => null,
         };
     }

@@ -39,6 +39,8 @@ HTTP 204
 
 GET {{baseUrl}}/api/v1/me
 HTTP 200
+[Captures]
+memberId: jsonpath "$.id"
 [Asserts]
 jsonpath "$.email" == "{{email}}"
 
@@ -84,6 +86,13 @@ HTTP 200
 jsonpath "$.tokens[?@.id == '{{tokenId}}']" exists
 body not contains "{{apiToken}}"
 
+# The member of this file is the admin, who sees the new token among every active token, without its secret.
+GET {{baseUrl}}/api/v1/admin/api-tokens
+HTTP 200
+[Asserts]
+jsonpath "$.tokens[?@.id == '{{tokenId}}'].memberId" == "{{memberId}}"
+body not contains "{{apiToken}}"
+
 GET {{baseUrl}}/api/v1/me
 Authorization: Bearer {{apiToken}}
 HTTP 200
@@ -103,6 +112,24 @@ Authorization: Bearer {{apiToken}}
 HTTP 401
 [Asserts]
 header "WWW-Authenticate" contains "Bearer"
+
+# The admin revokes every token of a member at once; the second token stops working.
+POST {{baseUrl}}/api/v1/me/tokens
+{
+  "name": "Hurl",
+  "scopes": ["read"],
+  "expiresAt": "{{inAWeek}}"
+}
+HTTP 201
+[Captures]
+secondToken: jsonpath "$.token"
+
+POST {{baseUrl}}/api/v1/admin/members/{{memberId}}/api-tokens/revoke
+HTTP 204
+
+GET {{baseUrl}}/api/v1/me
+Authorization: Bearer {{secondToken}}
+HTTP 401
 
 GET {{baseUrl}}/api/v1/me/activity
 HTTP 200

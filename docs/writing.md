@@ -30,6 +30,10 @@ Which documents are Dutch and which English is listed in `AGENTS.md` (Language a
 - **Limits for code texts** (comments, docblocks, test names, assertion, log and exception messages):
   at most 4 sentences per text and 50 words per sentence. A lead-in with its list counts as one
   sentence; each item stays within 50 words.
+- **People without gender.** A text about a person, sample people included, uses no gendered pronoun:
+  in English "they" and "their" or the name or role, in Dutch "die", "de eigen" or the role ("de
+  loper", "het lid"), never "hij", "zij", "hem", "haar" or "zijn" for a person. A pronoun for a thing
+  follows grammar, such as "hij" for "de link".
 
 ## Comments and documentation
 
@@ -58,9 +62,21 @@ follows what a text does, not where it sits.
 - **Explanations at B1** (help texts, instructions, labels, option and status names, notifications,
   error and validation messages): at most 20 words and one point per sentence, common words, active
   voice, and the imperative for an action ("Meld je aan", "Stuur de terugmelding"). No technical words
-  such as "token" or "sessie". Buttons say what they do: "Ik loop mee", "Ik kan toch niet". Write out
-  an abbreviation at its first use on a screen or in a message ("Algemene verordening
-  gegevensbescherming (AVG)"). The domain terms from the glossary stay as they are.
+  such as "sessie". "Token" is the exception, in texts about connecting an AI app through MCP: the
+  member makes one in the app and pastes it into the AI app, which calls it that too, and a plain word
+  such as "koppeling" would read as the connection itself. Buttons say what they do: "Ik loop mee",
+  "Ik kan toch niet". Write out an abbreviation at its first use on a screen or in a message
+  ("Algemene verordening gegevensbescherming (AVG)"). The domain terms from the glossary stay as they
+  are.
+- **Need to know.** A text an end user reads (screen, mail, error message, `docs/user-guide/`, the plugin
+  README) names no setting, endpoint, status code or other detail the reader has no access to: "Vraag het de
+  beheerder." or "Ask the admin." is enough. The admin finds the detail in `docs/configuration.md`. A detail the
+  reader needs to act, such as the address of the app in an AI client, stays.
+- **Mails never look like phishing.** A mail that warns, such as about a new token or a reached limit, holds
+  no link or button: it says where to go in the app ("Open dan zelf de app. Trek het token in onder
+  Koppelingen."). A warning with a link is what a phishing mail looks like, and members learn from ours that a
+  real one never asks them to click. No mail asks for a password, login code or token. Other links go only to
+  the address of the app, with a link text that says where it leads.
 - **Rule texts unambiguous, at B2** (privacy statement, retention periods, who may see what, consent):
   "and" and "or" are explicit ("als aan alle voorwaarden is voldaan", "een van deze situaties"), every
   party is named, and a long condition becomes a lead-in with a list. B1 limits do not apply here:

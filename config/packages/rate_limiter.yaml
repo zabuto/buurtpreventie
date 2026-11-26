@@ -19,14 +19,26 @@ framework:
             interval: '1 hour'
             cache_pool: cache.login_attempts
         # Requests for a login code from one IP address over all addresses.
-        # An AI client in a loop would otherwise hammer the server of a small association.
-        mcp_per_token:
-            policy: sliding_window
-            limit: 60
-            interval: '1 minute'
-            cache_pool: cache.mcp_requests
         login_code_per_ip:
             policy: sliding_window
             limit: 10
             interval: '1 hour'
             cache_pool: cache.login_attempts
+        # Reads with one API token, on REST and MCP together. An AI client in a loop would otherwise hammer the
+        # server of a small association; the daily limit keeps fetching a whole year in pieces visible.
+        token_reads_per_minute:
+            policy: sliding_window
+            limit: 60
+            interval: '1 minute'
+            cache_pool: cache.token_requests
+        token_reads_per_day:
+            policy: sliding_window
+            limit: 2000
+            interval: '1 day'
+            cache_pool: cache.token_requests
+        # Writes with one API token: more than a member does by hand, and a client in a loop stops within the hour.
+        token_writes_per_hour:
+            policy: sliding_window
+            limit: 20
+            interval: '1 hour'
+            cache_pool: cache.token_requests
