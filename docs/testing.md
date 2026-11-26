@@ -159,9 +159,11 @@ for the DNS rebinding protection and counts the requests of a token in an `Array
   reaches only the tools for every member.
 - `tests/Shared/McpContactDetailsTest.php` calls every tool, the resource and both prompts as a member who sees the
   most, with walkers who consented to sharing contact details and a note and comment that hold a phone number and an
-  e-mail address, and finds none of them (review focus 3).
-- `tests/Identity/Infrastructure/Mcp/` covers the switch, the token-only firewall, both eras, the rate limit, the
-  host and origin checks, and STDIO.
+  e-mail address, and finds none of them (review focus 3). It also fails on a field for a phone number, e-mail
+  address, address or full name in any answer, empty or not, and on a note or comment with text, so a tool added
+  later cannot slip one in that the sample data leave empty.
+- `tests/Identity/Infrastructure/Mcp/` covers the switch, the token-only firewall, both eras, the rate limit, the roles
+  on MCP per role and per picked member, a percent-encoded path to `/mcp`, the host and origin checks, and STDIO.
 - `tests/Identity/Infrastructure/Security/TokenRateLimitTest.php` proves that reads and writes of one token count
   toward the same limits over REST and MCP, and that a browser session does not count.
 

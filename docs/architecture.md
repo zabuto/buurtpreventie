@@ -548,7 +548,9 @@ missing.
 6. Per tool call the scope and, for a tool that writes, the write limit of the token, then the voter in the
    handler.
 
-`ProblemResponder` and `ApiSecurityHeaders` treat `/mcp` as part of the API.
+`McpSwitch`, the authenticator, `TokenScopeGuard` and `TokenRateLimit` tell `/mcp` by `McpSwitch::isMcp()`, which
+decodes the path first, as the firewall and the router do: otherwise `/%6Dcp` would reach the server past the switch
+and with every role. `ProblemResponder` and `ApiSecurityHeaders` treat `/mcp` as part of the API.
 
 **Protocol eras.** A client of revision `2026-07-28` needs no session. A client of the handshake era (`2025-11-25`
 and older) gets a session that keeps only the negotiated revision, in files under `var/cache/<env>/mcp-sessions/`;
