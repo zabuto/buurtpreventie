@@ -131,6 +131,34 @@ final class SetPasswordControllerTest extends PasswordLoginTestCase
     }
 
     #[Test]
+    public function it_refuses_a_common_password_as_too_easy_to_guess(): void
+    {
+        $client = self::client(['HTTPS' => 'on']);
+        self::logInWithCode($client, self::memberWithPassword());
+
+        // @mago-expect lint:no-literal-password - a password on the list of common passwords
+        $client->jsonRequest('PUT', '/api/v1/me/password', ['password' => 'Dit wachtwoord is geheim'], ['HTTP_ACCEPT_LANGUAGE' => 'nl-NL']);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSame(
+            ['urn:buurtpreventie:problem:password_too_weak', 'Dit wachtwoord is te makkelijk te raden. Kies andere woorden.'],
+            [self::json($client)['type'] ?? null, self::json($client)['title'] ?? null],
+        );
+    }
+
+    #[Test]
+    public function it_refuses_a_password_with_the_members_own_name(): void
+    {
+        $client = self::client(['HTTPS' => 'on']);
+        self::logInWithCode($client, self::memberWithPassword(name: 'Jan Bakker'));
+
+        // @mago-expect lint:no-literal-password - a made-up password holding the member's surname
+        $client->jsonRequest('PUT', '/api/v1/me/password', ['password' => 'Bakker fietst elke avond']);
+
+        self::assertSame('urn:buurtpreventie:problem:password_too_weak', self::json($client)['type'] ?? null);
+    }
+
+    #[Test]
     public function it_sets_the_password_of_the_member_acting_whatever_member_the_body_names(): void
     {
         $client = self::client(['HTTPS' => 'on']);

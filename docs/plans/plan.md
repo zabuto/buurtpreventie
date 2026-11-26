@@ -144,6 +144,7 @@ Taken meeliften op gewone verzoeken van lopers gebeurt bewust niet: dat zou de a
 | Update installeren | — | — | GitHub (download) | Handmatig via FTP volgens `docs/admin-guide/` |
 | Pushmelding (uitbreiding U4) | ja | — | Pushdiensten van Apple, Google, Mozilla | Alleen e-mail |
 | Kaart (uitbreiding U9) | — | — | PDOK of OpenStreetMap, vanuit de browser | Geen kaart; terugmelden werkt gewoon |
+| Controle op uitgelekte wachtwoorden (later, standaard uit) | nee, direct | — | Have I Been Pwned of een andere dienst | Alleen de lijst met veelgebruikte wachtwoorden in de repo |
 
 Aanmelden, afmelden, terugmelden, kalender, auditlog, API en MCP hangen van geen van deze af.
 
@@ -168,6 +169,7 @@ Het `@` in de gebruikersnaam wordt `%40`; bij poort 465 begint de regel met `smt
 | Pushdiensten van Apple, Google, Mozilla (uitbreiding U4) | Apparaatadres en tijdstip; de inhoud is versleuteld | De dienst ziet dát iemand een melding krijgt, en wanneer | Alleen als het lid het aanzet; korte tekst zonder namen ("Je loopt morgen om 20:00") |
 | Kaartondergrond PDOK of OpenStreetMap (uitbreiding U9) | IP-adres van de browser en welk kaartgebied wordt bekeken | Laat zien welk gebied iemand bekijkt | PDOK (Nederlandse overheid) als standaard; nooit lopergegevens in de kaartverzoeken |
 | AI-client via MCP | Wat de tools teruggeven: rondes, weergavenamen van lopers, uitkomsten en aantallen; geen notities, opmerkingen of contactgegevens (besloten op 17 november 2026, fase 4) | Gegevens bij de AI-aanbieder die het lid zelf kiest | MCP standaard uit en per rol of per lid open te zetten, dataminimalisatie (zie MCP-server), token per lid in te trekken |
+| Controle op uitgelekte wachtwoorden, Have I Been Pwned of een andere dienst na onderzoek (later) | Bij Have I Been Pwned de eerste 5 tekens van de SHA-1-hash van het nieuwe wachtwoord en het IP-adres van de server; nooit het wachtwoord, de naam of het e-mailadres | De dienst ziet dat er op dat moment een wachtwoord wordt ingesteld, niet welk | Standaard uit, per vereniging aan te zetten; een onbereikbare dienst blokkeert niemand; zonder de dienst weigert de app wel de wachtwoorden uit de lijst in de repo |
 | Spraakherkenning in de browser (uitbreiding U7) | De gesproken tekst van de terugmelding | De browsermaker (bij Chrome Google, bij Safari Apple) verwerkt de spraak | Opt-in per vereniging en per lid, melding vooraf, geen opnames op de server; dicteren via het toetsenbord als alternatief |
 
 ## Licentie
@@ -682,6 +684,7 @@ De repo bevat geen enkele verwijzing naar een specifieke vereniging: technische 
 | Kleuren (primair en accent, voor licht en donker) | `Setting` → CSS custom properties | contrast gecontroleerd bij opslaan, tegen wit en `#121212` |
 | Afzendernaam van de e-mail | `Setting`; het afzenderadres blijft `MAILER_FROM` | de naam van de vereniging |
 | Contact coördinator (naam, e-mail, telefoon) en de groepslink (WhatsApp of Signal) | `Setting`, alleen voor ingelogde leden in `/config` | leeg |
+| Link naar BuitenBeter voor meldingen over de openbare ruimte, aan of uit (besloten op 26 november 2026) | `Setting`, alleen voor ingelogde leden in `/config` | uit |
 | Teksten: welkom, "wat te doen bij spoed" | `Setting` (platte tekst, per taal) | neutrale standaardtekst in `nl` en `en` |
 | Privacyverklaring en toegankelijkheidsverklaring | `Setting` (URL naar een pagina van de vereniging) | leeg |
 | Minimum- en maximumaantal lopers, herinnering N dagen vooraf | `Setting` | 2, 7 en 1 |
@@ -692,6 +695,9 @@ Afwijkingen in fase 3 (`docs/plans/phase-3.md`, beslissingen 2, 3, 5, 6, 8 en 17
 (elke regel over dagdelen en kalenderdagen rekent in `Europe/Amsterdam`); teksten zijn platte tekst, geen Markdown;
 privacy- en toegankelijkheidsverklaring zijn een URL; vertalingen overschrijven per vereniging valt af; twee uploads
 (logo en icoon) in plaats van drie; het afzenderadres is geen instelling, alleen de afzendernaam.
+
+BuitenBeter is alleen een link: de app stuurt zelf niets naar BuitenBeter, en de link draagt geen gegevens (geen plek,
+ronde of tekst). Daarom staat BuitenBeter niet in de tabel "Privacy per externe dienst".
 
 Hoe het doorwerkt:
 

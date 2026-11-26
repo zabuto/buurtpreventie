@@ -26,7 +26,7 @@ services:
   # reads the SMTP port 1025 of a service named mailer and sets MAILER_DSN, and MAILER_WEB_URL for the web view.
   mailer:
     # A fixed release, not latest, so a hijacked release reaches nobody before the cooldowns of ADR 0004 would.
-    image: axllent/mailpit:v1.33.1
+    image: axllent/mailpit:v1.34.0
     ports:
       - '1025'
       - '8025'

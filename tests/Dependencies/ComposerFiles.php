@@ -42,6 +42,23 @@ final readonly class ComposerFiles
     }
 
     /**
+     * @return array<string, string> package => constraint, from conflict
+     */
+    public function conflicts(): array
+    {
+        $conflicts = [];
+        foreach ($this->list($this->read('composer.json'), 'conflict') as $package => $constraint) {
+            if (!\is_string($package) || !\is_string($constraint)) {
+                continue;
+            }
+
+            $conflicts[$package] = $constraint;
+        }
+
+        return $conflicts;
+    }
+
+    /**
      * @return array<string, string> package => locked version, from packages and packages-dev
      */
     public function lockedVersions(): array

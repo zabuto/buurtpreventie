@@ -132,7 +132,7 @@ The input of a use case refuses a longer value; the column holds at least as muc
 | Comment | 2,000 |
 | Note of a round report | 5,000 |
 | Name of an API token | 100 |
-| Password | at least 15 characters (NIST SP 800-63B for a password as the only factor), at most 4,096 bytes; any kind of character |
+| Password | at least 15 characters (NIST SP 800-63B for a password as the only factor), at most 4,096 bytes; any kind of character. Not on the list of common passwords in `src/Identity/Infrastructure/Password/common-passwords.txt`, not holding the member's name or the part of the e-mail address before the @ (a part shorter than 4 characters does not count), and at least medium on Symfony's `PasswordStrength`; capitals and spaces do not count |
 
 ### Other values
 

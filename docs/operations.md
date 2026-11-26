@@ -19,7 +19,7 @@ These are not stored in files and must be set again on a fork or a recreated rep
 
 | Setting | Where | Why |
 | --- | --- | --- |
-| Branch protection on `develop`: pull request required, checks "Checks (PHP 8.4)", "Security scan", "Database (MariaDB 10.11)" and "Database (MySQL 8.4)" required | Settings → Branches | Auto-merge would not wait for green CI otherwise, and an update that breaks the migrations or a query on one of the two databases would merge |
+| Branch protection on `develop`: pull request required, checks "Checks (PHP 8.4)", "Security scan", "Database (MariaDB 10.11)", "Database (MySQL 8.4)" and "Conventional Commit title" required | Settings → Branches | Auto-merge would not wait for green CI otherwise, an update that breaks the migrations or a query on one of the two databases would merge, and a title outside Conventional Commits would become the commit message on `develop` |
 | Allow squash merging (default) and merge commits; no rebase merging | Settings → General | A pull request into `develop` lands as one commit; a release into `main` needs a merge commit |
 | Squash merge message: pull request title and description | Settings → General | The squash commit on `develop` carries the pull request title, which the commit convention expects, instead of the title of its first commit |
 | Allow auto-merge | Settings → General | Needed to merge Dependabot updates automatically |
@@ -34,6 +34,7 @@ These are not stored in files and must be set again on a fork or a recreated rep
 | `ci.yml`, checks job | Every pull request, every push to `develop` and `main` | `composer check` on PHP 8.4; see [testing.md](testing.md) |
 | `ci.yml`, database jobs "Database (MariaDB 10.11)" and "Database (MySQL 8.4)" | Same | A fresh `APP_SECRET` and `AUDIT_SECRET` per run, migrations from an empty database, `doctrine:schema:validate`, every `down()` and up again, the database tests with `REQUIRE_DATABASE=1`, and every sample data set; see [testing.md](testing.md#database-tests) |
 | `ci.yml`, security scan job | Same | Opengrep with the rules in `.opengrep/rules/`; see [testing.md](testing.md#security-scan) |
+| `pull-request-title.yml` | A pull request opened, edited, reopened or pushed to | The title is a Conventional Commit (`type(scope): summary`), because the squash merge makes it the commit message on `develop` |
 | `weekly.yml`, audit job | Monday 05:00 UTC and by hand | `composer audit` on `develop`; opens an issue on an advisory |
 | `weekly.yml`, look-ahead job | Same | Newest Symfony 8 on PHP 8.5, all checks; opens an issue on failure. Blocks nothing |
 | `weekly.yml`, Opengrep major job | Same | Opens an issue once a new Opengrep major is 14 days old, or when the check fails |
@@ -66,6 +67,11 @@ GitHub Actions minor and patch updates arrive together in one pull request and m
 Automatic merging relies on CI: a minor update that breaks a test, a PHPStan rule or the code style
 stays open. The `SymfonyReleaseLineTest` fails when an update would put a Symfony component outside
 7.4, so such an update never merges automatically.
+
+Dependabot runs Composer without Symfony Flex, so `extra.symfony.require` holds nothing there. Every Symfony
+component the app does not require itself, such as `symfony/http-kernel`, is in `conflict` in `composer.json` for
+every version outside 7.4; otherwise an update of a bundle that allows Symfony 8 pulls those components to 8.
+`SymfonyReleaseLineTest` fails when a component in `composer.lock` is neither required on 7.4 nor in that list.
 
 Dependabot skips major updates of Symfony packages (`symfony/*`). The app stays on 7.4 LTS until the
 planned move to 8.4 LTS; a single Symfony 8 release such as 8.1 is maintained for only a few months,
@@ -157,3 +163,15 @@ an issue and `composer update` prints a warning. To move to it:
 1. Read its release notes for changes in rule syntax and results.
 2. On a branch, change `tools/opengrep-major` and let the security scan run.
 3. Fix rules or findings, and merge through a pull request.
+
+## Common passwords
+
+`src/Identity/Infrastructure/Password/common-passwords.txt` is built, never edited: the Dutch passwords of
+`tools/common-passwords-nl.txt`, then `10k-most-common.txt` of SecLists at the commit the file names.
+`php tools/common-passwords.php` rebuilds it from that commit, after a change to the Dutch passwords;
+`php tools/common-passwords.php <commit>` moves it to another SecLists commit. Either way the change is a diff to
+review in a pull request. `CommittedListTest` fails when a Dutch password is missing from the built file.
+
+SecLists rarely changes this list, and at 15 characters it holds one password long enough to matter, so a move to a
+newer commit needs no schedule. The Dutch passwords do the work; add a phrase members are likely to pick, never one
+from a leaked list, which holds names of real people.

@@ -17,6 +17,10 @@ versions follow [Semantic Versioning](https://semver.org/).
 - GitHub Actions for CI, a weekly audit and a weekly look-ahead on Symfony 8 and PHP 8.5;
   Dependabot with automatic merging of patch and minor updates once CI is green (minor updates of
   packages below 1.0 excepted). Dependabot skips major Symfony updates, so the app stays on 7.4 LTS.
+- A pull request title is a Conventional Commit (`type(scope): summary`), checked by `pull-request-title.yml`,
+  because the squash merge makes it the commit message; Dependabot titles start with `chore(deps)`.
+- Every Symfony component the app gets through another package conflicts with versions outside 7.4, so an update
+  without Symfony Flex, as Dependabot runs it, keeps the components on one release line.
 - Development database: MariaDB 10.11 in `compose.yaml` on a free port, handed to the app by the
   Symfony CLI.
 - Test suite in unit, integration and functional groups; `composer test:unit` runs the unit tests.
@@ -93,7 +97,10 @@ versions follow [Semantic Versioning](https://semver.org/).
   `APP_SECRET` the app refuses to hash a login code.
 - Invitations: a link that logs a member in once within 48 hours (`POST /api/v1/auth/invitation`), sent by a
   coordinator or admin (`InviteMember`).
-- A new password has at least 15 characters of any kind, and at most 4,096 bytes.
+- A new password has at least 15 characters of any kind, and at most 4,096 bytes. A password that is easy to guess
+  is refused with 422 `password_too_weak`: one on the list of common passwords that ships with the app, one holding
+  the member's name or the part of the e-mail address before the @, or one below medium on Symfony's
+  `PasswordStrength`.
 - Stay logged in for 90 days with `"rememberMe": true`. A new password ends every other session and every
   remembered device. A login without an e-mail address gets a field error instead of a failed login.
 - `POST /api/v1/auth/confirm` with the password makes a session recent; a new password needs a login or confirmation
