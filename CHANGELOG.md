@@ -19,6 +19,8 @@ versions follow [Semantic Versioning](https://semver.org/).
   packages below 1.0 excepted). Dependabot skips major Symfony updates, so the app stays on 7.4 LTS.
 - A pull request title is a Conventional Commit (`type(scope): summary`), checked by `pull-request-title.yml`,
   because the squash merge makes it the commit message; Dependabot titles start with `chore(deps)`.
+- Every Symfony component the app gets through another package conflicts with versions outside 7.4, so an update
+  without Symfony Flex, as Dependabot runs it, keeps the components on one release line.
 - Development database: MariaDB 10.11 in `compose.yaml` on a free port, handed to the app by the
   Symfony CLI.
 - Test suite in unit, integration and functional groups; `composer test:unit` runs the unit tests.

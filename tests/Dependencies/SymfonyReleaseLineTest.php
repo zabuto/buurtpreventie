@@ -60,6 +60,46 @@ final class SymfonyReleaseLineTest extends TestCase
         }
     }
 
+    /**
+     * Symfony Flex holds an indirect component on the release line, but Dependabot runs Composer without Flex: there
+     * only a conflict in composer.json keeps a bundle on 7.4 from pulling in a component on 8.
+     */
+    #[Test]
+    public function every_indirect_symfony_component_conflicts_with_other_release_lines(): void
+    {
+        $composer = new ComposerFiles(__DIR__ . '/../..');
+        $line = $composer->symfonyReleaseLine();
+        $this->assertNotNull($line, 'composer.json lacks extra.symfony.require.');
+        $outsideLine = self::outside($line);
+        $required = $composer->requirements();
+        $conflicts = $composer->conflicts();
+
+        $indirect = \array_filter(
+            $composer->lockedVersions(),
+            fn(string $package): bool => $this->isComponent($package) && !\array_key_exists($package, $required),
+            \ARRAY_FILTER_USE_KEY,
+        );
+
+        $this->assertNotEmpty($indirect, 'composer.lock lists no indirect Symfony components.');
+        foreach (\array_keys($indirect) as $package) {
+            $this->assertSame(
+                $outsideLine,
+                $conflicts[$package] ?? null,
+                \sprintf('Add "%s": "%s" to conflict in composer.json, so an update without Symfony Flex keeps it on "%s".', $package, $outsideLine, $line),
+            );
+        }
+    }
+
+    /**
+     * The Composer constraint for every version outside a release line such as 7.4.*.
+     */
+    private static function outside(string $line): string
+    {
+        [$major, $minor] = \array_map(\intval(...), \explode('.', $line));
+
+        return \sprintf('<%d.%d || >=%d.%d', $major, $minor, $major, $minor + 1);
+    }
+
     private function isComponent(string $package): bool
     {
         if (!\str_starts_with($package, 'symfony/')) {
