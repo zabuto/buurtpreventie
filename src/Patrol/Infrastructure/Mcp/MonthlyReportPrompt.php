@@ -13,10 +13,10 @@ use Mcp\Capability\Attribute\McpPrompt;
 use Mcp\Exception\PromptGetException;
 
 /**
- * Asks the client for a monthly overview. The prompt holds no data: the client
- * fetches the counts with the tools, as the member who owns the token, so the prompt never shows more than they may
- * see. It names no one the overview is for: where it goes is up to whoever runs the prompt, who answers for it. So
- * the overview is a draft that names its period and sources and holds no number of the model's own.
+ * Asks the client for a monthly overview. The prompt holds no data: the client fetches the counts with the tools, as
+ * the member who owns the token, so the prompt never shows more than they may see. It names no one the overview is for:
+ * where it goes is up to whoever runs the prompt, who is responsible for it. So the overview is a draft that names its
+ * period and sources and holds no number of the model's own.
  */
 #[McpPrompt(
     name: 'monthly_report',

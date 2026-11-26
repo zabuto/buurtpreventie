@@ -30,7 +30,7 @@ use Symfony\Component\Uid\Uuid;
 
 /**
  * Creates a personal API token. It takes a recent login, which an API token never is, so a leaked token or a session
- * that only stayed logged in cannot mint a token that outlives it. The member gets a mail about every new token on
+ * that only stayed logged in cannot mint a token that outlives it. The member gets a mail about every new token in
  * their name, without its secret, so one they did not make stands out.
  */
 #[WriteAction(authorization: 'api_token.create', audit: 'api_token.created')]

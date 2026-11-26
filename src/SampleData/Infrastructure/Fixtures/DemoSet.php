@@ -76,7 +76,7 @@ final readonly class DemoSet implements FixtureSet
      */
     private const array WITH_PASSWORD = ['jan.bakker', self::USES_THE_API, self::STOPPED];
 
-    /** Willem stopped walking; deactivating Willem withdraws them from the rounds ahead. */
+    /** Willem stopped walking; deactivation withdraws Willem from the rounds ahead. */
     private const string STOPPED = 'willem.dekker';
 
     /** Yara moved away and asked to be erased; their rounds stay in the history under "erased member". */

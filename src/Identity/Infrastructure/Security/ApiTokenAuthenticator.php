@@ -37,9 +37,7 @@ use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPasspor
  * Authenticates every request on the token firewall by its `Authorization: Bearer` secret. It takes every request,
  * so a missing or broken token is refused and logged like a wrong one. The token is looked up by the hash of the
  * secret on every request, so a revocation, a deactivation or switching tokens off counts at once; the secret carries
- * no content of its own. On the MCP server a member the admin picked keeps every role; any other member keeps only the
- * roles the association allows there, so the voters see no other. With none of them left, the request is refused
- * before it counts toward the limits of the token.
+ * no content of its own.
  */
 final class ApiTokenAuthenticator extends AbstractAuthenticator
 {
@@ -131,6 +129,10 @@ final class ApiTokenAuthenticator extends AbstractAuthenticator
     }
 
     /**
+     * A member the admin did not pick keeps only the roles the association allows on the MCP server, so the voters see
+     * no other; a picked member keeps every role and never gets here. The refusal comes in the firewall, before the
+     * request counts toward the limits of the token.
+     *
      * @param list<Role> $roles
      *
      * @return list<Role>

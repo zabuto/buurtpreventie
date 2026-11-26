@@ -71,16 +71,16 @@ Fill the development database with a made-up association, its members, rounds an
 symfony console app:fixtures:load demo
 ```
 
-The command empties the database first and asks before it does; `--no-interaction` skips the
-question. Besides `demo` there are `test` (the least an installation needs) and `edge` (the hard
-cases); see [Sample data](architecture.md#sample-data). Every date follows today, so the calendar is
-never empty. The command exists only in `dev` and `test`. The first admin of every set, `beheer@example.org`, logs in
-with the made-up password `voorbeeld-wachtwoord-buurt`, which the command shows. In `demo` so do the analyst
-(`thomas.visser@example.org`), the coordinator (`fatima.elamrani@example.org`) and three walkers: `jan.bakker`, who
-shares a first name with another member, `priya.sharma`, who uses the API, and `willem.dekker`, who stopped and is refused. Any other
-member logs in with a code by mail. In `demo`, `priya.sharma` also has an API token that reads and writes for 90
-days; the command shows its secret once, after loading. Loading empties the audit log too, so its chain starts afresh
-and `symfony console app:audit:verify` reports it intact.
+The command empties the database first and asks before it does; `--no-interaction` skips the question. Besides `demo`
+there are `test` (the least an installation needs) and `edge` (the hard cases); see [Sample
+data](architecture.md#sample-data). Every date follows today, so the calendar is never empty. The command exists only in
+`dev` and `test`. The first admin of every set, `beheer@example.org`, logs in with the made-up password
+`voorbeeld-wachtwoord-buurt`, which the command shows. In `demo` so do the analyst (`thomas.visser@example.org`), the
+coordinator (`fatima.elamrani@example.org`) and three walkers: `jan.bakker`, who shares a first name with another
+member, `priya.sharma`, who uses the API, and `willem.dekker`, who stopped and is refused. Any other member logs in with
+a code by mail. In `demo`, `priya.sharma` also has an API token that reads and writes for 90 days; the command shows its
+secret once, after loading. Loading empties the audit log too, so its chain starts afresh and
+`symfony console app:audit:verify` reports it intact.
 
 ### Sign up with curl
 

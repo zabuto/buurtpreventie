@@ -287,36 +287,34 @@ allow an action. `TokenManagementGuard` refuses every token request under `/api/
 `browser_only`, whatever its scopes: a leaked token can neither list, create nor revoke tokens.
 
 `TokenRateLimit` runs after `TokenScopeGuard` and holds every token request, on `/api/v1` and `/mcp` alike, to the
-limits of that token in `config/packages/rate_limiter.yaml`, keyed by the id of the token, never its secret, and
-counted in files in `cache.token_requests`: 60 reads a minute and 2000 a day (`token_reads_per_minute`,
-`token_reads_per_day`), 20 writes an hour (`token_writes_per_hour`). A `GET` or `HEAD` is a read, any other method a
-write, and every request to `/mcp` a read; a tool call that writes counts toward the write limit too, in
-`ScopedReferenceHandler`. Above a limit the 429 problem `too_many_requests` with `Retry-After`; a tool call above the
-write limit is a tool error with the same problem and the seconds in `retryAfter`. A browser session does not count,
-so a token stopped on one path cannot carry on along the other. The first time on a local day that a token reaches
-its daily limit, `TokenLimitTrace` records `api_token.limit_reached` with the name of the token and the channel of the
-request, and mails the member (`account.token_limit_reached`) which token and when, and to revoke it and tell the
-coordinator when it was not them. Like the mail about a new token, it holds no link: a security warning with one is
-what a phishing mail looks like, so the member opens the app themselves. Later refusals that day leave no trace. Reading itself stays out of the audit log,
-which would otherwise hold a reading history of every member.
+limits of that token in `config/packages/rate_limiter.yaml`, keyed by the id of the token, never its secret, and counted
+in files in `cache.token_requests`: 60 reads a minute and 2000 a day (`token_reads_per_minute`, `token_reads_per_day`),
+20 writes an hour (`token_writes_per_hour`). A `GET` or `HEAD` is a read, any other method a write, and every request to
+`/mcp` a read; a tool call that writes counts toward the write limit too, in `ScopedReferenceHandler`. Above a limit the
+429 problem `too_many_requests` with `Retry-After`; a tool call above the write limit is a tool error with the same
+problem and the seconds in `retryAfter`. The paths share the limits, so a token stopped on one cannot carry on along the
+other; a browser session does not count. The first time on a local day that a token reaches its daily limit,
+`TokenLimitTrace` records `api_token.limit_reached` with the name of the token and the channel of the request, and mails
+the member (`account.token_limit_reached`) which token and when, and to revoke it and tell the coordinator when it was
+not them. Like the mail about a new token, it holds no link: a security warning with one is what a phishing mail looks
+like, so the member opens the app themselves. Later refusals that day leave no trace. Reading itself stays out of the
+audit log, which would otherwise hold a reading history of every member.
 
 **Own account.** Everything under `/api/v1/me` is about the member logged in, and the controllers there pass no member
 id, so one in the body counts for nothing. `GET /me` (`GetOwnProfile`) shows the whole profile. `PATCH /me`
 (`ChangeOwnContactDetails`) takes phone number, address, consent and notifications about open rounds; null removes a
 phone number or address, empty text is refused. Consent and notifications go through `ChangeContactConsent` and
-`ChangeOpenRoundNotifications`, so they are the same audit actions wherever they change. Name, display name and
-e-mail address stay with the admin, so a hijacked session cannot move the address a login code goes to.
-`PUT /me/password` (`SetPassword`) and `POST /me/tokens` (`CreateApiToken`) need a recent login, otherwise the 403
-problem `reauthentication_required`; a login with a code counts, which is how a member replaces a forgotten password.
-A new token expires within 365 days and its secret is only in the answer to `POST`. The member gets a mail
+`ChangeOpenRoundNotifications`, so they are the same audit actions wherever they change. Name, display name and e-mail
+address stay with the admin, so a hijacked session cannot move the address a login code goes to. `PUT /me/password`
+(`SetPassword`) and `POST /me/tokens` (`CreateApiToken`) need a recent login, otherwise the 403 problem
+`reauthentication_required`; a login with a code counts, which is how a member replaces a forgotten password. A new
+token expires within 365 days and its secret is only in the answer to `POST`. The member gets a mail
 (`account.token_created`) with its name, scopes and expiry, never the secret, so a token they did not make stands out.
-`GET /me/tokens`
-(`ListApiTokens`) lists the tokens not revoked, and `DELETE /me/tokens/{id}` (`RevokeApiToken`) revokes one.
-`GET /me/activity` (`ListOwnActivity`) gives the member's own audit entries, 50 a page; of an entry about another
-member, such as a role an admin gave, it keeps the action but not who it was about or what changed.
-`GET /me/export` (`ExportOwnData`) gathers profile, rounds, reports and comments (`ExportOwnPatrolData`), tokens and
-every activity entry through the use cases of each module, and of another member it holds a buddy's display name
-only.
+`GET /me/tokens` (`ListApiTokens`) lists the tokens not revoked, and `DELETE /me/tokens/{id}` (`RevokeApiToken`) revokes
+one. `GET /me/activity` (`ListOwnActivity`) gives the member's own audit entries, 50 a page; of an entry about another
+member, such as a role an admin gave, it keeps the action but not who it was about or what changed. `GET /me/export`
+(`ExportOwnData`) gathers profile, rounds, reports and comments (`ExportOwnPatrolData`), tokens and every activity entry
+through the use cases of each module, and of another member it holds a buddy's display name only.
 
 **Naming.** Every JSON key, in a body, an answer or a problem, and every query parameter is camelCase
 (`walkerCount`, `existingId`, `allEntries`). Codes and enum values are snake_case (`round_is_full`, `seeking_buddy`,

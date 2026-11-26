@@ -40,7 +40,7 @@ final class MemberTest extends TestCase
     }
 
     #[Test]
-    public function it_starts_without_mcp_of_its_own(): void
+    public function it_starts_unpicked_for_mcp(): void
     {
         $this->assertFalse($this->member()->isMcpAllowed());
     }
@@ -132,7 +132,7 @@ final class MemberTest extends TestCase
     }
 
     #[Test]
-    public function it_refuses_mcp_once_erased(): void
+    public function it_refuses_to_allow_mcp_once_erased(): void
     {
         $member = $this->member();
         $member->erase(new DateTimeImmutable(self::NOW));

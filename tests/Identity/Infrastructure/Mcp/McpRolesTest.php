@@ -90,7 +90,7 @@ final class McpRolesTest extends McpTestCase
     }
 
     /**
-     * The admin picks a member one by one: that member keeps every role on MCP, whichever roles the association allows.
+     * A member the admin picks keeps every role on MCP, whichever roles the association allows.
      */
     #[Test]
     public function it_gives_a_picked_member_every_role_on_mcp(): void

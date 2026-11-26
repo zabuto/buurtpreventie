@@ -21,7 +21,7 @@ final readonly class ResetMcpAllowedController
     #[Route('/admin/members/mcp-allowed/reset', name: 'membership_reset_mcp_allowed', methods: ['POST'])]
     #[OA\Response(
         response: 200,
-        description: 'Every picked member is reset; MCP follows the roles of the settings only.',
+        description: 'MCP is switched off for every picked member; only mcpRoles counts.',
         content: new OA\JsonContent(ref: new Model(type: ResetMcpAllowedOutput::class)),
     )]
     public function __invoke(): JsonResponse

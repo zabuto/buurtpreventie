@@ -20,7 +20,7 @@ use Symfony\Component\Clock\MockClock;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * A stolen token shows up the first time it reaches the daily limit of a day: once in the audit log and once in the
+ * A stolen token shows up the first time on a day that it reaches the daily limit: once in the audit log and once in the
  * mailbox of its member. Every later refusal that day leaves no trace, so a client in a loop sends no flood of mails.
  */
 final class TokenLimitTraceTest extends TestCase
@@ -74,7 +74,7 @@ final class TokenLimitTraceTest extends TestCase
     }
 
     /**
-     * 23:00 UTC in November is midnight in Amsterdam, where the members live.
+     * 23:00 UTC in November is midnight on the local clock (Europe/Amsterdam).
      */
     #[Test]
     public function it_traces_the_token_again_on_the_next_local_day(): void

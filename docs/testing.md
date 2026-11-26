@@ -147,7 +147,7 @@ the array shapes in the outputs.
 `KernelHttpClient` is a PSR-18 client that hands each request to the in-memory kernel, so switch, firewall, scope,
 rate limit and voters run for real. It switches MCP on, gives the member of the test a token, and connects in
 revision `2026-07-28` or, when a test asks, an older one with the handshake. The kernel takes `example.org` as its host
-for the DNS rebinding protection and counts MCP requests in an `ArrayAdapter`, like login attempts.
+for the DNS rebinding protection and counts the requests of a token in an `ArrayAdapter`, like login attempts.
 
 - Every tool has a test next to its handler test with a parity check: the same question over REST with the same
   token gives the same answer (`get_round` without full name and phone of the walkers, the note of the report and the comments), and a write tool gives the

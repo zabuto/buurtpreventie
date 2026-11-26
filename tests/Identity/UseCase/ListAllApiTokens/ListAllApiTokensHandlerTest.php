@@ -66,12 +66,12 @@ final class ListAllApiTokensHandlerTest extends TestCase
     #[Test]
     public function it_lists_the_tokens_of_every_member_newest_first(): void
     {
-        $this->token($this->janId, 'Oud', '2026-10-01T12:00:00+00:00');
-        $this->token($this->pietId, 'Nieuw', '2026-11-01T12:00:00+00:00');
+        $this->token($this->janId, 'Old', '2026-10-01T12:00:00+00:00');
+        $this->token($this->pietId, 'New', '2026-11-01T12:00:00+00:00');
 
         $output = $this->handler()(new ListAllApiTokens());
 
-        $this->assertSame([['Nieuw', 'Piet K.'], ['Oud', 'Jan B.']], \array_map(
+        $this->assertSame([['New', 'Piet K.'], ['Old', 'Jan B.']], \array_map(
             static fn(#[SensitiveParameter] array $token): array => [$token['name'], $token['member']],
             $output->tokens,
         ));
@@ -80,8 +80,8 @@ final class ListAllApiTokensHandlerTest extends TestCase
     #[Test]
     public function it_leaves_out_revoked_and_expired_tokens(): void
     {
-        $this->token($this->janId, 'Ingetrokken', '2026-11-01T12:00:00+00:00')->revoke(new DateTimeImmutable('2026-11-02T12:00:00+00:00'));
-        $this->token($this->janId, 'Verlopen', '2026-08-01T12:00:00+00:00');
+        $this->token($this->janId, 'Revoked', '2026-11-01T12:00:00+00:00')->revoke(new DateTimeImmutable('2026-11-02T12:00:00+00:00'));
+        $this->token($this->janId, 'Expired', '2026-08-01T12:00:00+00:00');
 
         $output = $this->handler()(new ListAllApiTokens());
 

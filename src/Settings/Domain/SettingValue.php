@@ -11,7 +11,7 @@ use App\Shared\Domain\PhoneNumber;
 
 /**
  * Turns a value for one setting into the one form it is stored in, or refuses it. A setting is stored as text, so a
- * number becomes its digits, a switch `1` or `0`, and a list its values in order, each once, joined by commas.
+ * number becomes its digits, a switch `1` or `0`, and a list its values in alphabetical order, each once, joined by commas.
  */
 final readonly class SettingValue
 {

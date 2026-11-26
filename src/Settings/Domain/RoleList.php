@@ -29,7 +29,7 @@ final readonly class RoleList
     public static function tidy(SettingName $name, string|int|bool|array $roles): string
     {
         if (!\is_array($roles) || [] !== \array_diff($roles, Role::values())) {
-            throw new InvalidSetting($name->value, \sprintf('%s lists one or more of %s.', $name->value, \implode(', ', Role::values())));
+            throw new InvalidSetting($name->value, \sprintf('%s lists only roles from %s.', $name->value, \implode(', ', Role::values())));
         }
 
         $roles = \array_unique($roles);

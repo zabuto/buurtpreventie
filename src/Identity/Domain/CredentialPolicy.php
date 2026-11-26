@@ -11,8 +11,8 @@ use Symfony\Component\Uid\Uuid;
 
 /**
  * Passwords and API tokens belong to the member alone. An admin sees every active token, to spot one that does not
- * belong, and revokes every token of a member, such as when deactivating or erasing them. A coordinator or admin has an invitation sent; only an admin sees its link, to hand
- * it on to a new member without mail.
+ * belong, and revokes every token of a member, such as when deactivating or erasing them. A coordinator or admin has an
+ * invitation sent; only an admin sees its link, to hand it on to a new member without mail.
  */
 final readonly class CredentialPolicy
 {

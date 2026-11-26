@@ -12,7 +12,7 @@ use App\Shared\Domain\Transaction;
 use App\Shared\Domain\WriteAction;
 
 /**
- * Switches MCP off for every member the admin picked, so only the roles the association allows there count again.
+ * Switches MCP off for every member the admin picked, so only the roles the association allows on MCP count.
  * Each member gets an audit entry of their own, as with a change one by one.
  */
 #[WriteAction(authorization: 'member.reset_mcp_allowed', audit: 'member.changed')]

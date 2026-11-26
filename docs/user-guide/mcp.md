@@ -147,8 +147,8 @@ Choose the transport "Streamable HTTP", the address `https://…/mcp` of your ap
 
 The resource `buurtpreventie://config` gives the name of the association, the walkers of a new round and the
 choices. The prompt `monthly_report` asks for an overview of a month, from counts only. It comes back as a draft: it
-names the period and the tools behind its numbers, and holds no number of the AI client's own. You answer for what you
-do with it, so check it before you use it. `plan_week` asks which rounds of a week still need walkers.
+names the period and the tools behind its numbers, and holds no number of the AI client's own. You are responsible for
+what you do with it, so check it before you use it. `plan_week` asks which rounds of a week still need walkers.
 
 Deleting, managing members and changing settings stay in the app.
 

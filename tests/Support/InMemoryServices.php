@@ -55,11 +55,11 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 
 /**
- * Replaces storage, transaction, audit trail, notifier and the secret generators with the fakes of the handler tests, stops the clock at
- * NOW and lets the logger keep what it gets. Login attempts and token requests are counted in memory per kernel, so the attempts of one
- * test never throttle another; the pool is a plain ArrayAdapter, because a cache pool is emptied between two requests
- * of the same client. Each fake is public, so a test arranges and checks its data through
- * the container.
+ * Replaces storage, transaction, audit trail, notifier and the secret generators with the fakes of the handler tests,
+ * stops the clock at NOW and lets the logger keep what it gets. Login attempts and token requests are counted in memory
+ * per kernel, so the attempts and requests of one test never throttle another; the pool is a plain ArrayAdapter,
+ * because a cache pool is emptied between two requests of the same client. Each fake is public, so a test arranges and
+ * checks its data through the container.
  */
 final readonly class InMemoryServices implements CompilerPassInterface
 {

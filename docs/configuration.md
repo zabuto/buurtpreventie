@@ -66,7 +66,7 @@ except contact details, the group link and texts, which it names without a value
 
 Next to `mcpRoles`, the admin picks single members for MCP with `"mcpAllowed": true` on
 `PATCH /api/v1/admin/members/{id}`, such as a few walkers who use an AI client while the other walkers do not. A
-picked member keeps every role on the MCP server. `GET /api/v1/admin/members` and `/admin/members/{id}` show the field;
+picked member keeps every role on the MCP server. `GET /api/v1/admin/members` and `/api/v1/admin/members/{id}` show the field;
 erasing a member switches it off. `POST /api/v1/admin/members/mcp-allowed/reset` switches it off for every picked
 member at once and answers `{"membersReset": n}`, so only `mcpRoles` counts. Each change leaves a `member.changed`
 entry in the audit log, also through the reset. `mcpAccess` `false` closes MCP to everyone and keeps the picks.

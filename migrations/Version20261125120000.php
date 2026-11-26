@@ -15,7 +15,7 @@ final class Version20261125120000 extends AbstractMigration
     }
 
     /**
-     * The default fills the existing rows only: the mapping has none, so the column drops it again to match.
+     * The default fills the existing rows only; the column then drops it, since the mapping has none.
      */
     public function up(Schema $schema): void
     {

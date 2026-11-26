@@ -19,9 +19,9 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
 /**
- * Lets mcp:server act as the member of the API token in MCP_TOKEN, checked by the authenticator of the HTTP server,
- * so STDIO knows no rule of its own: the same switches, expiry, revocation, scopes, roles and mcp channel. The process checks
- * the token once, when it starts; it runs on the machine of whoever holds the token.
+ * Lets mcp:server act as the member of the API token in MCP_TOKEN, checked by the authenticator of the HTTP server, so
+ * STDIO knows no rule of its own: the same switches, expiry, revocation, scopes, roles and mcp channel. The process
+ * checks the token once, when it starts; it runs on the machine of whoever holds the token.
  */
 #[AsEventListener(event: ConsoleEvents::COMMAND)]
 final readonly class StdioAuthentication

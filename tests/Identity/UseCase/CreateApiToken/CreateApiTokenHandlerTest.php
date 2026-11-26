@@ -91,8 +91,8 @@ final class CreateApiTokenHandlerTest extends TestCase
     }
 
     /**
-     * A token made by someone else on the member's name, or with a stolen session, then reaches the member's own
-     * mailbox. The secret stays out: a mail is no safe place for it.
+     * A mail about a token made in the member's name by someone else, or with a stolen session, reaches the member's
+     * own mailbox. The secret stays out: a mail is no safe place for it.
      */
     #[Test]
     public function it_tells_the_member_about_the_new_token_without_its_secret(): void
