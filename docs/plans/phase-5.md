@@ -139,7 +139,6 @@ README; `flow` is een overzicht, geen scherm.
     | Mijn activiteit | `GET /me/activity` | niets |
     | Koppelingen | `GET`/`POST`/`DELETE /me/tokens` | niets |
     | Meldingen | `GET`/`PATCH /me` (`notifyOpenRounds`) | niets |
-    | Lopers | `GET /members` | niets |
     | Hulp en spoed | `GET /config` (spoedtekst, contact, groep) | niets |
     | Privacyverklaring | `GET /config` (`privacyUrl`, de link naar buiten; zonder dat het scherm in aanbouw, beslissing 34) | de tekst in de app, later |
     | Handleiding voor lopers | geen in deze fase (beslissing 34) | de tekst: geen endpoint, `docs/user-guide/` heeft alleen `mcp.md` |
@@ -302,11 +301,10 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
     | `walk/calendar`, `calendar-day`, `calender-new-round` | Kalender, Ronde plannen |
     | `walk/detail`, `round/detail` | Ronde (vier toestanden), Ronde wijzigen |
     | `walk/walked`, `walk/result-form`, `result/modal*`, `result/inline` | Mijn rondes, Resultaat melden, Opmerking |
-    | `member/list` | Lopers |
     | nieuw | Meldingen, Koppelingen, Mijn activiteit, Hulp en spoed, Ronde ging niet door |
 
-    De rest (`round/list`, `round/change-form` voor elke ronde, `member/form`, `user/*`, `result/list`, `config/*`)
-    hoort bij fase 5b.
+    `member/list` vervalt voor de loper (beslissing 43). De rest (`round/list`, `round/change-form` voor elke ronde,
+    `member/form`, `user/*`, `result/list`, `config/*`) hoort bij fase 5b.
 
 ### Toegankelijkheid en oudere toestellen
 
@@ -503,8 +501,8 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
 
 41. **Meer heet Account, en `#/account` opent het** (besloten op 26 november 2026). Het laatste tabblad van de navigatie
     onderaan heet Account ("Account"), met het icoon van een persoon, en het scherm heet "Mijn account": een lijst met
-    Mijn gegevens, Meldingen, Koppelingen, Mijn activiteit, Lopers, Hulp en spoed, Privacyverklaring en Uitloggen, met
-    onderaan de versie van de app (beslissing 42). De onderdelen staan onder `#/account/…`: `#/account/details`,
+    Mijn gegevens, Meldingen, Koppelingen, Mijn activiteit, Hulp en spoed, Privacyverklaring en Uitloggen (geen
+    Lopers, beslissing 43), met onderaan de versie van de app (beslissing 42). De onderdelen staan onder `#/account/…`: `#/account/details`,
     `#/account/notifications`, `#/account/integrations`, `#/account/activity`. Zo opent de link `app/#/account` in een
     mail die al verstuurd is het scherm dat de mail noemt, zonder doorverwijzing. De mails wijzen het pad zoals het lid
     het ziet: de mail over een ronde die een loopmaatje zoekt (`BuddyNeededMail`) zegt "Zet het dan uit bij Account →
@@ -528,6 +526,19 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
     - **Alleen voor een ingelogd lid**: `GET /config` geeft `version` in het deel dat alleen een ingelogd lid krijgt,
       naast `contact` en `group`. Een openbaar versienummer zegt een aanvaller precies welke bekende kwetsbaarheid
       een installatie die nog niet bijwerkte heeft.
+43. **De loper heeft geen scherm Lopers** (besloten op 26 november 2026). Mijn account toont Mijn gegevens, Meldingen,
+    Koppelingen, Mijn activiteit, Hulp en spoed, Privacyverklaring en Uitloggen, met de versie onderaan (beslissing
+    42). Wie met je meeloopt staat met naam en telefoon (bij toestemming) bij de ronde (vastgesteld 8), en de
+    coördinator staat bij Hulp en spoed; voor die twee momenten heeft een loper de lijst niet nodig. Zo ziet een loper
+    alleen de telefoonnummers van wie met hem loopt, niet die van de hele groep. De oude app had wel een ledenlijst
+    voor lopers (`member/list`); dat vervalt.
+    - **`GET /members` blijft** zoals fase 2 hem bouwde: de API verandert niet, en de coördinator kan hem in fase 5b
+      gebruiken. De frontend roept hem in deze fase niet aan.
+    - **Canvas**: de link naar Lopers gaat uit `more`, en het scherm `walkers` gaat van de pagina Mobile. Mee in de
+      prompt die het canvas naar Account omzet (beslissing 41).
+    - **Alternatieven**: Lopers onder Account in een eigen groep, een vijfde tabblad, of een link bij Hulp en spoed.
+      Onder Account gaat het niet over je eigen account, een tabblad maakt de navigatie drukker voor iets wat zelden
+      nodig is, en Hulp en spoed moet kort blijven.
 
 ## Nieuwe afhankelijkheden (goedgekeurd op 18 november 2026)
 
@@ -786,7 +797,7 @@ Werk in dit canvas, verander niets anders dan hieronder staat.
 
 - Welkom en Wachtwoord instellen via de uitnodigingslink.
 - Account (beslissing 41), Mijn gegevens, Bevestig dat jij het bent, Mijn activiteit, Koppelingen (het geheim één
-  keer getoond), Meldingen, Lopers (telefoon alleen bij toestemming), Hulp en spoed, uitloggen.
+  keer getoond), Meldingen, Hulp en spoed, uitloggen; geen Lopers (beslissing 43).
 - Koppelingen met een vervaldatum die standaard 90 dagen vooruit staat (beslissing 39), met een browsertest op de
   standaard bij een vaste klok en op een 422 bij een datum na 365 dagen; Koppeling gemaakt met de zin over de mail
   (beslissing 40).

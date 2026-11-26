@@ -89,7 +89,6 @@ without the status after the "·".
 | `integrations.png` | Koppelingen | draft | |
 | `integration-created.png` | Koppeling gemaakt | draft | |
 | `notifications.png` | Meldingen | draft | |
-| `walkers.png` | Lopers | draft | |
 | `help.png` | Hulp en spoed | draft | |
 | `privacy.png` | Privacyverklaring | later | |
 | `handbook.png` | Handleiding voor lopers | later | |

@@ -867,7 +867,7 @@ Fase 3, 4 en 5 hangen alleen van de API af; MCP (fase 4) gaat vóór de frontend
 (`docs/plans/phase-5.md`) beschrijft hoe een scherm goedgekeurd wordt; alleen een goedgekeurd scherm wordt gebouwd. Andere rollen en brede schermen volgen in fase 5b en 5c.
 
 - [ ] `frontend/`: buildless app (ES-modules, gevendorde Lit-bundel, geen importmap), die alleen `/api/v1` aanroept. Begin met een proef (inloggen en "Zoekt een loopmaatje") om Lit te leren kennen, met de gebruikte patronen in docs/frontend.md.
-- [ ] Schermen voor de loper op een telefoon: inloggen, code, uitnodiging, start, kalender (week met dagdelen), ronde (aan-/afmelden, plannen, wijzigen, opmerking, niet doorgegaan), terugmelden, mijn rondes, mijn gegevens, meldingen, koppelingen (tokens), activiteit, lopers, hulp en spoed.
+- [ ] Schermen voor de loper op een telefoon: inloggen, code, uitnodiging, start, kalender (week met dagdelen), ronde (aan-/afmelden, plannen, wijzigen, opmerking, niet doorgegaan), terugmelden, mijn rondes, mijn gegevens, meldingen, koppelingen (tokens), activiteit, hulp en spoed (geen ledenlijst voor de loper, fase 5 beslissing 43).
 - [ ] Mobiel eerst en WCAG 2.2 AA (zie Frontend); PWA met manifest, service worker en offline lezen; axe-core in CI.
 - [ ] Beveiligingsheaders voor de statische frontend via `.htaccess`: CSP `default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'`, en `Permissions-Policy: camera=(), microphone=(), geolocation=()`. Geen inline scripts of stijlen, dus ook geen `'unsafe-inline'`.
 - [ ] Geen zoekmachines: `robots.txt` met `Disallow: /` en `X-Robots-Tag: noindex, nofollow` op frontend en API.
