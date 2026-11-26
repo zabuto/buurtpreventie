@@ -132,7 +132,7 @@ README; `flow` is een overzicht, geen scherm.
     | Resultaat melden | `GET /outcomes`, `POST /rounds/{id}/reports`, `DELETE /reports/{id}` (ongedaan maken) | de hint |
     | Ronde ging niet door | `POST /rounds/{id}/cancellation` | niets |
     | Mijn rondes | `GET /me/rounds?view=upcoming\|to_report\|all` | de uitkomst (beslissing 21) |
-    | Meer | `GET /config` (privacy-URL), `POST /auth/logout` | niets |
+    | Mijn account | `GET /config` (privacy-URL), `POST /auth/logout` | niets |
     | Mijn gegevens | `GET`/`PATCH /me`, `GET /me/export` | niets |
     | Mijn gegevens downloaden | `GET /me/export` | niets |
     | Bevestig dat jij het bent | `POST /auth/confirm`, of `POST /auth/login-code` en `/verify` | niets |
@@ -428,7 +428,7 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
     2026), want hun tekst heeft nog geen bron. Het ontwerp in het canvas (`privacy`, `handbook`) is de maat voor de
     fase die de tekst levert. De routes `#/privacy` en `#/handbook` bestaan en tonen allebei het goedgekeurde scherm
     `under-construction`: de titel van het scherm, een korte uitleg in B1 uit de vertalingen (nl en en) en een weg
-    terug, zodat elke link in de flow (Inloggen, Meer, Hulp) op een werkend scherm uitkomt. Geen kapotte link: de
+    terug, zodat elke link in de flow (Inloggen, Mijn account, Hulp) op een werkend scherm uitkomt. Geen kapotte link: de
     browsertests volgen elke link naar `#/…` op elk scherm en falen op een route die de router niet kent.
 
     De link "Privacyverklaring" opent `privacyUrl` uit `/config` als de beheerder die instelde (alleen `https`, door
@@ -754,7 +754,7 @@ Werk in dit canvas, verander niets anders dan hieronder staat.
 - De wissel Week en Lijst (beslissing 5), de week met dagdelen, de lijst per dag, vorige en volgende week, `calendar-list` en `calendar-past`; Ronde plannen vanuit de
   kalender en vanuit een leeg dagdeel; Ronde wijzigen en verwijderen.
 
-### T11. Welkom en Meer (test eerst)
+### T11. Welkom en Account (test eerst)
 
 - Welkom en Wachtwoord instellen via de uitnodigingslink.
 - Account (beslissing 41), Mijn gegevens, Bevestig dat jij het bent, Mijn activiteit, Koppelingen (het geheim één

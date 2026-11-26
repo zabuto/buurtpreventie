@@ -392,7 +392,7 @@ Eenvoud in gebruik:
 - **Startscherm met drie dingen:** Zoekt een loopmaatje, Mijn rondes, Terugmelden.
 - **Grote basistekst (18 px)** die meeschaalt met de lettergrootte van de telefoon.
 - **Bevestiging in woorden na elke actie**, met ongedaan maken waar het kan ("Afgemeld. Ongedaan maken").
-- **Inloggen zonder gedoe:** "ingelogd blijven" voor 90 dagen, op een telefoon altijd aan en zonder vinkje (een telefoon is persoonlijk), op een breed scherm vanaf 768 px met een vinkje dat standaard uit staat; uitloggen staat altijd onder Meer. Inloggen kan ook met een code van zes cijfers per mail; "wachtwoord vergeten" is inloggen met een code. Een wachtwoord kan, maar is nooit verplicht. Een nieuw lid krijgt een uitnodiging: een link die één keer werkt. E-mails hebben een directe knop naar de ronde.
+- **Inloggen zonder gedoe:** "ingelogd blijven" voor 90 dagen, op een telefoon altijd aan en zonder vinkje (een telefoon is persoonlijk), op een breed scherm vanaf 768 px met een vinkje dat standaard uit staat; uitloggen staat altijd onder Account. Inloggen kan ook met een code van zes cijfers per mail; "wachtwoord vergeten" is inloggen met een code. Een wachtwoord kan, maar is nooit verplicht. Een nieuw lid krijgt een uitnodiging: een link die één keer werkt. E-mails hebben een directe knop naar de ronde.
 - **Hulp van de coördinator:** een nieuwe uitnodiging laten sturen, zonder de link zelf te zien, en een loper die het zelf niet lukt namens die loper aan- of afmelden; dat staat als "namens" in het auditlog.
 - **Handleiding voor lopers:** één A4 met schermafbeeldingen in `docs/user-guide/`, en dezelfde uitleg in de app onder "Hoe werkt het?".
 
