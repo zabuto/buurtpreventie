@@ -17,10 +17,12 @@ final readonly class FixedMemberDirectory implements MemberDirectory
     /**
      * @param list<MemberProfile> $profiles
      * @param list<Uuid> $openRoundSubscribers
+     * @param array<string, string> $emails address by RFC 4122 member id
      */
     public function __construct(
         private array $profiles = [],
         private array $openRoundSubscribers = [],
+        private array $emails = [],
     ) {
     }
 
@@ -81,11 +83,13 @@ final readonly class FixedMemberDirectory implements MemberDirectory
     }
 
     /**
-     * The profiles carry no address, so nobody gets mail through this directory.
+     * Only a member given an address gets mail through this directory.
      */
     #[Override]
     public function emailOf(Uuid $memberId): ?EmailAddress
     {
-        return null;
+        $address = $this->emails[$memberId->toRfc4122()] ?? null;
+
+        return null === $address ? null : EmailAddress::fromString($address);
     }
 }

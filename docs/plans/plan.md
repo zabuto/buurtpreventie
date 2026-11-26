@@ -139,6 +139,7 @@ Taken meeliften op gewone verzoeken van lopers gebeurt bewust niet: dat zou de a
 | Update installeren | — | — | GitHub (download) | Handmatig via FTP volgens `docs/admin-guide/` |
 | Pushmelding (uitbreiding U4) | ja | — | Pushdiensten van Apple, Google, Mozilla | Alleen e-mail |
 | Kaart (uitbreiding U9) | — | — | PDOK of OpenStreetMap, vanuit de browser | Geen kaart; terugmelden werkt gewoon |
+| Controle op uitgelekte wachtwoorden (later, standaard uit) | nee, direct | — | Have I Been Pwned of een andere dienst | Alleen de lijst met veelgebruikte wachtwoorden in de repo |
 
 Aanmelden, afmelden, terugmelden, kalender, auditlog, API en MCP hangen van geen van deze af.
 
@@ -163,6 +164,7 @@ Het `@` in de gebruikersnaam wordt `%40`; bij poort 465 begint de regel met `smt
 | Pushdiensten van Apple, Google, Mozilla (uitbreiding U4) | Apparaatadres en tijdstip; de inhoud is versleuteld | De dienst ziet dát iemand een melding krijgt, en wanneer | Alleen als het lid het aanzet; korte tekst zonder namen ("Je loopt morgen om 20:00") |
 | Kaartondergrond PDOK of OpenStreetMap (uitbreiding U9) | IP-adres van de browser en welk kaartgebied wordt bekeken | Laat zien welk gebied iemand bekijkt | PDOK (Nederlandse overheid) als standaard; nooit lopergegevens in de kaartverzoeken |
 | AI-client via MCP | Wat de tools teruggeven: rondes, weergavenamen van lopers, uitkomsten en aantallen; geen notities, opmerkingen of contactgegevens (besloten op 17 november 2026, fase 4) | Gegevens bij de AI-aanbieder die het lid zelf kiest | MCP standaard uit en per rol of per lid open te zetten, dataminimalisatie (zie MCP-server), token per lid in te trekken |
+| Controle op uitgelekte wachtwoorden, Have I Been Pwned of een andere dienst na onderzoek (later) | Bij Have I Been Pwned de eerste 5 tekens van de SHA-1-hash van het nieuwe wachtwoord en het IP-adres van de server; nooit het wachtwoord, de naam of het e-mailadres | De dienst ziet dat er op dat moment een wachtwoord wordt ingesteld, niet welk | Standaard uit, per vereniging aan te zetten; een onbereikbare dienst blokkeert niemand; zonder de dienst weigert de app wel de wachtwoorden uit de lijst in de repo |
 | Spraakherkenning in de browser (uitbreiding U7) | De gesproken tekst van de terugmelding | De browsermaker (bij Chrome Google, bij Safari Apple) verwerkt de spraak | Opt-in per vereniging en per lid, melding vooraf, geen opnames op de server; dicteren via het toetsenbord als alternatief |
 
 ## Licentie

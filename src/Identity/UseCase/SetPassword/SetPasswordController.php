@@ -23,6 +23,13 @@ final readonly class SetPasswordController
      */
     #[Route('/me/password', name: 'identity_set_password', methods: ['PUT'])]
     #[OA\Response(response: 204, description: 'The new password is set; every remembered device has to log in again.')]
+    #[OA\Response(
+        response: 422,
+        description: 'invalid_input when the password is shorter than 15 characters or longer than 4,096 bytes; '
+            . 'password_too_weak when it is easy to guess: a common password, one holding the name or the part before the @ '
+            . 'of the e-mail address of the member, or one too simple for a passphrase.',
+        content: new OA\MediaType(mediaType: 'application/problem+json', schema: new OA\Schema(ref: '#/components/schemas/Problem')),
+    )]
     public function __invoke(#[MapRequestPayload] SetPassword $input): Response
     {
         ($this->handler)(new SetPassword($input->password));
