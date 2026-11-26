@@ -1,0 +1,8 @@
+{% extends 'mail/layout.html.twig' %}
+{% import 'mail/_blocks.html.twig' as mail %}
+
+{% block content %}
+{{ mail.paragraph('account.token_created.intro'|trans({name: tokenName}, 'mail', locale), 8) }}
+{{ mail.paragraph('account.token_created.scopes'|trans({scopes: scopes}, 'mail', locale) ~ ' ' ~ 'account.token_created.expires'|trans({date: expiresOn}, 'mail', locale)) }}
+{{ mail.paragraph('account.token.not_you'|trans({}, 'mail', locale)) }}
+{% endblock %}

@@ -27,6 +27,13 @@ hold anything, including text that reads as an instruction to the model.
   extension (U10).
 - **Off by default, per association.** The setting `mcpAccess` makes `/mcp` answer 404 to every request, before a
   token is looked up, and keeps `mcp:server` from starting. Switching API tokens off switches MCP off too.
+- **Open to the roles the association picks, and to members the admin picks.** The setting `mcpRoles` lists the
+  roles a member keeps on `/mcp`, all four by default; a member keeps only those, so the voters see fewer roles there
+  than over REST. A member with `mcpAllowed` keeps every role, so an admin opens MCP to a few walkers without
+  opening it to all; with an empty `mcpRoles` only those members get in. A member left with no role is refused with
+  403 `mcp_not_for_role`, not 404: MCP is on, and the member has to know why it fails. No role of its own for MCP:
+  roles add rights through the voters, and a role that only opens a channel would have to be ignored by every one of
+  them.
 - **A tool is the `…Tool` adapter of a use case**: it builds the input, validates it with the constraints of the REST
   layer and calls the same handler, so the voter, the audit entry and every rule are the ones REST has. A tool acts
   only for the member of the token, never on behalf of another.
@@ -40,8 +47,11 @@ hold anything, including text that reads as an instruction to the model.
   for a cancellation stay, as short practical text, in their own field, which the instructions of the server call
   data.
 - **No tool deletes**, and none manages members, settings or tokens: those stay in the app, where a person confirms.
-- **A limit of 60 requests a minute per token**, counted in files, and the DNS rebinding protection of the bundle with
-  the host of the app as the only host.
+- **Limits per token, on REST and MCP together**: 60 reads a minute, 2000 reads a day and 20 writes an hour, counted
+  in files and keyed by the id of the token. With a limit on `/mcp` alone, a token stopped there would carry on over
+  REST. A tool that writes counts toward the write limit too. The first daily limit a token reaches on a day leaves an
+  audit entry and a mail to its member.
+- **The DNS rebinding protection of the bundle**, with the host of the app as the only host.
 - **The bundle and the SDK are pinned to their minor.** A new minor comes in a pull request of its own.
 
 ## Consequences
@@ -55,6 +65,8 @@ hold anything, including text that reads as an instruction to the model.
   files that an update may clear, after which the client starts over.
 - A member can only do over MCP what the app already lets that member do, with the same audit trail on the channel
   `mcp`.
+- The admin narrows MCP per role or per member without changing anyone's roles. `mcpAccess` off closes it to everyone
+  at once and keeps the picked members for when it opens.
 - Analysts and coordinators get statistics and a summary of the reports over REST too (`/stats`,
   `/reports/summary`), since a tool calls a handler that REST calls as well.
 - Notes and comments are read in the app only; an association that wants them over MCP needs a setting of its own,

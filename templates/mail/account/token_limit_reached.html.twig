@@ -1,0 +1,7 @@
+{% extends 'mail/layout.html.twig' %}
+{% import 'mail/_blocks.html.twig' as mail %}
+
+{% block content %}
+{{ mail.paragraph('account.token_limit_reached.intro'|trans({name: tokenName, date: date, time: time}, 'mail', locale)) }}
+{{ mail.paragraph('account.token.not_you'|trans({}, 'mail', locale)) }}
+{% endblock %}

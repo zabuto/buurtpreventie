@@ -33,6 +33,7 @@ final class ChangeSettingsEndpointTest extends ApiTestCase
             'reminderDaysAhead' => 2,
             'apiAccess' => false,
             'mcpAccess' => true,
+            'mcpRoles' => ['walker', 'analyst', 'walker'],
         ]);
         self::assertResponseStatusCodeSame(204);
         $client->jsonRequest('GET', '/api/v1/admin/settings');
@@ -41,7 +42,7 @@ final class ChangeSettingsEndpointTest extends ApiTestCase
         /** @var array<string, mixed> $settings */
         $settings = self::json($client);
         self::assertSame(
-            ['Buurtpreventie Oost', '#0b4f6c', null, 2, false, true, 'Buurtpreventie'],
+            ['Buurtpreventie Oost', '#0b4f6c', null, 2, false, true, ['analyst', 'walker'], 'Buurtpreventie'],
             [
                 $settings['associationName'],
                 $settings['primaryColor'],
@@ -49,11 +50,29 @@ final class ChangeSettingsEndpointTest extends ApiTestCase
                 $settings['reminderDaysAhead'],
                 $settings['apiAccess'],
                 $settings['mcpAccess'],
+                $settings['mcpRoles'],
                 $settings['associationShortName'],
             ],
         );
         self::assertIsString($settings['welcomeTextNl']);
         self::assertStringStartsWith('Welkom bij de buurtpreventie.', $settings['welcomeTextNl']);
+    }
+
+    /**
+     * No role at all leaves MCP to the members the admin picks one by one.
+     */
+    #[Test]
+    public function it_takes_an_empty_list_of_roles_for_mcp(): void
+    {
+        $client = self::createClient();
+        $client->disableReboot();
+        self::actingAs($client, Role::Admin);
+
+        $client->jsonRequest('PATCH', '/api/v1/admin/settings', ['mcpRoles' => []]);
+        self::assertResponseStatusCodeSame(204);
+        $client->jsonRequest('GET', '/api/v1/admin/settings');
+
+        self::assertSame([], self::json($client)['mcpRoles'] ?? null);
     }
 
     /**
@@ -69,6 +88,8 @@ final class ChangeSettingsEndpointTest extends ApiTestCase
         yield 'reminder too far ahead' => [['reminderDaysAhead' => 8], 'reminderDaysAhead'];
         yield 'language without texts' => [['language' => 'de'], 'language'];
         yield 'text for a switch' => [['apiAccess' => 'off'], 'apiAccess'];
+        yield 'role for MCP that does not exist' => [['mcpRoles' => ['walker', 'member']], 'mcpRoles[1]'];
+        yield 'text for the roles for MCP' => [['mcpRoles' => 'walker'], 'mcpRoles'];
     }
 
     /**

@@ -6,8 +6,8 @@ your own Buurtpreventie app and adds a skill on when and how to use its tools.
 
 ## Before you install
 
-- Your association runs the Buurtpreventie app and an admin has switched its MCP server on (`mcpAccess`).
-- You have an API token from the app, under your account. Claude Code asks for it and for the address of the app at
+- Your association runs the Buurtpreventie app, and the admin has opened its MCP server for you.
+- You have an API token from the app, under Integrations. Claude Code asks for it and for the address of the app at
   install, and keeps the token in the keychain of your computer.
 
 ```text
@@ -39,8 +39,8 @@ non-commercial use. The plugin and the app come as is, without warranty or suppo
 ## In het Nederlands
 
 Met deze plugin plan je buurtpreventierondes vanuit Claude Code, via de MCP-server van de app van je eigen
-vereniging. Je hebt een API-token uit de app nodig, en de beheerder moet MCP aanzetten. Een AI-app kan fouten maken:
-wat hij voor je aanmeldt, afmeldt of terugmeldt, gebeurt op jouw naam. Lees dus eerst wat hij voorstelt en zeg dan
-pas ja. Wat de AI-app leest, gaat naar het bedrijf achter die app. De makers van deze repository krijgen niets van je
-vereniging te zien: geen rondes, namen, terugmeldingen of tokens. De plugin is gratis voor niet-commercieel gebruik
-en wordt geleverd zoals hij is, zonder garantie.
+vereniging. Je hebt een API-token uit de app nodig, en de beheerder moet MCP voor je openzetten. Een AI-app kan
+fouten maken: wat hij voor je aanmeldt, afmeldt of terugmeldt, gebeurt op jouw naam. Lees dus eerst wat hij
+voorstelt en zeg dan pas ja. Wat de AI-app leest, gaat naar het bedrijf achter die app. De makers van deze repository
+krijgen niets van je vereniging te zien: geen rondes, namen, terugmeldingen of tokens. De plugin is gratis voor
+niet-commercieel gebruik en wordt geleverd zoals hij is, zonder garantie.

@@ -84,13 +84,19 @@ final class ChangeSettingsHandlerTest extends TestCase
     {
         $this->settings->add(Setting::of('patrol.minimum_walkers', '3'));
 
-        $this->handler()(new ChangeSettings(associationName: 'Buurtpreventie Oost', minimumWalkers: 2, maximumWalkers: 5));
+        $this->handler()(new ChangeSettings(
+            associationName: 'Buurtpreventie Oost',
+            minimumWalkers: 2,
+            maximumWalkers: 5,
+            mcpRoles: ['coordinator', 'analyst'],
+        ));
 
         $this->assertEquals(
             [new AuditedAction('setting.changed', 'settings', Uuid::fromString('00000000-0000-0000-0000-000000000000'), [
                 'association.name' => ['old' => 'Buurtpreventie', 'new' => 'Buurtpreventie Oost'],
                 'patrol.minimum_walkers' => ['old' => '3', 'new' => '2'],
                 'patrol.maximum_walkers' => ['old' => '7', 'new' => '5'],
+                'integrations.mcp_roles' => ['old' => 'admin,analyst,coordinator,walker', 'new' => 'analyst,coordinator'],
             ])],
             $this->auditTrail->recorded,
         );

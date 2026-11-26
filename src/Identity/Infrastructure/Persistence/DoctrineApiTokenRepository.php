@@ -7,6 +7,7 @@ namespace App\Identity\Infrastructure\Persistence;
 use App\Identity\Domain\ApiToken;
 use App\Identity\Domain\ApiTokenRepository;
 use App\Shared\Domain\NotFound;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
 use SensitiveParameter;
@@ -36,6 +37,22 @@ final readonly class DoctrineApiTokenRepository implements ApiTokenRepository
     {
         /** @var list<ApiToken> */
         return $this->entityManager->getRepository(ApiToken::class)->findBy(['memberId' => $memberId]);
+    }
+
+    #[Override]
+    public function usableAt(DateTimeImmutable $now): array
+    {
+        /** @var list<ApiToken> */
+        return $this->entityManager
+            ->createQueryBuilder()
+            ->select('token')
+            ->from(ApiToken::class, 'token')
+            ->where('token.revokedAt IS NULL')
+            ->andWhere('token.expiresAt > :now')
+            ->setParameter('now', $now, 'utc_datetime_immutable')
+            ->getQuery()
+            ->getResult()
+        ;
     }
 
     #[Override]

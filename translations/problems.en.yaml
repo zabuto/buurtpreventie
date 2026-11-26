@@ -42,6 +42,7 @@ invitation_ended: This invitation no longer works. Ask for a login code, or ask 
 csrf_check_failed: The app could not check that this request comes from this site. Reload the page and try again.
 unauthorized: You are not logged in.
 insufficient_scope: Your token may not do this. Create a token with the right scope.
+mcp_not_for_role: You may not use the connection with AI apps (MCP). Ask the admin.
 browser_only: 'Manage your tokens in the app, not with a token.'
 access_denied: You may not do this.
 reauthentication_required: 'Confirm it is you: enter your password, or log in again with a code.'

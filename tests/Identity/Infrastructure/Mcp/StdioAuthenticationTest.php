@@ -9,6 +9,7 @@ use App\Identity\Infrastructure\Security\ApiTokenAuthenticator;
 use App\Settings\Domain\Setting;
 use App\Settings\UseCase\GetMcpAccess\GetMcpAccessHandler;
 use App\Shared\Domain\Channel;
+use App\Shared\Domain\Role;
 use App\Shared\Infrastructure\Security\TokenExecutionContext;
 use App\Tests\Settings\Fake\InMemorySettingRepository;
 use App\Tests\Support\McpTestCase;
@@ -50,7 +51,7 @@ final class StdioAuthenticationTest extends McpTestCase
         self::token(self::member());
         self::service(InMemorySettingRepository::class)->add(Setting::of('integrations.mcp', '0'));
 
-        $this->expectExceptionObject(new RuntimeException('MCP is off for this association; an admin switches it on in the settings (mcpAccess).'));
+        $this->expectExceptionObject(new RuntimeException('MCP is off. Ask the admin.'));
 
         self::authentication(new TokenStorage(), self::SECRET)(self::start('mcp:server'));
     }
@@ -81,6 +82,20 @@ final class StdioAuthenticationTest extends McpTestCase
 
         self::assertNotNull($refusal);
         self::assertNull($storage->getToken());
+    }
+
+    #[Test]
+    public function it_does_not_start_for_a_member_without_a_role_allowed_on_mcp(): void
+    {
+        self::mcpBrowser();
+        self::token(self::member(Role::Walker));
+        self::service(InMemorySettingRepository::class)->add(Setting::of('integrations.mcp_roles', 'analyst'));
+
+        $this->expectExceptionObject(
+            new RuntimeException('MCP is not open to you. Ask the admin.'),
+        );
+
+        self::authentication(new TokenStorage(), self::SECRET)(self::start('mcp:server'));
     }
 
     #[Test]

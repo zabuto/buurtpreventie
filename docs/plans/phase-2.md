@@ -468,7 +468,7 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code.
     `invalid_token_expiry`). De auditregel noemt ook de verloopdatum. Migratie `Version20261116120000` maakt
     `api_token.expires_at` verplicht en geeft een token zonder datum eerst een einde 365 dagen na het aanmaken;
     `down()` maakt de kolom weer nullable;
-  - `RunAs::member()` telt als recente aanmelding: wie een consolecommando draait, bewees wie hij is door de server te
+  - `RunAs::member()` telt als recente aanmelding: wie een consolecommando draait, bewees de eigen identiteit door de server te
     bereiken. Zo maken de voorbeelddata hun token nog via `CreateApiToken`, nu met 90 dagen geldigheid;
   - beslissing 18 zit in `TokenManagementGuard`, naast `TokenScopeGuard`: elk verzoek met een token onder
     `/api/v1/me/tokens` krijgt 403 `browser_only`, ook `GET` en `DELETE`. Dat volgt beslissing 17 (regels per

@@ -162,7 +162,7 @@ Het `@` in de gebruikersnaam wordt `%40`; bij poort 465 begint de regel met `smt
 | Packagist (beveiligingsadviezen) | IP-adres van de server en de lijst met geïnstalleerde pakketten | Verwaarloosbaar; geen gegevens van leden | Geen |
 | Pushdiensten van Apple, Google, Mozilla (uitbreiding U4) | Apparaatadres en tijdstip; de inhoud is versleuteld | De dienst ziet dát iemand een melding krijgt, en wanneer | Alleen als het lid het aanzet; korte tekst zonder namen ("Je loopt morgen om 20:00") |
 | Kaartondergrond PDOK of OpenStreetMap (uitbreiding U9) | IP-adres van de browser en welk kaartgebied wordt bekeken | Laat zien welk gebied iemand bekijkt | PDOK (Nederlandse overheid) als standaard; nooit lopergegevens in de kaartverzoeken |
-| AI-client via MCP | Wat de tools teruggeven: rondes, weergavenamen van lopers, uitkomsten en aantallen; geen notities, opmerkingen of contactgegevens (besloten op 17 november 2026, fase 4) | Gegevens bij de AI-aanbieder die het lid zelf kiest | MCP standaard uit, dataminimalisatie (zie MCP-server), token per lid in te trekken |
+| AI-client via MCP | Wat de tools teruggeven: rondes, weergavenamen van lopers, uitkomsten en aantallen; geen notities, opmerkingen of contactgegevens (besloten op 17 november 2026, fase 4) | Gegevens bij de AI-aanbieder die het lid zelf kiest | MCP standaard uit en per rol of per lid open te zetten, dataminimalisatie (zie MCP-server), token per lid in te trekken |
 | Spraakherkenning in de browser (uitbreiding U7) | De gesproken tekst van de terugmelding | De browsermaker (bij Chrome Google, bij Safari Apple) verwerkt de spraak | Opt-in per vereniging en per lid, melding vooraf, geen opnames op de server; dicteren via het toetsenbord als alternatief |
 
 ## Licentie
@@ -273,7 +273,7 @@ Een PHPat-regel bewaakt dit: elke map direct onder `src/` behalve `Shared` is ee
 
 ## Overdraagbaarheid
 
-Welke codestructuur het ook wordt: het project moet over te dragen zijn aan een andere ontwikkelaar. Doel: een PHP/Symfony-ontwikkelaar vindt binnen een uur zijn weg, en levert binnen een dag een eerste wijziging op.
+Welke codestructuur het ook wordt: het project moet over te dragen zijn aan een andere ontwikkelaar. Doel: een PHP/Symfony-ontwikkelaar vindt binnen een uur de weg, en levert binnen een dag een eerste wijziging op.
 
 **Code en kennis.**
 
@@ -387,7 +387,7 @@ Eenvoud in gebruik:
 - **Grote basistekst (18 px)** die meeschaalt met de lettergrootte van de telefoon.
 - **Bevestiging in woorden na elke actie**, met ongedaan maken waar het kan ("Afgemeld. Ongedaan maken").
 - **Inloggen zonder gedoe:** "ingelogd blijven" voor 90 dagen en inloggen met een code van zes cijfers per mail; "wachtwoord vergeten" is inloggen met een code. Een wachtwoord kan, maar is nooit verplicht. Een nieuw lid krijgt een uitnodiging: een link die één keer werkt. E-mails hebben een directe knop naar de ronde.
-- **Hulp van de coördinator:** een nieuwe uitnodiging laten sturen, zonder de link zelf te zien, en een loper die het zelf niet lukt namens hem aan- of afmelden; dat staat als "namens" in het auditlog.
+- **Hulp van de coördinator:** een nieuwe uitnodiging laten sturen, zonder de link zelf te zien, en een loper die het zelf niet lukt namens die loper aan- of afmelden; dat staat als "namens" in het auditlog.
 - **Handleiding voor lopers:** één A4 met schermafbeeldingen in `docs/user-guide/`, en dezelfde uitleg in de app onder "Hoe werkt het?".
 
 Testen met echte lopers en toestellen:
@@ -481,7 +481,7 @@ Regels die daaruit volgen:
 | Media | `GET /media/brand/{bestand}` | iedereen |
 | Privacy | `GET /me/export`, `DELETE /admin/members/{id}` (wissen) | lid (eigen gegevens), beheerder (wissen) |
 
-**Rechten.** Eén Voter per onderwerp (`RoundVoter`, `ReportVoter`, `MemberVoter`, …) met de rollen walker, coordinator, analyst en admin. Rollen tellen op, en elke rol geeft alleen zijn eigen rechten. De beheerder (`admin`) beheert leden, catalogi, instellingen en onderhoud, en heeft geen rechten op de inhoud van rondes; wie dat nodig heeft, krijgt ook de rol coördinator. De analist leest alleen; loopt hij ook, dan krijgt hij de rol loper erbij. Controllers en MCP-tools roepen dezelfde Voters aan; een test controleert de volledige matrix rol × actie.
+**Rechten.** Eén Voter per onderwerp (`RoundVoter`, `ReportVoter`, `MemberVoter`, …) met de rollen walker, coordinator, analyst en admin. Rollen tellen op, en elke rol geeft alleen zijn eigen rechten. De beheerder (`admin`) beheert leden, catalogi, instellingen en onderhoud, en heeft geen rechten op de inhoud van rondes; wie dat nodig heeft, krijgt ook de rol coördinator. De analist leest alleen; loopt de analist ook, dan komt de rol loper erbij. Controllers en MCP-tools roepen dezelfde Voters aan; een test controleert de volledige matrix rol × actie.
 
 **Authenticatie.** Uitgewerkt en vastgelegd in fase 2 ([ADR 0006](../adr/0006-authentication.md)).
 
@@ -518,7 +518,7 @@ De MCP-server is een dunne laag op `/mcp` die dezelfde use cases en Voters aanro
 | `list_meeting_points`, `list_outcomes` | Keuzelijsten | `read` | lid |
 | `round_statistics` | Aantallen gepland, gelopen, niet gelopen (geen loopmaatje) en incidenten, per maand, weekdag of dagdeel, met percentages en vergelijking met de vorige periode | `read` | analist, coördinator |
 
-**Resources:** `buurtpreventie://config` (naam, minimum- en maximumaantal lopers, startpunten, uitkomsten). **Prompts:** `monthly_report` (maandoverzicht voor politie/gemeente uit `report_summary`) en `plan_week` (open plekken komende week).
+**Resources:** `buurtpreventie://config` (naam, minimum- en maximumaantal lopers, startpunten, uitkomsten). **Prompts:** `monthly_report` (maandoverzicht uit `report_summary`) en `plan_week` (open plekken komende week).
 
 **Plugin.** Een Claude Code-plugin in `plugins/buurtpreventie`, met een marketplace in deze repo, koppelt de server met adres en token uit de installatie en voegt een skill toe over welke tool bij welke vraag hoort en wat alleen het model kan bewaken. De skill is gebruiksgemak, geen beveiliging; uitwerking in `docs/plans/phase-4-agent-plugin.md`.
 
@@ -530,7 +530,7 @@ De MCP-server is een dunne laag op `/mcp` die dezelfde use cases en Voters aanro
 | Analist | "Op welke weekdagen en dagdelen ontbreekt het vaakst een loopmaatje?" | `round_statistics` |
 | Analist | "Vergelijk oktober met september" | `round_statistics` |
 | Analist | "Hoeveel incidenten waren er dit jaar, en in welke maanden?" | `report_summary` |
-| Analist | "Schrijf het maandoverzicht voor de wijkagent" | prompt `monthly_report` |
+| Analist | "Schrijf het maandoverzicht van oktober" | prompt `monthly_report` |
 | Coördinator | "Welke rondes zoeken deze week nog een loopmaatje?" | `staffing_gaps` |
 | Coördinator | "Op welke avonden volgende week staat niets gepland?" | prompt `plan_week` |
 | Loper | "Wanneer loop ik de komende weken, en heb ik nog terugmeldingen open?" | `my_rounds` |
@@ -546,13 +546,13 @@ De MCP-server is een dunne laag op `/mcp` die dezelfde use cases en Voters aanro
 - Uitvoer bevat alleen wat nodig is: geen telefoonnummers of adressen, ook niet bij toestemming.
 - Notities en opmerkingen zijn door leden getypte tekst, vaak over een verdachte; MCP geeft ze niet (besloten op 17 november 2026, fase 4): `get_round` geeft de uitkomst van de terugmelding zonder notitie en geen opmerkingen. Startnotitie en reden van annulering staan in een eigen veld, zodat clients ze als data behandelen en niet als instructie.
 - Schrijftools krijgen MCP-annotaties (`readOnlyHint`, `destructiveHint: false`, `idempotentHint` bij aan-/afmelden).
-- Rate limit per token met `symfony/rate-limiter` op de bestandscache.
+- Grenzen per token met `symfony/rate-limiter` op de bestandscache, voor API en MCP samen: lezen per minuut en per dag, schrijven per uur. De eerste keer per dag dat een token de daggrens haalt, geeft een auditregel en een e-mail aan het lid; een nieuw token geeft ook een e-mail.
 - DNS-rebinding-bescherming van de bundle met de eigen hostnaam als enige toegestane host.
 - Elke schrijfactie via MCP komt in het auditlog met kanaal `mcp`.
 
 **Transport.** Streamable HTTP, JSON-antwoorden zonder SSE-stream, sessieloos; het `2026-07-28`-tijdperk wordt standaard bediend, het handshake-tijdperk met een sessie in bestanden. Daarnaast `symfony console mcp:server` over STDIO voor lokaal gebruik door de ontwikkelaar, met een API-token in `MCP_TOKEN`.
 
-**Aan en uit.** De instelling `mcpAccess` staat standaard uit; uit geeft `/mcp` op elk verzoek 404, nog vóór het token wordt opgezocht. Alleen API-tokens geven toegang, geen browsersessie.
+**Aan en uit.** De instelling `mcpAccess` staat standaard uit; uit geeft `/mcp` op elk verzoek 404, nog vóór het token wordt opgezocht. Alleen API-tokens geven toegang, geen browsersessie. De instelling `mcpRoles` bepaalt welke rollen een lid via MCP houdt (standaard alle vier); een lid dat de beheerder kiest (`mcpAllowed`), houdt alle eigen rollen. Een lid zonder toegestane rol krijgt 403 `mcp_not_for_role`. REST houdt alle rollen.
 
 Afwijkingen in fase 4 (`docs/plans/phase-4.md`, beslissingen 3, 12, 15 en 16, en T9): het handshake-tijdperk werkt in de SDK alleen met een sessiestore, dus het krijgt een sessie in bestanden die alleen het onderhandelde protocol bewaart; `report_summary` kreeg een eigen use case (`SummariseRoundReports`, ook op `GET /reports/summary`) en is, net als de lijst terugmeldingen, voor analist én coördinator; `staffing_gaps` kreeg `days`, ook op REST; `withdraw_from_round` heeft `destructiveHint: true`, omdat de laatste loper die zich afmeldt de ronde laat vervallen; `plan_week` vraagt alleen `list_rounds`, die de status al geeft.
 
@@ -568,7 +568,7 @@ Elke wijziging door een lid wordt vastgelegd als regel in een alleen-toevoegen-l
 | Aanmeldingen | loper aangemeld, afgemeld, door coördinator verwijderd, automatisch uitgeschreven (inactief lid) |
 | Na de ronde | terugmelding geplaatst of verwijderd, opmerking geplaatst of verwijderd |
 | Leden | toegevoegd, rol gewijzigd, (de)geactiveerd, hersteld, toestemming contactgegevens gewijzigd |
-| Account | ingelogd (met wachtwoord, code of uitnodiging), mislukte inlog, inlogcode aangevraagd, uitnodiging verstuurd, wachtwoord gewijzigd, API-token aangemaakt of ingetrokken |
+| Account | ingelogd (met wachtwoord, code of uitnodiging), mislukte inlog, inlogcode aangevraagd, uitnodiging verstuurd, wachtwoord gewijzigd, API-token aangemaakt of ingetrokken, daggrens van een token gehaald |
 | Beheer | instelling gewijzigd, startpunt of uitkomst gewijzigd, update uitgevoerd of teruggezet |
 
 **Per regel:** tijdstip (UTC, getoond in Europe/Amsterdam), wie (lid-id plus naam op dat moment, of "systeem"), actie (bv. `round.walker_removed`), onderwerp (type + id), kanaal, en de gewijzigde velden als oud → nieuw. Nooit wachtwoorden, tokens of volledige IP-adressen; bij mislukte inlogpogingen alleen een ingekort IP-adres.
@@ -811,7 +811,7 @@ Fase 3, 4 en 5 hangen alleen van de API af; MCP (fase 4) gaat vóór de frontend
   - hij zoekt het token op de SHA-256-hash; het token zelf staat nergens, en draagt geen inhoud en geen controlegetal;
   - één `match` met elke reden om te weigeren: onbekend, ingetrokken, verlopen, lid gedeactiveerd of gewist (review-focus 4: het token werkt meteen niet meer);
   - een weigering is een 401 zonder body, met `WWW-Authenticate: Bearer`; de reden gaat alleen naar ons log, in woorden die het datamodel niet prijsgeven, en de exceptie draagt een algemene melding;
-  - bij succes: `markUsed()` op het token en `ExecutionContext` gevuld met het lid, zijn rollen en kanaal `api` (of `mcp` in fase 4), zodat er één bron is voor wie de actie uitvoert;
+  - bij succes: `markUsed()` op het token en `ExecutionContext` gevuld met het lid, de rollen van het lid en kanaal `api` (of `mcp` in fase 4), zodat er één bron is voor wie de actie uitvoert;
   - geen JWT: dat is niet meteen in te trekken zonder toch bij elk verzoek op te zoeken, de inhoud is leesbaar, en één gelekte sleutel ondertekent elk token.
   Het werd een eigen authenticator, geen `access_token` met handler: die slaat een verzoek zonder header over.
 - [x] **Afwijking: scopes per verzoek, niet in de Voters** (beslissing 17 van `phase-2.md`). Een listener op de tokenfirewall eist `read` voor `GET` en `HEAD`, `write` voor de andere methodes en `admin` voor `/api/v1/admin/`; de Voters gaan alleen over rollen. Rol én scope moeten kloppen, en één test dekt elke scope.
@@ -846,6 +846,7 @@ Fase 3, 4 en 5 hangen alleen van de API af; MCP (fase 4) gaat vóór de frontend
 - [x] Use case `RoundStatistics` met de tool `round_statistics` (het scherm volgt in uitbreiding U5); token-scopes, rate limit, audit `via: mcp`, DNS-rebinding-instelling.
 - [x] Tests met de SDK-client in PHPUnit: elke tool, en elke tool geweigerd zonder juiste scope of rol.
 - [x] Aanvulling: `staffing_gaps` en `list_rounds` (en `GET /staffing-gaps` en `GET /rounds`) zeggen per ronde of de vrager er zelf op staat (`signedUp`). Bij de handmatige test zette Claude Code de eigen rondes van een loper anders tussen de rondes om bij aan te schuiven; het scherm van fase 5 heeft het veld ook nodig. Een open punt uit `docs/plans/phase-4.md`.
+- [x] Aanvulling: grenzen tegen misbruik van tokens. Grenzen per token voor API en MCP samen, een e-mail bij een nieuw token en bij de daggrens, een overzicht van alle tokens en intrekken per lid voor de beheerder, MCP per rol (`mcpRoles`) en per lid (`mcpAllowed`), en `monthly_report` als concept. De uitwerking staat in `docs/plans/phase-4-misuse-guards.md`.
 
 **Klaar als:** de MCP Inspector alle tools ziet en Claude Code met een token `staffing_gaps` en `sign_up_for_round` kan gebruiken.
 
@@ -920,9 +921,9 @@ Binnen elke groep gaat waarde vóór moeite.
 
 ### Uitbreiding U1 — Vast loopmaatje uitnodigen
 
-Een loper kan iemand met wie hij vaak loopt vragen of die weer meeloopt, maar alleen als die ander dat uitdrukkelijk heeft toegestaan. Standaard kan niemand een ander uitnodigen; de vereniging kan de functie in de instellingen uitzetten.
+Een loper kan iemand met wie die vaak loopt vragen of die weer meeloopt, maar alleen als die ander dat uitdrukkelijk heeft toegestaan. Standaard kan niemand een ander uitnodigen; de vereniging kan de functie in de instellingen uitzetten.
 
-- [ ] **Toestemming per persoon (opt-in):** lid B zet in zijn account "A mag mij uitnodigen" aan. Dat kan op eigen initiatief, of na een verzoek van A ("A wil je kunnen uitnodigen voor rondes. Toestaan?"). Een verzoek dat B laat liggen, vervalt na 30 dagen; A ziet nooit of B weigerde, alleen of het is toegestaan.
+- [ ] **Toestemming per persoon (opt-in):** lid B zet in het eigen account "A mag mij uitnodigen" aan. Dat kan op eigen initiatief, of na een verzoek van A ("A wil je kunnen uitnodigen voor rondes. Toestaan?"). Een verzoek dat B laat liggen, vervalt na 30 dagen; A ziet nooit of B weigerde, alleen of het is toegestaan.
 - [ ] **Altijd terug te draaien:** B kan toestemming per persoon intrekken of alle uitnodigingen pauzeren ("even niet"). A krijgt daar geen bericht over.
 - [ ] **Suggesties voor A:** "Vaak met je gelopen" op basis van gezamenlijke rondes in het afgelopen halfjaar. Dat zijn gegevens die A in de rondes al kon zien.
 - [ ] **Uitnodigen:** bij een eigen ronde die een loopmaatje zoekt, tikt A op "Vraag B mee". B krijgt een mail (en later pushmelding) met de knoppen "Ik loop mee" en "Kan deze keer niet". "Ik loop mee" meldt B direct aan.
@@ -940,7 +941,7 @@ Een loper kan iemand met wie hij vaak loopt vragen of die weer meeloopt, maar al
 - [ ] Geen contactgegevens in de feed, alleen namen van loopmaatjes.
 - [ ] Uitleg in `docs/user-guide/` voor de agenda op iPhone, Android en in Outlook.
 
-**Klaar als:** een loper zijn rondes in de agenda van zijn telefoon ziet, en wijzigingen doorkomen bij de volgende verversing van die agenda (dat bepaalt de agenda-app zelf).
+**Klaar als:** een loper de eigen rondes in de agenda van de eigen telefoon ziet, en wijzigingen doorkomen bij de volgende verversing van die agenda (dat bepaalt de agenda-app zelf).
 
 ### Uitbreiding U3 — Reageren op de terugmelding
 
@@ -949,7 +950,7 @@ Een ronde heeft één terugmelding, van één loper of de coördinator. De ander
 - [ ] Per loper van de ronde één reactie (eens of oneens) op de terugmelding, te wijzigen of in te trekken; in het auditlog.
 - [ ] Coördinator en analist zien de reacties bij de ronde; een terugmelding met een "oneens" valt op in het overzicht.
 
-**Klaar als:** een loper die meeliep met één tik laat zien of hij het met de terugmelding eens is.
+**Klaar als:** een loper die meeliep met één tik laat zien of die het met de terugmelding eens is.
 
 ### Uitbreiding U4 — Pushmeldingen
 
@@ -959,7 +960,7 @@ Een ronde heeft één terugmelding, van één loper of de coördinator. De ander
 - [ ] Herinneringen gaan via de tijdtrigger; meldingen bij een uitnodiging of open ronde gaan direct. Zonder cron dus alleen de directe meldingen.
 - [ ] Eén kleine Web Push-bibliotheek als afhankelijkheid, vastgelegd in een ADR.
 
-**Klaar als:** een loper met meldingen aan een uitnodiging en een herinnering op zijn telefoon krijgt, en een lid zonder toestemming niets.
+**Klaar als:** een loper met meldingen aan een uitnodiging en een herinnering op de eigen telefoon krijgt, en een lid zonder toestemming niets.
 
 ### Uitbreiding U5 — Statistieken voor analist
 
@@ -969,7 +970,7 @@ Er komt een scherm Statistieken voor analist en coördinator, met exacte cijfers
 - [ ] **Filters:** periode, dagdeel en startpunt, en vergelijken met de vorige periode.
 - [ ] **API en MCP:** `GET /api/v1/stats/rounds?from=&to=&groupBy=month|weekday|daypart` en `GET /api/v1/stats/outcomes`, gebouwd op de use case `RoundStatistics` uit fase 4, die ook de MCP-tool `round_statistics` voedt.
 - [ ] **Getekend als eigen SVG-componenten in Lit**, zonder grafiekbibliotheek. Elke grafiek heeft een titel die de conclusie zegt, een tabelweergave voor schermlezers, en kleur is nooit de enige drager (WCAG).
-- [ ] **Privacy:** alleen totalen, geen ranglijsten of cijfers per loper. Een loper ziet alleen zijn eigen aantallen onder Mijn rondes.
+- [ ] **Privacy:** alleen totalen, geen ranglijsten of cijfers per loper. Een loper ziet alleen de eigen aantallen onder Mijn rondes.
 - [ ] **Export:** de getoonde cijfers als CSV; een vaste rapportage voor politie en gemeente volgt eventueel in uitbreiding U8.
 - [ ] **Snel op shared hosting:** tellingen als SQL-aggregaties, een dag gecachet in de bestandscache.
 
@@ -1007,7 +1008,7 @@ De bouwstenen zijn er dan al: de use case `RoundStatistics` (fase 4), het statis
 
 ### Uitbreiding U9 — Route en incidentkaart
 
-Een opt-in-functie achter een feature flag, die pas start als fase 0 t/m 6 draaien: standaard uit, de beheerder zet hem per vereniging aan in de instellingen, en daarna kiest elke loper zelf of hij meedoet.
+Een opt-in-functie achter een feature flag, die pas start als fase 0 t/m 6 draaien: standaard uit, de beheerder zet hem per vereniging aan in de instellingen, en daarna kiest elke loper zelf of die meedoet.
 
 - [ ] **Toestemming per loper:** apart vinkje "mijn route mag worden vastgelegd", standaard uit en altijd in te trekken. Pas na toestemming verschijnt de knop "Route opnemen".
 - [ ] **Locatie in `Permissions-Policy`:** `geolocation=(self)` alleen als de uitbreiding aan staat; uit fase 5 staat locatie uit.
@@ -1035,11 +1036,11 @@ Een opt-in-functie achter een feature flag: standaard uit, de beheerder zet hem 
 
 - [ ] **Markeren bij annuleren:** wie een begonnen ronde annuleert (`CancelRound`, een loper van die ronde of de coördinator), vinkt aan welke lopers niet kwamen. De coördinator kan dat achteraf aanpassen.
 - [ ] **Model:** `noShowAt` op de aanmelding (`Participation`) van die loper in die ronde; geen eigen tabel. Elke markering en elke verwijdering laat een auditregel achter.
-- [ ] **Zichtbaar voor de coördinator:** het aantal no-shows per lid over een periode, bij het lid in het ledenoverzicht, zodat hij iemand kan aanspreken. Geen ranglijst; niet zichtbaar voor andere lopers of de analist, en via MCP alleen voor de coördinator.
+- [ ] **Zichtbaar voor de coördinator:** het aantal no-shows per lid over een periode, bij het lid in het ledenoverzicht, zodat de coördinator iemand kan aanspreken. Geen ranglijst; niet zichtbaar voor andere lopers of de analist, en via MCP alleen voor de coördinator.
 - [ ] **Zichtbaar voor het lid zelf:** de eigen no-shows bij "Mijn activiteit", met de mogelijkheid bezwaar te maken bij de coördinator.
 - [ ] **Privacy (AVG):** een oordeel over hoe betrouwbaar iemand is, is gevoelige persoonsinformatie. Vaste bewaartermijn (standaard 12 maanden, instelbaar), daarna verwijdert de scheduler de markering; vermelding in de privacyverklaring van de vereniging; inzage en correctie voor het lid; uitzetten verwijdert alle markeringen.
 
-**Klaar als:** een no-show bij het annuleren vastligt, de coördinator het aantal per lid ziet, het lid zijn eigen no-shows ziet, en markeringen na de bewaartermijn weg zijn.
+**Klaar als:** een no-show bij het annuleren vastligt, de coördinator het aantal per lid ziet, het lid de eigen no-shows ziet, en markeringen na de bewaartermijn weg zijn.
 
 ## Overstap van bestaande v3-installaties
 

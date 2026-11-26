@@ -19,6 +19,7 @@ final readonly class ListMembersOutput
      *     certified: bool,
      *     consentContactShare: bool,
      *     notifyOpenRounds: bool,
+     *     mcpAllowed: bool,
      * }> $members by display name, deactivated members included
      */
     public function __construct(

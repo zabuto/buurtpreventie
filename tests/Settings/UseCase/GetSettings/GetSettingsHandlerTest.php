@@ -54,6 +54,7 @@ final class GetSettingsHandlerTest extends TestCase
                 language: 'nl',
                 apiAccess: false,
                 mcpAccess: false,
+                mcpRoles: ['admin', 'analyst', 'coordinator', 'walker'],
                 defaults: [
                     'associationShortName',
                     'primaryColor',
@@ -73,10 +74,22 @@ final class GetSettingsHandlerTest extends TestCase
                     'maximumWalkers',
                     'language',
                     'mcpAccess',
+                    'mcpRoles',
                 ],
             ),
             $output,
         );
+    }
+
+    #[Test]
+    public function it_gives_an_empty_list_when_no_role_may_use_mcp(): void
+    {
+        $settings = new InMemorySettingRepository();
+        $settings->add(Setting::of('integrations.mcp_roles', ''));
+
+        $output = new GetSettingsHandler($settings, new FixedStandardTexts(), FakeAuthorization::granting())(new GetSettings());
+
+        $this->assertSame([], $output->mcpRoles);
     }
 
     #[Test]

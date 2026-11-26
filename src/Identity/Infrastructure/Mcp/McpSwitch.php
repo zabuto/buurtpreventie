@@ -40,8 +40,14 @@ final readonly class McpSwitch
         $event->setResponse($this->problems->create(Response::HTTP_NOT_FOUND, 'not_found'));
     }
 
+    /**
+     * Takes the raw path of the request. The firewall and the router decode it before they match, so an encoded path
+     * such as `/%6Dcp` reaches the MCP server; deciding on the raw path would skip the switch and the roles on MCP.
+     */
     public static function isMcp(string $path): bool
     {
+        $path = \rawurldecode($path);
+
         return self::PATH === $path || \str_starts_with($path, self::PATH . '/');
     }
 }

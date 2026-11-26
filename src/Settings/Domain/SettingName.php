@@ -37,6 +37,7 @@ enum SettingName: string
     case Language = 'app.language';
     case ApiAccess = 'integrations.api_access';
     case McpAccess = 'integrations.mcp';
+    case McpRoles = 'integrations.mcp_roles';
 
     /**
      * The id every audit entry about the settings has as subject: there is one set per installation.

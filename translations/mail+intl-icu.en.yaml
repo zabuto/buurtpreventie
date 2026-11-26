@@ -14,6 +14,20 @@ account.invitation.intro: You are invited to the app of {name}. Open the link to
 account.invitation.button: Log in
 account.invitation.valid: The link works for {hours} hours, and once. Does it no longer work? Then ask for a login code on the login screen with this e-mail address.
 
+account.token_limit_reached.subject: Your token {name} went over the limit for one day
+account.token_limit_reached.intro: On {date} at {time}, your token {name} went over the limit for one day. So the app refuses that token for a while.
+
+account.token_created.subject: New token in your name
+account.token_created.intro: 'There is a new token in your name: {name}.'
+account.token_created.scopes: This token can {scopes}.
+account.token_created.expires: It works until {date}.
+account.token.scope.read: read
+account.token.scope.write: change
+account.token.scope.admin: manage
+account.token.and: and
+
+account.token.not_you: Was this not you? Then open the app yourself. Revoke the token under Integrations. Tell the coordinator too.
+
 round.line: '{date} at {time}, {daypart, select, morning {morning round} afternoon {afternoon round} other {evening round}}.'
 round.line_with_meeting_point: '{date} at {time}, {daypart, select, morning {morning round} afternoon {afternoon round} other {evening round}}, starting at {meetingPoint}.'
 round.others: '{others, plural, =0 {You walk alone so far.} one {1 other walks with you.} other {# others walk with you.}}'

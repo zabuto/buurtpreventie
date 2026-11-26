@@ -94,6 +94,6 @@ final readonly class RepositoryMemberDirectory implements MemberDirectory
 
     private static function identityOf(Member $member): MemberIdentity
     {
-        return new MemberIdentity($member->id(), $member->roles(), $member->isActive());
+        return new MemberIdentity($member->id(), $member->roles(), $member->isActive(), $member->isMcpAllowed());
     }
 }

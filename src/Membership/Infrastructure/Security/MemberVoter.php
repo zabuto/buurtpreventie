@@ -27,6 +27,7 @@ final readonly class MemberVoter implements CacheableVoterInterface
         'member.deactivate',
         'member.reactivate',
         'member.erase',
+        'member.reset_mcp_allowed',
         'member.invite',
         'member.change_consent',
         'member.change_open_round_notifications',

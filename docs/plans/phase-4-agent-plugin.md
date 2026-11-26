@@ -160,7 +160,7 @@ Bij andere clients:
     erin staat, bij de andere moeilijke gevallen van `edge`.
 14. **`.github/CODEOWNERS`** voor `plugins/`, `.claude-plugin/` en `config/packages/mcp.yaml`: een wijziging aan de
     skill of de instructies verandert het gedrag van elke geïnstalleerde client, en hoort dus net zo bekeken te
-    worden als code. Met één medewerker vraagt GitHub geen goedkeuring van de eigenaar (de auteur kan zijn eigen
+    worden als code. Met één medewerker vraagt GitHub geen goedkeuring van de eigenaar (de auteur kan de eigen
     pull request niet goedkeuren), dus `require_code_owner_reviews` blijft uit: het bestand legt de eigenaar vast
     voor de overdracht en vraagt automatisch om review zodra er een tweede beheerder is. Dependabot raakt deze
     bestanden niet, dus het automatisch samenvoegen gaat er niet langs.

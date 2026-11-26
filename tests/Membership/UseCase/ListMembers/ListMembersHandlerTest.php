@@ -30,6 +30,7 @@ final class ListMembersHandlerTest extends TestCase
     public function it_lists_every_member_with_everything_the_admin_manages(): void
     {
         $jan = MemberFixture::stored($this->members, 'jan@example.org', 'Jan Bakker', 'Jan B.', [Role::Walker, Role::Coordinator]);
+        $jan->allowMcp(true);
 
         $output = $this->handler()(new ListMembers());
 
@@ -46,6 +47,7 @@ final class ListMembersHandlerTest extends TestCase
                 'certified' => false,
                 'consentContactShare' => false,
                 'notifyOpenRounds' => false,
+                'mcpAllowed' => true,
             ]],
             $output->members,
         );

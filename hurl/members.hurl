@@ -35,11 +35,13 @@ HTTP 200
 memberId: jsonpath "$.members[0].id"
 [Asserts]
 jsonpath "$.members[0].email" exists
+jsonpath "$.members[0].mcpAllowed" isBoolean
 
 GET {{baseUrl}}/api/v1/admin/members/{{memberId}}
 HTTP 200
 [Asserts]
 jsonpath "$.id" == "{{memberId}}"
+jsonpath "$.mcpAllowed" isBoolean
 
 PATCH {{baseUrl}}/api/v1/admin/members/{{memberId}}
 {

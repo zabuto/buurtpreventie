@@ -11,14 +11,7 @@ See [docs/getting-started.md](docs/getting-started.md). Report a vulnerability p
 [SECURITY.md](SECURITY.md).
 
 Members connect an AI client through the MCP server of their own app, see
-[docs/user-guide/mcp.md](docs/user-guide/mcp.md). In Claude Code:
-
-```text
-/plugin install buurtpreventie --marketplace zabuto/buurtpreventie
-```
-
-The plugin connects Claude Code straight to the app of the association; the developers of this repository get no
-data from it.
+[docs/user-guide/mcp.md](docs/user-guide/mcp.md).
 
 ## Licence
 

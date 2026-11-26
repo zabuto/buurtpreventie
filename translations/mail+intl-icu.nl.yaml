@@ -14,6 +14,20 @@ account.invitation.intro: Je bent uitgenodigd voor de app van {name}. Open de li
 account.invitation.button: Inloggen
 account.invitation.valid: De link werkt {hours} uur en één keer. Werkt hij niet meer? Vraag dan op het inlogscherm een inlogcode aan met dit e-mailadres.
 
+account.token_limit_reached.subject: Je token {name} kwam boven de grens voor één dag
+account.token_limit_reached.intro: Je token {name} kwam op {date} om {time} boven de grens voor één dag. De app weigert dat token daarom een tijdje.
+
+account.token_created.subject: Nieuw token op jouw naam
+account.token_created.intro: 'Er staat een nieuw token op jouw naam: {name}.'
+account.token_created.scopes: Dit token mag {scopes}.
+account.token_created.expires: Het werkt tot {date}.
+account.token.scope.read: lezen
+account.token.scope.write: wijzigen
+account.token.scope.admin: beheren
+account.token.and: en
+
+account.token.not_you: Was jij dit niet? Open dan zelf de app. Trek het token in onder Koppelingen. Meld het ook aan de coördinator.
+
 round.line: '{date} om {time}, {daypart, select, morning {ochtendronde} afternoon {middagronde} other {avondronde}}.'
 round.line_with_meeting_point: '{date} om {time}, {daypart, select, morning {ochtendronde} afternoon {middagronde} other {avondronde}}, startpunt {meetingPoint}.'
 round.others: '{others, plural, =0 {Je loopt nog alleen.} one {Er loopt 1 ander mee.} other {Er lopen # anderen mee.}}'

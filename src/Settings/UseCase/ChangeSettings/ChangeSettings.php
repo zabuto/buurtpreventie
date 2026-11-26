@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Settings\UseCase\ChangeSettings;
 
 use App\Settings\Domain\SettingName;
+use App\Shared\Domain\Role;
 use App\Shared\Domain\Unchanged;
+use OpenApi\Attributes as OA;
 use Override;
 use Symfony\Component\Serializer\Attribute\Ignore;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -92,12 +94,21 @@ final readonly class ChangeSettings implements GroupSequenceProviderInterface
         public bool|Unchanged|null $apiAccess = Unchanged::Field,
         /** Off answers every request to /mcp with 404; API tokens keep working on REST. */
         public bool|Unchanged|null $mcpAccess = Unchanged::Field,
+        /**
+         * The roles a member keeps on /mcp; REST and the app keep every role. Empty: only the members the admin picks
+         * (mcpAllowed) use MCP.
+         *
+         * @var list<string>|Unchanged|null
+         */
+        #[OA\Property(items: new OA\Items(type: 'string', enum: ['admin', 'analyst', 'coordinator', 'walker']))]
+        #[Assert\All([new Assert\Choice(callback: [Role::class, 'values'])], groups: ['mcpRoles'])]
+        public array|Unchanged|null $mcpRoles = Unchanged::Field,
     ) {
     }
 
     /**
-     * @return array<string, string|int|bool|null> setting name => new value, or null for the default; only what the
-     *                                             patch holds
+     * @return array<string, string|int|bool|list<string>|null> setting name => new value, or null for the default; only
+     *                                                          what the patch holds
      */
     public function changes(): array
     {
@@ -126,7 +137,7 @@ final readonly class ChangeSettings implements GroupSequenceProviderInterface
     }
 
     /**
-     * @return array<string, string|int|bool|null|Unchanged>
+     * @return array<string, string|int|bool|list<string>|null|Unchanged>
      */
     private function fields(): array
     {
@@ -154,6 +165,7 @@ final readonly class ChangeSettings implements GroupSequenceProviderInterface
             'language' => $this->language,
             'apiAccess' => $this->apiAccess,
             'mcpAccess' => $this->mcpAccess,
+            'mcpRoles' => $this->mcpRoles,
         ];
     }
 }

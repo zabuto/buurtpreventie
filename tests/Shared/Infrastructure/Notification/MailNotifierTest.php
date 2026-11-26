@@ -34,6 +34,8 @@ use Symfony\Component\Mime\Part\DataPart;
 #[Group('functional')]
 final class MailNotifierTest extends ApiTestCase
 {
+    private const string NOT_YOU = 'Was jij dit niet? Open dan zelf de app. Trek het token in onder Koppelingen. Meld het ook aan de coördinator.';
+
     // @mago-expect lint:no-literal-password - a made-up secret the link must carry
     private const string SECRET = 'bpi_0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
@@ -59,6 +61,8 @@ final class MailNotifierTest extends ApiTestCase
     {
         yield 'login code' => ['account.login_code', ['code' => '482 913', 'minutes' => 60]];
         yield 'invitation' => ['account.invitation', ['secret' => self::SECRET, 'hours' => 48]];
+        yield 'new token' => ['account.token_created', ['tokenName' => 'Script', 'scopes' => 'read', 'expiresAt' => '2027-02-13T12:00:00+00:00']];
+        yield 'daily limit' => ['account.token_limit_reached', ['tokenName' => 'Script', 'reachedAt' => '2026-11-16T22:30:00+00:00']];
     }
 
     /**
@@ -100,6 +104,94 @@ final class MailNotifierTest extends ApiTestCase
             ['Je bent uitgenodigd voor de app van Buurtpreventie', true, true],
             [$mail->getSubject(), \str_contains((string) $mail->getTextBody(), $link), \str_contains((string) $mail->getHtmlBody(), 'href="' . $link . '"')],
         );
+    }
+
+    /**
+     * The member reads which token, when on the local clock, and what to do when it was not them, in both bodies.
+     */
+    #[Test]
+    public function it_mails_which_token_reached_the_daily_limit_and_when_with_what_to_do_about_it(): void
+    {
+        self::bootKernel();
+
+        self::service(MailNotifier::class)->send(new Notification(self::member()->id(), 'account.token_limit_reached', [
+            'tokenName' => 'Claude Code',
+            'reachedAt' => '2026-11-16T22:30:00+00:00',
+        ]));
+
+        self::assertBothBodiesHold(self::sentMail(), [
+            'Je token Claude Code kwam op maandag 16 november om 23:30 boven de grens voor één dag.',
+            self::NOT_YOU,
+        ]);
+    }
+
+    /**
+     * The expiry can be up to a year ahead, so it carries the year.
+     */
+    #[Test]
+    public function it_mails_the_name_rights_and_expiry_of_a_new_token_with_what_to_do_about_it(): void
+    {
+        self::bootKernel();
+
+        self::service(MailNotifier::class)->send(new Notification(self::member()->id(), 'account.token_created', [
+            'tokenName' => 'Claude Code',
+            'scopes' => 'read,write,admin',
+            'expiresAt' => '2027-02-13T23:30:00+00:00',
+        ]));
+
+        $mail = self::sentMail();
+        self::assertSame('Nieuw token op jouw naam', $mail->getSubject());
+        self::assertBothBodiesHold($mail, [
+            'Er staat een nieuw token op jouw naam: Claude Code.',
+            'Dit token mag lezen, wijzigen en beheren.',
+            'Het werkt tot zondag 14 februari 2027.',
+            self::NOT_YOU,
+        ]);
+    }
+
+    /**
+     * A security warning with a link is what a phishing mail looks like; one without teaches members that a real
+     * warning never asks them to click, so they open the app themselves.
+     *
+     * @return iterable<string, array{string, array<string, string>}>
+     */
+    public static function tokenMails(): iterable
+    {
+        yield 'a new token' => ['account.token_created', ['tokenName' => 'Script', 'scopes' => 'read', 'expiresAt' => '2027-02-13T12:00:00+00:00']];
+        yield 'the daily limit' => ['account.token_limit_reached', ['tokenName' => 'Script', 'reachedAt' => '2026-11-16T22:30:00+00:00']];
+    }
+
+    /**
+     * @param array<string, string> $parameters
+     */
+    #[Test]
+    #[DataProvider('tokenMails')]
+    public function it_sends_a_token_warning_without_a_link(string $type, array $parameters): void
+    {
+        self::bootKernel();
+
+        self::service(MailNotifier::class)->send(new Notification(self::member()->id(), $type, $parameters));
+
+        $mail = self::sentMail();
+        self::assertSame(
+            [false, false],
+            [\str_contains((string) $mail->getTextBody(), '://'), \str_contains((string) $mail->getHtmlBody(), '<a ')],
+        );
+    }
+
+    #[Test]
+    public function it_names_a_single_right_of_a_new_token_without_a_list(): void
+    {
+        self::bootKernel();
+        self::setting('app.language', 'en');
+
+        self::service(MailNotifier::class)->send(new Notification(self::member()->id(), 'account.token_created', [
+            'tokenName' => 'Script',
+            'scopes' => 'read',
+            'expiresAt' => '2027-02-13T12:00:00+00:00',
+        ]));
+
+        self::assertStringContainsString('This token can read.', (string) self::sentMail()->getTextBody());
     }
 
     /**
@@ -249,6 +341,17 @@ final class MailNotifierTest extends ApiTestCase
         $sent = \array_values(\array_unique($sent));
         \sort($sent);
         self::assertSame($sent, self::service(MailComposers::class)->types());
+    }
+
+    /**
+     * @param list<string> $lines
+     */
+    private static function assertBothBodiesHold(Email $mail, array $lines): void
+    {
+        foreach ($lines as $line) {
+            self::assertStringContainsString($line, (string) $mail->getTextBody(), 'text: ' . $line);
+            self::assertStringContainsString($line, (string) $mail->getHtmlBody(), 'html: ' . $line);
+        }
     }
 
     private static function member(): Member

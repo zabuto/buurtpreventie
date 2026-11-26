@@ -192,7 +192,10 @@ final class HttpMatrixTest extends ApiTestCase
             'membership_deactivate_member' => ['POST', '/api/v1/admin/members/{piet}/deactivation', null, ['admin']],
             'membership_reactivate_member' => ['DELETE', '/api/v1/admin/members/{piet}/deactivation', null, ['admin']],
             'membership_erase_member' => ['DELETE', '/api/v1/admin/members/{piet}', null, ['admin']],
+            'membership_reset_mcp_allowed' => ['POST', '/api/v1/admin/members/mcp-allowed/reset', null, ['admin']],
             'membership_invite_member' => ['POST', '/api/v1/admin/members/{piet}/invitation', null, ['coordinator', 'admin']],
+            'identity_list_all_api_tokens' => ['GET', '/api/v1/admin/api-tokens', null, ['admin']],
+            'identity_revoke_member_api_tokens' => ['POST', '/api/v1/admin/members/{piet}/api-tokens/revoke', null, ['admin']],
             'patrol_list_all_meeting_points' => ['GET', '/api/v1/admin/meeting-points', null, ['admin']],
             'patrol_create_meeting_point' => [
                 'POST',
