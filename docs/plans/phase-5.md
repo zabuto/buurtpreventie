@@ -63,7 +63,7 @@ README; `flow` is een overzicht, geen scherm.
    kopieert `frontend/` naar `public/app/` (plan, Architectuur).
 2. **De e-mails linken al naar hash-routes**: `app/#/rounds/<id>`, `app/#/account` en `app/#/welcome/<geheim>`
    (`RoundFacts`, `BuddyNeededMail`, `WalkerWithdrawnMail`, `InvitationMail`). De router moet die drie dus kennen;
-   `#/account` gaat naar Meldingen (beslissing 41). De mails over een nieuw token en over de daggrens van een token
+   `#/account` opent het scherm Account (beslissing 41). De mails over een nieuw token en over de daggrens van een token
    hebben bewust geen link.
 3. **Het manifest staat op `GET /api/v1/manifest.webmanifest`** met `start_url` en `scope` op `<pad>/app/` (fase 3,
    beslissing 13). De frontend linkt er relatief naar (`../api/v1/manifest.webmanifest`).
@@ -258,8 +258,8 @@ README; `flow` is een overzicht, geen scherm.
     dan draait lokaal dezelfde PHP-router als in CI (beslissing 29). De release (fase 6b) kopieert in plaats van te
     linken.
 16. **Hash-router** met de routes uit de mails (vastgesteld 2): `#/`, `#/login`, `#/welcome/<geheim>`,
-    `#/rounds/<id>`, `#/rounds/new`, `#/my-rounds`, `#/report/<id>`, `#/calendar`, `#/more`, `#/notifications`,
-    `#/account` (doorverwijzing naar `#/notifications`, beslissing 41), `#/help`,
+    `#/rounds/<id>`, `#/rounds/new`, `#/my-rounds`, `#/report/<id>`, `#/calendar`, `#/account` en de onderdelen
+    daarvan (beslissing 41), `#/help`,
     en wat de goedgekeurde schermen verder vragen. Na elke routewissel gaat de focus naar de kop van het scherm en
     verandert de `<title>`.
 17. **Eén API-client** (`js/api.js`) met alle paden als sjablonen in één tabel, relatief (`../api/v1/…`), zodat de app
@@ -493,21 +493,28 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
     geldig. Achtergrond: `docs/plans/phase-4-misuse-guards.md` (beslissing 6).
 40. **Koppeling gemaakt zegt dat er een mail komt** (besloten op 26 november 2026). Bij elke nieuwe koppeling mailt de
     app het lid naam, rechten en vervaldatum, zonder code en zonder link (`docs/plans/phase-4-misuse-guards.md`,
-    beslissing 4). Het scherm `integration-created` zegt dat erbij, onder de code: "Je krijgt hierover ook een mail."
-    Zo schrikt een lid niet van een mail over een koppeling die het zelf maakte. De mail noemt de koppeling een token
-    ("Trek het token in onder Koppelingen"): in teksten over een AI-app via MCP is "token" de uitzondering uit
-    `docs/writing.md`, en de mail noemt het scherm bij de naam die het lid in Meer ziet. Alternatief: geen zin op het
-    scherm; dan leest het lid de mail pas als het al twijfelt.
+    beslissing 4). Het scherm `integration-created` zegt dat erbij, onder de code: "Je krijgt hierover ook een mail." Zo
+    schrikt een lid niet van een mail over een koppeling die het zelf maakte. De mail noemt de koppeling een token
+    ("Trek het token in bij Account → Koppelingen"): in teksten over een AI-app via MCP is "token" de uitzondering uit
+    `docs/writing.md`, en de mail noemt het pad dat het lid ziet (Account → Koppelingen, beslissing 41). Alternatief:
+    geen zin op het scherm; dan leest het lid de mail pas als het al twijfelt.
 
-### Meldingen
+### Account
 
-41. **`#/account` opent Meldingen** (voorgesteld op 26 november 2026). De mail over een ronde die een loopmaatje zoekt
-    (`BuddyNeededMail`) linkt naar `app/#/account` en zegt "Zet het dan uit in de app, bij Account"; in deze fase
-    staat die keuze op Meldingen, en een scherm Account bestaat niet. De router stuurt `#/account` door naar
-    `#/notifications`, zodat de link in een mail die al verstuurd is blijft werken; de mail linkt naar
-    `app/#/notifications` en zegt "bij Meldingen" ("under Notifications"). `WalkerWithdrawnMail` geeft
-    `accountLink` mee maar de template gebruikt hem niet; die parameter verdwijnt. Alternatief: `#/account` opent
-    Meer; dan zoekt het lid zelf verder naar de keuze die de mail noemt.
+41. **Meer heet Account, en `#/account` opent het** (besloten op 26 november 2026). Het laatste tabblad van de navigatie
+    onderaan heet Account ("Account"), met het icoon van een persoon, en het scherm heet "Mijn account": een lijst met
+    Mijn gegevens, Meldingen, Koppelingen, Mijn activiteit, Lopers, Hulp en spoed, Privacyverklaring en Uitloggen, met
+    onderaan de versie van de app. De onderdelen staan onder `#/account/…`: `#/account/details`,
+    `#/account/notifications`, `#/account/integrations`, `#/account/activity`. Zo opent de link `app/#/account` in een
+    mail die al verstuurd is het scherm dat de mail noemt, zonder doorverwijzing. De mails wijzen het pad zoals het lid
+    het ziet: de mail over een ronde die een loopmaatje zoekt (`BuddyNeededMail`) zegt "Zet het dan uit bij Account →
+    Meldingen" ("under Account → Notifications") en linkt naar `app/#/account/notifications`; de mails over een token
+    zeggen "Trek het token in bij Account → Koppelingen" ("under Account → Integrations"), zonder link.
+    `WalkerWithdrawnMail` geeft `accountLink` mee maar de template gebruikt hem niet; die parameter verdwijnt. Het
+    canvas verandert mee: `more` wordt "Mijn account" en het tabblad Meer wordt Account; de bestandsnaam `more` blijft.
+    Alternatief: een bel voor Meldingen rechtsboven. Een bel leest als een inbox met ongelezen berichten, met een
+    teller; Meldingen is een schakelaar voor mails, en de app heeft geen berichten om te lezen tot pushmeldingen (U4).
+    Rechtsboven past beter bij Hulp en spoed, dat op elk scherm op dezelfde plek staat (WCAG 3.2.6).
 
 ## Nieuwe afhankelijkheden (goedgekeurd op 18 november 2026)
 
@@ -750,13 +757,14 @@ Werk in dit canvas, verander niets anders dan hieronder staat.
 ### T11. Welkom en Meer (test eerst)
 
 - Welkom en Wachtwoord instellen via de uitnodigingslink.
-- Meer, Mijn gegevens, Bevestig dat jij het bent, Mijn activiteit, Koppelingen (het geheim één keer getoond),
-  Meldingen, Lopers (telefoon alleen bij toestemming), Hulp en spoed, uitloggen.
+- Account (beslissing 41), Mijn gegevens, Bevestig dat jij het bent, Mijn activiteit, Koppelingen (het geheim één
+  keer getoond), Meldingen, Lopers (telefoon alleen bij toestemming), Hulp en spoed, uitloggen.
 - Koppelingen met een vervaldatum die standaard 90 dagen vooruit staat (beslissing 39), met een browsertest op de
   standaard bij een vaste klok en op een 422 bij een datum na 365 dagen; Koppeling gemaakt met de zin over de mail
   (beslissing 40).
-- Meldingen op `#/notifications`, en `#/account` daarheen (beslissing 41), met een browsertest op die doorverwijzing.
-  Test eerst: `BuddyNeededMail` linkt naar `app/#/notifications` en zegt "bij Meldingen", in `nl` en `en`;
+- Account op `#/account` met de onderdelen onder `#/account/…` (beslissing 41), met een browsertest dat `#/account`
+  en elk onderdeel een scherm openen. Test eerst: `BuddyNeededMail` zegt "bij Account → Meldingen" en linkt naar
+  `app/#/account/notifications`, de tokenmails zeggen "bij Account → Koppelingen", in `nl` en `en`;
   `WalkerWithdrawnMail` zonder `accountLink`.
 - Privacyverklaring (naar `privacyUrl`, anders in aanbouw) en Handleiding voor lopers (in aanbouw), beslissing 34.
 
