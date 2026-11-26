@@ -14,8 +14,8 @@ account.invitation.intro: Je bent uitgenodigd voor de app van {name}. Open de li
 account.invitation.button: Inloggen
 account.invitation.valid: De link werkt {hours} uur en één keer. Werkt hij niet meer? Vraag dan op het inlogscherm een inlogcode aan met dit e-mailadres.
 
-account.token_limit_reached.subject: Je token {name} is vaker gebruikt dan mag
-account.token_limit_reached.intro: Op {date} om {time} was je token {name} vaker gebruikt dan op één dag mag. De app weigert dat token daarom een tijdje.
+account.token_limit_reached.subject: Je token {name} kwam boven de grens voor één dag
+account.token_limit_reached.intro: Je token {name} kwam op {date} om {time} boven de grens voor één dag. De app weigert dat token daarom een tijdje.
 
 account.token_created.subject: Nieuw token op jouw naam
 account.token_created.intro: 'Er staat een nieuw token op jouw naam: {name}.'

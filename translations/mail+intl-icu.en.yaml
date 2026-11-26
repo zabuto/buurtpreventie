@@ -14,8 +14,8 @@ account.invitation.intro: You are invited to the app of {name}. Open the link to
 account.invitation.button: Log in
 account.invitation.valid: The link works for {hours} hours, and once. Does it no longer work? Then ask for a login code on the login screen with this e-mail address.
 
-account.token_limit_reached.subject: Your token {name} was used more often than allowed
-account.token_limit_reached.intro: On {date} at {time}, your token {name} had been used more often than one day allows. So the app refuses that token for a while.
+account.token_limit_reached.subject: Your token {name} went over the limit for one day
+account.token_limit_reached.intro: On {date} at {time}, your token {name} went over the limit for one day. So the app refuses that token for a while.
 
 account.token_created.subject: New token in your name
 account.token_created.intro: 'There is a new token in your name: {name}.'

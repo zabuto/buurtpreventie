@@ -120,7 +120,7 @@ final class MailNotifierTest extends ApiTestCase
         ]));
 
         self::assertBothBodiesHold(self::sentMail(), [
-            'Op maandag 16 november om 23:30 was je token Claude Code vaker gebruikt dan op één dag mag.',
+            'Je token Claude Code kwam op maandag 16 november om 23:30 boven de grens voor één dag.',
             self::NOT_YOU,
         ]);
     }
