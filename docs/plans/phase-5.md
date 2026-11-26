@@ -36,8 +36,8 @@ Klaar als:
   gemergd is.
 
 Niet in deze fase: schermen voor coördinator, analist en beheerder (fase 5b, met het beheerscherm voor de instellingen,
-de MCP-schakelaar en de contrastmelding uit de open punten van fase 3 en 4), en brede schermen (fase 5c, met het
-maandraster).
+de MCP-schakelaar en de contrastmelding uit de open punten van fase 3 en 4, en de beheerschermen voor MCP en tokens
+uit `docs/plans/phase-4-misuse-guards.md`), en brede schermen (fase 5c, met het maandraster).
 
 ## Schermen
 
@@ -62,7 +62,9 @@ README; `flow` is een overzicht, geen scherm.
 1. **`frontend/` bestaat nog niet**; `public/` heeft alleen `index.php` en `bundles/`. De release-workflow van fase 6b
    kopieert `frontend/` naar `public/app/` (plan, Architectuur).
 2. **De e-mails linken al naar hash-routes**: `app/#/rounds/<id>`, `app/#/account` en `app/#/welcome/<geheim>`
-   (`RoundFacts`, `BuddyNeededMail`, `WalkerWithdrawnMail`, `InvitationMail`). De router moet die drie dus kennen.
+   (`RoundFacts`, `BuddyNeededMail`, `WalkerWithdrawnMail`, `InvitationMail`). De router moet die drie dus kennen;
+   `#/account` gaat naar Meldingen (beslissing 41). De mails over een nieuw token en over de daggrens van een token
+   hebben bewust geen link.
 3. **Het manifest staat op `GET /api/v1/manifest.webmanifest`** met `start_url` en `scope` op `<pad>/app/` (fase 3,
    beslissing 13). De frontend linkt er relatief naar (`../api/v1/manifest.webmanifest`).
 4. **CSRF**: `SameOriginGuard` weigert een schrijvend verzoek van de browserfirewall zonder `Sec-Fetch-Site`, `Origin`
@@ -256,7 +258,8 @@ README; `flow` is een overzicht, geen scherm.
     dan draait lokaal dezelfde PHP-router als in CI (beslissing 29). De release (fase 6b) kopieert in plaats van te
     linken.
 16. **Hash-router** met de routes uit de mails (vastgesteld 2): `#/`, `#/login`, `#/welcome/<geheim>`,
-    `#/rounds/<id>`, `#/rounds/new`, `#/my-rounds`, `#/report/<id>`, `#/calendar`, `#/more`, `#/account`, `#/help`,
+    `#/rounds/<id>`, `#/rounds/new`, `#/my-rounds`, `#/report/<id>`, `#/calendar`, `#/more`, `#/notifications`,
+    `#/account` (doorverwijzing naar `#/notifications`, beslissing 41), `#/help`,
     en wat de goedgekeurde schermen verder vragen. Na elke routewissel gaat de focus naar de kop van het scherm en
     verandert de `<title>`.
 17. **Eén API-client** (`js/api.js`) met alle paden als sjablonen in één tabel, relatief (`../api/v1/…`), zodat de app
@@ -488,6 +491,23 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
     bewaart, is na een kwartaal vanzelf onbruikbaar als het lid het vergeet in te trekken. De API verandert niet:
     `expiresAt` blijft verplicht. Alternatief: het maximum als standaard; dan blijft een vergeten token een jaar
     geldig. Achtergrond: `docs/plans/phase-4-misuse-guards.md` (beslissing 6).
+40. **Koppeling gemaakt zegt dat er een mail komt** (besloten op 26 november 2026). Bij elke nieuwe koppeling mailt de
+    app het lid naam, rechten en vervaldatum, zonder code en zonder link (`docs/plans/phase-4-misuse-guards.md`,
+    beslissing 4). Het scherm `integration-created` zegt dat erbij, onder de code: "Je krijgt hierover ook een mail."
+    Zo schrikt een lid niet van een mail over een koppeling die het zelf maakte. De mail noemt de koppeling een token
+    ("Trek het token in onder Koppelingen"): in teksten over een AI-app via MCP is "token" de uitzondering uit
+    `docs/writing.md`, en de mail noemt het scherm bij de naam die het lid in Meer ziet. Alternatief: geen zin op het
+    scherm; dan leest het lid de mail pas als het al twijfelt.
+
+### Meldingen
+
+41. **`#/account` opent Meldingen** (voorgesteld op 26 november 2026). De mail over een ronde die een loopmaatje zoekt
+    (`BuddyNeededMail`) linkt naar `app/#/account` en zegt "Zet het dan uit in de app, bij Account"; in deze fase
+    staat die keuze op Meldingen, en een scherm Account bestaat niet. De router stuurt `#/account` door naar
+    `#/notifications`, zodat de link in een mail die al verstuurd is blijft werken; de mail linkt naar
+    `app/#/notifications` en zegt "bij Meldingen" ("under Notifications"). `WalkerWithdrawnMail` geeft
+    `accountLink` mee maar de template gebruikt hem niet; die parameter verdwijnt. Alternatief: `#/account` opent
+    Meer; dan zoekt het lid zelf verder naar de keuze die de mail noemt.
 
 ## Nieuwe afhankelijkheden (goedgekeurd op 18 november 2026)
 
@@ -581,7 +601,8 @@ Flow.dc.html → flow.dc.html
    - round-just-full: "Ik loop mee" mislukt omdat een ander net eerder aanmeldde;
    - confirm-withdrawal-last: afmelden als enige loper: de ronde vervalt, zonder "Ongedaan maken";
    - my-rounds-empty: Mijn rondes zonder rondes;
-   - integration-created: de nieuwe koppeling met de code, één keer getoond, met kopiëren;
+   - integration-created: de nieuwe koppeling met de code, één keer getoond, met kopiëren, en eronder "Je krijgt
+     hierover ook een mail.";
    - error: "Er ging iets mis" met opnieuw proberen en de weg naar Hulp en spoed;
    - not-found: een ronde die niet meer bestaat (bijvoorbeeld uit een oude mail);
    - no-access: iets wat deze loper niet mag openen;
@@ -732,7 +753,11 @@ Werk in dit canvas, verander niets anders dan hieronder staat.
 - Meer, Mijn gegevens, Bevestig dat jij het bent, Mijn activiteit, Koppelingen (het geheim één keer getoond),
   Meldingen, Lopers (telefoon alleen bij toestemming), Hulp en spoed, uitloggen.
 - Koppelingen met een vervaldatum die standaard 90 dagen vooruit staat (beslissing 39), met een browsertest op de
-  standaard bij een vaste klok en op een 422 bij een datum na 365 dagen.
+  standaard bij een vaste klok en op een 422 bij een datum na 365 dagen; Koppeling gemaakt met de zin over de mail
+  (beslissing 40).
+- Meldingen op `#/notifications`, en `#/account` daarheen (beslissing 41), met een browsertest op die doorverwijzing.
+  Test eerst: `BuddyNeededMail` linkt naar `app/#/notifications` en zegt "bij Meldingen", in `nl` en `en`;
+  `WalkerWithdrawnMail` zonder `accountLink`.
 - Privacyverklaring (naar `privacyUrl`, anders in aanbouw) en Handleiding voor lopers (in aanbouw), beslissing 34.
 
 ### T12. PWA (test eerst)
@@ -786,7 +811,12 @@ Werk in dit canvas, verander niets anders dan hieronder staat.
 Gemeld, niet in deze fase opgelost:
 
 - **Fase 5b** bouwt het beheerscherm voor de instellingen met de contrastmelding in gewone taal (open punt van fase 3)
-  en de schakelaars voor API-tokens en MCP (open punt van fase 4), en de schermen voor coördinator en analist.
+  en de schakelaars voor API-tokens en MCP (open punt van fase 4), en de schermen voor coördinator en analist. Uit
+  `docs/plans/phase-4-misuse-guards.md` (open punten) komen daar bij: bij de MCP-schakelaar de rollen die MCP gebruiken
+  (`mcpRoles`, ook een lege lijst); in het ledenbeheer MCP per lid (`mcpAllowed`) en de knop die alle gekozen leden in
+  één keer terugzet (`POST /admin/members/mcp-allowed/reset`); en het overzicht van alle actieve tokens
+  (`GET /admin/api-tokens`) met intrekken van alle tokens van één lid
+  (`POST /admin/members/{id}/api-tokens/revoke`).
 - **Fase 5c** maakt de schermen responsive voor tablet en desktop, met het maandraster (`KalenderDesktop`).
 - **Opengrep scant geen JavaScript** (vastgesteld 12). Regels voor `frontend/` (bijvoorbeeld `innerHTML`,
   `unsafeHTML`, `eval`) kunnen erbij als de frontend groeit.
