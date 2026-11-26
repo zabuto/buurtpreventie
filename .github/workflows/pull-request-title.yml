@@ -1,0 +1,28 @@
+name: Pull request title
+
+# A squash merge makes the title the commit message on develop, so the title follows Conventional Commits.
+# Its own workflow, so editing a title reruns this check and not all of CI.
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+permissions: {}
+
+jobs:
+  title:
+    name: Conventional Commit title
+    runs-on: ubuntu-latest
+    steps:
+      # The title goes through the environment, never into the script, and never into the output either: a title is
+      # text anyone opening a pull request chooses, and a line starting with :: would run as a workflow command.
+      - name: Check the title
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        shell: bash
+        run: |
+          pattern='^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-z0-9-]+\))?!?: [^ ].*$'
+          if [[ "$TITLE" =~ $pattern ]]; then
+            exit 0
+          fi
+          echo "::error::The title is no Conventional Commit. Use type(scope): summary, such as feat(identity): reject guessable passwords; the scope is optional. Types: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test."
+          exit 1

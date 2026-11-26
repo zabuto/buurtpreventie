@@ -1,10 +1,13 @@
 version: 2
+# Every pull request title is a Conventional Commit (pull-request-title.yml); the prefix makes Dependabot's one.
 updates:
   - package-ecosystem: composer
     directory: /
     target-branch: develop
     schedule:
       interval: weekly
+    commit-message:
+      prefix: 'chore(deps)'
     # A hijacked release is usually withdrawn within days; security updates are not subject to the cooldown.
     cooldown:
       semver-patch-days: 7
@@ -25,6 +28,8 @@ updates:
     target-branch: develop
     schedule:
       interval: weekly
+    commit-message:
+      prefix: 'chore(deps)'
     # Dependabot has no per-update-type cooldown for actions.
     cooldown:
       default-days: 7
@@ -40,5 +45,7 @@ updates:
     target-branch: develop
     schedule:
       interval: weekly
+    commit-message:
+      prefix: 'chore(deps)'
     cooldown:
       default-days: 7
