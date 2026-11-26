@@ -564,6 +564,9 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code. Een sch
 - Jij geeft prompt F in de chat van het canvas: geen vinkje "Ingelogd blijven" op een telefoon (fase 2, beslissing 9);
   `login` en `session-expired` gaan terug naar concept.
 - Jij geeft prompt C in de chat van het canvas: Inter in elk scherm (beslissing 4), vóór de eerste export.
+- Jij geeft prompt G in de chat van het canvas: de hulptekst van `set-password` volgt fase 2, beslissing 34 (minstens
+  15 tekens), en de regel onderaan noemt Account (beslissing 41). De tekst is al vastgesteld, dus het scherm krijgt
+  meteen een nieuwe goedkeuringsdatum; daarna export en prompt D.
 - `docs/design/walker/mobile/README.md`: de afspraken (2x, een maat uit de afbeelding gedeeld door twee is de maat in
   CSS-pixels) en de lijst van schermen met per scherm de status en, na goedkeuring, de hoogte in CSS-pixels.
 - Jij keurt de schermen goed (beslissing 3).
@@ -708,6 +711,18 @@ Werk in dit canvas, verander niets anders dan hieronder staat.
 2. Zet de titel van login en session-expired van "· goedgekeurd <datum>" terug naar "· concept".
 3. Controleer dat more een duidelijke knop "Uitloggen" heeft; noem het als die ontbreekt, zonder hem toe te voegen.
 4. Noem elk scherm dat je hebt aangepast.
+```
+
+**Prompt G** (eenmalig; wachtwoordregels, fase 2 beslissing 34):
+
+```text
+Werk in dit canvas, verander niets anders dan hieronder staat.
+1. Zet in set-password de hulptekst onder "Nieuw wachtwoord" precies op:
+   Minstens 15 tekens. Kies een paar woorden die niet bij elkaar horen, bijvoorbeeld “fiets lamp regen”. Geen bekende zin, en niet je naam.
+2. Zet in set-password de regel onderaan op: "Later instellen kan via Account → Mijn gegevens."
+3. Zet de titel van set-password op "Wachtwoord instellen (mag) · goedgekeurd <datum>".
+4. Controleer op 320 en 390 px breed of tekst nergens over een rand loopt of afgekapt wordt.
+5. Geef me de tabel uit prompt B voor set-password, met de volle hoogte van het scherm (844, of meer als het scrolt).
 ```
 
 ### T3. Lit vendoren (test eerst)
