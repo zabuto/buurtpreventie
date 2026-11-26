@@ -81,7 +81,7 @@ without the status after the "·".
 
 | Image | Canvas title | Status | Height (CSS px) |
 | --- | --- | --- | --- |
-| `more.png` | Meer | draft | |
+| `more.png` | Mijn account | draft | |
 | `my-details.png` | Mijn gegevens | draft | |
 | `download-data.png` | Mijn gegevens downloaden | draft | |
 | `confirm-identity.png` | Bevestig dat jij het bent | draft | |
