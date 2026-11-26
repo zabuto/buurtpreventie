@@ -68,6 +68,11 @@ Automatic merging relies on CI: a minor update that breaks a test, a PHPStan rul
 stays open. The `SymfonyReleaseLineTest` fails when an update would put a Symfony component outside
 7.4, so such an update never merges automatically.
 
+Dependabot runs Composer without Symfony Flex, so `extra.symfony.require` holds nothing there. Every Symfony
+component the app does not require itself, such as `symfony/http-kernel`, is in `conflict` in `composer.json` for
+every version outside 7.4; otherwise an update of a bundle that allows Symfony 8 pulls those components to 8.
+`SymfonyReleaseLineTest` fails when a component in `composer.lock` is neither required on 7.4 nor in that list.
+
 Dependabot skips major updates of Symfony packages (`symfony/*`). The app stays on 7.4 LTS until the
 planned move to 8.4 LTS; a single Symfony 8 release such as 8.1 is maintained for only a few months,
 and one package on 8 next to the rest on 7.4 is a mix Symfony does not support. The look-ahead job
