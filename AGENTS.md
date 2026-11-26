@@ -61,7 +61,9 @@ The plan lives in docs/plans/plan.md and is leading. Read it before every phase.
 
 - Work on a feature/<short-name> branch from develop (bugfix/<short-name> for a bug fix), in small
   commits, and merge it back into develop through a pull request, always as a squash merge: one commit per pull request,
-  with the pull request title as its message.
+  with the pull request title as its message. That title is a Conventional Commit, `type(scope): summary` in
+  English, the scope a module in lower case and optional (`feat(identity): reject guessable passwords`,
+  `docs: add phase 0 task plan`); the workflow pull-request-title.yml checks it.
 - A branch for a GitHub issue starts its short name with the issue number, as GitHub names it
   (feature/26-<short-name>, bugfix/26-<short-name>, hotfix/26-<short-name>). Its pull request description carries
   "Fixes #26": the squash commit keeps only the title, so the description is what closes the issue.
