@@ -568,8 +568,8 @@ version is not semantic; members get a change only through a new version in `plu
 
 **STDIO.** `StdioAuthentication` runs before `mcp:server` starts: with MCP on and the secret of an API token in
 `MCP_TOKEN`, `ApiTokenAuthenticator` checks it, roles on MCP included, and the command runs as that member on the
-channel `mcp`; otherwise it stops with exit code 1, saying "MCP is off. Ask the admin." or "MCP is closed to your
-roles. Ask the admin." when one of those is the reason. The token is checked once, when the process starts.
+channel `mcp`; otherwise it stops with exit code 1, saying "MCP is off. Ask the admin." or "MCP is not open to
+you. Ask the admin." when one of those is the reason. The token is checked once, when the process starts.
 
 ## Handler and domain
 

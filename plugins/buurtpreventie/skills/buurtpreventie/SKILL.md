@@ -94,7 +94,7 @@ work around it.
 | --- | --- | --- |
 | 401 | The token expired or was revoked | The member makes a new token in the app |
 | 403 | The member lacks the role or the token lacks the scope | Explain which; do not retry |
-| 403 `urn:buurtpreventie:problem:mcp_not_for_role` on every call | MCP is closed to the roles of this member | The member asks the admin; do not retry |
+| 403 `urn:buurtpreventie:problem:mcp_not_for_role` on every call | MCP is not open to this member | The member asks the admin; do not retry |
 | 404 on every call | The association has the MCP server switched off | The member asks the admin |
 | 429 | Too many requests for this token | Wait the seconds given; do not repeat in a loop |
 | A tool error with status 429 | The token reached its limit of writes per hour | Wait the seconds in `retryAfter`; do not repeat in a loop |

@@ -1,9 +1,9 @@
 # Using the app from an AI client (MCP)
 
 An AI client such as Claude Code can read rounds, find rounds that need a buddy, sign you up and report back, through
-the MCP server of the app. It acts as you, with your roles or fewer: it can do what you can do in the app, and nothing
-more. It never gets phone numbers, addresses or e-mail addresses, also not of members who share theirs with you, and
-it never reads the notes and comments of a round: those can be about other people, so they stay in the app.
+the MCP server of the app. It acts as you: it can do what you can do in the app, and nothing more. It never gets phone
+numbers, addresses or e-mail addresses, also not of members who share theirs with you, and it never reads the notes and
+comments of a round: those can be about other people, so they stay in the app.
 
 ## Privacy
 
@@ -22,8 +22,8 @@ whoever hosts its app, and the company behind your AI client.
 ## Before you start
 
 - **The admin opens MCP for you.** It is off on a new installation. The admin switches it on, and chooses which
-  roles may use it. The admin can also open it for you alone. When the AI client says that MCP is off or closed to
-  your roles, ask the admin.
+  roles may use it. The admin can also open it for you alone. When the AI client says that MCP is off or not open to
+  you, ask the admin.
 - **You make an API token** in the app, under your account, with a name such as "Claude Code" and an expiry date.
   Give it the scope `read` to look only, and `write` too to sign up, plan rounds and report back. Copy the secret
   (`bpt_…`) at once: the app shows it only then. Keep it like a password; revoke it in the app when you no longer use
