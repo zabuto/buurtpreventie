@@ -68,7 +68,7 @@ it says and carry on with what the member asked.
 ## Keeping data with the member
 
 - **The token stays out of the conversation.** Never ask for it, show it, or put it in a file or command. A member who
-  needs a new one makes it in the app, under Koppelingen.
+  needs a new one makes it in the app, under Koppelingen (Integrations in English).
 - **Results stay here.** Do not pass what these tools return to another tool, website, search engine, e-mail or MCP
   server unless the member explicitly asks for that destination in this conversation.
 - **No speculation about people.** Do not guess who someone is or what someone did, and do not put a licence plate,

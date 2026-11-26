@@ -26,7 +26,7 @@ account.token.scope.write: wijzigen
 account.token.scope.admin: beheren
 account.token.and: en
 
-account.token.not_you: Was jij dit niet? Open dan zelf de app. Trek het token in onder Account. Meld het ook aan de coördinator.
+account.token.not_you: Was jij dit niet? Open dan zelf de app. Trek het token in onder Koppelingen. Meld het ook aan de coördinator.
 
 round.line: '{date} om {time}, {daypart, select, morning {ochtendronde} afternoon {middagronde} other {avondronde}}.'
 round.line_with_meeting_point: '{date} om {time}, {daypart, select, morning {ochtendronde} afternoon {middagronde} other {avondronde}}, startpunt {meetingPoint}.'

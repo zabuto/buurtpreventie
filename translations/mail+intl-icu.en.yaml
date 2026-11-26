@@ -26,7 +26,7 @@ account.token.scope.write: change
 account.token.scope.admin: manage
 account.token.and: and
 
-account.token.not_you: Was this not you? Then open the app yourself. Revoke the token under Account. Tell the coordinator too.
+account.token.not_you: Was this not you? Then open the app yourself. Revoke the token under Integrations. Tell the coordinator too.
 
 round.line: '{date} at {time}, {daypart, select, morning {morning round} afternoon {afternoon round} other {evening round}}.'
 round.line_with_meeting_point: '{date} at {time}, {daypart, select, morning {morning round} afternoon {afternoon round} other {evening round}}, starting at {meetingPoint}.'

@@ -7,7 +7,7 @@ your own Buurtpreventie app and adds a skill on when and how to use its tools.
 ## Before you install
 
 - Your association runs the Buurtpreventie app, and the admin has opened its MCP server for you.
-- You have an API token from the app, under your account. Claude Code asks for it and for the address of the app at
+- You have an API token from the app, under Integrations. Claude Code asks for it and for the address of the app at
   install, and keeps the token in the keychain of your computer.
 
 ```text
