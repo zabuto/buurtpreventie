@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Identity\UseCase\SetPassword;
 
+use App\Identity\Domain\GuessablePasswords;
+use App\Identity\Domain\PasswordTooWeak;
+use App\Identity\Infrastructure\Password\SymfonyPasswordStrengthMeter;
 use App\Identity\UseCase\SetPassword\SetPassword;
 use App\Identity\UseCase\SetPassword\SetPasswordHandler;
 use App\Shared\Domain\AccessDenied;
@@ -11,17 +14,21 @@ use App\Shared\Domain\Actor;
 use App\Shared\Domain\AuditedAction;
 use App\Shared\Domain\ReauthenticationRequired;
 use App\Tests\Identity\Fake\InMemoryAccountRepository;
+use App\Tests\Identity\Fake\ListedPasswords;
 use App\Tests\Identity\Fake\PasswordHashers;
 use App\Tests\Identity\Fake\RecordingCurrentSession;
 use App\Tests\Shared\Fake\FakeAuthorization;
 use App\Tests\Shared\Fake\FixedExecutionContext;
+use App\Tests\Shared\Fake\FixedMemberDirectory;
 use App\Tests\Shared\Fake\FixedRecentAuthentication;
 use App\Tests\Shared\Fake\ImmediateTransaction;
 use App\Tests\Shared\Fake\RecordingAuditTrail;
 use DateTimeImmutable;
 use Override;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use SensitiveParameter;
 use Symfony\Component\Clock\MockClock;
 use Symfony\Component\Uid\Uuid;
 
@@ -49,6 +56,40 @@ final class SetPasswordHandlerTest extends TestCase
         $hash = (string) $this->accounts->ofMember($this->memberId)?->passwordHash();
         $this->assertTrue(PasswordHashers::cheap()->verify($hash, 'een lang voorbeeldwachtwoord'));
         $this->assertStringNotContainsString('voorbeeldwachtwoord', $hash);
+    }
+
+    #[Test]
+    public function it_sets_a_passphrase_of_unrelated_words(): void
+    {
+        $this->handler()(new SetPassword('fiets lamp regen', $this->memberId->toRfc4122()));
+
+        $this->assertTrue(PasswordHashers::cheap()->verify((string) $this->accounts->ofMember($this->memberId)?->passwordHash(), 'fiets lamp regen'));
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function guessablePasswords(): iterable
+    {
+        yield 'on the list of common passwords' => ['Dit wachtwoord is geheim'];
+        yield 'with the name of the member' => ['Bakker loopt in de wijk'];
+        yield 'with the e-mail address of the member' => ['Wandelaar77 in de buurt'];
+        yield 'too simple' => ['aaaaaaaaaaaaaaaa'];
+    }
+
+    #[DataProvider('guessablePasswords')]
+    #[Test]
+    public function it_refuses_a_guessable_password_and_sets_nothing(#[SensitiveParameter] string $password): void
+    {
+        $refusal = null;
+        try {
+            $this->handler()(new SetPassword($password, $this->memberId->toRfc4122()));
+        } catch (PasswordTooWeak $exception) {
+            $refusal = $exception;
+        }
+
+        $this->assertInstanceOf(PasswordTooWeak::class, $refusal);
+        $this->assertSame([null, [], []], [$this->accounts->ofMember($this->memberId), $this->auditTrail->recorded, $this->currentSession->kept]);
     }
 
     #[Test]
@@ -151,6 +192,11 @@ final class SetPasswordHandlerTest extends TestCase
             $authorization ?? FakeAuthorization::granting(),
             new FixedExecutionContext(new Actor($this->memberId, [])),
             new FixedRecentAuthentication($recent),
+            new FixedMemberDirectory(
+                [FixedMemberDirectory::activeProfile($this->memberId, 'Mila J.')],
+                emails: [$this->memberId->toRfc4122() => 'wandelaar77@example.org'],
+            ),
+            new GuessablePasswords(new ListedPasswords(['ditwachtwoordisgeheim']), new SymfonyPasswordStrengthMeter()),
             $this->currentSession,
             $this->auditTrail,
             new ImmediateTransaction(),

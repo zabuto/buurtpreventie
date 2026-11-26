@@ -32,6 +32,7 @@ invalid_email_address: Dit e-mailadres klopt niet.
 invalid_name: Deze naam klopt niet. Gebruik minstens één letter of cijfer.
 api_tokens_disabled: De beheerder heeft tokens uitgezet. Zolang ze uit staan, kun je geen nieuw token maken.
 invalid_token_expiry: Kies een einddatum voor het token binnen 365 dagen.
+password_too_weak: Dit wachtwoord is te makkelijk te raden. Kies andere woorden.
 too_many_entries: Dit zijn te veel regels voor één bestand. Kies een kortere periode, een lid of een actie.
 invalid_input: Niet alle gegevens kloppen.
 bad_request: Dit verzoek kan de app niet lezen.

@@ -32,6 +32,7 @@ invalid_email_address: This e-mail address is not valid.
 invalid_name: This name is not valid. Use at least one letter or digit.
 api_tokens_disabled: The admin switched tokens off. While they are off, you cannot make a new token.
 invalid_token_expiry: Choose an end date for the token within 365 days.
+password_too_weak: This password is too easy to guess. Choose other words.
 too_many_entries: Too many entries for one file. Choose a shorter period, a member or an action.
 invalid_input: Not all details are valid.
 bad_request: The app cannot read this request.

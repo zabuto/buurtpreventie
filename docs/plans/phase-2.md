@@ -160,6 +160,22 @@ Klaar als:
 16. **Wachtwoord wijzigen vraagt het huidige wachtwoord, of een recente sessie.** In een recente sessie
     (beslissing 15, ook na inloggen met een code) zet het lid een nieuw wachtwoord zonder het oude: zo werkt
     "wachtwoord vergeten" (beslissing 10). Daarbuiten vraagt het het huidige wachtwoord.
+34. **Een te makkelijk wachtwoord wordt geweigerd** (besloten op 26 november 2026, uitgewerkt in
+    `docs/plans/phase-2-guessable-passwords.md`). Bij wachtwoord instellen, ook bij wijzigen:
+    - minimaal 15 tekens (T6);
+    - niet in een meegeleverde lijst met veelgebruikte wachtwoorden: de 10.000 meest gebruikte van SecLists, plus
+      Nederlandse als "welkom123456" en "ditwachtwoordisgeheim". De lijst staat in de repo; er gaat niets naar een
+      externe dienst;
+    - niet met de naam of het deel vóór de @ van het e-mailadres van het lid erin; een deel korter dan 4 tekens telt
+      niet mee, anders weigert "Jan" ook "januari";
+    - minstens "medium" volgens Symfony's `PasswordStrength`, als extra vangnet; "fiets lamp regen" mag.
+
+    Lijst, naam en e-mailadres worden vergeleken zonder hoofdletters en spaties. Elke weigering geeft 422 met één
+    code, `password_too_weak` ("Dit wachtwoord is te makkelijk te raden. Kies andere woorden."): welke regel het was,
+    blijft buiten het antwoord. De hulptekst bij het veld is "Minstens 15 tekens. Kies een paar woorden die niet bij
+    elkaar horen, bijvoorbeeld “fiets lamp regen”. Geen bekende zin, en niet je naam." Een controle op uitgelekte
+    wachtwoorden (`NotCompromisedPassword` met Have I Been Pwned, of een andere dienst na onderzoek) komt er later,
+    alleen als instelling per vereniging, standaard uit (`plan.md`, Privacy per externe dienst).
 
 ### Tokens en scopes
 
