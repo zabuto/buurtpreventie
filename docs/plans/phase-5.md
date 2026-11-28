@@ -564,7 +564,9 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
       schermlezers; anders past de bovenbalk niet naast de naam van de groep.
     - **Zonder inloggen** is er geen bovenbalk en geen Hulp en spoed: contact en groep krijgt alleen een ingelogd lid
       (beslissing 42). Elk scherm zonder inloggen heeft onderaan, op dezelfde plek en in deze volgorde, "Lukt het
-      niet? Vraag het je coördinator." en "Spoed of gevaar? Bel direct 112.", met 112 als belknop.
+      niet? Vraag het je coördinator." en "Spoed of gevaar? Bel direct 112.", als gewone tekst: zonder inloggen staat
+      er geen belknop op het scherm, ook niet voor 112. Een belknop is snel per ongeluk aangetikt, en wie een scherm
+      zonder inloggen opent, is nog geen lid van wie we weten wie het is; de belknop is er voor een ingelogde loper.
     - **Knoppen van een ronde** (onder meer Resultaat melden en Afmelden) staan in een vaste balk direct boven de
       tabbalk; de inhoud scrolt erachter. Met de tabbalk erbij is een ronde langer dan 844 px, en anders staat de
       belangrijkste actie onder de vouw. `scroll-padding-bottom` houdt een element met focus boven de twee balken
@@ -671,6 +673,7 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code. Een sch
 - Jij geeft prompt J in de chat van het canvas: Hulp en spoed rechtsboven, de schermen zonder inloggen, de vaste
   balk van een ronde, één Annuleren en de tekst van Er ging iets mis (beslissing 44). Elk goedgekeurd scherm dat
   daardoor verandert, gaat in `docs/design/walker/mobile/README.md` naar "draft", zonder hoogte.
+- Jij geeft prompt K in de chat van het canvas: geen belknop zonder inloggen (beslissing 44).
 - `docs/design/walker/mobile/README.md`: de afspraken (2x, een maat uit de afbeelding gedeeld door twee is de maat in
   CSS-pixels) en de lijst van schermen met per scherm de status en, na goedkeuring, de hoogte in CSS-pixels.
 - Jij keurt de schermen goed (beslissing 3).
@@ -903,7 +906,8 @@ Werk in dit canvas op de pagina Mobile (390 × 844), verander niets anders dan h
 3. Schermen zonder inloggen (login, login-error, session-expired, login-code, login-code-error, welcome,
    set-password, set-password-error, browser-unsupported): geen bovenbalk. Zet onderaan elk scherm, op dezelfde
    plek en in deze volgorde, twee regels: "Lukt het niet? Vraag het je coördinator." en "Spoed of gevaar? Bel direct
-   112.", met 112 als belknop. Een spoedregel die er al staat, gaat naar die plek.
+   112.", als gewone tekst: geen belknop en geen link om te bellen. Een spoedregel die er al staat, gaat naar die
+   plek, ook zonder belknop.
 4. Op elk scherm van een ronde met knoppen onder de inhoud (onder meer Ronde — jij en andere loper(s) en Ronde —
    alleen jij): zet de knoppen van de ronde (zoals Resultaat melden en Afmelden) in een vaste balk direct boven de
    tabbalk; de inhoud scrolt erachter. Toon het scherm op 844 px hoog met beide balken onderaan in beeld.
@@ -916,6 +920,18 @@ Werk in dit canvas op de pagina Mobile (390 × 844), verander niets anders dan h
 7. Zet een scherm met "· goedgekeurd <datum>" dat hierdoor verandert terug op "· concept".
 8. Noem elk scherm dat je hebt aangepast, elk scherm dat terug is op "· concept", de tekst die op Er ging iets mis
    staat, en elke link die naar een niet-bestaand scherm gaat.
+```
+
+**Prompt K** (eenmalig; geen belknop zonder inloggen, beslissing 44):
+
+```text
+Werk in dit canvas op de pagina Mobile (390 × 844), verander niets anders dan hieronder staat.
+1. Schermen zonder inloggen (login, login-error, session-expired, login-code, login-code-error, welcome,
+   set-password, set-password-error, browser-unsupported): "Spoed of gevaar? Bel direct 112." is gewone tekst,
+   zonder belknop en zonder link om te bellen. Zet er ook niets anders voor in de plaats: zonder inloggen staat er
+   geen belknop op het scherm.
+2. Laat 112 als belknop staan op de schermen waar de loper is ingelogd.
+3. Noem elk scherm dat je hebt aangepast.
 ```
 
 ### T3. Lit vendoren (test eerst)
