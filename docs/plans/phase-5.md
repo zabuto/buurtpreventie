@@ -63,7 +63,7 @@ README; `flow` is een overzicht, geen scherm.
    kopieert `frontend/` naar `public/app/` (plan, Architectuur).
 2. **De e-mails linken al naar hash-routes**: `app/#/rounds/<id>`, `app/#/account` en `app/#/welcome/<geheim>`
    (`RoundFacts`, `BuddyNeededMail`, `WalkerWithdrawnMail`, `InvitationMail`). De router moet die drie dus kennen;
-   `#/account` opent het scherm Account (beslissing 41). De mails over een nieuw token en over de daggrens van een token
+   `#/account` opent het scherm Mijn account (beslissing 41). De mails over een nieuw token en over de daggrens van een token
    hebben bewust geen link.
 3. **Het manifest staat op `GET /api/v1/manifest.webmanifest`** met `start_url` en `scope` op `<pad>/app/` (fase 3,
    beslissing 13). De frontend linkt er relatief naar (`../api/v1/manifest.webmanifest`).
@@ -496,26 +496,33 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
     app het lid naam, rechten en vervaldatum, zonder code en zonder link (`docs/plans/phase-4-misuse-guards.md`,
     beslissing 4). Het scherm `integration-created` zegt dat erbij, onder de code: "Je krijgt hierover ook een mail." Zo
     schrikt een lid niet van een mail over een koppeling die het zelf maakte. De mail noemt de koppeling een token
-    ("Trek het token in bij Account → Koppelingen"): in teksten over een AI-app via MCP is "token" de uitzondering uit
-    `docs/writing.md`, en de mail noemt het pad dat het lid ziet (Account → Koppelingen, beslissing 41). Alternatief:
+    ("Trek het token in bij Mijn account → Koppelingen"): in teksten over een AI-app via MCP is "token" de uitzondering
+    uit `docs/writing.md`, en de mail noemt het pad dat het lid ziet (Mijn account → Koppelingen, beslissing 41).
+    Alternatief:
     geen zin op het scherm; dan leest het lid de mail pas als het al twijfelt.
 
 ### Account
 
-41. **Meer heet Account, en `#/account` opent het** (besloten op 26 november 2026). Het laatste tabblad van de navigatie
-    onderaan heet Account ("Account"), met het icoon van een persoon, en het scherm heet "Mijn account": een lijst met
+41. **Mijn account zit achter het rondje met initialen rechtsboven, en `#/account` opent het** (besloten op 26
+    november 2026, rechtsboven op 28 november 2026). Rechtsboven in de bovenbalk van elk scherm waar de loper is
+    ingelogd staat een rondje met de initialen van de loper, als link naar `#/account`, met "Mijn account" als naam
+    voor schermlezers en een tikvlak van minstens 44 × 44 px. Het scherm heet "Mijn account": een lijst met
     Mijn gegevens, Meldingen, Koppelingen, Mijn activiteit, Hulp en spoed, Privacyverklaring en Uitloggen (geen
-    Lopers, beslissing 43), met onderaan de versie van de app (beslissing 42). De onderdelen staan onder `#/account/…`: `#/account/details`,
+    Lopers, beslissing 43), met onderaan de versie van de app (beslissing 42). De navigatie onderaan heeft geen
+    tabblad voor Mijn account (beslissing 44). De onderdelen staan onder `#/account/…`: `#/account/details`,
     `#/account/notifications`, `#/account/integrations`, `#/account/activity`. Zo opent de link `app/#/account` in een
-    mail die al verstuurd is het scherm dat de mail noemt, zonder doorverwijzing. De mails wijzen het pad zoals het lid
-    het ziet: de mail over een ronde die een loopmaatje zoekt (`BuddyNeededMail`) zegt "Zet het dan uit bij Account →
-    Meldingen" ("under Account → Notifications") en linkt naar `app/#/account/notifications`; de mails over een token
-    zeggen "Trek het token in bij Account → Koppelingen" ("under Account → Integrations"), zonder link.
-    `WalkerWithdrawnMail` geeft `accountLink` mee maar de template gebruikt hem niet; die parameter verdwijnt. Het
-    canvas verandert mee: `more` wordt "Mijn account" en het tabblad Meer wordt Account; de bestandsnaam `more` blijft.
-    Alternatief: een bel voor Meldingen rechtsboven. Een bel leest als een inbox met ongelezen berichten, met een
-    teller; Meldingen is een schakelaar voor mails, en de app heeft geen berichten om te lezen tot pushmeldingen (U4).
-    Rechtsboven past beter bij Hulp en spoed, dat op elk scherm op dezelfde plek staat (WCAG 3.2.6).
+    mail die al verstuurd is het scherm dat de mail noemt, zonder doorverwijzing. De mails en schermen wijzen het pad
+    met de naam van het scherm: de mail over een ronde die een loopmaatje zoekt (`BuddyNeededMail`) zegt "Zet het dan
+    uit bij Mijn account → Meldingen" ("under My account → Notifications") en linkt naar
+    `app/#/account/notifications`; de mails over een token zeggen "Trek het token in bij Mijn account → Koppelingen"
+    ("under My account → Integrations"), zonder link; `set-password` zegt "Later instellen kan via Mijn account →
+    Mijn gegevens.". `WalkerWithdrawnMail` geeft `accountLink` mee maar de template gebruikt hem niet; die parameter
+    verdwijnt. De bestandsnaam `more` in het canvas blijft.
+    Alternatieven: een tabblad Account onderaan, en een bel voor Meldingen rechtsboven. Een tabblad Account maakt
+    het rondje dubbel en de tabbalk voller voor een scherm dat de loper zelden opent. Een bel leest als een inbox met
+    ongelezen berichten, met een teller; Meldingen is een schakelaar voor mails, en de app heeft geen berichten om te
+    lezen tot pushmeldingen (U4). Een pad als "rechtsboven bij je initialen → Meldingen" is concreter, maar te lang
+    voor een mail en klopt niet meer zodra de bovenbalk verandert; de naam "Mijn account" staat als kop op het scherm.
 42. **De versie onderaan Mijn account komt uit de git-tag** (besloten op 26 november 2026). Een getagde commit op
     `main` heet naar zijn tag (`v4.0.0`); elke andere build naar de nieuwste releasetag met de korte hash van de
     commit als build-metadata (`v4.0.0+74466b0`), en vóór de eerste tag `v0.0.0+<hash>`. De nieuwste tag in de hele
@@ -547,21 +554,21 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
 
 44. **De tabbalk blijft staan, ook op een foutscherm, en elk foutscherm heeft dezelfde opbouw** (besloten op 28
     november 2026).
-    - **Tabbalk** (Start, Kalender, Mijn rondes, Account): op de vier hoofdschermen, op de schermen daaronder (een
-      ronde, de onderdelen van Account) en op elk doodlopend scherm, zolang de loper is ingelogd. Actief is het
-      tabblad van de route. Een ronde (`#/rounds/<id>`) opent vanuit Start, Kalender en Mijn rondes; daar is het
-      tabblad actief waar de loper vandaan kwam. Op een doodlopend scherm geldt hetzelfde: In aanbouw vanuit Account
-      heeft Account actief. Is de herkomst onbekend (een link uit een mail, de app net geopend), dan is geen tabblad
-      actief en draagt geen tabblad `aria-current`; een gok zou de loper een plek tonen waar die niet was.
+    - **Tabbalk** (Start, Kalender, Mijn rondes): op de drie hoofdschermen, op Mijn account, op de schermen
+      daaronder (een ronde, de onderdelen van Mijn account) en op elk doodlopend scherm, zolang de loper is ingelogd.
+      Actief is het tabblad van de route. Een ronde (`#/rounds/<id>`) opent vanuit Start, Kalender en Mijn rondes;
+      daar is het tabblad actief waar de loper vandaan kwam. Op een doodlopend scherm geldt hetzelfde. Mijn account
+      en alles daaronder (In aanbouw vanuit Mijn account ook) hebben geen tabblad; daar is geen tabblad actief. Is de
+      herkomst onbekend (een link uit een mail, de app net geopend), dan is geen tabblad actief en draagt geen
+      tabblad `aria-current`; een gok zou de loper een plek tonen waar die niet was.
     - **Geen tabbalk** op een modaal scherm: Ronde plannen, Ronde wijzigen, Resultaat melden, Afmelden bevestigen en
       Opmerking toevoegen. Die sluiten met één "Annuleren", bovenaan op de plek van "Terug"; onderaan staat alleen
       de hoofdknop. Ook geen tabbalk zolang de loper niet is
       ingelogd: Inloggen, Code invullen, Welkom, Wachtwoord instellen, Browser te oud, en Privacyverklaring vanaf het
       inlogscherm.
-    - **Hulp en spoed** staat rechtsboven in de bovenbalk van elk scherm waar de loper is ingelogd (beslissing 41,
-      WCAG 3.2.6), en verder staat er rechtsboven niets: geen rondje met initialen naar Mijn gegevens, dat al onder
-      Account zit. Onder 360 px breed toont de knop alleen het icoon, met "Hulp en spoed" als naam voor
-      schermlezers; anders past de bovenbalk niet naast de naam van de groep.
+    - **Bovenbalk**: rechtsboven het rondje met initialen naar Mijn account (beslissing 41), op elk scherm waar de
+      loper is ingelogd. Hulp en spoed staat in de bovenbalk alleen tijdens een ronde (beslissing 46), en verder in
+      de lijst van Mijn account en op de doodlopende schermen.
     - **Zonder inloggen** is er geen bovenbalk en geen Hulp en spoed: contact en groep krijgt alleen een ingelogd lid
       (beslissing 42). Elk scherm zonder inloggen heeft onderaan, op dezelfde plek en in deze volgorde, "Lukt het
       niet? Vraag het je coördinator." en "Spoed of gevaar? Bel direct 112.", als gewone tekst: zonder inloggen staat
@@ -612,14 +619,14 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
       [GOV.UK, Page not found pages](https://design-system.service.gov.uk/patterns/page-not-found-pages) en
       [GOV.UK, WCAG 2.2](https://design-system.service.gov.uk/accessibility/WCAG-2.2).
     - **Tests**: een browsertest per regel uit de tabel van de router, met de focus op de `h1` en de juiste
-      `<title>`; een ronde vanuit Kalender heeft Kalender actief, In aanbouw vanuit Account heeft Account actief, een
-      ronde of doodlopend scherm uit een mail geen tabblad; een modaal scherm en een scherm zonder inloggen hebben
+      `<title>`; een ronde vanuit Kalender heeft Kalender actief, Mijn account en In aanbouw vanuit Mijn account
+      geen tabblad, een ronde of doodlopend scherm uit een mail geen tabblad; een modaal scherm en een scherm zonder inloggen hebben
       geen tabbalk; een scherm zonder inloggen heeft de twee regels onderaan; de knoppen van een ronde staan op
       844 px hoog in beeld; een route na het inloggen buiten `#/` opent Start.
     - **Canvas**: tabbalk zonder actief tabblad op Pagina niet gevonden, Ronde niet gevonden, Geen toegang en Er ging
-      iets mis, met Account actief op In aanbouw, en tabbalk op de schermen van een ronde; "Annuleren" op de modale
-      schermen; de hoofdknoppen uit de tabel (prompt I); de bovenbalk, de schermen zonder inloggen en de vaste balk
-      van een ronde (prompt J). Een scherm dat daardoor verandert, gaat in het canvas naar "· concept" en in
+      iets mis, en tabbalk op de schermen van een ronde; "Annuleren" op de modale schermen; de hoofdknoppen uit de
+      tabel (prompt I); de schermen zonder inloggen en de vaste balk van een ronde (prompt J); de bovenbalk, de
+      tabbalk met drie tabbladen en Hulp en spoed tijdens een ronde (prompt M). Een scherm dat daardoor verandert, gaat in het canvas naar "· concept" en in
       `docs/design/walker/mobile/README.md` naar "draft".
     - **Alternatieven**: geen tabbalk op een scherm met "Terug", en "Terug" als hoofdknop op elk foutscherm. Zonder
       tabbalk ziet de loper niet in welk deel van de app die is, en een ronde uit een mail heeft geen vorige pagina in
@@ -643,6 +650,34 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
     wordt geen knop die je per ongeluk aantikt. De knop wordt in de DOM opgebouwd (geen `innerHTML`), met een
     `href` van alleen `tel:` en cijfers. Alleen op schermen waar de loper is ingelogd (beslissing 44). Een browsertest
     op de herkenning met de standaardtekst in `nl` en `en` en met getallen die tekst moeten blijven.
+
+46. **Hulp en spoed staat in de bovenbalk alleen tijdens een ronde** (besloten op 28 november 2026). Snel hulp
+    nodig heeft een loper als er onderweg iets gebeurt; de rest van de tijd is een knop rechtsboven op elk scherm
+    ruis, en Hulp en spoed staat dan in de lijst van Mijn account.
+    - **Tijdens een ronde** betekent: de loper staat op de ronde, de ronde is niet afgelast (`status` is niet
+      `cancelled`), er is nog geen terugmelding (`report` is leeg), en het is tussen 15 minuten vóór `startsAt` en
+      4 uur erna. Een ronde heeft geen eindtijd; 15 minuten ervoor is als de lopers bij het startpunt verzamelen, en
+      4 uur erna is ruim langer dan een ronde duurt, zodat een vergeten terugmelding de knop niet blijft tonen.
+    - **Op het scherm van die ronde** staat "Hulp en spoed" (icoon en tekst) in de bovenbalk, links van het rondje
+      met initialen, als link naar `#/help`; op elk scherm van een ronde op dezelfde plek (WCAG 3.2.6). Onder
+      360 px breed toont de knop alleen het icoon, met "Hulp en spoed" als naam voor schermlezers; anders past de
+      bovenbalk niet naast de naam van de groep. Buiten het venster, of voor een loper die niet op de ronde staat,
+      is er geen knop. Niet in de vaste balk van de ronde: daar staat Afmelden, en een spoedknop ernaast is snel
+      per ongeluk aangetikt.
+    - **Op Start** staat tijdens een ronde bovenaan een kaart "Je loopt nu een ronde" met tijd en startpunt, als
+      link naar die ronde; bij twee rondes in het venster de vroegste. Start zelf krijgt geen knop Hulp en spoed.
+    - **Gegevens**: geen nieuw veld. Het scherm Ronde rekent het venster uit met `startsAt`, `status`, `walkers` en
+      `report` uit `GET /rounds/{id}` en de eigen `id` uit `GET /me`; Start met `startsAt`, `status` en `reported`
+      uit `GET /me/rounds` (`view=all`; een ronde die over 15 minuten begint staat nog in `upcoming`, een begonnen
+      ronde in `to_report`). Het venster volgt de klok van de telefoon en wordt opnieuw berekend als de app weer
+      zichtbaar wordt (`visibilitychange`) en elke minuut zolang het scherm open is.
+    - **Tests**: browsertests met een vaste klok: 16 minuten vóór de start geen knop en geen kaart, 15 minuten
+      ervoor wel, 4 uur na de start niet meer; niet na een terugmelding, niet bij een afgelaste ronde en niet voor
+      een loper die niet op de ronde staat; onder 360 px alleen het icoon met de naam voor schermlezers.
+    - **Alternatieven**: Hulp en spoed op elk scherm rechtsboven, een tabblad Hulp onderaan, of een duur per ronde.
+      Een knop of tabblad op elk scherm staat er ook als hij niet nodig is, en een tabblad is een deel van de app,
+      geen noodknop. Een duur per ronde is preciezer, maar vraagt een schemawijziging, een extra veld in Ronde
+      plannen, API en MCP, en de rondes uit v3 hebben geen duur.
 
 ## Nieuwe afhankelijkheden (goedgekeurd op 18 november 2026)
 
@@ -692,6 +727,11 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code. Een sch
 - Jij geeft prompt K in de chat van het canvas: geen belknop zonder inloggen (beslissing 44).
 - Jij geeft prompt L in de chat van het canvas: wat prompt J openliet (woordgrap op een ronde, Start — offline,
   Geen verbinding, het scherm Lopers, het nummer van de politie op Hulp en spoed).
+- Jij geeft prompt M in de chat van het canvas: het rondje met initialen rechtsboven, drie tabbladen, Hulp en spoed
+  alleen tijdens een ronde en de kaart op Start (beslissingen 41, 44 en 46). Elk goedgekeurd scherm dat daardoor
+  verandert (in elk geval `set-password` en, als de regel er staat, `set-password-error`), gaat in
+  `docs/design/walker/mobile/README.md` naar "draft", zonder hoogte, en het nieuwe scherm `start-during-round` krijgt
+  een rij onder Rounds.
 - `docs/design/walker/mobile/README.md`: de afspraken (2x, een maat uit de afbeelding gedeeld door twee is de maat in
   CSS-pixels) en de lijst van schermen met per scherm de status en, na goedkeuring, de hoogte in CSS-pixels.
 - Jij keurt de schermen goed (beslissing 3).
@@ -975,6 +1015,32 @@ Werk in dit canvas op de pagina Mobile (390 × 844), verander niets anders dan h
    niet-bestaand scherm gaat.
 ```
 
+**Prompt M** (eenmalig; rondje met initialen, drie tabbladen en Hulp en spoed tijdens een ronde, beslissingen 41, 44
+en 46):
+
+```text
+Werk in dit canvas op de pagina Mobile (390 × 844), verander niets anders dan hieronder staat.
+1. Rechtsboven in de bovenbalk staat op elk scherm met een bovenbalk een rondje met de initialen van de loper uit de
+   voorbeelddata, als link naar more.dc.html. Haal "Hulp en spoed" daar weg, behalve op de schermen uit punt 4.
+2. De navigatie onderaan heeft drie tabbladen: Start, Kalender, Mijn rondes. Haal het tabblad Account weg, in elk
+   scherm waar het staat. Op more en de schermen daaronder (my-details, download-data, confirm-identity,
+   my-activity, integrations, integration-created, notifications, en under-construction vanuit Mijn account) is
+   geen tabblad gemarkeerd.
+3. Vervang elke tekst die Account als plek noemt ("via Account → …", "bij Account") door Mijn account ("via Mijn
+   account → …", "bij Mijn account"), ook in set-password: "Later instellen kan via Mijn account → Mijn gegevens."
+4. Ronde — jij en andere loper(s) en Ronde — alleen jij: toon de ronde zoals hij is terwijl hij gelopen wordt, met
+   in de bovenbalk "Hulp en spoed" (icoon en tekst) links van het rondje, als link naar help.dc.html. Zet erbij een
+   notitie: "Hulp en spoed staat hier alleen tijdens de ronde: van 15 minuten vóór de start tot 4 uur erna, zolang
+   er geen terugmelding is. Onder 360 px breed alleen het icoon; de tekst blijft voor schermlezers."
+5. Voeg een scherm toe naast Start: start-during-round.dc.html, titel "Start — tijdens een ronde · concept". Gelijk
+   aan Start, met bovenaan een kaart "Je loopt nu een ronde" met tijd en startpunt uit de voorbeelddata, als link
+   naar round-with-others.dc.html. Geen "Hulp en spoed" in de bovenbalk.
+6. Haal de notitie bij Start over Hulp en spoed onder 360 px weg.
+7. Zet een scherm met "· goedgekeurd <datum>" dat hierdoor verandert terug op "· concept".
+8. Noem elk scherm dat je hebt aangepast, elk scherm dat terug is op "· concept", elke tekst die nog Account als
+   plek noemt, en elke link die naar een niet-bestaand scherm gaat.
+```
+
 ### T3. Lit vendoren (test eerst)
 
 - `VendoredLibraryTest`, dan `tools/vendor-lit.php` en `php tools/vendor-lit.php 3.3.3`.
@@ -1026,6 +1092,8 @@ Werk in dit canvas op de pagina Mobile (390 × 844), verander niets anders dan h
 - Het label "via een AI-app" bij terugmelding en opmerking in Ronde (beslissing 38), met een browsertest op de
   terugmelding via `mcp` uit `demo`, en het label in het ontwerp-canvas bij het scherm Ronde.
 - Resultaat melden met ongedaan maken, Ronde ging niet door, Mijn rondes.
+- Hulp en spoed in de bovenbalk van een ronde en de kaart "Je loopt nu een ronde" op Start, tijdens een ronde
+  (beslissing 46), met de tests daaruit.
 
 ### T10. Kalender en ronde plannen (test eerst)
 
@@ -1042,8 +1110,8 @@ Werk in dit canvas op de pagina Mobile (390 × 844), verander niets anders dan h
   standaard bij een vaste klok en op een 422 bij een datum na 365 dagen; Koppeling gemaakt met de zin over de mail
   (beslissing 40).
 - Account op `#/account` met de onderdelen onder `#/account/…` (beslissing 41), met een browsertest dat `#/account`
-  en elk onderdeel een scherm openen. Test eerst: `BuddyNeededMail` zegt "bij Account → Meldingen" en linkt naar
-  `app/#/account/notifications`, de tokenmails zeggen "bij Account → Koppelingen", in `nl` en `en`;
+  en elk onderdeel een scherm openen. Test eerst: `BuddyNeededMail` zegt "bij Mijn account → Meldingen" en linkt
+  naar `app/#/account/notifications`, de tokenmails zeggen "bij Mijn account → Koppelingen", in `nl` en `en`;
   `WalkerWithdrawnMail` zonder `accountLink`.
 - De versie onderaan Mijn account (beslissing 42): `tools/write-version.php` met een test op de drie vormen (tag,
   tag met hash, geen tag), de Composer-hook, `VERSION` in `.gitignore`, `AppVersion` en `version` in `GET /config`
