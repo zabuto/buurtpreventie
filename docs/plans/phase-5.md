@@ -628,6 +628,22 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
       een ronde waar het om een pagina gaat. Een eigen scherm voor een onbekende route geeft niets prijs: de routes
       staan in de JavaScript van de app, die iedereen kan ophalen.
 
+45. **In de spoedtekst worden alleen 112, 0900-nummers en 14 met een netnummer een belknop** (besloten op 28
+    november 2026). De spoedtekst is platte tekst die de beheerder kan aanpassen (vastgesteld 5); Hulp en spoed maakt
+    daarin alleen deze nummers belbaar:
+
+    | Patroon | Voorbeeld | Link |
+    | --- | --- | --- |
+    | `112` als los woord | "Bel 112." | `tel:112` |
+    | `0900` met het nummer erachter, met of zonder streepje of spatie | "0900-8844" | `tel:09008844` |
+    | `14` met een netnummer erachter, met of zonder spatie | "14 020" | `tel:14020` |
+
+    `14` zonder netnummer is geen nummer om te bellen ("bel 14 en het netnummer van je gemeente" in de
+    standaardtekst) en blijft tekst. Elk ander getal ook: een datum, een huisnummer of een privénummer in de tekst
+    wordt geen knop die je per ongeluk aantikt. De knop wordt in de DOM opgebouwd (geen `innerHTML`), met een
+    `href` van alleen `tel:` en cijfers. Alleen op schermen waar de loper is ingelogd (beslissing 44). Een browsertest
+    op de herkenning met de standaardtekst in `nl` en `en` en met getallen die tekst moeten blijven.
+
 ## Nieuwe afhankelijkheden (goedgekeurd op 18 november 2026)
 
 Alleen voor tests in CI, in `tests/browser/package.json` met `package-lock.json`, geïnstalleerd met
@@ -1020,7 +1036,8 @@ Werk in dit canvas op de pagina Mobile (390 × 844), verander niets anders dan h
 
 - Welkom en Wachtwoord instellen via de uitnodigingslink.
 - Account (beslissing 41), Mijn gegevens, Bevestig dat jij het bent, Mijn activiteit, Koppelingen (het geheim één
-  keer getoond), Meldingen, Hulp en spoed, uitloggen; geen Lopers (beslissing 43).
+  keer getoond), Meldingen, Hulp en spoed met belknoppen in de spoedtekst (beslissing 45), uitloggen; geen Lopers
+  (beslissing 43).
 - Koppelingen met een vervaldatum die standaard 90 dagen vooruit staat (beslissing 39), met een browsertest op de
   standaard bij een vaste klok en op een 422 bij een datum na 365 dagen; Koppeling gemaakt met de zin over de mail
   (beslissing 40).
