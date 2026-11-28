@@ -52,9 +52,6 @@ without the status after the "·".
 | `start.png` | Start | draft | |
 | `start-empty.png` | Start — geen loopmaatje nodig | draft | |
 | `start-offline.png` | Start — offline | draft | |
-| `no-connection.png` | Geen verbinding | draft | |
-| `update-available.png` | Nieuwe versie beschikbaar | draft | |
-| `error.png` | Er ging iets mis | draft | |
 | `calendar.png` | Kalender | draft | |
 | `calendar-list.png` | Kalender — lijst | draft | |
 | `calendar-past.png` | Kalender — vorige week | draft | |
@@ -78,7 +75,7 @@ without the status after the "·".
 | `my-rounds.png` | Mijn rondes | draft | |
 | `my-rounds-empty.png` | Mijn rondes — leeg | draft | |
 
-### More
+### Account
 
 | Image | Canvas title | Status | Height (CSS px) |
 | --- | --- | --- | --- |
@@ -90,10 +87,24 @@ without the status after the "·".
 | `integrations.png` | Koppelingen | draft | |
 | `integration-created.png` | Koppeling gemaakt | draft | |
 | `notifications.png` | Meldingen | draft | |
-| `help.png` | Hulp en spoed | draft | |
-| `privacy.png` | Privacyverklaring | later | |
-| `handbook.png` | Handleiding voor lopers | later | |
+
+### General
+
+| Image | Canvas title | Status | Height (CSS px) |
+| --- | --- | --- | --- |
+| `no-connection.png` | Geen verbinding | draft | |
+| `update-available.png` | Nieuwe versie beschikbaar | draft | |
+| `error.png` | Er ging iets mis | draft | |
 | `under-construction.png` | In aanbouw | draft | |
+| `privacy.png` | Privacyverklaring | later | |
+| `help.png` | Hulp en spoed | draft | |
+| `handbook.png` | Handleiding voor lopers | later | |
+
+"Privacyverklaring" and "Handleiding voor lopers" are designs for later; in the app, the links to them open
+"In aanbouw".
+
+"Geen verbinding" and "Nieuwe versie beschikbaar" appear as a notice that slides down below the top bar; with reduced
+motion on, it appears without sliding.
 
 ## Adding an approved screen
 
