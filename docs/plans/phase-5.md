@@ -675,7 +675,7 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code. Een sch
   daardoor verandert, gaat in `docs/design/walker/mobile/README.md` naar "draft", zonder hoogte.
 - Jij geeft prompt K in de chat van het canvas: geen belknop zonder inloggen (beslissing 44).
 - Jij geeft prompt L in de chat van het canvas: wat prompt J openliet (woordgrap op een ronde, Start — offline,
-  Geen verbinding, het scherm Lopers).
+  Geen verbinding, het scherm Lopers, het nummer van de politie op Hulp en spoed).
 - `docs/design/walker/mobile/README.md`: de afspraken (2x, een maat uit de afbeelding gedeeld door twee is de maat in
   CSS-pixels) en de lijst van schermen met per scherm de status en, na goedkeuring, de hoogte in CSS-pixels.
 - Jij keurt de schermen goed (beslissing 3).
@@ -948,7 +948,14 @@ Werk in dit canvas op de pagina Mobile (390 × 844), verander niets anders dan h
    de tabbalk: de melding schuift onder de bovenbalk naar beneden en dekt de rest niet af.
 4. Haal het scherm walkers.dc.html (Lopers) van de pagina Mobile, met elke link ernaartoe; de loper heeft geen
    scherm Lopers.
-5. Noem elk scherm dat je hebt aangepast, de nieuwe zin op Ronde — alleen jij, en elke link die naar een
+5. Hulp en spoed: het blok met spoednummers is de spoedtekst, die de beheerder kan aanpassen. Toon daar de
+   standaardtekst, met 112 en 0900-8844 als belknop:
+   Is er gevaar of gebeurt er nu iets ernstigs? Bel 112.
+   Geen spoed, wel de politie nodig? Bel 0900-8844.
+   Iets kapot of vies op straat? Meld het bij de gemeente: bel 14 en het netnummer van je gemeente, of gebruik de
+   app van je gemeente.
+   Wat je in de buurt ziet, deel je in de groepsapp van de buurt. De app van de buurtpreventie is daar niet voor.
+6. Noem elk scherm dat je hebt aangepast, de nieuwe zin op Ronde — alleen jij, en elke link die naar een
    niet-bestaand scherm gaat.
 ```
 
