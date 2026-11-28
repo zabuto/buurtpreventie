@@ -674,6 +674,8 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code. Een sch
   balk van een ronde, één Annuleren en de tekst van Er ging iets mis (beslissing 44). Elk goedgekeurd scherm dat
   daardoor verandert, gaat in `docs/design/walker/mobile/README.md` naar "draft", zonder hoogte.
 - Jij geeft prompt K in de chat van het canvas: geen belknop zonder inloggen (beslissing 44).
+- Jij geeft prompt L in de chat van het canvas: wat prompt J openliet (woordgrap op een ronde, Start — offline,
+  Geen verbinding, het scherm Lopers).
 - `docs/design/walker/mobile/README.md`: de afspraken (2x, een maat uit de afbeelding gedeeld door twee is de maat in
   CSS-pixels) en de lijst van schermen met per scherm de status en, na goedkeuring, de hoogte in CSS-pixels.
 - Jij keurt de schermen goed (beslissing 3).
@@ -932,6 +934,22 @@ Werk in dit canvas op de pagina Mobile (390 × 844), verander niets anders dan h
    geen belknop op het scherm.
 2. Laat 112 als belknop staan op de schermen waar de loper is ingelogd.
 3. Noem elk scherm dat je hebt aangepast.
+```
+
+**Prompt L** (eenmalig; wat prompt J openliet, beslissingen 43 en 44):
+
+```text
+Werk in dit canvas op de pagina Mobile (390 × 844), verander niets anders dan hieronder staat.
+1. Ronde — alleen jij: vervang "Je loopt nooit alleen." door een gewone zin in B1 die zegt hoe het met de ronde
+   staat. Een woordgrap mag alleen op een foutscherm met een tekening.
+2. Start — offline: geef het de bovenbalk van Start, met "Hulp en spoed" rechtsboven, en de tabbalk met Start
+   actief.
+3. Geen verbinding: toon de melding over een gewoon scherm, Start, met bovenbalk, "Hulp en spoed" rechtsboven en
+   de tabbalk: de melding schuift onder de bovenbalk naar beneden en dekt de rest niet af.
+4. Haal het scherm walkers.dc.html (Lopers) van de pagina Mobile, met elke link ernaartoe; de loper heeft geen
+   scherm Lopers.
+5. Noem elk scherm dat je hebt aangepast, de nieuwe zin op Ronde — alleen jij, en elke link die naar een
+   niet-bestaand scherm gaat.
 ```
 
 ### T3. Lit vendoren (test eerst)
