@@ -41,7 +41,8 @@ without the status after the "·".
 | `login-code.png` | Code invullen | approved 2026-11-19 | 844 |
 | `login-code-error.png` | Code invullen — fout | approved 2026-11-19 | 844 |
 | `welcome.png` | Welkom (uitnodiging) | approved 2026-11-19 | 844 |
-| `set-password.png` | Wachtwoord instellen (mag) | approved 2026-11-19 | 844 |
+| `set-password.png` | Wachtwoord instellen (mag) | approved 2026-11-28 | 844 |
+| `set-password-error.png` | Wachtwoord instellen — fout | approved 2026-11-28 | 900 (scrolls) |
 | `browser-unsupported.png` | Browser te oud | approved 2026-11-19 | 844 |
 
 ### Rounds
