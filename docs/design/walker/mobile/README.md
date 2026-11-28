@@ -35,15 +35,15 @@ without the status after the "·".
 
 | Image | Canvas title | Status | Height (CSS px) |
 | --- | --- | --- | --- |
-| `login.png` | Inloggen | draft | |
-| `login-error.png` | Inloggen — fout | draft | |
-| `session-expired.png` | Opnieuw inloggen | draft | |
-| `login-code.png` | Code invullen | draft | |
-| `login-code-error.png` | Code invullen — fout | draft | |
-| `welcome.png` | Welkom (uitnodiging) | draft | |
-| `set-password.png` | Wachtwoord instellen (mag) | draft | |
-| `set-password-error.png` | Wachtwoord instellen — fout | draft | |
-| `browser-unsupported.png` | Browser te oud | draft | |
+| `login.png` | Inloggen | approved 2026-11-28 | 844 |
+| `login-error.png` | Inloggen — fout | approved 2026-11-28 | 844 |
+| `session-expired.png` | Opnieuw inloggen | approved 2026-11-28 | 844 |
+| `login-code.png` | Code invullen | approved 2026-11-28 | 844 |
+| `login-code-error.png` | Code invullen — fout | approved 2026-11-28 | 844 |
+| `welcome.png` | Welkom (uitnodiging) | approved 2026-11-28 | 844 |
+| `set-password.png` | Wachtwoord instellen (mag) | approved 2026-11-28 | 900 (scrolls) |
+| `set-password-error.png` | Wachtwoord instellen — fout | approved 2026-11-28 | 940 (scrolls) |
+| `browser-unsupported.png` | Browser te oud | approved 2026-11-28 | 844 |
 
 ### Rounds
 
