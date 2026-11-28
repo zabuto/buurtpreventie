@@ -65,8 +65,6 @@ without the status after the "·".
 | `round-alone.png` | Ronde — alleen jij | draft | |
 | `change-round.png` | Ronde wijzigen | draft | |
 | `round-full.png` | Ronde — vol | draft | |
-| `not-found.png` | Ronde niet gevonden | draft | |
-| `no-access.png` | Geen toegang | draft | |
 | `add-comment.png` | Opmerking toevoegen | draft | |
 | `confirm-withdrawal.png` | Afmelden bevestigen | draft | |
 | `confirm-withdrawal-last.png` | Afmelden als enige loper | draft | |
@@ -95,6 +93,8 @@ without the status after the "·".
 | `no-connection.png` | Geen verbinding | draft | |
 | `update-available.png` | Nieuwe versie beschikbaar | draft | |
 | `error.png` | Er ging iets mis | draft | |
+| `not-found.png` | Ronde niet gevonden | draft | |
+| `no-access.png` | Geen toegang | draft | |
 | `under-construction.png` | In aanbouw | draft | |
 | `privacy.png` | Privacyverklaring | later | |
 | `help.png` | Hulp en spoed | draft | |

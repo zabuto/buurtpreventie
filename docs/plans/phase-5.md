@@ -260,11 +260,12 @@ README; `flow` is een overzicht, geen scherm.
     `#/rounds/<id>`, `#/rounds/new`, `#/my-rounds`, `#/report/<id>`, `#/calendar`, `#/account` en de onderdelen
     daarvan (beslissing 41), `#/help`,
     en wat de goedgekeurde schermen verder vragen. Na elke routewissel gaat de focus naar de kop van het scherm en
-    verandert de `<title>`.
+    verandert de `<title>`; foutschermen, tabbalk en wat de router bij een fout toont staan in beslissing 44.
 17. **Eén API-client** (`js/api.js`) met alle paden als sjablonen in één tabel, relatief (`../api/v1/…`), zodat de app
     ook in een pad werkt. Bij elk schrijvend verzoek een `csrf-token`-header zoals Symfony's eigen
     `csrf_protection_controller.js` dat doet (vastgesteld 4). Een problem+json wordt een fout met `code` en
-    veldfouten; een 401 gaat naar inloggen en wist de cache van de service worker.
+    veldfouten; een 401 gaat naar inloggen en wist de cache van de service worker, en na het inloggen komt de loper
+    op de route waar die was (beslissing 44).
 18. **Vertalingen** in `frontend/i18n/nl.json` en `en.json`; de taal komt uit `/config` en staat in `lang` op `<html>`.
     `TranslationKeysTest` controleert ook deze twee bestanden.
 19. **Kleuren via CSSOM** (`document.documentElement.style.setProperty`), wat de CSP toestaat; donkere modus kiest de
@@ -383,11 +384,12 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
     - **Niet op iOS 15** (besloten op 18 november 2026): installeren en offline worden daar niet ondersteund. De app
       registreert de service worker alleen als `HTMLScriptElement.supports?.('importmap')` waar is (Safari 16.4,
       Chrome 89, Firefox 108); dat sluit precies Safari 15.x uit, zonder te kijken naar de user agent. Op iOS 15 werkt
-      de app dus als gewone website: zonder bereik toont hij `no-connection`, niet `start-offline`. Waarom: offline op
-      iOS 15 is niet te testen zonder toestel (beslissing 27), Safari wist de opslag van een website na 7 dagen zonder
-      gebruik (behalve van een app op het beginscherm), en een kapotte service worker op iOS 15 kan een oude versie van de app vasthouden. Een browsertest
-      haalt `HTMLScriptElement.supports` weg en controleert dat de app zonder service worker werkt en `no-connection`
-      toont. Wat iOS 15 wel heeft: alles online, en "Zet op beginscherm" opent de site zonder browserbalk.
+      de app dus als gewone website: zonder bereik toont hij `error-offline` (beslissing 44), niet `start-offline`.
+      Waarom: offline op iOS 15 is niet te testen zonder toestel (beslissing 27), Safari wist de opslag van een website
+      na 7 dagen zonder gebruik (behalve van een app op het beginscherm), en een kapotte service worker op iOS 15 kan
+      een oude versie van de app vasthouden. Een browsertest haalt `HTMLScriptElement.supports` weg en controleert dat
+      de app zonder service worker werkt en zonder bereik `error-offline` toont. Wat iOS 15 wel heeft: alles online, en
+      "Zet op beginscherm" opent de site zonder browserbalk.
     - **App-shell**: HTML, CSS, JavaScript, vertalingen en Lit staan in de cache, zodat de app direct opent, ook
       zonder bereik. Bij elke start vraagt de browser `sw.js` opnieuw op. `sw.js` draagt een versie: de SHA-256 over
       alle bestanden van de shell. Is iets veranderd, dan is `sw.js` anders, haalt de nieuwe service worker de
@@ -427,7 +429,8 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
     fase die de tekst levert. De routes `#/privacy` en `#/handbook` bestaan en tonen allebei het goedgekeurde scherm
     `under-construction`: de titel van het scherm, een korte uitleg in B1 uit de vertalingen (nl en en) en een weg
     terug, zodat elke link in de flow (Inloggen, Mijn account, Hulp) op een werkend scherm uitkomt. Geen kapotte link: de
-    browsertests volgen elke link naar `#/…` op elk scherm en falen op een route die de router niet kent.
+    browsertests volgen elke link naar `#/…` op elk scherm en falen als een link op Pagina niet gevonden uitkomt
+    (beslissing 44).
 
     De link "Privacyverklaring" opent `privacyUrl` uit `/config` als de beheerder die instelde (alleen `https`, door
     `ChangeSettings` gecontroleerd), in een nieuw tabblad met `rel="noopener"`, zodat de app open blijft; alleen
@@ -540,6 +543,75 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
       Onder Account gaat het niet over je eigen account, een tabblad maakt de navigatie drukker voor iets wat zelden
       nodig is, en Hulp en spoed moet kort blijven.
 
+### Navigatie en foutschermen
+
+44. **De tabbalk blijft staan, ook op een foutscherm, en elk foutscherm heeft dezelfde opbouw** (besloten op 28
+    november 2026).
+    - **Tabbalk** (Start, Kalender, Mijn rondes, Account): op de vier hoofdschermen, op de schermen daaronder (een
+      ronde, de onderdelen van Account) en op elk doodlopend scherm, zolang de loper is ingelogd. Actief is het
+      tabblad van de route. Een ronde (`#/rounds/<id>`) opent vanuit Start, Kalender en Mijn rondes; daar is het
+      tabblad actief waar de loper vandaan kwam. Op een doodlopend scherm geldt hetzelfde: In aanbouw vanuit Account
+      heeft Account actief. Is de herkomst onbekend (een link uit een mail, de app net geopend), dan is geen tabblad
+      actief en draagt geen tabblad `aria-current`; een gok zou de loper een plek tonen waar die niet was.
+    - **Geen tabbalk** op een modaal scherm: Ronde plannen, Ronde wijzigen, Resultaat melden, Afmelden bevestigen en
+      Opmerking toevoegen. Die sluiten met "Annuleren", niet met "Terug". Ook geen tabbalk zolang de loper niet is
+      ingelogd: Inloggen, Code invullen, Welkom, Wachtwoord instellen, Browser te oud, en Privacyverklaring vanaf het
+      inlogscherm.
+    - **Hulp en spoed** staat rechtsboven op elk scherm, ook zonder inloggen (beslissing 41, WCAG 3.2.6).
+    - **Doodlopende schermen**: Pagina niet gevonden, Ronde niet gevonden, Geen toegang, Er ging iets mis (ook zonder
+      bereik) en In aanbouw. Elk heeft dezelfde opbouw: de kop (`h1`), een illustratie als versiering
+      (`aria-hidden`), een korte uitleg in B1 (wat er aan de hand is, dan wat de loper kan doen), één hoofdknop, een
+      link naar Hulp en spoed en de regel "Spoed of gevaar? Bel direct 112.". De hoofdknop:
+
+      | Scherm | Hoofdknop |
+      | --- | --- |
+      | Pagina niet gevonden, Ronde niet gevonden, Geen toegang | "Naar Start" |
+      | Er ging iets mis | "Opnieuw proberen" |
+      | In aanbouw | "Terug"; zonder vorige pagina in de app naar Start |
+
+      Eén component met de gedeelde opbouw en per toestand een eigen scherm; In aanbouw krijgt de naam van de pagina
+      mee als eigenschap en toont die in de kop en in `<title>`.
+    - **Router**:
+
+      | Wat gebeurt er | Wat de loper ziet |
+      | --- | --- |
+      | Route die de router niet kent | Pagina niet gevonden, binnen de app met bovenbalk en tabbalk |
+      | Route die nog niet gebouwd is | In aanbouw, met de naam van de pagina |
+      | 401 van de API | Opnieuw inloggen (beslissing 17); na het inloggen de route waar de loper was |
+      | 403 van de API | Geen toegang |
+      | 404 van de API bij laden | Ronde niet gevonden |
+      | 5xx van de API bij laden | Er ging iets mis |
+      | Geen bereik, met gegevens in de cache | Het scherm met de melding Geen verbinding (beslissingen 32 en 36) |
+      | Geen bereik, zonder gegevens in de cache | Er ging iets mis, met een tekst die zegt dat er geen bereik is |
+      | 5xx bij opslaan | Het formulier blijft staan met wat de loper invulde, met de fout bovenaan |
+      | Geen bereik bij opslaan | Het formulier blijft staan met wat de loper invulde, met de melding Geen verbinding |
+
+      De route na het inloggen komt alleen uit de hash van de app (`#/…`); een andere waarde wordt Start, zodat een
+      link niet naar een andere site kan sturen.
+    - **Focus en titel**: na elke routewissel, en als een scherm na het laden een foutscherm wordt, gaat de focus naar
+      de `h1` (met `tabindex="-1"`); bij de eerste keer laden niet. `<title>` begint met de naam van het scherm, op een
+      foutscherm met de fout ("Ronde niet gevonden"). De meldingen Geen verbinding en Nieuwe versie beschikbaar pakken
+      geen focus en staan in een element met `role="status"`.
+    - **Bronnen**: [Apple HIG, Tab bars](https://developer.apple.com/design/human-interface-guidelines/tab-bars),
+      [USWDS, 404 page](https://designsystem.digital.gov/templates/404-page),
+      [CMS, 404 page guidance](https://design.cms.gov/patterns/404-page-guidance/),
+      [GOV.UK, Page not found pages](https://design-system.service.gov.uk/patterns/page-not-found-pages) en
+      [GOV.UK, WCAG 2.2](https://design-system.service.gov.uk/accessibility/WCAG-2.2).
+    - **Tests**: een browsertest per regel uit de tabel van de router, met de focus op de `h1` en de juiste
+      `<title>`; een ronde vanuit Kalender heeft Kalender actief, In aanbouw vanuit Account heeft Account actief, een
+      ronde of doodlopend scherm uit een mail geen tabblad; een modaal scherm en een scherm zonder inloggen hebben
+      geen tabbalk; een route na het inloggen buiten `#/` opent Start.
+    - **Canvas**: tabbalk zonder actief tabblad op Pagina niet gevonden, Ronde niet gevonden, Geen toegang en Er ging
+      iets mis, met Account actief op In aanbouw, en tabbalk op de schermen van een ronde; "Annuleren" op de modale
+      schermen; de hoofdknoppen uit de tabel (prompt I). Een scherm dat daardoor verandert, gaat in het canvas naar
+      "· concept" en in `docs/design/walker/mobile/README.md` naar "draft".
+    - **Alternatieven**: geen tabbalk op een scherm met "Terug", en "Terug" als hoofdknop op elk foutscherm. Zonder
+      tabbalk ziet de loper niet in welk deel van de app die is, en een ronde uit een mail heeft geen vorige pagina in
+      de app, zodat "Terug" de app verlaat. Geen bereik zonder cache als eigen scherm `no-connection` geeft één naam
+      aan twee dingen: dat is al de melding onder de bovenbalk. Ronde niet gevonden voor elke onbekende route noemt
+      een ronde waar het om een pagina gaat. Een eigen scherm voor een onbekende route geeft niets prijs: de routes
+      staan in de JavaScript van de app, die iedereen kan ophalen.
+
 ## Nieuwe afhankelijkheden (goedgekeurd op 18 november 2026)
 
 Alleen voor tests in CI, in `tests/browser/package.json` met `package-lock.json`, geïnstalleerd met
@@ -580,6 +652,8 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code. Een sch
   meteen een nieuwe goedkeuringsdatum; daarna export en prompt D.
 - Jij geeft prompt H in de chat van het canvas: Meer wordt Account (beslissing 41) en Lopers gaat eruit (beslissing
   43).
+- Jij geeft prompt I in de chat van het canvas: tabbalk, foutschermen en modale schermen (beslissing 44). Daarna
+  krijgen `page-not-found` en `error-offline` een rij in `docs/design/walker/mobile/README.md`, onder General.
 - `docs/design/walker/mobile/README.md`: de afspraken (2x, een maat uit de afbeelding gedeeld door twee is de maat in
   CSS-pixels) en de lijst van schermen met per scherm de status en, na goedkeuring, de hoogte in CSS-pixels.
 - Jij keurt de schermen goed (beslissing 3).
@@ -754,6 +828,52 @@ Werk in dit canvas, verander niets anders dan hieronder staat.
    niet-bestaand scherm gaat.
 ```
 
+**Prompt I** (eenmalig; tabbalk en foutschermen, beslissing 44):
+
+```text
+Werk in dit canvas op de pagina Mobile (390 × 844), verander niets anders dan hieronder staat.
+1. Voeg het scherm page-not-found.dc.html toe, titel "Pagina niet gevonden · concept". Geef dan de foutschermen
+   page-not-found, not-found, no-access, error en under-construction allemaal dezelfde opbouw, van boven naar
+   beneden:
+   - de bovenbalk met "Hulp en spoed" rechtsboven, zoals op Start;
+   - een kop (de titel van het scherm);
+   - een kleine illustratie als versiering, niet hoger dan 120 px;
+   - een korte uitleg in B1: eerst wat er aan de hand is, dan wat de loper kan doen;
+   - één hoofdknop;
+   - een link "Hulp en spoed" naar help.dc.html;
+   - de regel "Spoed of gevaar? Bel direct 112.", met 112 als link om te bellen;
+   - de tabbalk onderaan (Start, Kalender, Mijn rondes, Account). Op page-not-found, not-found, no-access en error
+     is geen tabblad gemarkeerd (de loper kwam via een link uit een mail); op under-construction is Account
+     gemarkeerd (de loper kwam van more).
+   De hoofdknop moet zonder scrollen zichtbaar zijn op 844 px hoog.
+2. De tekst per scherm:
+   - page-not-found: kop "Pagina niet gevonden". "Deze pagina bestaat niet. Misschien klopt de link niet." Knop
+     "Naar Start".
+   - not-found: kop "Ronde niet gevonden". "Deze ronde bestaat niet meer, of de link klopt niet. In de kalender zie
+     je welke rondes er zijn." Knop "Naar Start".
+   - no-access: kop "Geen toegang". "Je mag deze pagina niet openen. Klopt dat niet? Vraag het de coördinator via
+     Hulp en spoed." Knop "Naar Start".
+   - error: kop "Er ging iets mis". "Deze pagina laadt niet. Dat ligt niet aan jou. Probeer het over een paar minuten
+     opnieuw." Knop "Opnieuw proberen".
+   - under-construction: kop "Privacyverklaring" (de naam van de pagina waar de loper heen wilde), de tekst die er
+     staat. Knop "Terug".
+3. Voeg het scherm error-offline.dc.html toe, titel "Er ging iets mis — geen bereik · concept": de opbouw van error,
+   met de tekst "Je telefoon heeft geen internet. Probeer het opnieuw als je weer bereik hebt." en de knop "Opnieuw
+   proberen".
+4. Zet de tabbalk onderaan op de schermen van een ronde (round-buddy-needed, round-open-spots, round-just-full,
+   round-with-others, round-alone, round-full, round-past), met Kalender actief. "Terug" in de kop blijft.
+5. Haal de tabbalk weg uit de modale schermen plan-round, form-error, change-round, report-result,
+   confirm-withdrawal, confirm-withdrawal-last en add-comment, en vervang daar "Terug" door "Annuleren" op dezelfde
+   plek. Een knop die al "Annuleren" heet, blijft.
+6. Controleer de schermen zonder inloggen (login, login-error, session-expired, login-code, login-code-error,
+   welcome, set-password, set-password-error, browser-unsupported): staat daar geen tabbalk, en staat "Hulp en spoed"
+   rechtsboven? Verander ze niet; noem alleen wat afwijkt.
+7. Zet een scherm met "· goedgekeurd <datum>" dat hierdoor verandert terug op "· concept".
+8. Controleer op 320 en 390 px breed of tekst nergens over een rand loopt of afgekapt wordt.
+9. Noem elk scherm dat je hebt aangepast, elk scherm dat terug is op "· concept", en elke link die naar een
+   niet-bestaand scherm gaat.
+```
+
 ### T3. Lit vendoren (test eerst)
 
 - `VendoredLibraryTest`, dan `tools/vendor-lit.php` en `php tools/vendor-lit.php 3.3.3`.
@@ -832,12 +952,14 @@ Werk in dit canvas, verander niets anders dan hieronder staat.
 
 - Manifest-link, service worker en Start, offline (beslissing 32), met tests voor wat wel en niet in de cache komt en
   het wissen bij uitloggen; "Nieuwe versie beschikbaar"; zonder `HTMLScriptElement.supports` (iOS 15) geen service
-  worker en `no-connection`.
+  worker en zonder bereik `error-offline`.
 
-### T13. Geen kapotte links
+### T13. Geen kapotte links en foutschermen
 
 - De browsertests uit beslissing 34: elke link naar `#/…` op elk scherm komt uit op een route van de router, en
   "Privacyverklaring" gaat naar `privacyUrl` als die is ingesteld en anders naar `#/privacy`.
+- Tabbalk, doodlopende schermen en de router bij een fout (beslissing 44), met de tests daaruit; alleen de schermen
+  die goedgekeurd zijn.
 
 ### T14. Documentatie
 
