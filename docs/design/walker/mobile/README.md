@@ -93,6 +93,8 @@ without the status after the "·".
 | `no-connection.png` | Geen verbinding | draft | |
 | `update-available.png` | Nieuwe versie beschikbaar | draft | |
 | `error.png` | Er ging iets mis | draft | |
+| `error-offline.png` | Er ging iets mis — geen bereik | draft | |
+| `page-not-found.png` | Pagina niet gevonden | draft | |
 | `not-found.png` | Ronde niet gevonden | draft | |
 | `no-access.png` | Geen toegang | draft | |
 | `under-construction.png` | In aanbouw | draft | |

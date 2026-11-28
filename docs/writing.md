@@ -68,6 +68,10 @@ follows what a text does, not where it sits.
   "Ik kan toch niet". Write out an abbreviation at its first use on a screen or in a message
   ("Algemene verordening gegevensbescherming (AVG)"). The domain terms from the glossary stay as they
   are.
+- **Wordplay only on a dead-end screen with an illustration** (an error, a page not found, a page under
+  construction), where the illustration already sets a lighter tone and the explanation and button carry the
+  message. A screen in the normal flow, a form or a notification stays plain: a joke there costs a walker with
+  little reading skill the meaning.
 - **Need to know.** A text an end user reads (screen, mail, error message, `docs/user-guide/`, the plugin
   README) names no setting, endpoint, status code or other detail the reader has no access to: "Vraag het de
   beheerder." or "Ask the admin." is enough. The admin finds the detail in `docs/configuration.md`. A detail the

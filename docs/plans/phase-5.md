@@ -554,14 +554,26 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
       heeft Account actief. Is de herkomst onbekend (een link uit een mail, de app net geopend), dan is geen tabblad
       actief en draagt geen tabblad `aria-current`; een gok zou de loper een plek tonen waar die niet was.
     - **Geen tabbalk** op een modaal scherm: Ronde plannen, Ronde wijzigen, Resultaat melden, Afmelden bevestigen en
-      Opmerking toevoegen. Die sluiten met "Annuleren", niet met "Terug". Ook geen tabbalk zolang de loper niet is
+      Opmerking toevoegen. Die sluiten met één "Annuleren", bovenaan op de plek van "Terug"; onderaan staat alleen
+      de hoofdknop. Ook geen tabbalk zolang de loper niet is
       ingelogd: Inloggen, Code invullen, Welkom, Wachtwoord instellen, Browser te oud, en Privacyverklaring vanaf het
       inlogscherm.
-    - **Hulp en spoed** staat rechtsboven op elk scherm, ook zonder inloggen (beslissing 41, WCAG 3.2.6).
+    - **Hulp en spoed** staat rechtsboven in de bovenbalk van elk scherm waar de loper is ingelogd (beslissing 41,
+      WCAG 3.2.6), en verder staat er rechtsboven niets: geen rondje met initialen naar Mijn gegevens, dat al onder
+      Account zit. Onder 360 px breed toont de knop alleen het icoon, met "Hulp en spoed" als naam voor
+      schermlezers; anders past de bovenbalk niet naast de naam van de groep.
+    - **Zonder inloggen** is er geen bovenbalk en geen Hulp en spoed: contact en groep krijgt alleen een ingelogd lid
+      (beslissing 42). Elk scherm zonder inloggen heeft onderaan, op dezelfde plek en in deze volgorde, "Lukt het
+      niet? Vraag het je coördinator." en "Spoed of gevaar? Bel direct 112.", met 112 als belknop.
+    - **Knoppen van een ronde** (onder meer Resultaat melden en Afmelden) staan in een vaste balk direct boven de
+      tabbalk; de inhoud scrolt erachter. Met de tabbalk erbij is een ronde langer dan 844 px, en anders staat de
+      belangrijkste actie onder de vouw. `scroll-padding-bottom` houdt een element met focus boven de twee balken
+      (WCAG 2.4.11).
     - **Doodlopende schermen**: Pagina niet gevonden, Ronde niet gevonden, Geen toegang, Er ging iets mis (ook zonder
       bereik) en In aanbouw. Elk heeft dezelfde opbouw: de kop (`h1`), een illustratie als versiering
       (`aria-hidden`), een korte uitleg in B1 (wat er aan de hand is, dan wat de loper kan doen), één hoofdknop, een
-      link naar Hulp en spoed en de regel "Spoed of gevaar? Bel direct 112.". De hoofdknop:
+      link naar Hulp en spoed en de regel "Spoed of gevaar? Bel direct 112.". Een woordgrap mag hier, en alleen
+      hier (`docs/writing.md`). De hoofdknop:
 
       | Scherm | Hoofdknop |
       | --- | --- |
@@ -600,11 +612,13 @@ Elke wijziging gaat test eerst, met OpenAPI, Hurl en de pariteitstest van de MCP
     - **Tests**: een browsertest per regel uit de tabel van de router, met de focus op de `h1` en de juiste
       `<title>`; een ronde vanuit Kalender heeft Kalender actief, In aanbouw vanuit Account heeft Account actief, een
       ronde of doodlopend scherm uit een mail geen tabblad; een modaal scherm en een scherm zonder inloggen hebben
-      geen tabbalk; een route na het inloggen buiten `#/` opent Start.
+      geen tabbalk; een scherm zonder inloggen heeft de twee regels onderaan; de knoppen van een ronde staan op
+      844 px hoog in beeld; een route na het inloggen buiten `#/` opent Start.
     - **Canvas**: tabbalk zonder actief tabblad op Pagina niet gevonden, Ronde niet gevonden, Geen toegang en Er ging
       iets mis, met Account actief op In aanbouw, en tabbalk op de schermen van een ronde; "Annuleren" op de modale
-      schermen; de hoofdknoppen uit de tabel (prompt I). Een scherm dat daardoor verandert, gaat in het canvas naar
-      "· concept" en in `docs/design/walker/mobile/README.md` naar "draft".
+      schermen; de hoofdknoppen uit de tabel (prompt I); de bovenbalk, de schermen zonder inloggen en de vaste balk
+      van een ronde (prompt J). Een scherm dat daardoor verandert, gaat in het canvas naar "· concept" en in
+      `docs/design/walker/mobile/README.md` naar "draft".
     - **Alternatieven**: geen tabbalk op een scherm met "Terug", en "Terug" als hoofdknop op elk foutscherm. Zonder
       tabbalk ziet de loper niet in welk deel van de app die is, en een ronde uit een mail heeft geen vorige pagina in
       de app, zodat "Terug" de app verlaat. Geen bereik zonder cache als eigen scherm `no-connection` geeft één naam
@@ -654,6 +668,9 @@ Elke taak is één of enkele kleine commits; tests komen vóór de code. Een sch
   43).
 - Jij geeft prompt I in de chat van het canvas: tabbalk, foutschermen en modale schermen (beslissing 44). Daarna
   krijgen `page-not-found` en `error-offline` een rij in `docs/design/walker/mobile/README.md`, onder General.
+- Jij geeft prompt J in de chat van het canvas: Hulp en spoed rechtsboven, de schermen zonder inloggen, de vaste
+  balk van een ronde, één Annuleren en de tekst van Er ging iets mis (beslissing 44). Elk goedgekeurd scherm dat
+  daardoor verandert, gaat in `docs/design/walker/mobile/README.md` naar "draft", zonder hoogte.
 - `docs/design/walker/mobile/README.md`: de afspraken (2x, een maat uit de afbeelding gedeeld door twee is de maat in
   CSS-pixels) en de lijst van schermen met per scherm de status en, na goedkeuring, de hoogte in CSS-pixels.
 - Jij keurt de schermen goed (beslissing 3).
@@ -872,6 +889,33 @@ Werk in dit canvas op de pagina Mobile (390 × 844), verander niets anders dan h
 8. Controleer op 320 en 390 px breed of tekst nergens over een rand loopt of afgekapt wordt.
 9. Noem elk scherm dat je hebt aangepast, elk scherm dat terug is op "· concept", en elke link die naar een
    niet-bestaand scherm gaat.
+```
+
+**Prompt J** (eenmalig; bovenbalk, schermen zonder inloggen en ronde, beslissing 44):
+
+```text
+Werk in dit canvas op de pagina Mobile (390 × 844), verander niets anders dan hieronder staat.
+1. Rechtsboven in de bovenbalk staat op elk scherm met een bovenbalk alleen "Hulp en spoed" (icoon en tekst), als
+   link naar help.dc.html. Haal het rondje met de initialen (naar Mijn gegevens) weg, ook op Start; Mijn gegevens
+   blijft bereikbaar via Account.
+2. Zet bij Start een notitie: "Onder 360 px breed toont Hulp en spoed alleen het icoon; de tekst blijft voor
+   schermlezers."
+3. Schermen zonder inloggen (login, login-error, session-expired, login-code, login-code-error, welcome,
+   set-password, set-password-error, browser-unsupported): geen bovenbalk. Zet onderaan elk scherm, op dezelfde
+   plek en in deze volgorde, twee regels: "Lukt het niet? Vraag het je coördinator." en "Spoed of gevaar? Bel direct
+   112.", met 112 als belknop. Een spoedregel die er al staat, gaat naar die plek.
+4. Op elk scherm van een ronde met knoppen onder de inhoud (onder meer Ronde — jij en andere loper(s) en Ronde —
+   alleen jij): zet de knoppen van de ronde (zoals Resultaat melden en Afmelden) in een vaste balk direct boven de
+   tabbalk; de inhoud scrolt erachter. Toon het scherm op 844 px hoog met beide balken onderaan in beeld.
+5. Ronde plannen, Ronde plannen — fout, Ronde wijzigen en Resultaat melden: één "Annuleren", bovenaan. Haal een
+   tweede "Annuleren" onderaan weg; onderaan blijft alleen de hoofdknop.
+6. Er ging iets mis: zet de tekst terug zoals vóór prompt I, met "Hier liep iets mis", zonder de zin "Dat ligt niet
+   aan jou.". Haal die zin ook weg uit elk ander scherm waar hij staat. Een woordgrap mag alleen op een foutscherm
+   met een tekening (Pagina niet gevonden, Ronde niet gevonden, Geen toegang, Er ging iets mis, In aanbouw); noem
+   elke woordgrap op een ander scherm, zonder hem te veranderen.
+7. Zet een scherm met "· goedgekeurd <datum>" dat hierdoor verandert terug op "· concept".
+8. Noem elk scherm dat je hebt aangepast, elk scherm dat terug is op "· concept", de tekst die op Er ging iets mis
+   staat, en elke link die naar een niet-bestaand scherm gaat.
 ```
 
 ### T3. Lit vendoren (test eerst)
